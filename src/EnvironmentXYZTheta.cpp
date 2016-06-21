@@ -1,4 +1,5 @@
 #include "EnvironmentXYZTheta.hpp"
+#include <sbpl/planners/planner.h>
 
 EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr< maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > > mlsGrid) : travGen(TraversabilityGenerator3d::Config()), mlsGrid(mlsGrid)
 {
@@ -51,16 +52,37 @@ bool EnvironmentXYZTheta::InitializeMDPCfg(MDPConfig* MDPCfg)
     return true;
 }
 
+EnvironmentXYZTheta::ThetaNode *EnvironmentXYZTheta::createNewState(const DiscreteTheta &curTheta, XYZNode *curNode)
+{
+    ThetaNode *newNode = new ThetaNode(curTheta);
+    newNode->id = idToHash.size();
+    Hash hash(curNode, newNode);
+    idToHash.push_back(hash);
+    
+    //this structure need to be extended for every new state that is added. 
+    //Is seems it is later on filled in by the planner.
+    
+    //insert into and initialize the mappings
+    int* entry = new int[NUMOFINDICES_STATEID2IND];
+    StateID2IndexMapping.push_back(entry);
+    for (int i = 0; i < NUMOFINDICES_STATEID2IND; i++) {
+        StateID2IndexMapping[newNode->id][i] = -1;
+    }
+    
+    return newNode;
+}
+
+
 void EnvironmentXYZTheta::GetSuccs(int SourceStateID, std::vector< int >* SuccIDV, std::vector< int >* CostV)
 {
     const Hash &sourceHash(idToHash[SourceStateID]);
-    Node *sourceNode = sourceHash.node;
+    XYZNode *sourceNode = sourceHash.node;
     
-    PlannerNode *thetaNode = sourceHash.thetaNode;
+    ThetaNode *thetaNode = sourceHash.thetaNode;
     
     maps::grid::Index sourceIndex = sourceNode->getIndex();
     
-    Node *curNode = sourceNode;
+    XYZNode *curNode = sourceNode;
     
     for(const Motion &motion : availableMotions.getMotionForStartTheta(thetaNode->theta))
     {
@@ -133,8 +155,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, std::vector< int >* SuccID
         
         //goal from source to the end of the motion was valid
         
-        Node *successNode = nullptr;
-        PlannerNode *successthetaNode = nullptr;
+        XYZNode *successXYNode = nullptr;
+        ThetaNode *successthetaNode = nullptr;
         const DiscreteTheta curTheta = thetaNode->theta + motion.thetaDiff;
         
         //check if we can connect to the existing graph
@@ -146,14 +168,14 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, std::vector< int >* SuccID
         if(it != candidateMap.end())
         {
             //found a node with a matching height
-            successNode = *it;
+            successXYNode = *it;
         }
         else
         {
-            successNode = new Node(curNode->getHeight(), curIndex);
+            successXYNode = new XYZNode(curNode->getHeight(), curIndex);
         }
 
-        const auto &thetaMap(successNode->getUserData().thetaToNodes);
+        const auto &thetaMap(successXYNode->getUserData().thetaToNodes);
         auto thetaCandidate = thetaMap.find(curTheta);
         if(thetaCandidate != thetaMap.end())
         {
@@ -161,12 +183,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, std::vector< int >* SuccID
         }
         else
         {
-            successthetaNode = new PlannerNode(curTheta);
-            successthetaNode->id = idToHash.size();
-            Hash hash(curNode, thetaNode);
-            idToHash.push_back(hash);
-            
-            successNode->getUserData().thetaToNodes.insert(std::make_pair(curTheta, successthetaNode));
+            successthetaNode = createNewState(curTheta, successXYNode);            
+            successXYNode->getUserData().thetaToNodes.insert(std::make_pair(curTheta, successthetaNode));
         }
         
         SuccIDV->push_back(successthetaNode->id);

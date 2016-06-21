@@ -38,10 +38,10 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     };
 
     
-    class PlannerNode
+    class ThetaNode
     {
         public:
-            PlannerNode(const DiscreteTheta &t) :theta(t) {};
+            ThetaNode(const DiscreteTheta &t) :theta(t) {};
             int id;
             DiscreteTheta theta;
     };
@@ -52,21 +52,21 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
         TraversabilityGenerator3d::Node *travNode;
         
         ///contains alle nodes sorted by theta
-        std::map<DiscreteTheta, PlannerNode *> thetaToNodes; 
+        std::map<DiscreteTheta, ThetaNode *> thetaToNodes; 
     };
     
-    typedef maps::grid::TraversabilityNode<PlannerData> Node;
+    typedef maps::grid::TraversabilityNode<PlannerData> XYZNode;
     
-    maps::grid::TraversabilityMap3d<Node *> searchGrid;
+    maps::grid::TraversabilityMap3d<XYZNode *> searchGrid;
     
     class Hash 
     {
     public:
-        Hash(Node *node, PlannerNode *thetaNode) : node(node), thetaNode(thetaNode)
+        Hash(XYZNode *node, ThetaNode *thetaNode) : node(node), thetaNode(thetaNode)
         {
         }
-        Node *node;
-        PlannerNode *thetaNode;
+        XYZNode *node;
+        ThetaNode *thetaNode;
     };
     
     std::vector<Hash> idToHash;
@@ -98,6 +98,8 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     };
     
     PreComputedMotions availableMotions;
+    
+    ThetaNode *createNewState(const EnvironmentXYZTheta::DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
     
 public:
     EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid);
