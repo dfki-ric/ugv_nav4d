@@ -16,7 +16,7 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
         friend class PreComputedMotions;
         int theta;
     public:
-        DiscreteTheta(int val);
+        DiscreteTheta(int val) : theta(val) {};
         
         DiscreteTheta& operator+=(const DiscreteTheta& rhs)
         {
@@ -35,6 +35,11 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
         {
             return l.theta < r.theta;
         }
+
+        friend bool operator==(const DiscreteTheta& l, const DiscreteTheta& r)
+        {
+            return l.theta == r.theta;
+        }
     };
 
     
@@ -49,6 +54,8 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     class PlannerData
     {
     public:
+        PlannerData() : travNode(nullptr) {};
+        
         TraversabilityGenerator3d::Node *travNode;
         
         ///contains alle nodes sorted by theta
@@ -74,6 +81,8 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     class Motion
     {
     public:
+        Motion() : thetaDiff(0) {};
+        
         int xDiff;
         int yDiff;
         DiscreteTheta thetaDiff;
@@ -89,8 +98,14 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
         std::vector<std::vector<Motion> > thetaToMotion;
         
     public:
+        void setMotionForTheta(const Motion &motion, const DiscreteTheta &theta);
+        
         const std::vector<Motion> &getMotionForStartTheta(DiscreteTheta &theta)
         {
+            if(theta.theta > thetaToMotion.size())
+            {
+                throw std::runtime_error("Internal error, motion for requested theta ist not available");
+            }
             return thetaToMotion[theta.theta];
         };
         
@@ -101,8 +116,13 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     
     ThetaNode *createNewState(const EnvironmentXYZTheta::DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
     
+    ThetaNode *createNewStateFromPose(const Eigen::Vector3d& pos, double theta);
+    
+    ThetaNode *startNode;
+    ThetaNode *goalNode;
+    
 public:
-    EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid);
+    EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid, const TraversabilityGenerator3d::Config &travConf);
     virtual ~EnvironmentXYZTheta();
     
     virtual bool InitializeEnv(const char* sEnvFile);
@@ -121,6 +141,9 @@ public:
     virtual void SetAllActionsandAllOutcomes(CMDPSTATE* state);
     virtual void SetAllPreds(CMDPSTATE* state);
     virtual int SizeofCreatedEnv();
+    
+    void setStart(const Eigen::Vector3d &startPos, double theta);
+    void setGoal(const Eigen::Vector3d &goalPos, double theta);
 };
 
 
