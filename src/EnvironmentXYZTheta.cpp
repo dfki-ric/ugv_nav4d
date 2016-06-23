@@ -141,6 +141,47 @@ EnvironmentXYZTheta::ThetaNode *EnvironmentXYZTheta::createNewState(const Discre
     return newNode;
 }
 
+TraversabilityGenerator3d::Node *EnvironmentXYZTheta::movementPossible(TraversabilityGenerator3d::Node *fromTravNode, const maps::grid::Index &fromIdx, const maps::grid::Index &toIdx)
+{
+    TraversabilityGenerator3d::Node *targetNode = nullptr;
+    
+    if(toIdx == fromIdx)
+        return fromTravNode;
+    
+    //get trav node associated with the next index
+    //TODO, this is slow, make it faster
+    for(maps::grid::TraversabilityNodeBase *con: fromTravNode->getConnections())
+    {
+        if(toIdx == con->getIndex())
+        {
+            targetNode = static_cast<TraversabilityGenerator3d::Node *>(con);
+            break;
+        }
+    }
+
+    if(!targetNode)
+    {
+        cout << "No neighbour node for motion found " << endl;
+        cout << "curIndex " << fromIdx.transpose() << " newIndex " << toIdx.transpose() << endl;
+        return nullptr;
+    }
+    
+    if(!targetNode->isExpanded())
+    {
+        //current node is not drivable
+        if(!travGen.expandNode(targetNode))
+        {
+            return nullptr;
+        }
+    }
+    
+    //TODO add some collision testing
+    
+    //TODO add additionalCosts if something is near this node etc
+    
+    return targetNode;
+}
+
 
 void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, vector< int >* CostV)
 {
@@ -152,86 +193,68 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     maps::grid::Index sourceIndex = sourceNode->getIndex();
     
     XYZNode *curNode = sourceNode;
+
+    TraversabilityGenerator3d::Node *travNode = curNode->getUserData().travNode;
+    if(!travNode->isExpanded())
+    {
+        //current node is not drivable
+        if(!travGen.expandNode(travNode))
+        {
+            cout << "Node " << travNode->getIndex().transpose() << "Is not drivable" << endl;
+            return;
+        }
+    }
     
     for(const Motion &motion : availableMotions.getMotionForStartTheta(thetaNode->theta))
     {
-        TraversabilityGenerator3d::Node *travNode = curNode->getUserData().travNode;
+        travNode = curNode->getUserData().travNode;
         maps::grid::Index curIndex = curNode->getIndex();
-        
-        if(!travNode->isExpanded())
-        {
-            //current node is not drivable
-            if(!travGen.expandNode(travNode))
-            {
-                cout << "Node " << travNode->getIndex().transpose() << "Is not drivable" << endl;
-                return;
-            }
-        }
         
         int additionalCosts = 0;
         
-        bool fail = false;
         //FIXME intermediateCells has been removed (is not provided by config file)
         for(const base::Pose2D &intermediatePose : motion.intermediatePoses)
         {
-            TraversabilityGenerator3d::Node *newNode = nullptr;
             maps::grid::Index newIndex = curIndex;
             maps::grid::Index diff;
             const base::Vector3d position(intermediatePose.position.x(), intermediatePose.position.y(), 0);
             if(!searchGrid.toGrid(position, diff))
+            {
+                std::cout << "Position is " << position.transpose() << std::endl;
                 throw EnvironmentXYZThetaException("Cannot convert intermediate Pose to grid cell");
+            }
             newIndex.x() += diff.x();
             newIndex.y() += diff.y();
             
-            //get trav node associated with the next index
-            //TODO, this is slow, make it faster
-            for(maps::grid::TraversabilityNodeBase *con: travNode->getConnections())
+            travNode = movementPossible(travNode, curIndex, newIndex);
+            
+            if(!travNode)
             {
-                if(newIndex == con->getIndex())
-                {
-                    newNode = static_cast<TraversabilityGenerator3d::Node *>(con);
-                    break;
-                }
-            }
-
-            if(!newNode)
-            {
-                cout << "No neighbour node for motion found " << endl;
-                cout << "curIndex " << curIndex.transpose() << " newIndex " << newIndex.transpose() << endl;
-                fail = true;
                 break;
             }
             
             curIndex = newIndex;
-            travNode = newNode;
-
-            if(!travNode->isExpanded())
-            {
-                //current node is not drivable
-                if(!travGen.expandNode(travNode))
-                {
-                    fail = true;
-                    break;
-                }
-            }
             
-            //TODO add some collision testing
-            
-            //TODO add additionalCosts if something is near this node etc
         }
-
-        if(fail)
+        
+        if(!travNode)
         {
-            cout << "Motion passes Node " << travNode->getIndex().transpose() << ", that is not drivable" << endl;
+            cout << "Motion passes Node " << curIndex.transpose() << ", that is not drivable" << endl;
             continue;
         }
         
-        maps::grid::Index check(sourceIndex);
-        check.x() += motion.xDiff;
-        check.y() += motion.yDiff;
+        maps::grid::Index finalPos(sourceIndex);
+        finalPos.x() += motion.xDiff;
+        finalPos.y() += motion.yDiff;
         
-        if(check != curIndex)
+        travNode = movementPossible(travNode, curIndex, finalPos);
+        if(!travNode)
+            continue;
+        
+        
+        if(finalPos != curIndex)
         {
+            std::cout << "Expected Pos = " << finalPos.transpose() << " Cur pos " << curIndex.transpose() << std::endl;
             throw runtime_error("Error, computation is fishy (Internal error)");
         }
         

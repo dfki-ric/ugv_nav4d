@@ -190,6 +190,8 @@ private:
      * @throw EnvironmentXYZThetaException in case of error*/
     Motion readPrimitive(std::ifstream& file) const;
     
+    TraversabilityGenerator3d::Node* movementPossible(TraversabilityGenerator3d::Node* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& to);
+    
     
     const TraversabilityGenerator3d::Config &travConf;
 };

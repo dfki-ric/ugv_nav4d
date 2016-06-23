@@ -67,7 +67,7 @@ int main(int argc, char** argv)
     config.mSpeeds.mMultiplierPointTurn = 8;
     
     config.mNumPrimPartition = 10;
-    config.mNumPosesPerPrim = 10;
+    config.mNumPosesPerPrim = 20;
     config.mNumAngles = 16;
     
     config.mMapWidth = 400; //FIXME why do I need this when generating primitives?
