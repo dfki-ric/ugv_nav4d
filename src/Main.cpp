@@ -76,7 +76,6 @@ int main(int argc, char** argv)
     
     motion_planning_libraries::SbplMotionPrimitives mprims(config);
     mprims.createPrimitives();
-    mprims.storeToFile("test.mprim");
     
     TraversabilityGenerator3d::Config conf;
     conf.gridResolution = 0.1;
@@ -86,8 +85,7 @@ int main(int argc, char** argv)
     conf.robotHeight = 0.9;
 
     
-    EnvironmentXYZTheta myEnv(mlsPtr, conf);
-    myEnv.ReadMotionPrimitives("test.mprim");
+    EnvironmentXYZTheta myEnv(mlsPtr, conf, mprims);
     
     anaPlanner planner(&myEnv, true);
 

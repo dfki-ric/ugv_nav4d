@@ -1,3 +1,4 @@
+#include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
 #include "EnvironmentXYZTheta.hpp"
 #include <sbpl/planners/planner.h>
 #include <sbpl/utils/mdpconfig.h>
@@ -7,6 +8,7 @@
 #include <fstream>
 
 using namespace std;
+using namespace motion_planning_libraries;
 
 void EnvironmentXYZTheta::PreComputedMotions::setMotionForTheta(const EnvironmentXYZTheta::Motion& motion, const EnvironmentXYZTheta::DiscreteTheta& theta)
 {
@@ -19,7 +21,9 @@ void EnvironmentXYZTheta::PreComputedMotions::setMotionForTheta(const Environmen
 }
 
 
-EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr< maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > > mlsGrid, const TraversabilityGenerator3d::Config &travConf) : 
+EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr< maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > > mlsGrid,
+                                         const TraversabilityGenerator3d::Config &travConf,
+                                         const motion_planning_libraries::SbplMotionPrimitives& primitives) : 
     travGen(travConf)
     , mlsGrid(mlsGrid)
     , startNode(nullptr)
@@ -30,6 +34,7 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr< maps::grid::MultiLev
     
     searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
     searchGrid.extend(travGen.getTraversabilityMap().getNumCells());
+    readMotionPrimitives(primitives);
 }
 
 EnvironmentXYZTheta::~EnvironmentXYZTheta()
@@ -415,7 +420,7 @@ EnvironmentXYZTheta::Motion EnvironmentXYZTheta::readPrimitive(ifstream& file) c
 }
 
 
-void EnvironmentXYZTheta::ReadMotionPrimitives(const string& path)
+void EnvironmentXYZTheta::readMotionPrimitives(const string& path)
 {
   
     /* File content example:
@@ -469,5 +474,24 @@ void EnvironmentXYZTheta::ReadMotionPrimitives(const string& path)
         availableMotions.setMotionForTheta(motion, motion.startTheta);
     }
 }
+
+void EnvironmentXYZTheta::readMotionPrimitives(const SbplMotionPrimitives& primitives)
+{
+    for(const Primitive& prim : primitives.mListPrimitives)
+    {
+      Motion motion;
+      motion.xDiff = prim.mEndPose[0];
+      motion.yDiff = prim.mEndPose[1];
+      motion.thetaDiff = prim.mStartAngle - prim.mEndPose[2];
+      motion.startTheta = prim.mStartAngle;
+      for(const base::Vector3d& pose : prim.mIntermediatePoses)
+      {
+          motion.intermediatePoses.emplace_back(base::Position2D(pose[0], pose[1]), pose[2]);
+      }
+      std::cout << "Adding Motion: 0, 0, " << motion.startTheta.getTheta() << " -> " << motion.xDiff << ", " << motion.yDiff << ", " << motion.thetaDiff.getTheta() << std::endl;
+      availableMotions.setMotionForTheta(motion, motion.startTheta);
+    }
+}
+
 
 

@@ -5,6 +5,10 @@
 #include <maps/grid/TraversabilityMap3d.hpp>
 #include <base/Pose.hpp>
 
+namespace motion_planning_libraries 
+{
+    class SbplMotionPrimitives;
+}
 
 class EnvironmentXYZTheta : public DiscreteSpaceInformation
 {
@@ -143,7 +147,9 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     ThetaNode *goalNode;
     
 public:
-    EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid, const TraversabilityGenerator3d::Config &travConf);
+    EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid,
+                        const TraversabilityGenerator3d::Config &travConf,
+                        const motion_planning_libraries::SbplMotionPrimitives& primitives);
     virtual ~EnvironmentXYZTheta();
     
     virtual bool InitializeEnv(const char* sEnvFile);
@@ -165,7 +171,9 @@ public:
     
     /**Load motion primitives from .mprim file.
      * @ŧhrow EnvironmentXYZThetaException In case of error*/
-    virtual void ReadMotionPrimitives(const std::string& path);
+    virtual void readMotionPrimitives(const std::string& path);
+    
+    virtual void readMotionPrimitives(const motion_planning_libraries::SbplMotionPrimitives& primitives);
     
     void setStart(const Eigen::Vector3d &startPos, double theta);
     void setGoal(const Eigen::Vector3d &goalPos, double theta);
