@@ -3,6 +3,8 @@
 #include <sbpl/discrete_space_information/environment.h>
 #include <trav_gen_3d/TraversabilityGenerator3d.hpp>
 #include <maps/grid/TraversabilityMap3d.hpp>
+#include <base/Pose.hpp>
+
 
 class EnvironmentXYZTheta : public DiscreteSpaceInformation
 {
@@ -10,6 +12,18 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid;
 
     class PreComputedMotions;
+    
+    struct EnvironmentXYZThetaException : public SBPL_Exception
+    {
+      EnvironmentXYZThetaException(const std::string& what) : 
+          msg("SBPL has encountered a fatal error: " + what){}
+      
+        virtual const char* what() const throw()
+        {
+            return msg.c_str();
+        }
+      const std::string msg;
+    };
      
     class DiscreteTheta
     {
@@ -40,6 +54,12 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
         {
             return l.theta == r.theta;
         }
+        
+        int getTheta() const
+        {
+          return theta;
+        }
+        
     };
 
     
@@ -66,9 +86,8 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     
     maps::grid::TraversabilityMap3d<XYZNode *> searchGrid;
     
-    class Hash 
+    struct Hash 
     {
-    public:
         Hash(XYZNode *node, ThetaNode *thetaNode) : node(node), thetaNode(thetaNode)
         {
         }
@@ -78,16 +97,17 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     
     std::vector<Hash> idToHash;
     
-    class Motion
+    struct Motion
     {
-    public:
-        Motion() : thetaDiff(0) {};
+        Motion() : thetaDiff(0),startTheta(0) {};
         
         int xDiff;
         int yDiff;
         DiscreteTheta thetaDiff;
+        DiscreteTheta startTheta;
         
-        std::vector<Eigen::Vector2i> intermediateCells;
+        /**the intermediate poses are not discrete */
+        std::vector<base::Pose2D> intermediatePoses;
         
         int baseCost;
     };
@@ -95,6 +115,7 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     
     class PreComputedMotions
     {
+        //indexed by discrete start theta
         std::vector<std::vector<Motion> > thetaToMotion;
         
     public:
@@ -102,7 +123,7 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
         
         const std::vector<Motion> &getMotionForStartTheta(DiscreteTheta &theta)
         {
-            if(theta.theta > thetaToMotion.size())
+            if(theta.theta > (int)thetaToMotion.size())
             {
                 throw std::runtime_error("Internal error, motion for requested theta ist not available");
             }
@@ -142,8 +163,27 @@ public:
     virtual void SetAllPreds(CMDPSTATE* state);
     virtual int SizeofCreatedEnv();
     
+    /**Load motion primitives from .mprim file.
+     * @ŧhrow EnvironmentXYZThetaException In case of error*/
+    virtual void ReadMotionPrimitives(const std::string& path);
+    
     void setStart(const Eigen::Vector3d &startPos, double theta);
     void setGoal(const Eigen::Vector3d &goalPos, double theta);
+    
+private:
+    //note: readVar could be a template but I want to avoid boost dependencies in the header file
+    /** Read a variable named @p varName from @p file and store it i @p result */
+    void readVar(const std::string& varName, int& result, std::ifstream& file) const;
+    void readVar(const std::string& varName, double& result, std::ifstream& file) const;
+    void readVar(const std::string& varName, Eigen::Array3i& result, std::ifstream& file) const;
+    void readPose2D(base::Pose2D& result, std::ifstream& file) const;  
+    
+    /**Reads the next primitive from the file.
+     * @throw EnvironmentXYZThetaException in case of error*/
+    Motion readPrimitive(std::ifstream& file) const;
+    
+    
+    const TraversabilityGenerator3d::Config &travConf;
 };
 
 

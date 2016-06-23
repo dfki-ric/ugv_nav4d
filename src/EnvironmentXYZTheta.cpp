@@ -1,10 +1,16 @@
 #include "EnvironmentXYZTheta.hpp"
 #include <sbpl/planners/planner.h>
 #include <sbpl/utils/mdpconfig.h>
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+#include <base/Pose.hpp>
+#include <fstream>
+
+using namespace std;
 
 void EnvironmentXYZTheta::PreComputedMotions::setMotionForTheta(const EnvironmentXYZTheta::Motion& motion, const EnvironmentXYZTheta::DiscreteTheta& theta)
 {
-    if(thetaToMotion.size() <= theta.theta)
+    if((int)thetaToMotion.size() <= theta.theta)
     {
         thetaToMotion.resize(theta.theta + 1);
     }
@@ -18,23 +24,12 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr< maps::grid::MultiLev
     , mlsGrid(mlsGrid)
     , startNode(nullptr)
     , goalNode(nullptr)
+    , travConf(travConf)
 {
     travGen.setMLSGrid(mlsGrid);
     
     searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
     searchGrid.extend(travGen.getTraversabilityMap().getNumCells());
-    
-    
-    Motion simpleForward;
-    
-    simpleForward.baseCost = 1;
-    simpleForward.xDiff = 1;
-    simpleForward.yDiff = 0;
-    simpleForward.thetaDiff = 0;
-
-    simpleForward.intermediateCells.push_back(Eigen::Vector2i(1,0));
-    
-    availableMotions.setMotionForTheta(simpleForward, DiscreteTheta(0));
 }
 
 EnvironmentXYZTheta::~EnvironmentXYZTheta()
@@ -47,8 +42,8 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
     TraversabilityGenerator3d::Node *travNode = travGen.generateStartNode(pos);
     if(!travNode)
     {
-        std::cout << "createNewStateFromPose: Error Pose " << pos.transpose() << " is out of grid" << std::endl;
-        throw std::runtime_error("Pose is out of grid");
+        cout << "createNewStateFromPose: Error Pose " << pos.transpose() << " is out of grid" << endl;
+        throw runtime_error("Pose is out of grid");
     }
     
     XYZNode *xyzNode = new XYZNode(travNode->getHeight(), travNode->getIndex());
@@ -76,13 +71,13 @@ void EnvironmentXYZTheta::SetAllPreds(CMDPSTATE* state)
     //implement this if the planner needs access to predecessors
 
     SBPL_ERROR("ERROR in EnvNAV2D... function: SetAllPreds is undefined\n");
-    throw new SBPL_Exception();
+    throw EnvironmentXYZThetaException("SetAllPreds() not implemented");
 }
 
 void EnvironmentXYZTheta::SetAllActionsandAllOutcomes(CMDPSTATE* state)
 {
     SBPL_ERROR("ERROR in EnvNAV2D... function: SetAllActionsandAllOutcomes is undefined\n");
-    throw new SBPL_Exception();
+    throw EnvironmentXYZThetaException("SetAllActionsandAllOutcomes() not implemented");
 }
 
 int EnvironmentXYZTheta::GetFromToHeuristic(int FromStateID, int ToStateID)
@@ -126,7 +121,7 @@ EnvironmentXYZTheta::ThetaNode *EnvironmentXYZTheta::createNewState(const Discre
     newNode->id = idToHash.size();
     Hash hash(curNode, newNode);
     idToHash.push_back(hash);
-    curNode->getUserData().thetaToNodes.insert(std::make_pair(curTheta, newNode));
+    curNode->getUserData().thetaToNodes.insert(make_pair(curTheta, newNode));
     
     //this structure need to be extended for every new state that is added. 
     //Is seems it is later on filled in by the planner.
@@ -142,7 +137,7 @@ EnvironmentXYZTheta::ThetaNode *EnvironmentXYZTheta::createNewState(const Discre
 }
 
 
-void EnvironmentXYZTheta::GetSuccs(int SourceStateID, std::vector< int >* SuccIDV, std::vector< int >* CostV)
+void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, vector< int >* CostV)
 {
     const Hash &sourceHash(idToHash[SourceStateID]);
     XYZNode *sourceNode = sourceHash.node;
@@ -163,7 +158,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, std::vector< int >* SuccID
             //current node is not drivable
             if(!travGen.expandNode(travNode))
             {
-                std::cout << "Node " << travNode->getIndex().transpose() << "Is not drivable" << std::endl;
+                cout << "Node " << travNode->getIndex().transpose() << "Is not drivable" << endl;
                 return;
             }
         }
@@ -171,10 +166,15 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, std::vector< int >* SuccID
         int additionalCosts = 0;
         
         bool fail = false;
-        for(const Eigen::Vector2i &diff : motion.intermediateCells)
+        //FIXME intermediateCells has been removed (is not provided by config file)
+        for(const base::Pose2D &intermediatePose : motion.intermediatePoses)
         {
             TraversabilityGenerator3d::Node *newNode = nullptr;
             maps::grid::Index newIndex = curIndex;
+            maps::grid::Index diff;
+            const base::Vector3d position(intermediatePose.position.x(), intermediatePose.position.y(), 0);
+            if(!searchGrid.toGrid(position, diff))
+                throw EnvironmentXYZThetaException("Cannot convert intermediate Pose to grid cell");
             newIndex.x() += diff.x();
             newIndex.y() += diff.y();
             
@@ -191,8 +191,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, std::vector< int >* SuccID
 
             if(!newNode)
             {
-                std::cout << "No neighbour node for motion found " << std::endl;
-                std::cout << "curIndex " << curIndex.transpose() << " newIndex " << newIndex.transpose() << std::endl;
+                cout << "No neighbour node for motion found " << endl;
+                cout << "curIndex " << curIndex.transpose() << " newIndex " << newIndex.transpose() << endl;
                 fail = true;
                 break;
             }
@@ -217,7 +217,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, std::vector< int >* SuccID
 
         if(fail)
         {
-            std::cout << "Motion passes Node " << travNode->getIndex().transpose() << ", that is not drivable" << std::endl;
+            cout << "Motion passes Node " << travNode->getIndex().transpose() << ", that is not drivable" << endl;
             continue;
         }
         
@@ -227,7 +227,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, std::vector< int >* SuccID
         
         if(check != curIndex)
         {
-            throw std::runtime_error("Error, computation is fishy (Internal error)");
+            throw runtime_error("Error, computation is fishy (Internal error)");
         }
         
         //goal from source to the end of the motion was valid
@@ -244,7 +244,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, std::vector< int >* SuccID
         
         if(it != candidateMap.end())
         {
-            std::cout << "Found existing node " << std::endl;
+            cout << "Found existing node " << endl;
             //found a node with a matching height
             successXYNode = *it;
         }
@@ -258,13 +258,13 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, std::vector< int >* SuccID
         
         for(const auto &e: thetaMap)
         {
-            std::cout << "Elem is " << e.second->id << std::endl;
+            cout << "Elem is " << e.second->id << endl;
         }
         
         auto thetaCandidate = thetaMap.find(curTheta);
         if(thetaCandidate != thetaMap.end())
         {
-            std::cout << "Found existing State, reconnectiong graph " << std::endl;
+            cout << "Found existing State, reconnectiong graph " << endl;
             
             successthetaNode = thetaCandidate->second;
         }
@@ -273,17 +273,17 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, std::vector< int >* SuccID
             successthetaNode = createNewState(curTheta, successXYNode);
         }
         
-        std::cout << "Adding Success Node " << successXYNode->getIndex().transpose() << " trav idx " << travNode->getIndex().transpose() << std::endl;
+        cout << "Adding Success Node " << successXYNode->getIndex().transpose() << " trav idx " << travNode->getIndex().transpose() << endl;
         
         SuccIDV->push_back(successthetaNode->id);
         CostV->push_back(motion.baseCost + additionalCosts);
     }
 }
 
-void EnvironmentXYZTheta::GetPreds(int TargetStateID, std::vector< int >* PredIDV, std::vector< int >* CostV)
+void EnvironmentXYZTheta::GetPreds(int TargetStateID, vector< int >* PredIDV, vector< int >* CostV)
 {
     SBPL_ERROR("ERROR in EnvNAV2D... function: GetPreds is undefined\n");
-    throw new SBPL_Exception();
+    throw EnvironmentXYZThetaException("GetPreds() not implemented");
 }
 
 int EnvironmentXYZTheta::SizeofCreatedEnv()
@@ -293,13 +293,181 @@ int EnvironmentXYZTheta::SizeofCreatedEnv()
 
 void EnvironmentXYZTheta::PrintEnv_Config(FILE* fOut)
 {
-
+    throw EnvironmentXYZThetaException("PrintEnv_Config() not implemented");
 }
 
 void EnvironmentXYZTheta::PrintState(int stateID, bool bVerbose, FILE* fOut)
 {
     const Hash &hash(idToHash[stateID]);
-    std::cout << "State coordinate " << hash.node->getIndex().transpose() << " " << hash.node->getHeight() << std::endl; //" Theta " << hash.thetaNode->theta << std::endl;
+    cout << "State coordinate " << hash.node->getIndex().transpose() << " " << hash.node->getHeight() << endl; //" Theta " << hash.thetaNode->theta << endl;
+}
+
+
+void EnvironmentXYZTheta::readVar(const string& varName, int& result, ifstream& file) const
+{
+    string line;
+    vector<string> strs;
+    if(!getline(file, line)) 
+        throw EnvironmentXYZThetaException("unexpected EOF");
+  
+    boost::trim(line);
+    boost::split(strs, line, boost::is_any_of(":"));
+    if(strs.size() != 2 || strs[0] != varName)
+        throw EnvironmentXYZThetaException("invalid line: " + line);
+    
+    boost::trim(strs[1]);
+    result = boost::lexical_cast<int>(strs[1]);
+}
+
+void EnvironmentXYZTheta::readVar(const string& varName, double& result, ifstream& file) const
+{
+    string line;
+    vector<string> strs;
+      if(!getline(file, line)) 
+        throw EnvironmentXYZThetaException("unexpected EOF");
+  
+    boost::trim(line);
+    boost::split(strs, line, boost::is_any_of(":"));
+    if(strs.size() != 2 || strs[0] != varName)
+        throw EnvironmentXYZThetaException("invalid line: " + line);
+    
+    boost::trim(strs[1]);
+    result = boost::lexical_cast<double>(strs[1]);
+}
+
+void EnvironmentXYZTheta::readVar(const string& varName, Eigen::Array3i& result, ifstream& file) const
+{
+    string line;
+    vector<string> strs;
+    if(!getline(file, line)) 
+        throw EnvironmentXYZThetaException("unexpected EOF");
+    
+    boost::trim(line);
+    boost::split(strs, line, boost::is_any_of(": "), boost::token_compress_on);
+    
+    if(strs.size() != 4 || strs[0] != varName)
+        throw EnvironmentXYZThetaException("unabled to parse Pose2D");
+    
+    boost::trim(strs[1]);
+    boost::trim(strs[2]);
+    boost::trim(strs[3]);
+    result << boost::lexical_cast<int>(strs[1]),
+              boost::lexical_cast<int>(strs[2]),                                       
+              boost::lexical_cast<int>(strs[3]);
+}
+
+void EnvironmentXYZTheta::readPose2D(base::Pose2D& result, std::ifstream& file) const
+{
+  
+    string line;
+    if(!getline(file, line)) 
+        throw EnvironmentXYZThetaException("unexpected EOF");
+  
+    vector<string> strs;
+    boost::split(strs, line, boost::is_space(), boost::token_compress_on);
+    if(strs.size() != 3)
+        throw EnvironmentXYZThetaException("unabled to parse Pose2D");
+    
+    boost::trim(strs[0]);
+    boost::trim(strs[1]);
+    boost::trim(strs[2]);
+    const double x = boost::lexical_cast<double>(strs[0]);
+    const double y = boost::lexical_cast<double>(strs[1]);
+    const double theta = boost::lexical_cast<double>(strs[2]);
+    result = base::Pose2D(base::Position2D(x, y), base::Orientation2D(theta));
+}
+
+
+EnvironmentXYZTheta::Motion EnvironmentXYZTheta::readPrimitive(ifstream& file) const
+{
+    EnvironmentXYZTheta::Motion result;
+    int primId = 0;
+    int theta = 0;
+    Eigen::Array3i discreteEndPose;
+    double additionalCostMultplier;
+    int numIntermediatePoses;
+    
+    SBPL_DEBUG("===== Reading Primitive =====\n");
+    readVar("primID", primId, file);
+    readVar("startangle_c", theta, file);
+    readVar("endpose_c", discreteEndPose, file);
+    readVar("additionalactioncostmult", additionalCostMultplier, file);
+    readVar("intermediateposes", numIntermediatePoses, file);
+    result.intermediatePoses.resize(numIntermediatePoses);
+    
+    SBPL_DEBUG("primID = %d\n", primId);
+    SBPL_DEBUG("theta = %d\n", theta);
+    SBPL_DEBUG("discreteEndPose = %d, %d, %d\n", discreteEndPose[0], discreteEndPose[1], discreteEndPose[2]);
+    SBPL_DEBUG("additionalCostMultplier = %f\n", additionalCostMultplier);
+    SBPL_DEBUG("numIntermediatePoses = %d\n", numIntermediatePoses);
+    
+    SBPL_DEBUG("Intermediate Poses:\n");
+    for(int i = 0; i < numIntermediatePoses; ++i)
+    {
+        readPose2D(result.intermediatePoses[i], file);
+        SBPL_DEBUG("%f, %f, %f\n", pose.position.x(), pose.position.y(), pose.orientation);
+    }
+    result.startTheta = theta;
+    result.xDiff = discreteEndPose[0];
+    result.yDiff = discreteEndPose[1];
+    result.thetaDiff = discreteEndPose[2] - theta;
+    return result;
+}
+
+
+void EnvironmentXYZTheta::ReadMotionPrimitives(const string& path)
+{
+  
+    /* File content example:
+    resolution_m: 0.100000
+    numberofangles: 16
+    totalnumberofprimitives: 192
+    primID: 0
+    startangle_c: 0
+    endpose_c: 10 0 0
+    additionalactioncostmult: 1
+    intermediateposes: 10
+    0.0000 0.0000 0.0000
+    0.1111 0.0000 0.0000
+    0.2222 0.0000 0.0000
+    0.3333 0.0000 0.0000
+    0.4444 0.0000 0.0000
+    0.5556 0.0000 0.0000
+    0.6667 0.0000 0.0000
+    0.7778 0.0000 0.0000
+    0.8889 0.0000 0.0000
+    1.0000 0.0000 0.0000 */
+  
+    SBPL_DEBUG("Reading motion primitives from: %s\n", path.c_str());
+    ifstream file(path);
+    if(!file.is_open())
+        throw EnvironmentXYZThetaException("Unable to open motion primitive file " + path);
+    
+    //read header
+    double resolution = 0;;
+    int numAngles = 0;
+    int totalNumPrimitives = 0;
+    readVar("resolution_m", resolution, file);
+    readVar("numberofangles", numAngles, file);
+    readVar("totalnumberofprimitives", totalNumPrimitives, file);
+    
+    SBPL_DEBUG("resolution = %f\n", resolution);
+    SBPL_DEBUG("numAngles = %d\n", numAngles);    
+    SBPL_DEBUG("totalnumberofprimitives = %d\n", totalNumPrimitives);
+    
+    if(std::abs(travConf.gridResolution - resolution) > 0.000001)
+        throw EnvironmentXYZThetaException("grid resolution missmatch. Expected: " + 
+                                           boost::lexical_cast<string>(travConf.gridResolution) +
+                                           " but got: " + 
+                                           boost::lexical_cast<string>(resolution));
+    
+    //read primitives
+    for(int i = 0; i < totalNumPrimitives; ++i)
+    {
+        const Motion motion = readPrimitive(file);
+        std::cout << "Adding Motion: 0, 0, " << motion.startTheta.getTheta() << " -> " << motion.xDiff << ", " << motion.yDiff << ", " << motion.thetaDiff.getTheta() << std::endl;
+        availableMotions.setMotionForTheta(motion, motion.startTheta);
+    }
 }
 
 

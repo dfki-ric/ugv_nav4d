@@ -1,7 +1,8 @@
 #include <iostream>
+#include <boost/archive/polymorphic_binary_iarchive.hpp>
+#include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
 #include "EnvironmentXYZTheta.hpp"
 #include <sbpl/planners/ANAplanner.h>
-#include <boost/archive/polymorphic_binary_iarchive.hpp>
 #include <fstream>
 #include <backward/backward.hpp>
 #include <sbpl/utils/mdpconfig.h>
@@ -50,8 +51,35 @@ int main(int argc, char** argv)
     
     std::cout << "MLS Size " << mlsBase->getSize().transpose() << std::endl;
     
+    //create motion primitives
+    motion_planning_libraries::MotionPrimitivesConfig config;
+    config.mSpeeds.mSpeedForward = 1.0;
+    config.mSpeeds.mSpeedBackward = 1.0;
+    config.mSpeeds.mSpeedLateral = 0.3;
+    config.mSpeeds.mSpeedTurn = 0.4;
+    config.mSpeeds.mSpeedPointTurn = 0.1;
+    
+    //FIXME what do the multipliers do?
+    config.mSpeeds.mMultiplierForward = 1;
+    config.mSpeeds.mMultiplierBackward = 5;
+    config.mSpeeds.mMultiplierLateral = 10;
+    config.mSpeeds.mMultiplierTurn = 2;
+    config.mSpeeds.mMultiplierPointTurn = 8;
+    
+    config.mNumPrimPartition = 10;
+    config.mNumPosesPerPrim = 10;
+    config.mNumAngles = 16;
+    
+    config.mMapWidth = 400; //FIXME why do I need this when generating primitives?
+    config.mMapHeight = 400;
+    config.mGridSize = 0.1;
+    
+    motion_planning_libraries::SbplMotionPrimitives mprims(config);
+    mprims.createPrimitives();
+    mprims.storeToFile("test.mprim");
+    
     TraversabilityGenerator3d::Config conf;
-    conf.gridResolution = 0.25;
+    conf.gridResolution = 0.1;
     conf.maxSlope = 0.5;
     conf.maxStepHeight = 0.2;
     conf.robotSizeX = 0.5;
@@ -59,6 +87,7 @@ int main(int argc, char** argv)
 
     
     EnvironmentXYZTheta myEnv(mlsPtr, conf);
+    myEnv.ReadMotionPrimitives("test.mprim");
     
     anaPlanner planner(&myEnv, true);
 
