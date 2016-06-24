@@ -9,6 +9,7 @@
   <depend package="base/cmake" />
   <depend package="planning/sbpl" />
   <depend package="planning/trav_gen_3d" />
+  <depend package="planning/motion_planning_libraries" />
   <depend package="tools/backward" />
 
 </package>
