@@ -220,7 +220,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             maps::grid::Index newIndex = curIndex;
             maps::grid::Index diff;
             const base::Vector3d position(intermediatePose.position.x(), intermediatePose.position.y(), 0);
-            if(!searchGrid.toGrid(position, diff))
+            if(!searchGrid.toGrid(position, diff, false))
             {
                 std::cout << "Position is " << position.transpose() << std::endl;
                 throw EnvironmentXYZThetaException("Cannot convert intermediate Pose to grid cell");
