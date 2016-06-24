@@ -30,6 +30,8 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr< maps::grid::MultiLev
     , goalNode(nullptr)
     , travConf(travConf)
 {
+    numAngles = 16;
+    
     travGen.setMLSGrid(mlsGrid);
     
     searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
@@ -55,7 +57,7 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
     xyzNode->getUserData().travNode = travNode;
     searchGrid.at(travNode->getIndex()).insert(xyzNode);
     
-    DiscreteTheta thetaD(0);
+    DiscreteTheta thetaD(theta, numAngles);
     
     return createNewState(thetaD, xyzNode);
 }
@@ -408,7 +410,7 @@ void EnvironmentXYZTheta::readPose2D(base::Pose2D& result, std::ifstream& file) 
 
 EnvironmentXYZTheta::Motion EnvironmentXYZTheta::readPrimitive(ifstream& file) const
 {
-    EnvironmentXYZTheta::Motion result;
+    EnvironmentXYZTheta::Motion result(numAngles);
     int primId = 0;
     int theta = 0;
     Eigen::Array3i discreteEndPose;
@@ -435,10 +437,10 @@ EnvironmentXYZTheta::Motion EnvironmentXYZTheta::readPrimitive(ifstream& file) c
         readPose2D(result.intermediatePoses[i], file);
         SBPL_DEBUG("%f, %f, %f\n", pose.position.x(), pose.position.y(), pose.orientation);
     }
-    result.startTheta = theta;
+    result.startTheta = DiscreteTheta(theta, numAngles);
     result.xDiff = discreteEndPose[0];
     result.yDiff = discreteEndPose[1];
-    result.thetaDiff = discreteEndPose[2] - theta;
+    result.thetaDiff = DiscreteTheta(discreteEndPose[2] - theta, numAngles);
     return result;
 }
 
@@ -502,11 +504,12 @@ void EnvironmentXYZTheta::readMotionPrimitives(const SbplMotionPrimitives& primi
 {
     for(const Primitive& prim : primitives.mListPrimitives)
     {
-      Motion motion;
+      Motion motion(numAngles);
+      
       motion.xDiff = prim.mEndPose[0];
       motion.yDiff = prim.mEndPose[1];
-      motion.thetaDiff = prim.mStartAngle - prim.mEndPose[2];
-      motion.startTheta = prim.mStartAngle;
+      motion.thetaDiff =  DiscreteTheta(prim.mStartAngle - static_cast<int>(prim.mEndPose[2]), numAngles);
+      motion.startTheta = DiscreteTheta(prim.mStartAngle, numAngles);
       for(const base::Vector3d& pose : prim.mIntermediatePoses)
       {
           motion.intermediatePoses.emplace_back(base::Position2D(pose[0], pose[1]), pose[2]);

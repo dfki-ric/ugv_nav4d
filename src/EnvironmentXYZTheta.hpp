@@ -33,12 +33,35 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     {
         friend class PreComputedMotions;
         int theta;
+        unsigned int numAngles;
+        
+        void normalize()
+        {
+            if(theta < 0)
+                theta += numAngles;
+
+            if(theta >= numAngles)
+                theta -= numAngles;
+        }
+        
     public:
-        DiscreteTheta(int val) : theta(val) {};
+        DiscreteTheta(int val, unsigned int numAngles) : theta(val) , numAngles(numAngles) {
+            normalize();
+        }
+        
+        DiscreteTheta(double val, unsigned int numAngles) : numAngles(numAngles) {
+            std::cout << "Double constructor called " << val << std::endl;
+            theta = floor(val / M_PI / 2.0 * numAngles);
+            normalize();
+        }
+        
+        DiscreteTheta(const DiscreteTheta &o) : theta(o.theta), numAngles(o.numAngles) {
+        }
         
         DiscreteTheta& operator+=(const DiscreteTheta& rhs)
         {
             theta += rhs.theta;
+            normalize();
             return *this;
         }
         
@@ -103,7 +126,7 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     
     struct Motion
     {
-        Motion() : thetaDiff(0),startTheta(0) {};
+        Motion(unsigned int numAngles) : thetaDiff(0, numAngles),startTheta(0, numAngles) {};
         
         int xDiff;
         int yDiff;
@@ -127,11 +150,12 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
         
         const std::vector<Motion> &getMotionForStartTheta(DiscreteTheta &theta)
         {
-            if(theta.theta > (int)thetaToMotion.size())
+            if(theta.theta >= (int)thetaToMotion.size())
             {
+                std::cout << "Input theta is " << theta.theta;
                 throw std::runtime_error("Internal error, motion for requested theta ist not available");
             }
-            return thetaToMotion[theta.theta];
+            return thetaToMotion.at(theta.theta);
         };
         
         
@@ -194,6 +218,8 @@ private:
     
     
     const TraversabilityGenerator3d::Config &travConf;
+    
+    unsigned int numAngles;
 };
 
 
