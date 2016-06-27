@@ -92,20 +92,30 @@ void EnvironmentXYZTheta::SetAllActionsandAllOutcomes(CMDPSTATE* state)
 
 int EnvironmentXYZTheta::GetFromToHeuristic(int FromStateID, int ToStateID)
 {
+    const Hash &sourceHash(idToHash[FromStateID]);
+    XYZNode *sourceNode = sourceHash.node;
+
+    const Hash &targetHash(idToHash[ToStateID]);
+    XYZNode *targetNode = targetHash.node;
+
     //dummy implementation
-    return 0;
+    return (sourceNode->getIndex() - targetNode->getIndex()).norm();
 }
 
 int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
 {
-    //dummy implementation
-    return 0;
+    const Hash &sourceHash(idToHash[stateID]);
+    XYZNode *sourceNode = sourceHash.node;
+
+    return (sourceNode->getIndex() - goalXYZNode->getIndex()).norm();
 }
 
 int EnvironmentXYZTheta::GetStartHeuristic(int stateID)
 {
-    //dummy implementation
-    return 0;
+    const Hash &sourceHash(idToHash[stateID]);
+    XYZNode *sourceNode = sourceHash.node;
+
+    return (sourceNode->getIndex() - startXYZNode->getIndex()).norm();
 }
 
 bool EnvironmentXYZTheta::InitializeEnv(const char* sEnvFile)
