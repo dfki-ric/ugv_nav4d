@@ -9,6 +9,7 @@ rock_library(ugv_nav4d
         sbpl
         backward
         motion_planning_libraries
+        dwa
 )
 
 rock_executable(ugv_nav4d_bin Main.cpp

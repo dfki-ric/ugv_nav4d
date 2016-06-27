@@ -6,6 +6,7 @@
 #include <boost/lexical_cast.hpp>
 #include <base/Pose.hpp>
 #include <fstream>
+#include <dwa/SubTrajectory.hpp>
 
 using namespace std;
 using namespace motion_planning_libraries;
@@ -514,19 +515,57 @@ void EnvironmentXYZTheta::readMotionPrimitives(const string& path)
 
 void EnvironmentXYZTheta::readMotionPrimitives(const SbplMotionPrimitives& primitives)
 {
+  
     for(const Primitive& prim : primitives.mListPrimitives)
     {
       Motion motion(numAngles);
+      std::cout << "---------------------------------------------" << std::endl;
       
       motion.xDiff = prim.mEndPose[0];
       motion.yDiff = prim.mEndPose[1];
       motion.thetaDiff =  DiscreteTheta(prim.mStartAngle - static_cast<int>(prim.mEndPose[2]), numAngles);
       motion.startTheta = DiscreteTheta(prim.mStartAngle, numAngles);
+      std::cout << "Adding Motion: 0, 0, " << motion.startTheta.getTheta() << " -> " << motion.xDiff << ", " << motion.yDiff << ", " << motion.thetaDiff.getTheta() << std::endl;
+      
+      std::vector<base::Pose2D> poses;
+      bool allPositionsSame = true;
+      base::Vector2d firstPos = prim.mIntermediatePoses.front().topRows(2);
       for(const base::Vector3d& pose : prim.mIntermediatePoses)
       {
-          motion.intermediatePoses.emplace_back(base::Position2D(pose[0], pose[1]), pose[2]);
+          poses.emplace_back(base::Position2D(pose[0], pose[1]), pose[2]);
+          if(pose.topRows(2) != firstPos)
+          {
+              allPositionsSame = false;
+          }
       }
-      std::cout << "Adding Motion: 0, 0, " << motion.startTheta.getTheta() << " -> " << motion.xDiff << ", " << motion.yDiff << ", " << motion.thetaDiff.getTheta() << std::endl;
+      
+      if(!allPositionsSame)
+      {
+          //fit a spline through the primitive's intermediate points and use that spline to
+          //create intermediate points for the motion.
+          //This is done to ensure that every cell is hit by one intermediate point.
+          //if the positions are different, normal spline interpolation works
+          SubTrajectory spline;
+          spline.interpolate(poses);
+          const double splineLength = spline.getDistToGoal(spline.getStartParam());
+          //set stepDist so small that we are guaranteed to oversample
+          const double stepDist = travConf.gridResolution - (travConf.gridResolution / 2.0);
+          double currentDist = 0;
+          double currentParam = spline.getStartParam();
+          while(currentDist < splineLength)
+          {
+            currentDist += stepDist;
+            currentParam = spline.advance(currentParam, stepDist);
+            const base::Pose2D currentPose = spline.getIntermediatePointNormalized(currentParam);
+            motion.intermediatePoses.push_back(currentPose);
+          }
+      }
+      else
+      {
+        //Since our index is only x/y based (i.e. it ignores rotation)
+        //we do not need to add any intermediate positions for rotation-only
+        //movements.
+      }
       availableMotions.setMotionForTheta(motion, motion.startTheta);
     }
 }
