@@ -143,8 +143,13 @@ int EnvironmentXYZTheta::GetFromToHeuristic(int FromStateID, int ToStateID)
     const Hash &targetHash(idToHash[ToStateID]);
     XYZNode *targetNode = targetHash.node;
 
-    //dummy implementation
-    return (sourceNode->getIndex() - targetNode->getIndex()).norm();
+    Eigen::Vector2d source = sourceNode->getIndex().cast<double>();
+    Eigen::Vector2d goal = targetNode->getIndex().cast<double>();
+
+    double distance = (source - goal).norm() * searchGrid.getResolution().x() / robotModel.translationalVelocity;
+    const double costScaleFactor = 1000;
+    
+    return ceil(costScaleFactor * 1000);
 }
 
 int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
@@ -152,7 +157,13 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     const Hash &sourceHash(idToHash[stateID]);
     XYZNode *sourceNode = sourceHash.node;
 
-    return (sourceNode->getIndex() - goalXYZNode->getIndex()).norm();
+    Eigen::Vector2d source = sourceNode->getIndex().cast<double>();
+    Eigen::Vector2d goal = goalXYZNode->getIndex().cast<double>();
+
+    double distance = (source - goal).norm() * searchGrid.getResolution().x() / robotModel.translationalVelocity;
+    const double costScaleFactor = 1000;
+    
+    return ceil(costScaleFactor * 1000);
 }
 
 int EnvironmentXYZTheta::GetStartHeuristic(int stateID)
