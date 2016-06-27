@@ -268,6 +268,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         if(!travNode)
             continue;
         
+        curIndex = finalPos;
         
         
         //goal from source to the end of the motion was valid
