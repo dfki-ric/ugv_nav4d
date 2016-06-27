@@ -225,8 +225,10 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 std::cout << "Position is " << position.transpose() << std::endl;
                 throw EnvironmentXYZThetaException("Cannot convert intermediate Pose to grid cell");
             }
-            newIndex.x() += diff.x();
-            newIndex.y() += diff.y();
+            
+            //diff is always a full offset to the start position
+            newIndex = sourceIndex + diff;
+
             
             travNode = movementPossible(travNode, curIndex, newIndex);
             
