@@ -26,8 +26,8 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr< maps::grid::MultiLev
                                          const motion_planning_libraries::SbplMotionPrimitives& primitives) : 
     travGen(travConf)
     , mlsGrid(mlsGrid)
-    , startNode(nullptr)
-    , goalNode(nullptr)
+    , startThetaNode(nullptr)
+    , goalThetaNode(nullptr)
     , travConf(travConf)
 {
     numAngles = 16;
@@ -44,7 +44,7 @@ EnvironmentXYZTheta::~EnvironmentXYZTheta()
 
 }
 
-EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(const Eigen::Vector3d& pos, double theta)
+EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(const Eigen::Vector3d& pos, double theta, XYZNode **xyzBackNode)
 {
     TraversabilityGenerator3d::Node *travNode = travGen.generateStartNode(pos);
     if(!travNode)
@@ -59,18 +59,21 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
     
     DiscreteTheta thetaD(theta, numAngles);
     
+    if(xyzBackNode)
+        *xyzBackNode = xyzNode;
+    
     return createNewState(thetaD, xyzNode);
 }
 
 
 void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
 {
-    goalNode = createNewStateFromPose(goalPos, theta);
+    goalThetaNode = createNewStateFromPose(goalPos, theta, &goalXYZNode);
 }
 
 void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta)
 {
-    startNode = createNewStateFromPose(startPos, theta);
+    startThetaNode = createNewStateFromPose(startPos, theta, &startXYZNode);
 }
 
 void EnvironmentXYZTheta::SetAllPreds(CMDPSTATE* state)
@@ -112,12 +115,12 @@ bool EnvironmentXYZTheta::InitializeEnv(const char* sEnvFile)
 
 bool EnvironmentXYZTheta::InitializeMDPCfg(MDPConfig* MDPCfg)
 {
-    if(!goalNode || !startNode)
+    if(!goalThetaNode || !startThetaNode)
         return false;
     
     //initialize MDPCfg with the start and goal ids
-    MDPCfg->goalstateid = goalNode->id;
-    MDPCfg->startstateid = startNode->id;
+    MDPCfg->goalstateid = goalThetaNode->id;
+    MDPCfg->startstateid = startThetaNode->id;
 
     return true;
 }

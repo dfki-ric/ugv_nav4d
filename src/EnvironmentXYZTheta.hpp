@@ -165,11 +165,12 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     
     ThetaNode *createNewState(const EnvironmentXYZTheta::DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
     
-    ThetaNode *createNewStateFromPose(const Eigen::Vector3d& pos, double theta);
+    ThetaNode *createNewStateFromPose(const Eigen::Vector3d& pos, double theta, EnvironmentXYZTheta::XYZNode** xyzNode);
     
-    ThetaNode *startNode;
-    ThetaNode *goalNode;
-    
+    ThetaNode *startThetaNode;
+    XYZNode *startXYZNode;
+    ThetaNode *goalThetaNode;
+    XYZNode *goalXYZNode;
 public:
     EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid,
                         const TraversabilityGenerator3d::Config &travConf,
