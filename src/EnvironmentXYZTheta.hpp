@@ -133,8 +133,11 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
         DiscreteTheta thetaDiff;
         DiscreteTheta startTheta;
         
-        /**the intermediate poses are not discrete */
+        /**the intermediate poses are not discrete.
+         * They are relative to the starting cell*/
         std::vector<base::Pose2D> intermediatePoses;
+        /**relative to starting cell */
+        std::vector<maps::grid::Index> intermediateCells;
         
         int baseCost;
     };

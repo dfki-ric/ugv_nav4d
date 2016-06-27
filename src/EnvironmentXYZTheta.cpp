@@ -557,7 +557,23 @@ void EnvironmentXYZTheta::readMotionPrimitives(const SbplMotionPrimitives& primi
             currentDist += stepDist;
             currentParam = spline.advance(currentParam, stepDist);
             const base::Pose2D currentPose = spline.getIntermediatePointNormalized(currentParam);
-            motion.intermediatePoses.push_back(currentPose);
+            
+            //convert pose to grid
+            const base::Vector3d position(currentPose.position.x(), currentPose.position.y(), 0);
+            maps::grid::Index diff;
+            //only add pose if it is in a different cell than the one before
+            if(!searchGrid.toGrid(position, diff, false))
+            {
+                throw EnvironmentXYZThetaException("Cannot convert intermediate Pose to grid cell");
+            }
+            
+            if(motion.intermediateCells.size() == 0 || motion.intermediateCells.back() != diff)
+            {
+              motion.intermediateCells.push_back(diff);
+              motion.intermediatePoses.push_back(currentPose);
+              std::cout << "intermediate poses: " << currentPose.position.transpose() << ", " << currentPose.orientation << 
+                           "[" << diff.transpose() << "]" << std::endl;
+            }            
           }
       }
       else
