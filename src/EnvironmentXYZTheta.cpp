@@ -256,11 +256,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             continue;
         
         
-        if(finalPos != curIndex)
-        {
-            std::cout << "Expected Pos = " << finalPos.transpose() << " Cur pos " << curIndex.transpose() << std::endl;
-            throw runtime_error("Error, computation is fishy (Internal error)");
-        }
         
         //goal from source to the end of the motion was valid
         
