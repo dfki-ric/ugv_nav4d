@@ -11,6 +11,11 @@
 using namespace std;
 using namespace motion_planning_libraries;
 
+EnvironmentXYZTheta::RobotModel::RobotModel(double tr, double rv) : translationalVelocity(tr), rotationalVelocity(rv)
+{
+
+}
+
 void EnvironmentXYZTheta::PreComputedMotions::setMotionForTheta(const EnvironmentXYZTheta::Motion& motion, const EnvironmentXYZTheta::DiscreteTheta& theta)
 {
     if((int)thetaToMotion.size() <= theta.theta)
@@ -35,14 +40,39 @@ void EnvironmentXYZTheta::PreComputedMotions::setMotionForTheta(const Environmen
     }
 }
 
+void EnvironmentXYZTheta::PreComputedMotions::preComputeCost(EnvironmentXYZTheta::Motion& motion, const RobotModel &model)
+{
+    double scaleFactor = 1000;
+    
+    //compute linear and angular time
+    double linear_distance = 0;
+    Eigen::Vector2d lastPos(0, 0);
+    for(const base::Pose2D &pos: motion.intermediatePoses)
+    {
+        linear_distance += (lastPos - pos.position).norm();
+        lastPos = pos.position;
+    }
+
+    double linear_time = linear_distance / model.translationalVelocity;
+
+    double angular_distance = motion.thetaDiff.getRadian();
+    
+    double angular_time = angular_distance / model.rotationalVelocity;
+    
+    motion.baseCost = ceil(std::max(angular_time, linear_time) * scaleFactor * motion.costMultiplier);
+}
+
 
 EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr< maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > > mlsGrid,
                                          const TraversabilityGenerator3d::Config &travConf,
                                          const motion_planning_libraries::SbplMotionPrimitives& primitives) : 
     travGen(travConf)
     , mlsGrid(mlsGrid)
+    , robotModel(0.3, M_PI / 8)    
     , startThetaNode(nullptr)
+    , startXYZNode(nullptr)
     , goalThetaNode(nullptr)
+    , goalXYZNode(nullptr)
     , travConf(travConf)
 {
     numAngles = 16;
@@ -275,7 +305,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         travNode = movementPossible(travNode, curIndex, finalPos);
         if(!travNode)
             continue;
-        additionalCosts += (sourceIndex - finalPos).norm() + 1;
+
+        additionalCosts += motion.baseCost;
         
         curIndex = finalPos;
         
@@ -363,6 +394,7 @@ void EnvironmentXYZTheta::readMotionPrimitives(const SbplMotionPrimitives& primi
       motion.yDiff = prim.mEndPose[1];
       motion.thetaDiff =  DiscreteTheta(prim.mStartAngle - static_cast<int>(prim.mEndPose[2]), numAngles);
       motion.startTheta = DiscreteTheta(prim.mStartAngle, numAngles);
+      motion.costMultiplier = prim.mCostMultiplier;
       
       std::vector<base::Pose2D> poses;
       bool allPositionsSame = true;
@@ -419,7 +451,17 @@ void EnvironmentXYZTheta::readMotionPrimitives(const SbplMotionPrimitives& primi
         //we do not need to add any intermediate positions for rotation-only
         //movements.
       }
+
+      availableMotions.preComputeCost(motion, robotModel);
+      
       availableMotions.setMotionForTheta(motion, motion.startTheta);
+
+      Motion motion(numAngles);
+
+        std::cout << "startTheta " <<  prim.mStartAngle << std::endl;
+        std::cout << "mEndPose " <<  prim.mEndPose.transpose() << std::endl;
+
+        std::cout << "Adding Motion: 0, 0, " << motion.startTheta.getTheta() << " -> " << motion.xDiff << ", " << motion.yDiff << ", " << motion.thetaDiff.getTheta() << std::endl;
     }
 }
 

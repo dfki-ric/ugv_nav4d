@@ -87,6 +87,11 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
           return theta;
         }
         
+        double getRadian() const
+        {
+            return M_PI * 2.0 * theta / static_cast<double>(numAngles);
+        }
+        
     };
 
     
@@ -140,8 +145,21 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
         std::vector<maps::grid::Index> intermediateCells;
         
         int baseCost;
+        
+        int costMultiplier;
     };
      
+    
+    class RobotModel
+    {
+    public:
+        RobotModel(double tr, double rv);
+        
+        ///in m per sec
+        double translationalVelocity;
+        ///in rad per sec
+        double rotationalVelocity;
+    };
     
     class PreComputedMotions
     {
@@ -150,6 +168,8 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
         
     public:
         void setMotionForTheta(const Motion &motion, const DiscreteTheta &theta);
+        
+        void preComputeCost(Motion &motion, const RobotModel &model);
         
         const std::vector<Motion> &getMotionForStartTheta(DiscreteTheta &theta)
         {
@@ -163,6 +183,8 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
         
         
     };
+    
+    RobotModel robotModel;
     
     PreComputedMotions availableMotions;
     
