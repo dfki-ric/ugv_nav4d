@@ -126,7 +126,7 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     
     struct Motion
     {
-        Motion(unsigned int numAngles) : thetaDiff(0, numAngles),startTheta(0, numAngles) {};
+        Motion(unsigned int numAngles) : thetaDiff(0, numAngles),startTheta(0, numAngles), baseCost(0) {};
         
         int xDiff;
         int yDiff;
