@@ -267,6 +267,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         travNode = movementPossible(travNode, curIndex, finalPos);
         if(!travNode)
             continue;
+        additionalCosts += (sourceIndex - finalPos).norm() + 1;
         
         curIndex = finalPos;
         
