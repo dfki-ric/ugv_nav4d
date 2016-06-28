@@ -197,9 +197,6 @@ public:
     virtual void SetAllPreds(CMDPSTATE* state);
     virtual int SizeofCreatedEnv();
     
-    /**Load motion primitives from .mprim file.
-     * @ŧhrow EnvironmentXYZThetaException In case of error*/
-    virtual void readMotionPrimitives(const std::string& path);
     
     virtual void readMotionPrimitives(const motion_planning_libraries::SbplMotionPrimitives& primitives);
     
@@ -207,20 +204,8 @@ public:
     void setGoal(const Eigen::Vector3d &goalPos, double theta);
     
 private:
-    //note: readVar could be a template but I want to avoid boost dependencies in the header file
-    /** Read a variable named @p varName from @p file and store it i @p result */
-    void readVar(const std::string& varName, int& result, std::ifstream& file) const;
-    void readVar(const std::string& varName, double& result, std::ifstream& file) const;
-    void readVar(const std::string& varName, Eigen::Array3i& result, std::ifstream& file) const;
-    void readPose2D(base::Pose2D& result, std::ifstream& file) const;  
-    
-    /**Reads the next primitive from the file.
-     * @throw EnvironmentXYZThetaException in case of error*/
-    Motion readPrimitive(std::ifstream& file) const;
     
     TraversabilityGenerator3d::Node* movementPossible(TraversabilityGenerator3d::Node* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& to);
-    
-    
     const TraversabilityGenerator3d::Config &travConf;
     
     unsigned int numAngles;
