@@ -18,7 +18,21 @@ void EnvironmentXYZTheta::PreComputedMotions::setMotionForTheta(const Environmen
         thetaToMotion.resize(theta.theta + 1);
     }
     
-    thetaToMotion[theta.theta].push_back(motion);
+    //check if a motion to this target destination already exist, if yes skip it.
+    bool exists = false;
+    for(const Motion& m : thetaToMotion[theta.theta])
+    {
+        if(m.xDiff == motion.xDiff && m.yDiff == motion.yDiff && m.thetaDiff == motion.thetaDiff)
+        {
+            exists = true;
+            std::cout << "WARNING: motion already exists (skipping): " << m.xDiff << ", " << m.yDiff << ", " << m.thetaDiff.getTheta() << std::endl;
+        }
+    }
+    
+    if(!exists)
+    {
+        thetaToMotion[theta.theta].push_back(motion);
+    }
 }
 
 
@@ -351,13 +365,11 @@ void EnvironmentXYZTheta::readMotionPrimitives(const SbplMotionPrimitives& primi
     for(const Primitive& prim : primitives.mListPrimitives)
     {
       Motion motion(numAngles);
-      std::cout << "---------------------------------------------" << std::endl;
       
       motion.xDiff = prim.mEndPose[0];
       motion.yDiff = prim.mEndPose[1];
       motion.thetaDiff =  DiscreteTheta(prim.mStartAngle - static_cast<int>(prim.mEndPose[2]), numAngles);
       motion.startTheta = DiscreteTheta(prim.mStartAngle, numAngles);
-      std::cout << "Adding Motion: 0, 0, " << motion.startTheta.getTheta() << " -> " << motion.xDiff << ", " << motion.yDiff << ", " << motion.thetaDiff.getTheta() << std::endl;
       
       std::vector<base::Pose2D> poses;
       bool allPositionsSame = true;
@@ -403,8 +415,8 @@ void EnvironmentXYZTheta::readMotionPrimitives(const SbplMotionPrimitives& primi
             {
               motion.intermediateCells.push_back(diff);
               motion.intermediatePoses.push_back(currentPose);
-              std::cout << "intermediate poses: " << currentPose.position.transpose() << ", " << currentPose.orientation << 
-                           "[" << diff.transpose() << "]" << std::endl;
+//               std::cout << "intermediate poses: " << currentPose.position.transpose() << ", " << currentPose.orientation << 
+//                            "[" << diff.transpose() << "]" << std::endl;
             }            
           }
       }

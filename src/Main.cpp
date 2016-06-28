@@ -115,7 +115,11 @@ int main(int argc, char** argv)
     
     std::vector<int> solution;
     
-    planner.replan(15.0, &solution);
+    planner.replan(10.0, &solution);
+    std::cout << "Solution: " << std::endl;
+    for(const int i : solution)
+      std::cout << i << " ";
+    std::cout << std::endl;
 
     return 0;
 }
