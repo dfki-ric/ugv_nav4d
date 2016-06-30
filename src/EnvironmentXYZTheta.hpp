@@ -228,6 +228,9 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     XYZNode *startXYZNode;
     ThetaNode *goalThetaNode;
     XYZNode *goalXYZNode;
+
+    int GetHeuristic(int stateID, EnvironmentXYZTheta::ThetaNode* targetThetaNode, EnvironmentXYZTheta::XYZNode* goalXYZNode) const;
+
 public:
     EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid,
                         const TraversabilityGenerator3d::Config &travConf,

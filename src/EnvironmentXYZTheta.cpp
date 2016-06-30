@@ -11,6 +11,7 @@
 using namespace std;
 using namespace motion_planning_libraries;
 
+const double costScaleFactor = 1000;
 EnvironmentXYZTheta::RobotModel::RobotModel(double tr, double rv) : translationalVelocity(tr), rotationalVelocity(rv)
 {
 
@@ -135,43 +136,42 @@ void EnvironmentXYZTheta::SetAllActionsandAllOutcomes(CMDPSTATE* state)
     throw EnvironmentXYZThetaException("SetAllActionsandAllOutcomes() not implemented");
 }
 
-int EnvironmentXYZTheta::GetFromToHeuristic(int FromStateID, int ToStateID)
+int EnvironmentXYZTheta::GetHeuristic(int stateID, EnvironmentXYZTheta::ThetaNode* targetThetaNode, EnvironmentXYZTheta::XYZNode* targetXYZNode) const
 {
-    const Hash &sourceHash(idToHash[FromStateID]);
+    const Hash &sourceHash(idToHash[stateID]);
     XYZNode *sourceNode = sourceHash.node;
 
+    Eigen::Vector2d source = sourceNode->getIndex().cast<double>();
+    Eigen::Vector2d goal = targetXYZNode->getIndex().cast<double>();
+
+    double timeTranslation = (source - goal).norm() * searchGrid.getResolution().x() / robotModel.translationalVelocity;
+    
+    double timeRotation = sourceHash.thetaNode->theta.shortestDist(targetThetaNode->theta).getRadian() / robotModel.rotationalVelocity;
+    
+//     std::cout << "Theta " << sourceHash.thetaNode->theta << " to " << targetThetaNode->theta << " shortest dist is " << sourceHash.thetaNode->theta.shortestDist(targetThetaNode->theta) << " rad " << sourceHash.thetaNode->theta.shortestDist(targetThetaNode->theta).getRadian() << std::endl;
+    
+//     std::cout << "Heuristic " << stateID << " " << sourceNode->getIndex().transpose() << " to " <<  targetXYZNode->getIndex().transpose() << " timeTranslation " << timeTranslation << " timeRotation " << timeRotation << " result "<< floor(std::max(timeTranslation, timeRotation) * costScaleFactor) << std::endl;
+    
+    return floor(std::max(timeTranslation, timeRotation) * costScaleFactor);
+}
+
+int EnvironmentXYZTheta::GetFromToHeuristic(int FromStateID, int ToStateID)
+{
     const Hash &targetHash(idToHash[ToStateID]);
     XYZNode *targetNode = targetHash.node;
 
-    Eigen::Vector2d source = sourceNode->getIndex().cast<double>();
-    Eigen::Vector2d goal = targetNode->getIndex().cast<double>();
-
-    double distance = (source - goal).norm() * searchGrid.getResolution().x() / robotModel.translationalVelocity;
-    const double costScaleFactor = 1000;
-    
-    return ceil(costScaleFactor * 1000);
+    return GetHeuristic(FromStateID, targetHash.thetaNode, targetNode);
 }
 
 int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
 {
-    const Hash &sourceHash(idToHash[stateID]);
-    XYZNode *sourceNode = sourceHash.node;
-
-    Eigen::Vector2d source = sourceNode->getIndex().cast<double>();
-    Eigen::Vector2d goal = goalXYZNode->getIndex().cast<double>();
-
-    double distance = (source - goal).norm() * searchGrid.getResolution().x() / robotModel.translationalVelocity;
-    const double costScaleFactor = 1000;
-    
-    return ceil(costScaleFactor * 1000);
+    return GetHeuristic(stateID, goalThetaNode, goalXYZNode);
 }
 
 int EnvironmentXYZTheta::GetStartHeuristic(int stateID)
 {
-    const Hash &sourceHash(idToHash[stateID]);
-    XYZNode *sourceNode = sourceHash.node;
-
-    return (sourceNode->getIndex() - startXYZNode->getIndex()).norm();
+//     std::cout << "Start " << std::endl;
+    return GetHeuristic(stateID, startThetaNode, startXYZNode);
 }
 
 bool EnvironmentXYZTheta::InitializeEnv(const char* sEnvFile)
