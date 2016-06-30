@@ -221,6 +221,7 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     PreComputedMotions availableMotions;
     
     ThetaNode *createNewState(const DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
+    XYZNode *createNewXYZState(TraversabilityGenerator3d::Node* travNode);
     
     ThetaNode *createNewStateFromPose(const Eigen::Vector3d& pos, double theta, EnvironmentXYZTheta::XYZNode** xyzNode);
     

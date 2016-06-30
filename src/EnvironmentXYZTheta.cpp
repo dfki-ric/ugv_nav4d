@@ -87,6 +87,16 @@ EnvironmentXYZTheta::~EnvironmentXYZTheta()
 
 }
 
+EnvironmentXYZTheta::XYZNode* EnvironmentXYZTheta::createNewXYZState(TraversabilityGenerator3d::Node* travNode)
+{
+    XYZNode *xyzNode = new XYZNode(travNode->getHeight(), travNode->getIndex());
+    xyzNode->getUserData().travNode = travNode;
+    searchGrid.at(travNode->getIndex()).insert(xyzNode);
+
+    return xyzNode;
+}
+
+
 EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(const Eigen::Vector3d& pos, double theta, XYZNode **xyzBackNode)
 {
     TraversabilityGenerator3d::Node *travNode = travGen.generateStartNode(pos);
@@ -96,9 +106,14 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
         throw runtime_error("Pose is out of grid");
     }
     
-    XYZNode *xyzNode = new XYZNode(travNode->getHeight(), travNode->getIndex());
-    xyzNode->getUserData().travNode = travNode;
-    searchGrid.at(travNode->getIndex()).insert(xyzNode);
+    //must be done, to correct height of start node
+    if(!travGen.expandNode(travNode))
+    {
+        cout << "createNewStateFromPose: Error Pose " << pos.transpose() << " is not traversable" << endl;
+        throw runtime_error("Pose is not traversable");
+    }
+    
+    XYZNode *xyzNode = createNewXYZState(travNode);
     
     DiscreteTheta thetaD(theta, numAngles);
     
@@ -323,27 +338,33 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         
         //check if we can connect to the existing graph
         const auto &candidateMap = searchGrid.at(curIndex);
+
+        if(travNode->getIndex() != curIndex)
+            throw std::runtime_error("Internal error, indexes to not match");
+        
+        XYZNode searchTmp(travNode->getHeight(), travNode->getIndex());
         
         //note, this works, as the equals check is on the height, not the node itself
-        auto it = candidateMap.find(curNode);
+        auto it = candidateMap.find(&searchTmp);
         
         if(it != candidateMap.end())
         {
-//             cout << "Found existing node " << endl;
+//             cout << "Found existing XY node " << endl;
             //found a node with a matching height
             successXYNode = *it;
         }
         else
         {
-            successXYNode = new XYZNode(curNode->getHeight(), curIndex);
-            successXYNode->getUserData().travNode = travNode;
+//             std::cout << "Creating new XY Node " << curIndex.transpose() << std::endl;
+            
+            successXYNode = createNewXYZState(travNode);
         }
 
         const auto &thetaMap(successXYNode->getUserData().thetaToNodes);
         
 //         for(const auto &e: thetaMap)
 //         {
-//             cout << "Elem is " << e.second->id << endl;
+//             cout << "Theta Elem id " << e.second->id << " angle " << e.first << endl;
 //         }
         
         auto thetaCandidate = thetaMap.find(motion.endTheta);
