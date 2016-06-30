@@ -163,11 +163,11 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     
     struct Motion
     {
-        Motion(unsigned int numAngles) : thetaDiff(0, numAngles),startTheta(0, numAngles), baseCost(0) {};
+        Motion(unsigned int numAngles) : endTheta(0, numAngles),startTheta(0, numAngles), baseCost(0) {};
         
         int xDiff;
         int yDiff;
-        DiscreteTheta thetaDiff;
+        DiscreteTheta endTheta;
         DiscreteTheta startTheta;
         
         /**the intermediate poses are not discrete.
@@ -205,12 +205,12 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
         
         const std::vector<Motion> &getMotionForStartTheta(DiscreteTheta &theta)
         {
-            if(theta.theta >= (int)thetaToMotion.size())
+            if(theta.getTheta() >= (int)thetaToMotion.size())
             {
-                std::cout << "Input theta is " << theta.theta;
+                std::cout << "Input theta is " << theta.getTheta();
                 throw std::runtime_error("Internal error, motion for requested theta ist not available");
             }
-            return thetaToMotion.at(theta.theta);
+            return thetaToMotion.at(theta.getTheta());
         };
         
         

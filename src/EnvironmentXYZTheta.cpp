@@ -12,39 +12,36 @@ using namespace std;
 using namespace motion_planning_libraries;
 
 const double costScaleFactor = 1000;
+
 EnvironmentXYZTheta::RobotModel::RobotModel(double tr, double rv) : translationalVelocity(tr), rotationalVelocity(rv)
 {
 
 }
 
-void EnvironmentXYZTheta::PreComputedMotions::setMotionForTheta(const EnvironmentXYZTheta::Motion& motion, const EnvironmentXYZTheta::DiscreteTheta& theta)
+
+void EnvironmentXYZTheta::PreComputedMotions::setMotionForTheta(const EnvironmentXYZTheta::Motion& motion, const DiscreteTheta& theta)
 {
-    if((int)thetaToMotion.size() <= theta.theta)
+    if((int)thetaToMotion.size() <= theta.getTheta())
     {
-        thetaToMotion.resize(theta.theta + 1);
+        thetaToMotion.resize(theta.getTheta() + 1);
     }
     
     //check if a motion to this target destination already exist, if yes skip it.
-    bool exists = false;
-    for(const Motion& m : thetaToMotion[theta.theta])
+    for(const Motion& m : thetaToMotion[theta.getTheta()])
     {
-        if(m.xDiff == motion.xDiff && m.yDiff == motion.yDiff && m.thetaDiff == motion.thetaDiff)
+        if(m.xDiff == motion.xDiff && m.yDiff == motion.yDiff && m.endTheta == motion.endTheta)
         {
-            exists = true;
-            std::cout << "WARNING: motion already exists (skipping): " << m.xDiff << ", " << m.yDiff << ", " << m.thetaDiff.getTheta() << std::endl;
+            std::cout << "WARNING: motion already exists (skipping): " << m.xDiff << ", " << m.yDiff << ", " << m.endTheta << std::endl;
+            //TODO add check if intermediate poses are similar
+            return;
         }
     }
     
-    if(!exists)
-    {
-        thetaToMotion[theta.theta].push_back(motion);
-    }
+    thetaToMotion[theta.getTheta()].push_back(motion);
 }
 
 void EnvironmentXYZTheta::PreComputedMotions::preComputeCost(EnvironmentXYZTheta::Motion& motion, const RobotModel &model)
 {
-    double scaleFactor = 1000;
-    
     //compute linear and angular time
     double linear_distance = 0;
     Eigen::Vector2d lastPos(0, 0);
@@ -56,11 +53,11 @@ void EnvironmentXYZTheta::PreComputedMotions::preComputeCost(EnvironmentXYZTheta
 
     double linear_time = linear_distance / model.translationalVelocity;
 
-    double angular_distance = motion.thetaDiff.getRadian();
+    double angular_distance = motion.endTheta.shortestDist(motion.startTheta).getRadian();
     
     double angular_time = angular_distance / model.rotationalVelocity;
     
-    motion.baseCost = ceil(std::max(angular_time, linear_time) * scaleFactor * motion.costMultiplier);
+    motion.baseCost = ceil(std::max(angular_time, linear_time) * costScaleFactor * motion.costMultiplier);
 }
 
 
@@ -326,7 +323,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         
         XYZNode *successXYNode = nullptr;
         ThetaNode *successthetaNode = nullptr;
-        const DiscreteTheta curTheta = thetaNode->theta + motion.thetaDiff;
         
         //check if we can connect to the existing graph
         const auto &candidateMap = searchGrid.at(curIndex);
@@ -353,7 +349,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             cout << "Elem is " << e.second->id << endl;
         }
         
-        auto thetaCandidate = thetaMap.find(curTheta);
+        auto thetaCandidate = thetaMap.find(motion.endTheta);
         if(thetaCandidate != thetaMap.end())
         {
             cout << "Found existing State, reconnectiong graph " << endl;
@@ -362,7 +358,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         }
         else
         {
-            successthetaNode = createNewState(curTheta, successXYNode);
+            successthetaNode = createNewState(motion.endTheta, successXYNode);
         }
         
         cout << "Adding Success Node " << successXYNode->getIndex().transpose() << " trav idx " << travNode->getIndex().transpose() << endl;
@@ -396,44 +392,44 @@ void EnvironmentXYZTheta::PrintState(int stateID, bool bVerbose, FILE* fOut)
 
 void EnvironmentXYZTheta::readMotionPrimitives(const SbplMotionPrimitives& primitives)
 {
-  
+
     for(const Primitive& prim : primitives.mListPrimitives)
     {
-      Motion motion(numAngles);
-      
-      motion.xDiff = prim.mEndPose[0];
-      motion.yDiff = prim.mEndPose[1];
-      motion.thetaDiff =  DiscreteTheta(prim.mStartAngle - static_cast<int>(prim.mEndPose[2]), numAngles);
-      motion.startTheta = DiscreteTheta(prim.mStartAngle, numAngles);
-      motion.costMultiplier = prim.mCostMultiplier;
-      
-      std::vector<base::Pose2D> poses;
-      bool allPositionsSame = true;
-      base::Vector2d firstPos = prim.mIntermediatePoses.front().topRows(2);
-      for(const base::Vector3d& pose : prim.mIntermediatePoses)
-      {
-          poses.emplace_back(base::Position2D(pose[0], pose[1]), pose[2]);
-          if(pose.topRows(2) != firstPos)
-          {
-              allPositionsSame = false;
-          }
-      }
-      
-      if(!allPositionsSame)
-      {
-          //fit a spline through the primitive's intermediate points and use that spline to
-          //create intermediate points for the motion.
-          //This is done to ensure that every cell is hit by one intermediate point.
-          //if the positions are different, normal spline interpolation works
-          SubTrajectory spline;
-          spline.interpolate(poses);
-          const double splineLength = spline.getDistToGoal(spline.getStartParam());
-          //set stepDist so small that we are guaranteed to oversample
-          const double stepDist = travConf.gridResolution - (travConf.gridResolution / 2.0);
-          double currentDist = 0;
-          double currentParam = spline.getStartParam();
-          while(currentDist < splineLength)
-          {
+        Motion motion(numAngles);
+
+        motion.xDiff = prim.mEndPose[0];
+        motion.yDiff = prim.mEndPose[1];
+        motion.endTheta =  DiscreteTheta(static_cast<int>(prim.mEndPose[2]), numAngles);
+        motion.startTheta = DiscreteTheta(prim.mStartAngle, numAngles);
+        motion.costMultiplier = prim.mCostMultiplier;
+
+        std::vector<base::Pose2D> poses;
+        bool allPositionsSame = true;
+        base::Vector2d firstPos = prim.mIntermediatePoses.front().topRows(2);
+        for(const base::Vector3d& pose : prim.mIntermediatePoses)
+        {
+            poses.emplace_back(base::Position2D(pose[0], pose[1]), pose[2]);
+            if(pose.topRows(2) != firstPos)
+            {
+                allPositionsSame = false;
+            }
+        }
+
+        if(!allPositionsSame)
+        {
+            //fit a spline through the primitive's intermediate points and use that spline to
+            //create intermediate points for the motion.
+            //This is done to ensure that every cell is hit by one intermediate point.
+            //if the positions are different, normal spline interpolation works
+            SubTrajectory spline;
+            spline.interpolate(poses);
+            const double splineLength = spline.getDistToGoal(spline.getStartParam());
+            //set stepDist so small that we are guaranteed to oversample
+            const double stepDist = travConf.gridResolution - (travConf.gridResolution / 2.0);
+            double currentDist = 0;
+            double currentParam = spline.getStartParam();
+            while(currentDist < splineLength)
+            {
             currentDist += stepDist;
             currentParam = spline.advance(currentParam, stepDist);
             const base::Pose2D currentPose = spline.getIntermediatePointNormalized(currentParam);
@@ -449,30 +445,28 @@ void EnvironmentXYZTheta::readMotionPrimitives(const SbplMotionPrimitives& primi
             
             if(motion.intermediateCells.size() == 0 || motion.intermediateCells.back() != diff)
             {
-              motion.intermediateCells.push_back(diff);
-              motion.intermediatePoses.push_back(currentPose);
+                motion.intermediateCells.push_back(diff);
+                motion.intermediatePoses.push_back(currentPose);
 //               std::cout << "intermediate poses: " << currentPose.position.transpose() << ", " << currentPose.orientation << 
 //                            "[" << diff.transpose() << "]" << std::endl;
             }            
-          }
-      }
-      else
-      {
+        }
+    }
+    else
+    {
         //Since our index is only x/y based (i.e. it ignores rotation)
         //we do not need to add any intermediate positions for rotation-only
         //movements.
-      }
+    }
 
-      availableMotions.preComputeCost(motion, robotModel);
-      
-      availableMotions.setMotionForTheta(motion, motion.startTheta);
+    availableMotions.preComputeCost(motion, robotModel);
 
-      Motion motion(numAngles);
+    availableMotions.setMotionForTheta(motion, motion.startTheta);
 
-        std::cout << "startTheta " <<  prim.mStartAngle << std::endl;
-        std::cout << "mEndPose " <<  prim.mEndPose.transpose() << std::endl;
+    std::cout << "startTheta " <<  prim.mStartAngle << std::endl;
+    std::cout << "mEndPose " <<  prim.mEndPose.transpose() << std::endl;
 
-        std::cout << "Adding Motion: 0, 0, " << motion.startTheta.getTheta() << " -> " << motion.xDiff << ", " << motion.yDiff << ", " << motion.thetaDiff.getTheta() << std::endl;
+    std::cout << "Adding Motion: 0, 0, " << motion.startTheta << " -> " << motion.xDiff << ", " << motion.yDiff << ", " << motion.endTheta << std::endl << std::endl;
     }
 }
 
