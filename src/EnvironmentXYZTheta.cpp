@@ -404,7 +404,16 @@ void EnvironmentXYZTheta::PrintEnv_Config(FILE* fOut)
 void EnvironmentXYZTheta::PrintState(int stateID, bool bVerbose, FILE* fOut)
 {
     const Hash &hash(idToHash[stateID]);
-    cout << "State coordinate " << hash.node->getIndex().transpose() << " " << hash.node->getHeight() << endl; //" Theta " << hash.thetaNode->theta << endl;
+    
+    std::stringbuf buffer;
+    std::ostream os (&buffer);
+    os << "State "<< stateID << " coordinate " << hash.node->getIndex().transpose() << " " << hash.node->getHeight() << " Theta " << hash.thetaNode->theta << endl;
+    
+    if(fOut)
+        fprintf(fOut, buffer.str().c_str());
+    else
+        std::cout <<  buffer.str();
+    
 }
 
 void EnvironmentXYZTheta::readMotionPrimitives(const SbplMotionPrimitives& primitives)
