@@ -268,7 +268,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         //current node is not drivable
         if(!travGen.expandNode(travNode))
         {
-            cout << "Node " << travNode->getIndex().transpose() << "Is not drivable" << endl;
+//             cout << "Node " << travNode->getIndex().transpose() << "Is not drivable" << endl;
             return;
         }
     }
@@ -302,7 +302,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         
         if(!travNode)
         {
-            cout << "Motion passes Node " << curIndex.transpose() << ", that is not drivable" << endl;
             continue;
         }
         
@@ -330,7 +329,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         
         if(it != candidateMap.end())
         {
-            cout << "Found existing node " << endl;
+//             cout << "Found existing node " << endl;
             //found a node with a matching height
             successXYNode = *it;
         }
@@ -342,15 +341,15 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
         const auto &thetaMap(successXYNode->getUserData().thetaToNodes);
         
-        for(const auto &e: thetaMap)
-        {
-            cout << "Elem is " << e.second->id << endl;
-        }
+//         for(const auto &e: thetaMap)
+//         {
+//             cout << "Elem is " << e.second->id << endl;
+//         }
         
         auto thetaCandidate = thetaMap.find(motion.endTheta);
         if(thetaCandidate != thetaMap.end())
         {
-            cout << "Found existing State, reconnectiong graph " << endl;
+//             cout << "Found existing State, reconnectiong graph " << endl;
             
             successthetaNode = thetaCandidate->second;
         }
@@ -359,7 +358,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             successthetaNode = createNewState(motion.endTheta, successXYNode);
         }
         
-        cout << "Adding Success Node " << successXYNode->getIndex().transpose() << " trav idx " << travNode->getIndex().transpose() << endl;
         
         SuccIDV->push_back(successthetaNode->id);
         CostV->push_back(motion.baseCost + additionalCosts);
