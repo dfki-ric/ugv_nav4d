@@ -10,6 +10,102 @@ namespace motion_planning_libraries
     class SbplMotionPrimitives;
 }
 
+class DiscreteTheta
+{
+    int theta;
+    unsigned int numAngles;
+    
+    void normalize()
+    {
+        if(theta < 0)
+            theta += numAngles;
+
+        if(theta >= numAngles)
+            theta -= numAngles;
+    }
+    
+public:
+    DiscreteTheta(int val, unsigned int numAngles) : theta(val) , numAngles(numAngles) {
+        normalize();
+    }
+    
+    DiscreteTheta(double val, unsigned int numAngles) : numAngles(numAngles) {
+        std::cout << "Double constructor called " << val << std::endl;
+        theta = floor(val / M_PI / 2.0 * numAngles);
+        normalize();
+    }
+    
+    DiscreteTheta(const DiscreteTheta &o) : theta(o.theta), numAngles(o.numAngles) {
+    }
+    
+    DiscreteTheta& operator+=(const DiscreteTheta& rhs)
+    {
+        theta += rhs.theta;
+        normalize();
+        return *this;
+    }
+
+    DiscreteTheta& operator-=(const DiscreteTheta& rhs)
+    {
+        theta -= rhs.theta;
+        normalize();
+        return *this;
+    }
+    
+    friend DiscreteTheta operator+(DiscreteTheta lhs, const DiscreteTheta& rhs)
+    {
+        lhs += rhs;
+        return lhs;
+    }
+
+    friend DiscreteTheta operator-(DiscreteTheta lhs, const DiscreteTheta& rhs)
+    {
+        lhs -= rhs;
+        return lhs;
+    }
+
+    friend bool operator<(const DiscreteTheta& l, const DiscreteTheta& r)
+    {
+        return l.theta < r.theta;
+    }
+
+    friend bool operator==(const DiscreteTheta& l, const DiscreteTheta& r)
+    {
+        return l.theta == r.theta;
+    }
+    
+    int getTheta() const
+    {
+        return theta;
+    }
+    
+    double getRadian() const
+    {
+        return M_PI * 2.0 * theta / static_cast<double>(numAngles);
+    }
+    
+    
+    DiscreteTheta shortestDist(const DiscreteTheta &ain) const
+    {
+        DiscreteTheta diffA = ain-*this;
+        
+        int a = diffA.theta;
+        int b = numAngles - diffA.theta;
+        
+        
+        if(a < b)
+            return DiscreteTheta(a, numAngles);
+        
+        return DiscreteTheta(b, numAngles);
+    }
+};
+
+std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle)
+{
+    stream << angle.getTheta();
+    return stream;
+}
+
 class EnvironmentXYZTheta : public DiscreteSpaceInformation
 {
     TraversabilityGenerator3d travGen;
@@ -29,70 +125,6 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
       const std::string msg;
     };
      
-    class DiscreteTheta
-    {
-        friend class PreComputedMotions;
-        int theta;
-        unsigned int numAngles;
-        
-        void normalize()
-        {
-            if(theta < 0)
-                theta += numAngles;
-
-            if(theta >= numAngles)
-                theta -= numAngles;
-        }
-        
-    public:
-        DiscreteTheta(int val, unsigned int numAngles) : theta(val) , numAngles(numAngles) {
-            normalize();
-        }
-        
-        DiscreteTheta(double val, unsigned int numAngles) : numAngles(numAngles) {
-            std::cout << "Double constructor called " << val << std::endl;
-            theta = floor(val / M_PI / 2.0 * numAngles);
-            normalize();
-        }
-        
-        DiscreteTheta(const DiscreteTheta &o) : theta(o.theta), numAngles(o.numAngles) {
-        }
-        
-        DiscreteTheta& operator+=(const DiscreteTheta& rhs)
-        {
-            theta += rhs.theta;
-            normalize();
-            return *this;
-        }
-        
-        friend DiscreteTheta operator+(DiscreteTheta lhs,        // passing lhs by value helps optimize chained a+b+c
-                     const DiscreteTheta& rhs) // otherwise, both parameters may be const references
-        {
-            lhs += rhs; // reuse compound assignment
-            return lhs; // return the result by value (uses move constructor)
-        }
-        
-        friend bool operator<(const DiscreteTheta& l, const DiscreteTheta& r)
-        {
-            return l.theta < r.theta;
-        }
-
-        friend bool operator==(const DiscreteTheta& l, const DiscreteTheta& r)
-        {
-            return l.theta == r.theta;
-        }
-        
-        int getTheta() const
-        {
-          return theta;
-        }
-        
-        double getRadian() const
-        {
-            return M_PI * 2.0 * theta / static_cast<double>(numAngles);
-        }
-        
-    };
 
     
     class ThetaNode
@@ -188,7 +220,7 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     
     PreComputedMotions availableMotions;
     
-    ThetaNode *createNewState(const EnvironmentXYZTheta::DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
+    ThetaNode *createNewState(const DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
     
     ThetaNode *createNewStateFromPose(const Eigen::Vector3d& pos, double theta, EnvironmentXYZTheta::XYZNode** xyzNode);
     
