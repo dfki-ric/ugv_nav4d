@@ -314,8 +314,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         if(!travNode)
             continue;
 
-        additionalCosts += motion.baseCost;
-        
         curIndex = finalPos;
         
         
