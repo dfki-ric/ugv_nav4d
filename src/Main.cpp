@@ -2,7 +2,7 @@
 #include <boost/archive/polymorphic_binary_iarchive.hpp>
 #include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
 #include "EnvironmentXYZTheta.hpp"
-#include <sbpl/planners/ANAplanner.h>
+#include <sbpl/planners/araplanner.h>
 #include <fstream>
 #include <backward/backward.hpp>
 #include <sbpl/utils/mdpconfig.h>
@@ -67,7 +67,7 @@ int main(int argc, char** argv)
     config.mSpeeds.mMultiplierPointTurn = 8;
     
     config.mNumPrimPartition = 10;
-    config.mNumPosesPerPrim = 20;
+    config.mNumPosesPerPrim = 30;
     config.mNumAngles = 16;
     
     config.mMapWidth = 400; //FIXME why do I need this when generating primitives?
@@ -87,10 +87,14 @@ int main(int argc, char** argv)
     
     EnvironmentXYZTheta myEnv(mlsPtr, conf, mprims);
     
-    anaPlanner planner(&myEnv, true);
+//     anaPlanner planner(&myEnv, true);
 
-    myEnv.setStart(Eigen::Vector3d(0,-0,-0.7), 0);
-    myEnv.setGoal(Eigen::Vector3d(5,-0,-0.7), 0);
+    ARAPlanner planner(&myEnv, true);
+    
+    planner.set_search_mode(true);
+    
+    myEnv.setStart(Eigen::Vector3d(0, 0,-0.7), 0);
+    myEnv.setGoal(Eigen::Vector3d(4, 0,-0.7), 0);
 
     MDPConfig mdp_cfg;
         
@@ -118,8 +122,23 @@ int main(int argc, char** argv)
     planner.replan(10.0, &solution);
     std::cout << "Solution: " << std::endl;
     for(const int i : solution)
-      std::cout << i << " ";
+      myEnv.PrintState(i, true);
     std::cout << std::endl;
 
+    
+    std::vector<PlannerStats> stats;
+    
+    planner.get_search_stats(&stats);
+    
+    std::cout << std::endl << "Stats" << std::endl;
+    for(const PlannerStats &s: stats)
+    {
+        std::cout << "cost " << s.cost << " time " << s.time << "num childs " << s.expands << std::endl;
+    }
+    
+//     FILE *debug = fopen("debug.txt", "w");
+    
+//     planner.print_searchpath(nullptr);
+    
     return 0;
 }
