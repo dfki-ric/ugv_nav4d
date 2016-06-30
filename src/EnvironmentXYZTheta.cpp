@@ -58,6 +58,12 @@ void EnvironmentXYZTheta::PreComputedMotions::preComputeCost(EnvironmentXYZTheta
     double angular_time = angular_distance / model.rotationalVelocity;
     
     motion.baseCost = ceil(std::max(angular_time, linear_time) * costScaleFactor * motion.costMultiplier);
+
+//     std::cout << "Motion " << motion.xDiff << " " << motion.yDiff << " " << motion.endTheta << 
+//     " lin dist " <<  linear_distance << " time " << linear_time << " angle diff " 
+//     << angular_distance << " time " << angular_time << " cost " << motion.baseCost << " multiplier " << motion.costMultiplier <<  std::endl;
+    
+
 }
 
 
@@ -489,10 +495,10 @@ void EnvironmentXYZTheta::readMotionPrimitives(const SbplMotionPrimitives& primi
 
     availableMotions.setMotionForTheta(motion, motion.startTheta);
 
-    std::cout << "startTheta " <<  prim.mStartAngle << std::endl;
-    std::cout << "mEndPose " <<  prim.mEndPose.transpose() << std::endl;
-
-    std::cout << "Adding Motion: 0, 0, " << motion.startTheta << " -> " << motion.xDiff << ", " << motion.yDiff << ", " << motion.endTheta << std::endl << std::endl;
+//     std::cout << "startTheta " <<  prim.mStartAngle << std::endl;
+//     std::cout << "mEndPose " <<  prim.mEndPose.transpose() << std::endl;
+// 
+//     std::cout << "Adding Motion: 0, 0, " << motion.startTheta << " -> " << motion.xDiff << ", " << motion.yDiff << ", " << motion.endTheta << std::endl << std::endl;
     }
 }
 
