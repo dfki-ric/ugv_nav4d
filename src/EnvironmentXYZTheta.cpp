@@ -113,7 +113,7 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
     }
     
     //must be done, to correct height of start node
-    if(!travGen.expandNode(travNode))
+    if(!travNode->isExpanded() && !travGen.expandNode(travNode))
     {
         cout << "createNewStateFromPose: Error Pose " << pos.transpose() << " is not traversable" << endl;
         throw runtime_error("Pose is not traversable");
@@ -132,12 +132,28 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
 
 void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
 {
+    if(!startXYZNode)
+        throw std::runtime_error("Error, start needs to be set before start");
+    
     goalThetaNode = createNewStateFromPose(goalPos, theta, &goalXYZNode);
+    
+    goalXYZNode->getUserData().travNode->setNotExpanded();
+    
+    travGen.expandAll(goalXYZNode->getUserData().travNode);
+    std::cout << "All expanded " << std::endl;
 }
 
 void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta)
 {
     startThetaNode = createNewStateFromPose(startPos, theta, &startXYZNode);
+    
+    for(auto *n : startXYZNode->getUserData().travNode->getConnections())
+    {
+        n->setDistToStart(std::numeric_limits< double >::max());
+    }
+    
+    startXYZNode->getUserData().travNode->setDistToStart(std::numeric_limits< double >::max());
+    startXYZNode->getUserData().travNode->setNotExpanded();
 }
 
 void EnvironmentXYZTheta::SetAllPreds(CMDPSTATE* state)
@@ -159,10 +175,9 @@ int EnvironmentXYZTheta::GetHeuristic(int stateID, EnvironmentXYZTheta::ThetaNod
     const Hash &sourceHash(idToHash[stateID]);
     XYZNode *sourceNode = sourceHash.node;
 
-    Eigen::Vector2d source = sourceNode->getIndex().cast<double>();
-    Eigen::Vector2d goal = targetXYZNode->getIndex().cast<double>();
-
-    double timeTranslation = (source - goal).norm() * searchGrid.getResolution().x() / robotModel.translationalVelocity;
+    double dist = sourceNode->getUserData().travNode->getDistToStart();
+    
+    double timeTranslation = dist / robotModel.translationalVelocity;
     
     double timeRotation = sourceHash.thetaNode->theta.shortestDist(targetThetaNode->theta).getRadian() / robotModel.rotationalVelocity;
     

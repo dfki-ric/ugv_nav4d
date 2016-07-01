@@ -94,7 +94,7 @@ int main(int argc, char** argv)
     planner.set_search_mode(true);
     
     myEnv.setStart(Eigen::Vector3d(0, 0,-0.7), 0);
-    myEnv.setGoal(Eigen::Vector3d(4, 0,-0.7), 0);
+    myEnv.setGoal(Eigen::Vector3d(4, 5, 3.23207), 0);
 
     MDPConfig mdp_cfg;
         
