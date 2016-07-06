@@ -1,0 +1,6 @@
+<package>
+  <description brief="template for 3d vizkit plugins">
+  </description>
+  <author>Sylvain Joyeux/sylvain.joyeux@dfki.de</author>
+  <license>GPLv2 or later</license>
+</package>
