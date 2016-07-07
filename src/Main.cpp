@@ -6,6 +6,9 @@
 #include <fstream>
 #include <backward/backward.hpp>
 #include <sbpl/utils/mdpconfig.h>
+#include <vizkit3d/Vizkit3DWidget.hpp>
+#include <vizkit3d/EnvironmentXYZThetaVisualization.hpp>
+#include <vizkit3d/MLSMapVisualization.hpp>
 
 // backward::SignalHandling sh;
 
@@ -88,13 +91,14 @@ int main(int argc, char** argv)
     EnvironmentXYZTheta myEnv(mlsPtr, conf, mprims);
     
 //     anaPlanner planner(&myEnv, true);
-
     ARAPlanner planner(&myEnv, true);
     
     planner.set_search_mode(true);
-    
-    myEnv.setStart(Eigen::Vector3d(0, 0,-0.7), 0);
-    myEnv.setGoal(Eigen::Vector3d(4, 5, 3.23207), 0);
+
+    const Eigen::Vector3d start(0,-0,-0.7);
+    const Eigen::Vector3d goal(4, 5, 3.23207);
+    myEnv.setStart(start, 0);
+    myEnv.setGoal(goal, 0);
 
     MDPConfig mdp_cfg;
         
@@ -119,12 +123,9 @@ int main(int argc, char** argv)
     
     std::vector<int> solution;
     
-    planner.replan(10.0, &solution);
+    planner.replan(1.0, &solution);
+    std::vector<QVector3D> solutionPositions;
     std::cout << "Solution: " << std::endl;
-    for(const int i : solution)
-      myEnv.PrintState(i, true);
-    std::cout << std::endl;
-
     
     std::vector<PlannerStats> stats;
     
@@ -135,10 +136,44 @@ int main(int argc, char** argv)
     {
         std::cout << "cost " << s.cost << " time " << s.time << "num childs " << s.expands << std::endl;
     }
+
     
-//     FILE *debug = fopen("debug.txt", "w");
+    for(int i = 0; i < solution.size() - 1; ++i)
+    {
+        std::cout << solution[i] << " ";
+        const maps::grid::Vector3d start = myEnv.getStatePosition(solution[i]);
+        const maps::grid::Vector3d goal = myEnv.getStatePosition(solution[i+1]);
+        const std::vector<base::Pose2D> poses = myEnv.getPoses(solution[i], solution[i+1]);
+        for(const base::Pose2D& pose : poses)
+        {
+            //need to offset by start because the poses are relative to (0/0)
+            solutionPositions.emplace_back(pose.position.x() + start.x(), pose.position.y() + start.y(), start.z());
+        }
+    }
+    std::cout << std::endl;
+
+    QApplication app(argc, argv);
+    vizkit3d::Vizkit3DWidget widget;
+    QStringList* plugins = widget.getAvailablePlugins();
+    for(int i = 0; i < plugins->size(); ++i)
+    {
+      std::cout << plugins->at(i).toStdString() << std::endl;
+    }
+    vizkit3d::EnvironmentXYZThetaVisualization viz;
+    vizkit3d::MLSMapVisualization mlsViz;
+    widget.addPlugin(&viz);
+    widget.addPlugin(&mlsViz);
+    viz.setGridSize(conf.gridResolution);
+    viz.setStartPos(start.x(), start.y(), start.z());
+    viz.setGoalPos(goal.x(), goal.y(), goal.z());
+    viz.setSolution(solutionPositions);
+    viz.updateData(myEnv);
+    mlsViz.updateData(mlsSloped);
     
-//     planner.print_searchpath(nullptr);
+    widget.show();
     
+
+    
+    app.exec();
     return 0;
 }

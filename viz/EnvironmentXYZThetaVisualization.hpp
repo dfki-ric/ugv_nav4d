@@ -19,6 +19,12 @@ namespace vizkit3d
 
     Q_INVOKABLE void updateData(EnvironmentXYZTheta const &sample)
     {vizkit3d::Vizkit3DPlugin<EnvironmentXYZTheta>::updateData(sample);}
+    
+    public slots:
+      void setGridSize(const double gridSize);
+      void setStartPos(const double x, const double y, const double z);
+      void setGoalPos(const double x, const double y, const double z);
+      void setSolution(std::vector<QVector3D> path);
 
     protected:
         virtual osg::ref_ptr<osg::Node> createMainNode();

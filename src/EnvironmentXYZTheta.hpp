@@ -13,10 +13,11 @@ namespace motion_planning_libraries
 class DiscreteTheta
 {
     int theta;
-    unsigned int numAngles;
+    int numAngles;
     
     void normalize()
     {
+        assert(numAngles >= 0);
         if(theta < 0)
             theta += numAngles;
 
@@ -100,11 +101,7 @@ public:
     }
 };
 
-std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle)
-{
-    stream << angle.getTheta();
-    return stream;
-}
+std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle);
 
 class EnvironmentXYZTheta : public DiscreteSpaceInformation
 {
@@ -203,7 +200,7 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
         
         void preComputeCost(Motion &motion, const RobotModel &model);
         
-        const std::vector<Motion> &getMotionForStartTheta(DiscreteTheta &theta)
+        const std::vector<Motion> &getMotionForStartTheta(const DiscreteTheta &theta) const
         {
             if(theta.getTheta() >= (int)thetaToMotion.size())
             {
@@ -233,9 +230,22 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     int GetHeuristic(int stateID, EnvironmentXYZTheta::ThetaNode* targetThetaNode, EnvironmentXYZTheta::XYZNode* goalXYZNode) const;
 
 public:
+  
+    //FIXME remove all debug code afterwards
+    mutable std::vector<maps::grid::Vector3d> debugRobotPositions;
+  
     EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid,
                         const TraversabilityGenerator3d::Config &travConf,
                         const motion_planning_libraries::SbplMotionPrimitives& primitives);
+    
+    /**Creates an uninitialized EnvironmentXYZTheta.
+     * Make sure to call initialize() before calling any other methods*/
+    EnvironmentXYZTheta();
+    
+    void initialize(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid,
+                    const TraversabilityGenerator3d::Config &travConf,
+                    const motion_planning_libraries::SbplMotionPrimitives& primitives);
+    
     virtual ~EnvironmentXYZTheta();
     
     virtual bool InitializeEnv(const char* sEnvFile);
@@ -261,10 +271,27 @@ public:
     void setStart(const Eigen::Vector3d &startPos, double theta);
     void setGoal(const Eigen::Vector3d &goalPos, double theta);
     
+    maps::grid::Vector3d getStatePosition(const int stateID) const;
+    
+    
+    /**Returns the intermediate poses of the motion connecting @p FromStateID 
+     * and @p toStateID.
+     * @throw std::runtime_error if no such motion exists*/
+    std::vector<base::Pose2D> getPoses(const int fromStateID, const int toStateID) const;
+    
 private:
+      
+    /**returns the motion connection @p fromStateID and @p toStateID.
+     * @throw std::runtime_error if no matching motion exists*/
+    const Motion& getMotion(const int fromStateID, const int toStateID) const;
+  
+    //Return true if there is no collision on the given path.
+    bool checkCollisions(const std::vector<TraversabilityGenerator3d::Node*>& path) const;
+  
+    Eigen::AlignedBox3d getRobotBoundingBox() const;
     
     TraversabilityGenerator3d::Node* movementPossible(TraversabilityGenerator3d::Node* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& to);
-    const TraversabilityGenerator3d::Config &travConf;
+    TraversabilityGenerator3d::Config travConf;
     
     unsigned int numAngles;
 };

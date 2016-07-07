@@ -79,14 +79,34 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr< maps::grid::MultiLev
     , goalXYZNode(nullptr)
     , travConf(travConf)
 {
+    initialize(mlsGrid, travConf, primitives);
+}
+
+
+
+
+EnvironmentXYZTheta::EnvironmentXYZTheta() : travGen(travConf), robotModel(0.3, M_PI / 8),
+    startThetaNode(nullptr), goalThetaNode(nullptr)
+{
+}
+
+void EnvironmentXYZTheta::initialize(boost::shared_ptr< maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > > mlsGrid,
+                                     const TraversabilityGenerator3d::Config& travConf,
+                                     const SbplMotionPrimitives& primitives)
+{
+    this->travConf = travConf;
+    this->mlsGrid = mlsGrid;
+    
     numAngles = 16;
-    
+    travGen = TraversabilityGenerator3d(travConf);
     travGen.setMLSGrid(mlsGrid);
-    
     searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
     searchGrid.extend(travGen.getTraversabilityMap().getNumCells());
     readMotionPrimitives(primitives);
 }
+
+
+
 
 EnvironmentXYZTheta::~EnvironmentXYZTheta()
 {
@@ -196,6 +216,46 @@ int EnvironmentXYZTheta::GetFromToHeuristic(int FromStateID, int ToStateID)
     return GetHeuristic(FromStateID, targetHash.thetaNode, targetNode);
 }
 
+maps::grid::Vector3d EnvironmentXYZTheta::getStatePosition(const int stateID) const
+{
+    const Hash &sourceHash(idToHash[stateID]);
+    const XYZNode *node = sourceHash.node;
+    maps::grid::Vector3d ret;
+    mlsGrid->fromGrid(node->getIndex(), ret);
+    ret.z() = node->getHeight();
+    return ret;
+}
+
+const EnvironmentXYZTheta::Motion& EnvironmentXYZTheta::getMotion(const int fromStateID, const int toStateID) const
+{
+  
+    //FIXME there might be more than one motion connecting the two states?
+    const Hash &fromHash(idToHash[fromStateID]);
+    const Hash &toHash(idToHash[toStateID]);
+    const DiscreteTheta fromTheta = fromHash.thetaNode->theta;
+    const DiscreteTheta toTheta = toHash.thetaNode->theta;
+    const maps::grid::Index posDiff = toHash.node->getIndex() - fromHash.node->getIndex();
+    
+    const auto& motions = availableMotions.getMotionForStartTheta(fromTheta);
+    for(const Motion& motion : motions)
+    {
+        if(motion.xDiff == posDiff.x() && motion.yDiff == posDiff.y() && 
+           motion.endTheta == toTheta)
+        {
+            return motion;
+        }
+    }
+    
+    throw std::runtime_error("No motion found");
+}
+
+vector<base::Pose2D> EnvironmentXYZTheta::getPoses(const int fromStateID, const int toStateID) const
+{
+    const Motion& motion = getMotion(fromStateID, toStateID);
+    return motion.intermediatePoses;
+}
+
+
 int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
 {
     return GetHeuristic(stateID, goalThetaNode, goalXYZNode);
@@ -279,8 +339,6 @@ TraversabilityGenerator3d::Node *EnvironmentXYZTheta::movementPossible(Traversab
         }
     }
     
-    //TODO add some collision testing
-    
     //TODO add additionalCosts if something is near this node etc
     
     return targetNode;
@@ -313,10 +371,10 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     {
         travNode = curNode->getUserData().travNode;
         maps::grid::Index curIndex = curNode->getIndex();
+        std::vector<TraversabilityGenerator3d::Node*> nodesOnPath;
         
         int additionalCosts = 0;
         
-        //FIXME intermediateCells has been removed (is not provided by config file)
         for(const maps::grid::Index &diff : motion.intermediateCells)
         {
             maps::grid::Index newIndex = curIndex;
@@ -326,6 +384,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
             
             travNode = movementPossible(travNode, curIndex, newIndex);
+            nodesOnPath.push_back(travNode);
             
             if(!travNode)
             {
@@ -346,9 +405,18 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         finalPos.y() += motion.yDiff;
         
         travNode = movementPossible(travNode, curIndex, finalPos);
+        nodesOnPath.push_back(travNode);
         if(!travNode)
             continue;
 
+        additionalCosts += (sourceIndex - finalPos).norm() + 1;
+        
+        if(!checkCollisions(nodesOnPath))
+        {
+          cout << "Motion contains collision" << endl;
+          continue;
+        }
+        
         curIndex = finalPos;
         
         
@@ -401,9 +469,37 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         }
         
         
+        
         SuccIDV->push_back(successthetaNode->id);
         CostV->push_back(motion.baseCost + additionalCosts);
     }
+}
+
+bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGenerator3d::Node* >& path) const
+{
+    for(const TraversabilityGenerator3d::Node* node : path)
+    {
+        maps::grid::Vector3d robotPosition;
+        //FIXME is node->getIndex() absolut or relative to the start node?
+        mlsGrid->fromGrid(node->getIndex(), robotPosition);
+        robotPosition.z() = node->getHeight();
+        
+        const Eigen::AlignedBox3d robotBoundingBox = getRobotBoundingBox();
+        
+//         mlsGrid->intersectCuboid(robotBoundingBox);
+        
+//         cout << "robot position: " << robotPosition.transpose() << endl;
+        debugRobotPositions.push_back(robotPosition);
+    }
+    return true;
+}
+
+Eigen::AlignedBox3d EnvironmentXYZTheta::getRobotBoundingBox() const
+{
+    //FIXME implement
+    const Eigen::Vector3d min(0, 0, 0);
+    const Eigen::Vector3d max(10, 10, 10);
+    return Eigen::AlignedBox3d(min, max);
 }
 
 void EnvironmentXYZTheta::GetPreds(int TargetStateID, vector< int >* PredIDV, vector< int >* CostV)
@@ -515,6 +611,12 @@ void EnvironmentXYZTheta::readMotionPrimitives(const SbplMotionPrimitives& primi
 // 
 //     std::cout << "Adding Motion: 0, 0, " << motion.startTheta << " -> " << motion.xDiff << ", " << motion.yDiff << ", " << motion.endTheta << std::endl << std::endl;
     }
+}
+
+std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle)
+{
+    stream << angle.getTheta();
+    return stream;
 }
 
 
