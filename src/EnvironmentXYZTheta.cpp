@@ -527,7 +527,7 @@ void EnvironmentXYZTheta::PrintState(int stateID, bool bVerbose, FILE* fOut)
     os << "State "<< stateID << " coordinate " << hash.node->getIndex().transpose() << " " << hash.node->getHeight() << " Theta " << hash.thetaNode->theta << endl;
     
     if(fOut)
-        fprintf(fOut, buffer.str().c_str());
+        fprintf(fOut, "%s", buffer.str().c_str());
     else
         std::cout <<  buffer.str();
     
