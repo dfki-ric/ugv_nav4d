@@ -56,29 +56,30 @@ int main(int argc, char** argv)
     
     //create motion primitives
     motion_planning_libraries::MotionPrimitivesConfig config;
-    config.mSpeeds.mSpeedForward = 1.0;
-    config.mSpeeds.mSpeedBackward = 1.0;
-    config.mSpeeds.mSpeedLateral = 0.3;
-    config.mSpeeds.mSpeedTurn = 0.4;
-    config.mSpeeds.mSpeedPointTurn = 0.1;
+    config.mMobility.mSpeed = 0.3;
+    config.mMobility.mTurningSpeed = 0.4;
+    config.mMobility.mMinTurningRadius = 0.1;
     
     //FIXME what do the multipliers do?
-    config.mSpeeds.mMultiplierForward = 1;
-    config.mSpeeds.mMultiplierBackward = 5;
-    config.mSpeeds.mMultiplierLateral = 10;
-    config.mSpeeds.mMultiplierTurn = 2;
-    config.mSpeeds.mMultiplierPointTurn = 8;
+    config.mMobility.mMultiplierForward = 1;
+    config.mMobility.mMultiplierBackward = 5;
+    config.mMobility.mMultiplierLateral = 10;
+    config.mMobility.mMultiplierBackwardTurn = 2;
+    config.mMobility.mMultiplierForwardTurn = 2;
+    config.mMobility.mMultiplierPointTurn = 8;
     
-    config.mNumPrimPartition = 10;
-    config.mNumPosesPerPrim = 30;
+    config.mNumPrimPartition = 8;
+    config.mNumPosesPerPrim = 10;
     config.mNumAngles = 16;
     
     config.mMapWidth = 400; //FIXME why do I need this when generating primitives?
     config.mMapHeight = 400;
     config.mGridSize = 0.1;
+    config.mPrimAccuracy = 0.01;
     
     motion_planning_libraries::SbplMotionPrimitives mprims(config);
     mprims.createPrimitives();
+    std::cout << "Got Primitives" << std::endl;
     
     TraversabilityGenerator3d::Config conf;
     conf.gridResolution = 0.1;
