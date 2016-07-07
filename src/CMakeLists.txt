@@ -12,7 +12,7 @@ rock_library(ugv_nav4d
         dwa
 )
 
-rock_executable(ugv_nav4d_bin Main.cpp
-   DEPS ugv_nav4d
-   DEPS_PKGCONFIG vizkit3d ugv_nav4d-viz maps-viz)
+
+rock_executable(test_bin test.cpp
+   DEPS ugv_nav4d)
 
