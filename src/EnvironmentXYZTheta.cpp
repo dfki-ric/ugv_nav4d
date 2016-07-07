@@ -543,7 +543,7 @@ void EnvironmentXYZTheta::readMotionPrimitives(const SbplMotionPrimitives& primi
         motion.xDiff = prim.mEndPose[0];
         motion.yDiff = prim.mEndPose[1];
         motion.endTheta =  DiscreteTheta(static_cast<int>(prim.mEndPose[2]), numAngles);
-        motion.startTheta = DiscreteTheta(prim.mStartAngle, numAngles);
+        motion.startTheta = DiscreteTheta(static_cast<int>(prim.mStartAngle), numAngles);
         motion.costMultiplier = prim.mCostMultiplier;
 
         std::vector<base::Pose2D> poses;
