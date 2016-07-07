@@ -154,11 +154,7 @@ int main(int argc, char** argv)
 
     QApplication app(argc, argv);
     vizkit3d::Vizkit3DWidget widget;
-    QStringList* plugins = widget.getAvailablePlugins();
-    for(int i = 0; i < plugins->size(); ++i)
-    {
-      std::cout << plugins->at(i).toStdString() << std::endl;
-    }
+
     vizkit3d::EnvironmentXYZThetaVisualization viz;
     vizkit3d::MLSMapVisualization mlsViz;
     widget.addPlugin(&viz);
