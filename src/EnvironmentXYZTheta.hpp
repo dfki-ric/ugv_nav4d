@@ -105,6 +105,29 @@ std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle);
 
 class EnvironmentXYZTheta : public DiscreteSpaceInformation
 {
+public:
+    struct Motion
+    {
+        Motion(unsigned int numAngles) : endTheta(0, numAngles),startTheta(0, numAngles), baseCost(0), id(std::numeric_limits<size_t>::max()) {};
+        
+        int xDiff;
+        int yDiff;
+        DiscreteTheta endTheta;
+        DiscreteTheta startTheta;
+        
+        /**the intermediate poses are not discrete.
+         * They are relative to the starting cell*/
+        std::vector<base::Pose2D> intermediatePoses;
+        /**relative to starting cell */
+        std::vector<maps::grid::Index> intermediateCells;
+        
+        int baseCost;
+        
+        int costMultiplier;
+        
+        size_t id;
+    };
+protected:
     TraversabilityGenerator3d travGen;
     boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid;
 
@@ -158,27 +181,6 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     
     std::vector<Hash> idToHash;
     
-    struct Motion
-    {
-        Motion(unsigned int numAngles) : endTheta(0, numAngles),startTheta(0, numAngles), baseCost(0) {};
-        
-        int xDiff;
-        int yDiff;
-        DiscreteTheta endTheta;
-        DiscreteTheta startTheta;
-        
-        /**the intermediate poses are not discrete.
-         * They are relative to the starting cell*/
-        std::vector<base::Pose2D> intermediatePoses;
-        /**relative to starting cell */
-        std::vector<maps::grid::Index> intermediateCells;
-        
-        int baseCost;
-        
-        int costMultiplier;
-    };
-     
-    
     class RobotModel
     {
     public:
@@ -194,7 +196,8 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
     {
         //indexed by discrete start theta
         std::vector<std::vector<Motion> > thetaToMotion;
-        
+
+        std::vector<Motion> idToMotion;
     public:
         void setMotionForTheta(const Motion &motion, const DiscreteTheta &theta);
         
@@ -210,6 +213,7 @@ class EnvironmentXYZTheta : public DiscreteSpaceInformation
             return thetaToMotion.at(theta.getTheta());
         };
         
+        const Motion &getMotion(std::size_t id) const;
         
     };
     

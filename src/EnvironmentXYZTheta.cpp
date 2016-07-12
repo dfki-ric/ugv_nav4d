@@ -37,7 +37,11 @@ void EnvironmentXYZTheta::PreComputedMotions::setMotionForTheta(const Environmen
         }
     }
     
-    thetaToMotion[theta.getTheta()].push_back(motion);
+    EnvironmentXYZTheta::Motion copy = motion;
+    copy.id = idToMotion.size();
+
+    idToMotion.push_back(copy);
+    thetaToMotion[theta.getTheta()].push_back(copy);
 }
 
 void EnvironmentXYZTheta::PreComputedMotions::preComputeCost(EnvironmentXYZTheta::Motion& motion, const RobotModel &model)
@@ -64,6 +68,11 @@ void EnvironmentXYZTheta::PreComputedMotions::preComputeCost(EnvironmentXYZTheta
 //     << angular_distance << " time " << angular_time << " cost " << motion.baseCost << " multiplier " << motion.costMultiplier <<  std::endl;
     
 
+}
+
+const EnvironmentXYZTheta::Motion& EnvironmentXYZTheta::PreComputedMotions::getMotion(std::size_t id) const
+{
+    return idToMotion.at(id);
 }
 
 
