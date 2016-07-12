@@ -736,5 +736,9 @@ std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle)
     return stream;
 }
 
+maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > EnvironmentXYZTheta::getTraversabilityMap() const
+{
+    return travGen.getTraversabilityBaseMap();
+}
 
 

@@ -293,6 +293,7 @@ public:
      * @throw std::runtime_error if no matching motion exists*/
     const Motion& getMotion(const int fromStateID, const int toStateID);
     
+    maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* >getTraversabilityMap() const;
 
 private:
   
