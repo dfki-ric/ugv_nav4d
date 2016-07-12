@@ -235,30 +235,36 @@ maps::grid::Vector3d EnvironmentXYZTheta::getStatePosition(const int stateID) co
     return ret;
 }
 
-const EnvironmentXYZTheta::Motion& EnvironmentXYZTheta::getMotion(const int fromStateID, const int toStateID) const
+const EnvironmentXYZTheta::Motion& EnvironmentXYZTheta::getMotion(const int fromStateID, const int toStateID)
 {
-  
-    //FIXME there might be more than one motion connecting the two states?
-    const Hash &fromHash(idToHash[fromStateID]);
-    const Hash &toHash(idToHash[toStateID]);
-    const DiscreteTheta fromTheta = fromHash.thetaNode->theta;
-    const DiscreteTheta toTheta = toHash.thetaNode->theta;
-    const maps::grid::Index posDiff = toHash.node->getIndex() - fromHash.node->getIndex();
+    int cost = -1;
+    size_t motionId = 0;
     
-    const auto& motions = availableMotions.getMotionForStartTheta(fromTheta);
-    for(const Motion& motion : motions)
+    vector<int> successStates;
+    vector<int> successStateCosts;
+    vector<size_t> motionIds;
+    
+    GetSuccs(fromStateID, &successStates, &successStateCosts, motionIds);
+    
+    for(size_t i = 0; i < successStates.size(); i++)
     {
-        if(motion.xDiff == posDiff.x() && motion.yDiff == posDiff.y() && 
-           motion.endTheta == toTheta)
+        if(successStates[i] == toStateID)
         {
-            return motion;
+            if(cost == -1 || cost > successStateCosts[i])
+            {
+                cost = successStateCosts[i];
+                motionId = motionIds[i];
+            }
         }
     }
+
+    if(cost == -1)
+        throw std::runtime_error("Internal Error: No matching motion for output path found");
     
-    throw std::runtime_error("No motion found");
+    return availableMotions.getMotion(motionId);
 }
 
-vector<base::Pose2D> EnvironmentXYZTheta::getPoses(const int fromStateID, const int toStateID) const
+const vector<base::Pose2D> &EnvironmentXYZTheta::getPoses(const int fromStateID, const int toStateID)
 {
     const Motion& motion = getMotion(fromStateID, toStateID);
     return motion.intermediatePoses;
@@ -353,9 +359,16 @@ TraversabilityGenerator3d::Node *EnvironmentXYZTheta::movementPossible(Traversab
     return targetNode;
 }
 
-
 void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, vector< int >* CostV)
 {
+    std::vector<size_t> motionId;
+    GetSuccs(SourceStateID, SuccIDV, CostV, motionId);
+}
+
+
+void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, vector< int >* CostV, vector< size_t >& motionIdV)
+{
+//     std::cout << "GetSuccs " << SourceStateID << std::endl;
     const Hash &sourceHash(idToHash[SourceStateID]);
     XYZNode *sourceNode = sourceHash.node;
     
@@ -479,6 +492,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         
         SuccIDV->push_back(successthetaNode->id);
         CostV->push_back(motion.baseCost + additionalCosts);
+        motionIdV.push_back(motion.id);
     }
 }
 

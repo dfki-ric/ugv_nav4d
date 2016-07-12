@@ -263,6 +263,7 @@ public:
     
     virtual void GetPreds(int TargetStateID, std::vector< int >* PredIDV, std::vector< int >* CostV);
     virtual void GetSuccs(int SourceStateID, std::vector< int >* SuccIDV, std::vector< int >* CostV);
+    virtual void GetSuccs(int SourceStateID, std::vector< int >* SuccIDV, std::vector< int >* CostV, std::vector< size_t >& motionIdV);
 
     virtual void PrintEnv_Config(FILE* fOut);
     virtual void PrintState(int stateID, bool bVerbose, FILE* fOut = 0);
@@ -283,13 +284,14 @@ public:
     /**Returns the intermediate poses of the motion connecting @p FromStateID 
      * and @p toStateID.
      * @throw std::runtime_error if no such motion exists*/
-    std::vector<base::Pose2D> getPoses(const int fromStateID, const int toStateID) const;
+    const std::vector< base::Pose2D >& getPoses(const int fromStateID, const int toStateID);
     
-private:
-      
     /**returns the motion connection @p fromStateID and @p toStateID.
      * @throw std::runtime_error if no matching motion exists*/
-    const Motion& getMotion(const int fromStateID, const int toStateID) const;
+    const Motion& getMotion(const int fromStateID, const int toStateID);
+    
+
+private:
   
     //Return true if there is no collision on the given path.
     bool checkCollisions(const std::vector<TraversabilityGenerator3d::Node*>& path) const;
