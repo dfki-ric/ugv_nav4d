@@ -50,13 +50,14 @@ int main(int argc, char** argv)
         }
     }
     
+    std::cout << "AAAAAAA" << std::endl;
     boost::shared_ptr<MultiLevelGridMap<SurfacePatchBase>> mlsPtr(mlsBase);
     
     std::cout << "MLS Size " << mlsBase->getSize().transpose() << std::endl;
     
     //create motion primitives
     motion_planning_libraries::MotionPrimitivesConfig config;
-    config.mMobility.mSpeed = 0.3;
+    config.mMobility.mSpeed = 1.3;
     config.mMobility.mTurningSpeed = 0.4;
     config.mMobility.mMinTurningRadius = 0.1;
     
@@ -75,7 +76,7 @@ int main(int argc, char** argv)
     config.mMapWidth = 400; //FIXME why do I need this when generating primitives?
     config.mMapHeight = 400;
     config.mGridSize = 0.1;
-    config.mPrimAccuracy = 0.01;
+    config.mPrimAccuracy = 0.1;
     
     motion_planning_libraries::SbplMotionPrimitives mprims(config);
     mprims.createPrimitives();
@@ -84,16 +85,16 @@ int main(int argc, char** argv)
     TraversabilityGenerator3d::Config conf;
     conf.gridResolution = 0.1;
     conf.maxSlope = 0.5;
-    conf.maxStepHeight = 0.2;
+    conf.maxStepHeight = 0.2; //space below robot
     conf.robotSizeX = 0.5;
-    conf.robotHeight = 0.9;
-
+    conf.robotHeight = 0.9; //incl space below body
+    std::cout << "bbbbbbbbbbbbbbbbbbbbbbb" << std::endl;
     
     EnvironmentXYZTheta myEnv(mlsPtr, conf, mprims);
     
 //     anaPlanner planner(&myEnv, true);
     ARAPlanner planner(&myEnv, true);
-    
+    std::cout << "ccccccccccccccccccccccccccccc" << std::endl;
     planner.set_search_mode(true);
 
     const Eigen::Vector3d start(0,-0,-0.7);
@@ -138,6 +139,11 @@ int main(int argc, char** argv)
         std::cout << "cost " << s.cost << " time " << s.time << "num childs " << s.expands << std::endl;
     }
 
+    if(solution.size() <= 0)
+    {
+      std::cout << "NO SOLUTION FOUND!!!" << std::endl;
+      return 0;
+    }
     
     for(int i = 0; i < solution.size() - 1; ++i)
     {

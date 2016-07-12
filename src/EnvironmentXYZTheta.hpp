@@ -233,6 +233,8 @@ public:
   
     //FIXME remove all debug code afterwards
     mutable std::vector<maps::grid::Vector3d> debugRobotPositions;
+    //contains the min/max vectors for bounding boxes that collided with something
+    mutable std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> debugCollisions;
   
     EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid,
                         const TraversabilityGenerator3d::Config &travConf,

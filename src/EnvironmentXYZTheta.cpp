@@ -325,8 +325,8 @@ TraversabilityGenerator3d::Node *EnvironmentXYZTheta::movementPossible(Traversab
 
     if(!targetNode)
     {
-        cout << "No neighbour node for motion found " << endl;
-        cout << "curIndex " << fromIdx.transpose() << " newIndex " << toIdx.transpose() << endl;
+//         cout << "No neighbour node for motion found " << endl;
+//         cout << "curIndex " << fromIdx.transpose() << " newIndex " << toIdx.transpose() << endl;
         return nullptr;
     }
     
@@ -382,7 +382,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             //diff is always a full offset to the start position
             newIndex = sourceIndex + diff;
 
-            
             travNode = movementPossible(travNode, curIndex, newIndex);
             nodesOnPath.push_back(travNode);
             
@@ -392,7 +391,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             }
             
             curIndex = newIndex;
-            
         }
         
         if(!travNode)
@@ -413,7 +411,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         
         if(!checkCollisions(nodesOnPath))
         {
-          cout << "Motion contains collision" << endl;
+//           cout << "Motion contains collision" << endl;
           continue;
         }
         
@@ -479,15 +477,70 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
 {
     for(const TraversabilityGenerator3d::Node* node : path)
     {
+       
+        //TODO use real data from model
+        const double robotSizeY = 0.8; //FIXME get real value frome somewhere
+        const double robotSizeX = travConf.robotSizeX;
+        const double robotHeight = travConf.robotHeight;
+        const double x2 = robotSizeX / 2.0;
+        const double y2 = robotSizeY / 2.0;
+        const double z2 = robotHeight / 2.0;
+        const double zRot = 0.473; //FIXME get real value later
+        
         maps::grid::Vector3d robotPosition;
-        //FIXME is node->getIndex() absolut or relative to the start node?
         mlsGrid->fromGrid(node->getIndex(), robotPosition);
-        robotPosition.z() = node->getHeight();
+        robotPosition.z() = node->getHeight() + robotHeight / 2.0;
         
-        const Eigen::AlignedBox3d robotBoundingBox = getRobotBoundingBox();
+        //TODO improve performance by pre calculating lots of stuff
+        //create rotated robot bounding box
+        Eigen::Matrix<double, 3, 8> corners; //colwise corner vectors
+        corners.col(0) << -x2, -y2, -(z2/2.0); //FIXME replace -(z2/2.0) with something real.
+        corners.col(1) << x2, -y2, -(z2/2.0);
+        corners.col(2) << x2, y2, -(z2/2.0);
+        corners.col(3) << -x2, y2, -(z2/2.0);
+        corners.col(4) << x2, -y2, z2/2.0;
+        corners.col(5) << x2, y2, z2/2.0;
+        corners.col(6) << -x2, y2, z2/2.0;
+        corners.col(7) << -x2, -y2, z2/2.0;
+
+        const Eigen::Matrix3d rot = Eigen::AngleAxisd(zRot, Eigen::Vector3d(0, 0, 1)).toRotationMatrix();
+        const Eigen::Matrix<double, 3, 8> rotatedCorners = (rot * corners).colwise() + robotPosition;
         
-//         mlsGrid->intersectCuboid(robotBoundingBox);
+        //find min/max for bounding box
+        const Eigen::Vector3d min = rotatedCorners.rowwise().minCoeff();
+        const Eigen::Vector3d max = rotatedCorners.rowwise().maxCoeff();
         
+         const Eigen::AlignedBox3d aabb(min, max); //aabb around the rotated robot bounding box
+        //get all grid cells below robot bounding box
+/*        maps::grid::Index minIdx;
+        if(!mlsGrid->toGrid(Eigen::Vector3d(min.x(), min.y(), .0), minIdx, true))
+        {
+            throw std::runtime_error("bounding box outside map");
+        }
+        
+        maps::grid::Index maxIdx;
+        if(!mlsGrid->toGrid(Eigen::Vector3d(max.x(), max.y(), .0), maxIdx, true))
+        {
+            throw std::runtime_error("bounding box outside map");
+        }     */   
+
+        std::size_t numIntersections = 0;
+        auto view = mlsGrid->intersectCuboid(aabb, numIntersections);
+        if(numIntersections > 0)
+        {
+            debugCollisions.emplace_back(min, max);
+//           std:cout << "collision element count: " << numIntersections << std::endl;
+           return false;
+        }
+               
+        
+        //const Eigen::AlignedBox3d robotBoundingBox = getRobotBoundingBox();
+        /* 1. get robot bounding box and align it to the cell. I.e. hover above the cell.
+         * 2. get aligned bounding box around the robot.
+         * 3. use aabb to get all cells occupied by the robot.
+         * 4. check if any of those cells hits the box? or if the slope is too steep*/
+        
+   
 //         cout << "robot position: " << robotPosition.transpose() << endl;
         debugRobotPositions.push_back(robotPosition);
     }
@@ -498,7 +551,7 @@ Eigen::AlignedBox3d EnvironmentXYZTheta::getRobotBoundingBox() const
 {
     //FIXME implement
     const Eigen::Vector3d min(0, 0, 0);
-    const Eigen::Vector3d max(10, 10, 10);
+    const Eigen::Vector3d max(0.5, 1.0, 0.2);
     return Eigen::AlignedBox3d(min, max);
 }
 

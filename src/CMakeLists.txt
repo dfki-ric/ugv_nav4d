@@ -11,8 +11,3 @@ rock_library(ugv_nav4d
         motion_planning_libraries
         dwa
 )
-
-
-rock_executable(test_bin test.cpp
-   DEPS ugv_nav4d)
-
