@@ -1,8 +1,10 @@
 rock_library(ugv_nav4d
     SOURCES 
+        Planner.cpp
         EnvironmentXYZTheta.cpp
     HEADERS 
         EnvironmentXYZTheta.hpp
+        Planner.hpp
     DEPS_PKGCONFIG 
         base-types 
         trav_gen_3d

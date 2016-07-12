@@ -1,14 +1,13 @@
 #include <iostream>
 #include <boost/archive/polymorphic_binary_iarchive.hpp>
 #include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
-#include "EnvironmentXYZTheta.hpp"
-#include <sbpl/planners/araplanner.h>
 #include <fstream>
 #include <backward/backward.hpp>
-#include <sbpl/utils/mdpconfig.h>
 #include <vizkit3d/Vizkit3DWidget.hpp>
-#include <vizkit3d/EnvironmentXYZThetaVisualization.hpp>
+#include <vizkit3d/TrajectoryVisualization.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
+#include <vizkit3d/TraversabilityMap3dVisualization.hpp>
+#include "Planner.hpp"
 
 // backward::SignalHandling sh;
 
@@ -32,28 +31,6 @@ int main(int argc, char** argv)
     
     std::cout << "MLS Resolutition " << mlsSloped.getResolution().transpose() << std::endl;
     
-    MultiLevelGridMap<SurfacePatchBase> *mlsBase = new MultiLevelGridMap<SurfacePatchBase>(mlsSloped.getNumCells(), mlsSloped.getResolution(), mlsSloped.getLocalMapData());
-
-    std::cout << "MLSBase Resolutition " << mlsBase->getResolution().transpose() << std::endl;
-    
-    for(size_t y = 0 ; y < mlsSloped.getNumCells().y(); y++)
-    {
-        for(size_t x = 0 ; x < mlsSloped.getNumCells().x(); x++)
-        {
-            Index idx(x, y);
-            for(auto &p : mlsSloped.at(idx))
-            {
-//                 std::cout << "Patch ! " << idx.transpose() << std::endl;
-                SurfacePatchBase basePatch(p.getTop(), p.getTop() - p.getBottom());
-                mlsBase->at(idx).insert(basePatch);
-            }
-        }
-    }
-    
-    std::cout << "AAAAAAA" << std::endl;
-    boost::shared_ptr<MultiLevelGridMap<SurfacePatchBase>> mlsPtr(mlsBase);
-    
-    std::cout << "MLS Size " << mlsBase->getSize().transpose() << std::endl;
     
     //create motion primitives
     motion_planning_libraries::MotionPrimitivesConfig config;
@@ -78,9 +55,6 @@ int main(int argc, char** argv)
     config.mGridSize = 0.1;
     config.mPrimAccuracy = 0.1;
     
-    motion_planning_libraries::SbplMotionPrimitives mprims(config);
-    mprims.createPrimitives();
-    std::cout << "Got Primitives" << std::endl;
     
     TraversabilityGenerator3d::Config conf;
     conf.gridResolution = 0.1;
@@ -90,88 +64,37 @@ int main(int argc, char** argv)
     conf.robotHeight = 0.9; //incl space below body
     std::cout << "bbbbbbbbbbbbbbbbbbbbbbb" << std::endl;
     
-    EnvironmentXYZTheta myEnv(mlsPtr, conf, mprims);
+    Planner planner(config, conf);
     
-//     anaPlanner planner(&myEnv, true);
-    ARAPlanner planner(&myEnv, true);
-    std::cout << "ccccccccccccccccccccccccccccc" << std::endl;
-    planner.set_search_mode(true);
+    base::samples::RigidBodyState start;
+    start.position = Eigen::Vector3d(0,-0,-0.7);
+    start.orientation.setIdentity();
+    base::samples::RigidBodyState end;
+    end.position = Eigen::Vector3d(4, 5, 3.23207);
+    end.orientation.setIdentity();
+    
+    planner.updateMap(mlsSloped);
+    if(!planner.plan(start, end))
+        return 0;
 
-    const Eigen::Vector3d start(0,-0,-0.7);
-    const Eigen::Vector3d goal(4, 5, 3.23207);
-    myEnv.setStart(start, 0);
-    myEnv.setGoal(goal, 0);
+    std::vector<base::Trajectory> path;
 
-    MDPConfig mdp_cfg;
-        
-    if (! myEnv.InitializeMDPCfg(&mdp_cfg)) {
-        std::cout << "InitializeMDPCfg failed, start and goal id cannot be requested yet" << std::endl;
-        return false;
-    }
-        
-    std::cout << "SBPL: About to set start and goal, startid" << mdp_cfg.startstateid << std::endl;
-    if (planner.set_start(mdp_cfg.startstateid) == 0) {
-        std::cout << "Failed to set start state" << std::endl;
-        return false;
-    }
-
-    if (planner.set_goal(mdp_cfg.goalstateid) == 0) {
-        std::cout << "Failed to set goal state" << std::endl;
-        return false;
-    }
-
+    planner.getTrajectory(path);
     
-
-    
-    std::vector<int> solution;
-    
-    planner.replan(1.0, &solution);
-    std::vector<QVector3D> solutionPositions;
-    std::cout << "Solution: " << std::endl;
-    
-    std::vector<PlannerStats> stats;
-    
-    planner.get_search_stats(&stats);
-    
-    std::cout << std::endl << "Stats" << std::endl;
-    for(const PlannerStats &s: stats)
-    {
-        std::cout << "cost " << s.cost << " time " << s.time << "num childs " << s.expands << std::endl;
-    }
-
-    if(solution.size() <= 0)
-    {
-      std::cout << "NO SOLUTION FOUND!!!" << std::endl;
-      return 0;
-    }
-    
-    for(int i = 0; i < solution.size() - 1; ++i)
-    {
-        std::cout << solution[i] << " ";
-        const maps::grid::Vector3d start = myEnv.getStatePosition(solution[i]);
-        const maps::grid::Vector3d goal = myEnv.getStatePosition(solution[i+1]);
-        const std::vector<base::Pose2D> poses = myEnv.getPoses(solution[i], solution[i+1]);
-        for(const base::Pose2D& pose : poses)
-        {
-            //need to offset by start because the poses are relative to (0/0)
-            solutionPositions.emplace_back(pose.position.x() + start.x(), pose.position.y() + start.y(), start.z());
-        }
-    }
-    std::cout << std::endl;
 
     QApplication app(argc, argv);
     vizkit3d::Vizkit3DWidget widget;
 
-    vizkit3d::EnvironmentXYZThetaVisualization viz;
+    vizkit3d::TrajectoryVisualization viz;
     vizkit3d::MLSMapVisualization mlsViz;
+    vizkit3d::TraversabilityMap3dVisualization trav3dViz;
     widget.addPlugin(&viz);
     widget.addPlugin(&mlsViz);
-    viz.setGridSize(conf.gridResolution);
-    viz.setStartPos(start.x(), start.y(), start.z());
-    viz.setGoalPos(goal.x(), goal.y(), goal.z());
-    viz.setSolution(solutionPositions);
-    viz.updateData(myEnv);
+    widget.addPlugin(&trav3dViz);
+    viz.setLineWidth(5);
+    viz.updateTr(path);
     mlsViz.updateData(mlsSloped);
+    trav3dViz.updateData(planner.getTraversabilityMap());
     
     widget.show();
     

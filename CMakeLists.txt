@@ -8,4 +8,4 @@ rock_standard_layout()
 
 rock_executable(ugv_nav4d_bin src/Main.cpp
    DEPS ugv_nav4d ugv_nav4d-viz
-   DEPS_PKGCONFIG vizkit3d  maps-viz)
+   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz)
