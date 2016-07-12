@@ -547,14 +547,14 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
             throw std::runtime_error("bounding box outside map");
         }     */   
 
-        std::size_t numIntersections = 0;
-        auto view = mlsGrid->intersectCuboid(aabb, numIntersections);
-        if(numIntersections > 0)
-        {
-            debugCollisions.emplace_back(min, max);
-//           std:cout << "collision element count: " << numIntersections << std::endl;
-           return false;
-        }
+//         std::size_t numIntersections = 0;
+//         auto view = mlsGrid->intersectCuboid(aabb, numIntersections);
+//         if(numIntersections > 0)
+//         {
+//             debugCollisions.emplace_back(min, max);
+// //           std:cout << "collision element count: " << numIntersections << std::endl;
+//            return false;
+//         }
                
         
         //const Eigen::AlignedBox3d robotBoundingBox = getRobotBoundingBox();
@@ -649,43 +649,43 @@ void EnvironmentXYZTheta::readMotionPrimitives(const SbplMotionPrimitives& primi
             double currentParam = spline.getStartParam();
             while(currentDist < splineLength)
             {
-            currentDist += stepDist;
-            currentParam = spline.advance(currentParam, stepDist);
-            const base::Pose2D currentPose = spline.getIntermediatePointNormalized(currentParam);
-            
-            //convert pose to grid
-            const base::Vector3d position(currentPose.position.x(), currentPose.position.y(), 0);
-            maps::grid::Index diff;
-            //only add pose if it is in a different cell than the one before
-            if(!searchGrid.toGrid(position, diff, false))
-            {
-                throw EnvironmentXYZThetaException("Cannot convert intermediate Pose to grid cell");
+                currentDist += stepDist;
+                currentParam = spline.advance(currentParam, stepDist);
+                const base::Pose2D currentPose = spline.getIntermediatePointNormalized(currentParam);
+                
+                //convert pose to grid
+                const base::Vector3d position(currentPose.position.x(), currentPose.position.y(), 0);
+                maps::grid::Index diff;
+                //only add pose if it is in a different cell than the one before
+                if(!searchGrid.toGrid(position, diff, false))
+                {
+                    throw EnvironmentXYZThetaException("Cannot convert intermediate Pose to grid cell");
+                }
+                
+                if(motion.intermediateCells.size() == 0 || motion.intermediateCells.back() != diff)
+                {
+                    motion.intermediateCells.push_back(diff);
+                    motion.intermediatePoses.push_back(currentPose);
+    //               std::cout << "intermediate poses: " << currentPose.position.transpose() << ", " << currentPose.orientation << 
+    //                            "[" << diff.transpose() << "]" << std::endl;
+                }            
             }
-            
-            if(motion.intermediateCells.size() == 0 || motion.intermediateCells.back() != diff)
-            {
-                motion.intermediateCells.push_back(diff);
-                motion.intermediatePoses.push_back(currentPose);
-//               std::cout << "intermediate poses: " << currentPose.position.transpose() << ", " << currentPose.orientation << 
-//                            "[" << diff.transpose() << "]" << std::endl;
-            }            
         }
-    }
-    else
-    {
-        //Since our index is only x/y based (i.e. it ignores rotation)
-        //we do not need to add any intermediate positions for rotation-only
-        //movements.
-    }
+        else
+        {
+            //Since our index is only x/y based (i.e. it ignores rotation)
+            //we do not need to add any intermediate positions for rotation-only
+            //movements.
+        }
 
-    availableMotions.preComputeCost(motion, robotModel);
+        availableMotions.preComputeCost(motion, robotModel);
 
-    availableMotions.setMotionForTheta(motion, motion.startTheta);
+        availableMotions.setMotionForTheta(motion, motion.startTheta);
 
-//     std::cout << "startTheta " <<  prim.mStartAngle << std::endl;
-//     std::cout << "mEndPose " <<  prim.mEndPose.transpose() << std::endl;
-// 
-//     std::cout << "Adding Motion: 0, 0, " << motion.startTheta << " -> " << motion.xDiff << ", " << motion.yDiff << ", " << motion.endTheta << std::endl << std::endl;
+    //     std::cout << "startTheta " <<  prim.mStartAngle << std::endl;
+    //     std::cout << "mEndPose " <<  prim.mEndPose.transpose() << std::endl;
+    // 
+//         std::cout << "Adding Motion: 0, 0, " << motion.startTheta << " -> " << motion.xDiff << ", " << motion.yDiff << ", " << motion.endTheta << std::endl << std::endl;
     }
 }
 
