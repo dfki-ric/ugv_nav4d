@@ -62,7 +62,6 @@ int main(int argc, char** argv)
     conf.maxStepHeight = 0.2; //space below robot
     conf.robotSizeX = 0.5;
     conf.robotHeight = 0.9; //incl space below body
-    std::cout << "bbbbbbbbbbbbbbbbbbbbbbb" << std::endl;
     
     Planner planner(config, conf);
     

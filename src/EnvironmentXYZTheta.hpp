@@ -293,8 +293,11 @@ public:
      * @throw std::runtime_error if no matching motion exists*/
     const Motion& getMotion(const int fromStateID, const int toStateID);
     
-    maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* >getTraversabilityMap() const;
+    maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;
+    const maps::grid::TraversabilityMap3d< TraversabilityGenerator3d::Node *> &getTraversabilityMap() const;
 
+    const maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> &getMlsMap() const;
+    
 private:
   
     //Return true if there is no collision on the given path.

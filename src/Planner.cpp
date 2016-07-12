@@ -117,6 +117,28 @@ void Planner::updateMap(const maps::grid::MLSMapSloped &mlsSloped)
     }
 }
 
+void Planner::updateHeight(base::Vector3d &pos) const
+{
+    Eigen::Vector3d pose(pos);
+    const auto &ll = env->getTraversabilityMap().at(pose);
+
+    double lastDist = std::numeric_limits< double >::max();
+    double z = pos.z();
+    
+    for(const auto &sp: ll)
+    {
+        double curDist = fabs(sp->getHeight() - pos.z());
+        if(curDist < lastDist)
+        {
+            z = sp->getHeight();
+            lastDist = curDist;
+        }
+    }
+    
+    pos.z() = z;
+}
+
+
 void Planner::getTrajectory(std::vector< base::Trajectory >& trajectory)
 {
     if(solution.size() < 2)
@@ -150,10 +172,14 @@ void Planner::getTrajectory(std::vector< base::Trajectory >& trajectory)
         std::cout << "Intermediate Poses : " << curMotion.intermediatePoses.size() << std::endl;
         for(const base::Pose2D& pose : curMotion.intermediatePoses)
         {
-            //need to offset by start because the poses are relative to (0/0)
-            positions.emplace_back(pose.position.x() + start.x(), pose.position.y() + start.y(), start.z());
+            base::Vector3d pos(pose.position.x() + start.x(), pose.position.y() + start.y(), start.z());
             
-            std::cout << "Intermediate position " << positions.back().transpose() << std::endl;
+            updateHeight(pos);
+            
+            //need to offset by start because the poses are relative to (0/0)
+            positions.emplace_back(pos);
+            
+            std::cout << "Intermediate position " << pos.transpose() << std::endl;
         }
     }
     std::cout << std::endl;
@@ -166,5 +192,5 @@ void Planner::getTrajectory(std::vector< base::Trajectory >& trajectory)
 
 maps::grid::TraversabilityMap3d< TraversabilityNodeBase* > Planner::getTraversabilityMap() const
 {
-    return env->getTraversabilityMap();
+    return env->getTraversabilityBaseMap();
 }

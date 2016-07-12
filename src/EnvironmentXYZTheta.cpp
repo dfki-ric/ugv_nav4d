@@ -736,9 +736,18 @@ std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle)
     return stream;
 }
 
-maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > EnvironmentXYZTheta::getTraversabilityMap() const
+maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > EnvironmentXYZTheta::getTraversabilityBaseMap() const
 {
     return travGen.getTraversabilityBaseMap();
 }
 
+const maps::grid::TraversabilityMap3d< TraversabilityGenerator3d::Node* >& EnvironmentXYZTheta::getTraversabilityMap() const
+{
+    return travGen.getTraversabilityMap();
+}
+
+const maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase >& EnvironmentXYZTheta::getMlsMap() const
+{
+    return *(mlsGrid.get());
+}
 

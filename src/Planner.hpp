@@ -19,6 +19,8 @@ class Planner
     
     std::vector<int> solution;
     
+    void updateHeight(base::Vector3d &pos) const;
+    
 public:
     Planner(const motion_planning_libraries::MotionPrimitivesConfig &primitiveConfig, const TraversabilityGenerator3d::Config &traversabilityConfig);
     
