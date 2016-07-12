@@ -84,6 +84,7 @@ int main(int argc, char** argv)
 
     QApplication app(argc, argv);
     vizkit3d::Vizkit3DWidget widget;
+    widget.setCameraManipulator(vizkit3d::ORBIT_MANIPULATOR);
 
     vizkit3d::TrajectoryVisualization viz;
     vizkit3d::MLSMapVisualization mlsViz;
@@ -91,7 +92,7 @@ int main(int argc, char** argv)
     widget.addPlugin(&viz);
     widget.addPlugin(&mlsViz);
     widget.addPlugin(&trav3dViz);
-    viz.setLineWidth(5);
+    viz.setLineWidth(10);
     viz.updateTr(path);
     mlsViz.updateData(mlsSloped);
     trav3dViz.updateData(planner.getTraversabilityMap());
