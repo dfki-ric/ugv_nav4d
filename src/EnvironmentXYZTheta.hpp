@@ -233,6 +233,7 @@ protected:
 
     int GetHeuristic(int stateID, EnvironmentXYZTheta::ThetaNode* targetThetaNode, EnvironmentXYZTheta::XYZNode* goalXYZNode) const;
 
+    void clear();
 public:
   
     //FIXME remove all debug code afterwards
@@ -253,6 +254,8 @@ public:
                     const motion_planning_libraries::SbplMotionPrimitives& primitives);
     
     virtual ~EnvironmentXYZTheta();
+    
+    void updateMap(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid);
     
     virtual bool InitializeEnv(const char* sEnvFile);
     virtual bool InitializeMDPCfg(MDPConfig* MDPCfg);

@@ -114,12 +114,53 @@ void EnvironmentXYZTheta::initialize(boost::shared_ptr< maps::grid::MultiLevelGr
     readMotionPrimitives(primitives);
 }
 
+void EnvironmentXYZTheta::clear()
+{
+    //clear the search grid
+    for(maps::grid::LevelList<XYZNode *> &l : searchGrid)
+    {
+        for(XYZNode *n : l)
+        {
+            for(auto &tn : n->getUserData().thetaToNodes)
+            {
+                delete tn.second;
+            }
+            delete n;
+        }
+        l.clear();
+    }
+    
+    idToHash.clear();
+
+    startThetaNode = nullptr;
+    startXYZNode = nullptr;
+    
+    goalThetaNode = nullptr;
+    goalXYZNode = nullptr;
+    
+    for(int *p: StateID2IndexMapping)
+    {
+        delete p;
+    }
+    StateID2IndexMapping.clear();
+}
 
 
 
 EnvironmentXYZTheta::~EnvironmentXYZTheta()
 {
+    clear();
+}
 
+void EnvironmentXYZTheta::updateMap(boost::shared_ptr< maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > > mlsGrid)
+{
+    if(this->mlsGrid && this->mlsGrid->getResolution() != mlsGrid->getResolution())
+        throw std::runtime_error("EnvironmentXYZTheta::updateMap : Error got MLSMap with different resolution");
+    
+    travGen.setMLSGrid(mlsGrid);
+    this->mlsGrid = mlsGrid;
+
+    clear();
 }
 
 EnvironmentXYZTheta::XYZNode* EnvironmentXYZTheta::createNewXYZState(TraversabilityGenerator3d::Node* travNode)
