@@ -45,19 +45,19 @@ ref_ptr<Node> EnvironmentXYZThetaVisualization::createMainNode()
 
 void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 {
-    Box* unitCube = new Box( Vec3(0,0,0), p->gridSize);
-    ShapeDrawable* unitCubeDrawable = new ShapeDrawable(unitCube);
-    unitCubeDrawable->setColor(osg::Vec4(1, 0, 0, 1));
-    for(const maps::grid::Vector3d& pos : p->debugRobotPositions)
-    {
-        PositionAttitudeTransform* trans = new PositionAttitudeTransform();
-        const Vec3d osgPos(pos.x(), pos.y(), pos.z());
-        trans->setPosition(osgPos);
-        p->root->addChild(trans);
-        Geode* childGeode = new Geode();
-        childGeode->addDrawable(unitCubeDrawable);
-        trans->addChild(childGeode);
-    }
+     Box* unitCube = new Box( Vec3(0,0,0), p->gridSize);
+//     ShapeDrawable* unitCubeDrawable = new ShapeDrawable(unitCube);
+//     unitCubeDrawable->setColor(osg::Vec4(1, 0, 0, 1));
+//     for(const maps::grid::Vector3d& pos : p->data.debugRobotPositions)
+//     {
+//         PositionAttitudeTransform* trans = new PositionAttitudeTransform();
+//         const Vec3d osgPos(pos.x(), pos.y(), pos.z());
+//         trans->setPosition(osgPos);
+//         p->root->addChild(trans);
+//         Geode* childGeode = new Geode();
+//         childGeode->addDrawable(unitCubeDrawable);
+//         trans->addChild(childGeode);
+//     }
     
     ShapeDrawable* unitCubeDrawable2 = new ShapeDrawable(unitCube);
     unitCubeDrawable2->setColor(osg::Vec4(0, 1, 0, 1));
@@ -98,6 +98,74 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
         childGeode->addDrawable(unitCubeDrawable2);
         trans->addChild(childGeode);
     }
+//     for(const Eigen::Matrix<double, 3, 8>& corners : p->data.debugRotatedBoxes)
+//     {
+//         osg::Geode* geode = new osg::Geode();
+//         osg::Geometry* myBox = new osg::Geometry();
+//         geode->addDrawable(myBox);
+//         osg::Vec3Array* vertices = new osg::Vec3Array;
+//         for(int i = 0; i < 8; ++i)
+//         {
+//             vertices->push_back(osg::Vec3(corners.col(i)(0), corners.col(i)(1),
+//                                           corners.col(i)(2)));
+//         }
+//         
+//         myBox->setVertexArray(vertices);
+//         osg::DrawElementsUInt* bottom = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
+//         bottom->push_back(0);
+//         bottom->push_back(1);
+//         bottom->push_back(2);
+//         bottom->push_back(3);
+//         myBox->addPrimitiveSet(bottom);
+//         
+//         osg::DrawElementsUInt* top = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
+//         bottom->push_back(4);
+//         bottom->push_back(5);
+//         bottom->push_back(6);
+//         bottom->push_back(7);
+//         myBox->addPrimitiveSet(top);  
+//         
+//         osg::DrawElementsUInt* sideA = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
+//         bottom->push_back(0);
+//         bottom->push_back(1);
+//         bottom->push_back(4);
+//         bottom->push_back(7);
+//         myBox->addPrimitiveSet(sideA);       
+//  
+//         osg::DrawElementsUInt* sideB = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
+//         bottom->push_back(1);
+//         bottom->push_back(2);
+//         bottom->push_back(4);
+//         bottom->push_back(5);
+//         myBox->addPrimitiveSet(sideB);     
+// 
+//         osg::DrawElementsUInt* sideC = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
+//         bottom->push_back(2);
+//         bottom->push_back(3);
+//         bottom->push_back(5);
+//         bottom->push_back(6);
+//         myBox->addPrimitiveSet(sideC);
+//         
+//         osg::DrawElementsUInt* sideD = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
+//         bottom->push_back(0);
+//         bottom->push_back(3);
+//         bottom->push_back(6);
+//         bottom->push_back(7);
+//         myBox->addPrimitiveSet(sideD);  
+//         
+//         osg::Vec4Array* colors = new osg::Vec4Array;
+//         colors->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.3f));
+//         colors->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.3f));
+//         colors->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.3f));
+//         colors->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.3f));
+//         colors->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.3f));
+//         colors->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.3f));
+//         myBox->setColorArray(colors);
+//         myBox->setColorBinding(Geometry::BIND_PER_PRIMITIVE_SET);
+//         
+//         p->root->addChild(geode);
+//     }
+      
     
     
     

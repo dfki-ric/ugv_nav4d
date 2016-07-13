@@ -157,7 +157,7 @@ void Planner::getTrajectory(std::vector< base::Trajectory >& trajectory)
     {
         const Motion &curMotion(env->getMotion(solution[i], solution[i+1]));
         
-        std::cout << "Motion has id " << curMotion.id << std::endl;
+//         std::cout << "Motion has id " << curMotion.id << std::endl;
         
         if(lastMotion != curMotion.id)
         {
@@ -167,9 +167,9 @@ void Planner::getTrajectory(std::vector< base::Trajectory >& trajectory)
             trajectory.push_back(curPart);
         }
 
-        std::cout << solution[i] << " ";
+//         std::cout << solution[i] << " ";
         const maps::grid::Vector3d start = env->getStatePosition(solution[i]);
-        std::cout << "Intermediate Poses : " << curMotion.intermediatePoses.size() << std::endl;
+//         std::cout << "Intermediate Poses : " << curMotion.intermediatePoses.size() << std::endl;
         for(const base::Pose2D& pose : curMotion.intermediatePoses)
         {
             base::Vector3d pos(pose.position.x() + start.x(), pose.position.y() + start.y(), start.z());
@@ -179,7 +179,7 @@ void Planner::getTrajectory(std::vector< base::Trajectory >& trajectory)
             //need to offset by start because the poses are relative to (0/0)
             positions.emplace_back(pos);
             
-            std::cout << "Intermediate position " << pos.transpose() << std::endl;
+//             std::cout << "Intermediate position " << pos.transpose() << std::endl;
         }
     }
     std::cout << std::endl;
@@ -194,3 +194,9 @@ maps::grid::TraversabilityMap3d< TraversabilityNodeBase* > Planner::getTraversab
 {
     return env->getTraversabilityBaseMap();
 }
+
+boost::shared_ptr< EnvironmentXYZTheta > Planner::getEnv() const
+{
+    return env;
+}
+

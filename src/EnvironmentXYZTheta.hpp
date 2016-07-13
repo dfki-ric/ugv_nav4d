@@ -74,6 +74,7 @@ protected:
     RobotModel robotModel;
     
     PreComputedMotions availableMotions;
+//     PreComputedBoundingBoxes boundingBoxes;
     
     ThetaNode *createNewState(const DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
     XYZNode *createNewXYZState(TraversabilityGenerator3d::Node* travNode);
@@ -94,6 +95,8 @@ public:
     mutable std::vector<maps::grid::Vector3d> debugRobotPositions;
     //contains the min/max vectors for bounding boxes that collided with something
     mutable std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> debugCollisions;
+    
+    mutable std::vector<Eigen::Matrix<double, 3, 8>> debugRotatedBoxes;
   
     EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid,
                         const TraversabilityGenerator3d::Config &travConf,
@@ -145,7 +148,8 @@ public:
 private:
   
     //Return true if there is no collision on the given path.
-    bool checkCollisions(const std::vector<TraversabilityGenerator3d::Node*>& path) const;
+    bool checkCollisions(const std::vector<TraversabilityGenerator3d::Node*>& path,
+                         const Motion& motion) const;
   
     Eigen::AlignedBox3d getRobotBoundingBox() const;
     

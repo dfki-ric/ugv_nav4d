@@ -7,6 +7,8 @@
 #include <vizkit3d/TrajectoryVisualization.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
 #include <vizkit3d/TraversabilityMap3dVisualization.hpp>
+#include <vizkit3d/EnvironmentXYZThetaVisualization.hpp>
+
 #include "Planner.hpp"
 
 // backward::SignalHandling sh;
@@ -88,13 +90,17 @@ int main(int argc, char** argv)
     vizkit3d::TrajectoryVisualization viz;
     vizkit3d::MLSMapVisualization mlsViz;
     vizkit3d::TraversabilityMap3dVisualization trav3dViz;
+    vizkit3d::EnvironmentXYZThetaVisualization envViz;
     widget.addPlugin(&viz);
     widget.addPlugin(&mlsViz);
     widget.addPlugin(&trav3dViz);
+    widget.addPlugin(&envViz);
     viz.setLineWidth(10);
     viz.updateTr(path);
     mlsViz.updateData(mlsSloped);
     trav3dViz.updateData(planner.getTraversabilityMap());
+    
+    envViz.updateData(*planner.getEnv().get());
     
     widget.show();
     

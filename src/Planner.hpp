@@ -31,5 +31,7 @@ public:
     void getTrajectory(std::vector<base::Trajectory> &trajectory);
     
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* >getTraversabilityMap() const;
+    
+    boost::shared_ptr<EnvironmentXYZTheta> getEnv() const;
 };
 
