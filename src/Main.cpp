@@ -73,7 +73,7 @@ int main(int argc, char** argv)
     end.orientation.setIdentity();
     
     planner.updateMap(mlsSloped);
-    if(!planner.plan(start, end))
+    if(!planner.plan(base::Time::fromSeconds(2), start, end))
         return 0;
 
     std::vector<base::Trajectory> path;

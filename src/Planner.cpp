@@ -20,7 +20,7 @@ Planner::Planner(const motion_planning_libraries::MotionPrimitivesConfig& primit
 }
 
 
-bool Planner::plan(base::samples::RigidBodyState& start, base::samples::RigidBodyState& end)
+bool Planner::plan(const base::Time &maxTime, base::samples::RigidBodyState& start, base::samples::RigidBodyState& end)
 {
     solution.clear();
     
@@ -66,7 +66,7 @@ bool Planner::plan(base::samples::RigidBodyState& start, base::samples::RigidBod
         return false;
     }
 
-    if(!planner->replan(5.0, &solution))
+    if(!planner->replan(maxTime.toSeconds(), &solution))
         return false;
         
     std::cout << "Epsilon is " << planner->get_final_epsilon() << std::endl;

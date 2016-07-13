@@ -26,11 +26,10 @@ public:
     
     void updateMap(const maps::grid::MLSMapSloped& mlsSloped);
     
-    bool plan(base::samples::RigidBodyState &start, base::samples::RigidBodyState &end);
+    bool plan(const base::Time& maxTime, base::samples::RigidBodyState& start, base::samples::RigidBodyState& end);
     
     void getTrajectory(std::vector<base::Trajectory> &trajectory);
     
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* >getTraversabilityMap() const;
 };
-
 
