@@ -484,17 +484,19 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
         
         const Eigen::Vector3d planeNormal = node->getUserData().plane.normal();       
         assert(planeNormal.allFinite()); 
-        const Eigen::Vector3d boxNormal(0, 0, 1);
-        const Eigen::Vector3d rotAxis = boxNormal.cross(planeNormal);
+        const Eigen::Vector3d boxNormal(0, 0, 1); //FIXME use UnitZ
+        Eigen::Vector3d rotAxis = boxNormal.cross(planeNormal);
+        rotAxis.normalize();
         const double rotAngle = acos(boxNormal.dot(planeNormal));
         
+        //FIXME names
         const Eigen::Matrix3d zRotAA = Eigen::AngleAxisd(zRot, Eigen::Vector3d(0, 0, 1)).toRotationMatrix();
         const Eigen::Matrix3d rotAA = Eigen::AngleAxisd(rotAngle, rotAxis).toRotationMatrix();
         
         const Eigen::Matrix3d rot = rotAA * zRotAA;
         
         const Eigen::Matrix<double, 3, 8> rotatedCorners = (rot * corners).colwise() + robotPosition;
-        debugRotatedBoxes.push_back(rotatedCorners);
+//         debugRotatedBoxes.push_back(rotatedCorners);
         
         //find min/max for bounding box
         const Eigen::Vector3d min = rotatedCorners.rowwise().minCoeff();
@@ -521,6 +523,7 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
         if(numIntersections > 0)
         {
             debugCollisions.emplace_back(min, max);
+            debugRotatedBoxes.push_back(rotatedCorners);
             return false;
         }
     }
