@@ -46,7 +46,7 @@ bool Planner::plan(base::samples::RigidBodyState& start, base::samples::RigidBod
     if(!planner)
         planner.reset(new ARAPlanner(env.get(), true));
     
-    planner->set_search_mode(true);
+    planner->set_search_mode(false);
 
     MDPConfig mdp_cfg;
         
@@ -66,9 +66,11 @@ bool Planner::plan(base::samples::RigidBodyState& start, base::samples::RigidBod
         return false;
     }
 
-    if(!planner->replan(1.0, &solution))
+    if(!planner->replan(5.0, &solution))
         return false;
- 
+        
+    std::cout << "Epsilon is " << planner->get_final_epsilon() << std::endl;
+
     std::vector<PlannerStats> stats;
     
     planner->get_search_stats(&stats);
