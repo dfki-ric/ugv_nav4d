@@ -1,4 +1,3 @@
-#include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
 #include "EnvironmentXYZTheta.hpp"
 #include <sbpl/planners/planner.h>
 #include <sbpl/utils/mdpconfig.h>
@@ -13,105 +12,25 @@ using namespace motion_planning_libraries;
 
 const double costScaleFactor = 1000;
 
-EnvironmentXYZTheta::RobotModel::RobotModel(double tr, double rv) : translationalVelocity(tr), rotationalVelocity(rv)
-{
-
-}
-
-
-void EnvironmentXYZTheta::PreComputedMotions::setMotionForTheta(const EnvironmentXYZTheta::Motion& motion, const DiscreteTheta& theta)
-{
-    if((int)thetaToMotion.size() <= theta.getTheta())
-    {
-        thetaToMotion.resize(theta.getTheta() + 1);
-    }
-    
-    //check if a motion to this target destination already exist, if yes skip it.
-    for(const Motion& m : thetaToMotion[theta.getTheta()])
-    {
-        if(m.xDiff == motion.xDiff && m.yDiff == motion.yDiff && m.endTheta == motion.endTheta)
-        {
-            std::cout << "WARNING: motion already exists (skipping): " << m.xDiff << ", " << m.yDiff << ", " << m.endTheta << std::endl;
-            //TODO add check if intermediate poses are similar
-            return;
-        }
-    }
-    
-    EnvironmentXYZTheta::Motion copy = motion;
-    copy.id = idToMotion.size();
-
-    idToMotion.push_back(copy);
-    thetaToMotion[theta.getTheta()].push_back(copy);
-}
-
-void EnvironmentXYZTheta::PreComputedMotions::preComputeCost(EnvironmentXYZTheta::Motion& motion, const RobotModel &model)
-{
-    //compute linear and angular time
-    double linear_distance = 0;
-    Eigen::Vector2d lastPos(0, 0);
-    for(const base::Pose2D &pos: motion.intermediatePoses)
-    {
-        linear_distance += (lastPos - pos.position).norm();
-        lastPos = pos.position;
-    }
-
-    double linear_time = linear_distance / model.translationalVelocity;
-
-    double angular_distance = motion.endTheta.shortestDist(motion.startTheta).getRadian();
-    
-    double angular_time = angular_distance / model.rotationalVelocity;
-    
-    motion.baseCost = ceil(std::max(angular_time, linear_time) * costScaleFactor * motion.costMultiplier);
-
-//     std::cout << "Motion " << motion.xDiff << " " << motion.yDiff << " " << motion.endTheta << 
-//     " lin dist " <<  linear_distance << " time " << linear_time << " angle diff " 
-//     << angular_distance << " time " << angular_time << " cost " << motion.baseCost << " multiplier " << motion.costMultiplier <<  std::endl;
-    
-
-}
-
-const EnvironmentXYZTheta::Motion& EnvironmentXYZTheta::PreComputedMotions::getMotion(std::size_t id) const
-{
-    return idToMotion.at(id);
-}
-
-
 EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr< maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > > mlsGrid,
                                          const TraversabilityGenerator3d::Config &travConf,
-                                         const motion_planning_libraries::SbplMotionPrimitives& primitives) : 
+                                         const motion_planning_libraries::MotionPrimitivesConfig &primitiveConfig) : 
     travGen(travConf)
     , mlsGrid(mlsGrid)
-    , robotModel(0.3, M_PI / 8)    
+    , robotModel(0.3, 0.1)    
+    , availableMotions(primitiveConfig, robotModel)
     , startThetaNode(nullptr)
     , startXYZNode(nullptr)
     , goalThetaNode(nullptr)
     , goalXYZNode(nullptr)
     , travConf(travConf)
 {
-    initialize(mlsGrid, travConf, primitives);
-}
-
-
-
-
-EnvironmentXYZTheta::EnvironmentXYZTheta() : travGen(travConf), robotModel(0.3, M_PI / 8),
-    startThetaNode(nullptr), goalThetaNode(nullptr)
-{
-}
-
-void EnvironmentXYZTheta::initialize(boost::shared_ptr< maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > > mlsGrid,
-                                     const TraversabilityGenerator3d::Config& travConf,
-                                     const SbplMotionPrimitives& primitives)
-{
-    this->travConf = travConf;
-    this->mlsGrid = mlsGrid;
-    
     numAngles = 16;
     travGen = TraversabilityGenerator3d(travConf);
     travGen.setMLSGrid(mlsGrid);
     searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
+    std::cout  << "Extending map to " << travGen.getTraversabilityMap().getNumCells().transpose() << std::endl;
     searchGrid.extend(travGen.getTraversabilityMap().getNumCells());
-    readMotionPrimitives(primitives);
 }
 
 void EnvironmentXYZTheta::clear()
@@ -252,7 +171,7 @@ int EnvironmentXYZTheta::GetHeuristic(int stateID, EnvironmentXYZTheta::ThetaNod
     double timeRotation = sourceHash.thetaNode->theta.shortestDist(targetThetaNode->theta).getRadian() / robotModel.rotationalVelocity;
     
 //     std::cout << "Theta " << sourceHash.thetaNode->theta << " to " << targetThetaNode->theta << " shortest dist is " << sourceHash.thetaNode->theta.shortestDist(targetThetaNode->theta) << " rad " << sourceHash.thetaNode->theta.shortestDist(targetThetaNode->theta).getRadian() << std::endl;
-    
+//     
 //     std::cout << "Heuristic " << stateID << " " << sourceNode->getIndex().transpose() << " to " <<  targetXYZNode->getIndex().transpose() << " timeTranslation " << timeTranslation << " timeRotation " << timeRotation << " result "<< floor(std::max(timeTranslation, timeRotation) * costScaleFactor) << std::endl;
     
     return floor(std::max(timeTranslation, timeRotation) * costScaleFactor);
@@ -276,7 +195,7 @@ maps::grid::Vector3d EnvironmentXYZTheta::getStatePosition(const int stateID) co
     return ret;
 }
 
-const EnvironmentXYZTheta::Motion& EnvironmentXYZTheta::getMotion(const int fromStateID, const int toStateID)
+const Motion& EnvironmentXYZTheta::getMotion(const int fromStateID, const int toStateID)
 {
     int cost = -1;
     size_t motionId = 0;
@@ -381,8 +300,7 @@ TraversabilityGenerator3d::Node *EnvironmentXYZTheta::movementPossible(Traversab
 
     if(!targetNode)
     {
-//         cout << "No neighbour node for motion found " << endl;
-//         cout << "curIndex " << fromIdx.transpose() << " newIndex " << toIdx.transpose() << endl;
+        //FIXME this should not happen !
         return nullptr;
     }
     
@@ -410,6 +328,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, vector< int >* CostV, vector< size_t >& motionIdV)
 {
 //     std::cout << "GetSuccs " << SourceStateID << std::endl;
+    
     const Hash &sourceHash(idToHash[SourceStateID]);
     XYZNode *sourceNode = sourceHash.node;
     
@@ -435,11 +354,12 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         travNode = curNode->getUserData().travNode;
         maps::grid::Index curIndex = curNode->getIndex();
         std::vector<TraversabilityGenerator3d::Node*> nodesOnPath;
-        
+     
         int additionalCosts = 0;
         
         for(const maps::grid::Index &diff : motion.intermediateCells)
         {
+            
             maps::grid::Index newIndex = curIndex;
             
             //diff is always a full offset to the start position
@@ -480,9 +400,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         
         curIndex = finalPos;
         
-        
         //goal from source to the end of the motion was valid
-        
         XYZNode *successXYNode = nullptr;
         ThetaNode *successthetaNode = nullptr;
         
@@ -499,37 +417,25 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         
         if(it != candidateMap.end())
         {
-//             cout << "Found existing XY node " << endl;
             //found a node with a matching height
             successXYNode = *it;
         }
         else
         {
-//             std::cout << "Creating new XY Node " << curIndex.transpose() << std::endl;
-            
             successXYNode = createNewXYZState(travNode);
         }
 
         const auto &thetaMap(successXYNode->getUserData().thetaToNodes);
         
-//         for(const auto &e: thetaMap)
-//         {
-//             cout << "Theta Elem id " << e.second->id << " angle " << e.first << endl;
-//         }
-        
         auto thetaCandidate = thetaMap.find(motion.endTheta);
         if(thetaCandidate != thetaMap.end())
         {
-//             cout << "Found existing State, reconnectiong graph " << endl;
-            
             successthetaNode = thetaCandidate->second;
         }
         else
         {
             successthetaNode = createNewState(motion.endTheta, successXYNode);
         }
-        
-        
         
         SuccIDV->push_back(successthetaNode->id);
         CostV->push_back(motion.baseCost + additionalCosts);
@@ -588,14 +494,14 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
             throw std::runtime_error("bounding box outside map");
         }     */   
 
-//         std::size_t numIntersections = 0;
-//         auto view = mlsGrid->intersectCuboid(aabb, numIntersections);
-//         if(numIntersections > 0)
-//         {
-//             debugCollisions.emplace_back(min, max);
-// //           std:cout << "collision element count: " << numIntersections << std::endl;
-//            return false;
-//         }
+        std::size_t numIntersections = 0;
+        auto view = mlsGrid->intersectCuboid(aabb, numIntersections);
+        if(numIntersections > 0)
+        {
+            debugCollisions.emplace_back(min, max);
+//           std:cout << "collision element count: " << numIntersections << std::endl;
+           return false;
+        }
                
         
         //const Eigen::AlignedBox3d robotBoundingBox = getRobotBoundingBox();
@@ -650,91 +556,58 @@ void EnvironmentXYZTheta::PrintState(int stateID, bool bVerbose, FILE* fOut)
     
 }
 
-void EnvironmentXYZTheta::readMotionPrimitives(const SbplMotionPrimitives& primitives)
+void EnvironmentXYZTheta::getTrajectory(const vector< int >& solution, std::vector< base::Trajectory >& trajectory)
 {
-
-    for(const Primitive& prim : primitives.mListPrimitives)
+        if(solution.size() < 2)
+        return;
+    
+    trajectory.clear();
+    
+    std::cout << "Solution: " << std::endl;
+    size_t lastMotion = getMotion(solution[0], solution[1]).id;
+    
+    base::Trajectory curPart;
+    
+    std::vector<base::Vector3d> positions;
+    
+    
+    
+    for(size_t i = 0; i < solution.size() - 1; ++i)
     {
-        Motion motion(numAngles);
-
-        motion.xDiff = prim.mEndPose[0];
-        motion.yDiff = prim.mEndPose[1];
-        motion.endTheta =  DiscreteTheta(static_cast<int>(prim.mEndPose[2]), numAngles);
-        motion.startTheta = DiscreteTheta(static_cast<int>(prim.mStartAngle), numAngles);
-        motion.costMultiplier = prim.mCostMultiplier;
-
-        std::vector<base::Pose2D> poses;
-        bool allPositionsSame = true;
-        base::Vector2d firstPos = prim.mIntermediatePoses.front().topRows(2);
-        for(const base::Vector3d& pose : prim.mIntermediatePoses)
+        const Motion &curMotion(getMotion(solution[i], solution[i+1]));
+        
+        std::cout << "Motion has id " << curMotion.id << std::endl;
+        
+        if(lastMotion != curMotion.id)
         {
-            poses.emplace_back(base::Position2D(pose[0], pose[1]), pose[2]);
-            if(pose.topRows(2) != firstPos)
-            {
-                allPositionsSame = false;
-            }
+            curPart.spline.interpolate(positions);
+            curPart.speed = 0.2;
+            positions.clear();
+            trajectory.push_back(curPart);
         }
 
-        if(!allPositionsSame)
+        std::cout << solution[i] << " ";
+        const maps::grid::Vector3d start = getStatePosition(solution[i]);
+        std::cout << "Intermediate Poses : " << curMotion.intermediatePoses.size() << std::endl;
+        for(const base::Pose2D& pose : curMotion.intermediatePoses)
         {
-            //fit a spline through the primitive's intermediate points and use that spline to
-            //create intermediate points for the motion.
-            //This is done to ensure that every cell is hit by one intermediate point.
-            //if the positions are different, normal spline interpolation works
-            SubTrajectory spline;
-            spline.interpolate(poses);
-            const double splineLength = spline.getDistToGoal(spline.getStartParam());
-            //set stepDist so small that we are guaranteed to oversample
-            const double stepDist = travConf.gridResolution - (travConf.gridResolution / 2.0);
-            double currentDist = 0;
-            double currentParam = spline.getStartParam();
-            while(currentDist < splineLength)
-            {
-                currentDist += stepDist;
-                currentParam = spline.advance(currentParam, stepDist);
-                const base::Pose2D currentPose = spline.getIntermediatePointNormalized(currentParam);
-                
-                //convert pose to grid
-                const base::Vector3d position(currentPose.position.x(), currentPose.position.y(), 0);
-                maps::grid::Index diff;
-                //only add pose if it is in a different cell than the one before
-                if(!searchGrid.toGrid(position, diff, false))
-                {
-                    throw EnvironmentXYZThetaException("Cannot convert intermediate Pose to grid cell");
-                }
-                
-                if(motion.intermediateCells.size() == 0 || motion.intermediateCells.back() != diff)
-                {
-                    motion.intermediateCells.push_back(diff);
-                    motion.intermediatePoses.push_back(currentPose);
-    //               std::cout << "intermediate poses: " << currentPose.position.transpose() << ", " << currentPose.orientation << 
-    //                            "[" << diff.transpose() << "]" << std::endl;
-                }            
-            }
+            base::Vector3d pos(pose.position.x() + start.x(), pose.position.y() + start.y(), start.z());
+            
+//             updateHeight(pos);
+            
+            //need to offset by start because the poses are relative to (0/0)
+            positions.emplace_back(pos);
+            
+            std::cout << "Intermediate position " << pos.transpose() << std::endl;
         }
-        else
-        {
-            //Since our index is only x/y based (i.e. it ignores rotation)
-            //we do not need to add any intermediate positions for rotation-only
-            //movements.
-        }
-
-        availableMotions.preComputeCost(motion, robotModel);
-
-        availableMotions.setMotionForTheta(motion, motion.startTheta);
-
-    //     std::cout << "startTheta " <<  prim.mStartAngle << std::endl;
-    //     std::cout << "mEndPose " <<  prim.mEndPose.transpose() << std::endl;
-    // 
-//         std::cout << "Adding Motion: 0, 0, " << motion.startTheta << " -> " << motion.xDiff << ", " << motion.yDiff << ", " << motion.endTheta << std::endl << std::endl;
     }
+    std::cout << std::endl;
+
+    curPart.spline.interpolate(positions);
+    curPart.speed = 0;
+    trajectory.push_back(curPart);
 }
 
-std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle)
-{
-    stream << angle.getTheta();
-    return stream;
-}
 
 maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > EnvironmentXYZTheta::getTraversabilityBaseMap() const
 {

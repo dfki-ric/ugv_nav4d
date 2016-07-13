@@ -4,135 +4,26 @@
 #include <trav_gen_3d/TraversabilityGenerator3d.hpp>
 #include <maps/grid/TraversabilityMap3d.hpp>
 #include <base/Pose.hpp>
+#include "DiscreteTheta.hpp"
+#include "PreComputedMotions.hpp"
+#include <base/Trajectory.hpp>
 
 namespace motion_planning_libraries 
 {
     class SbplMotionPrimitives;
 }
 
-class DiscreteTheta
-{
-    int theta;
-    int numAngles;
-    
-    void normalize()
-    {
-        assert(numAngles >= 0);
-        if(theta < 0)
-            theta += numAngles;
-
-        if(theta >= numAngles)
-            theta -= numAngles;
-    }
-    
-public:
-    DiscreteTheta(int val, unsigned int numAngles) : theta(val) , numAngles(numAngles) {
-        normalize();
-    }
-    
-    DiscreteTheta(double val, unsigned int numAngles) : numAngles(numAngles) {
-        std::cout << "Double constructor called " << val << std::endl;
-        theta = floor(val / M_PI / 2.0 * numAngles);
-        normalize();
-    }
-    
-    DiscreteTheta(const DiscreteTheta &o) : theta(o.theta), numAngles(o.numAngles) {
-    }
-    
-    DiscreteTheta& operator+=(const DiscreteTheta& rhs)
-    {
-        theta += rhs.theta;
-        normalize();
-        return *this;
-    }
-
-    DiscreteTheta& operator-=(const DiscreteTheta& rhs)
-    {
-        theta -= rhs.theta;
-        normalize();
-        return *this;
-    }
-    
-    friend DiscreteTheta operator+(DiscreteTheta lhs, const DiscreteTheta& rhs)
-    {
-        lhs += rhs;
-        return lhs;
-    }
-
-    friend DiscreteTheta operator-(DiscreteTheta lhs, const DiscreteTheta& rhs)
-    {
-        lhs -= rhs;
-        return lhs;
-    }
-
-    friend bool operator<(const DiscreteTheta& l, const DiscreteTheta& r)
-    {
-        return l.theta < r.theta;
-    }
-
-    friend bool operator==(const DiscreteTheta& l, const DiscreteTheta& r)
-    {
-        return l.theta == r.theta;
-    }
-    
-    int getTheta() const
-    {
-        return theta;
-    }
-    
-    double getRadian() const
-    {
-        return M_PI * 2.0 * theta / static_cast<double>(numAngles);
-    }
-    
-    
-    DiscreteTheta shortestDist(const DiscreteTheta &ain) const
-    {
-        DiscreteTheta diffA = ain-*this;
-        
-        int a = diffA.theta;
-        int b = numAngles - diffA.theta;
-        
-        
-        if(a < b)
-            return DiscreteTheta(a, numAngles);
-        
-        return DiscreteTheta(b, numAngles);
-    }
-};
 
 std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle);
 
 class EnvironmentXYZTheta : public DiscreteSpaceInformation
 {
 public:
-    struct Motion
-    {
-        Motion(unsigned int numAngles) : endTheta(0, numAngles),startTheta(0, numAngles), baseCost(0), id(std::numeric_limits<size_t>::max()) {};
-        
-        int xDiff;
-        int yDiff;
-        DiscreteTheta endTheta;
-        DiscreteTheta startTheta;
-        
-        /**the intermediate poses are not discrete.
-         * They are relative to the starting cell*/
-        std::vector<base::Pose2D> intermediatePoses;
-        /**relative to starting cell */
-        std::vector<maps::grid::Index> intermediateCells;
-        
-        int baseCost;
-        
-        int costMultiplier;
-        
-        size_t id;
-    };
+
 protected:
     TraversabilityGenerator3d travGen;
     boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid;
 
-    class PreComputedMotions;
-    
     struct EnvironmentXYZThetaException : public SBPL_Exception
     {
       EnvironmentXYZThetaException(const std::string& what) : 
@@ -146,7 +37,6 @@ protected:
     };
      
 
-    
     class ThetaNode
     {
         public:
@@ -181,42 +71,6 @@ protected:
     
     std::vector<Hash> idToHash;
     
-    class RobotModel
-    {
-    public:
-        RobotModel(double tr, double rv);
-        
-        ///in m per sec
-        double translationalVelocity;
-        ///in rad per sec
-        double rotationalVelocity;
-    };
-    
-    class PreComputedMotions
-    {
-        //indexed by discrete start theta
-        std::vector<std::vector<Motion> > thetaToMotion;
-
-        std::vector<Motion> idToMotion;
-    public:
-        void setMotionForTheta(const Motion &motion, const DiscreteTheta &theta);
-        
-        void preComputeCost(Motion &motion, const RobotModel &model);
-        
-        const std::vector<Motion> &getMotionForStartTheta(const DiscreteTheta &theta) const
-        {
-            if(theta.getTheta() >= (int)thetaToMotion.size())
-            {
-                std::cout << "Input theta is " << theta.getTheta();
-                throw std::runtime_error("Internal error, motion for requested theta ist not available");
-            }
-            return thetaToMotion.at(theta.getTheta());
-        };
-        
-        const Motion &getMotion(std::size_t id) const;
-        
-    };
-    
     RobotModel robotModel;
     
     PreComputedMotions availableMotions;
@@ -243,15 +97,7 @@ public:
   
     EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid,
                         const TraversabilityGenerator3d::Config &travConf,
-                        const motion_planning_libraries::SbplMotionPrimitives& primitives);
-    
-    /**Creates an uninitialized EnvironmentXYZTheta.
-     * Make sure to call initialize() before calling any other methods*/
-    EnvironmentXYZTheta();
-    
-    void initialize(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid,
-                    const TraversabilityGenerator3d::Config &travConf,
-                    const motion_planning_libraries::SbplMotionPrimitives& primitives);
+                        const motion_planning_libraries::MotionPrimitivesConfig &primitiveConfig);
     
     virtual ~EnvironmentXYZTheta();
     
@@ -275,9 +121,6 @@ public:
     virtual void SetAllPreds(CMDPSTATE* state);
     virtual int SizeofCreatedEnv();
     
-    
-    virtual void readMotionPrimitives(const motion_planning_libraries::SbplMotionPrimitives& primitives);
-    
     void setStart(const Eigen::Vector3d &startPos, double theta);
     void setGoal(const Eigen::Vector3d &goalPos, double theta);
     
@@ -298,6 +141,7 @@ public:
 
     const maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> &getMlsMap() const;
     
+    void getTrajectory(const std::vector<int> &stateIDPath, std::vector<base::Trajectory> &result);
 private:
   
     //Return true if there is no collision on the given path.

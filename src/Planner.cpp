@@ -13,10 +13,6 @@ Planner::Planner(const motion_planning_libraries::MotionPrimitivesConfig& primit
     if(traversabilityConfig.gridResolution != primitiveConfig.mGridSize)
         throw std::runtime_error("Planner::Planner : Configuration error, grid resolution of Primitives and TraversabilityGenerator3d differ");
     
-    primitives = new motion_planning_libraries::SbplMotionPrimitives(primitiveConfig);
-    primitives->createPrimitives();
-    std::cout << "Computed Primitives" << std::endl;
-
 }
 
 
@@ -111,7 +107,7 @@ void Planner::updateMap(const maps::grid::MLSMapSloped &mlsSloped)
     boost::shared_ptr<MultiLevelGridMap<SurfacePatchBase>> mlsPtr(mlsBase);
 
     if(!env) {
-        env.reset(new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, *primitives));
+        env.reset(new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, primitiveConfig));
     }
     else
     {
@@ -155,9 +151,11 @@ void Planner::getTrajectory(std::vector< base::Trajectory >& trajectory)
     
     std::vector<base::Vector3d> positions;
     
+    
+    
     for(size_t i = 0; i < solution.size() - 1; ++i)
     {
-        const EnvironmentXYZTheta::Motion &curMotion(env->getMotion(solution[i], solution[i+1]));
+        const Motion &curMotion(env->getMotion(solution[i], solution[i+1]));
         
         std::cout << "Motion has id " << curMotion.id << std::endl;
         

@@ -8,10 +8,15 @@ using namespace vizkit3d;
 using namespace osg;
 
 struct EnvironmentXYZThetaVisualization::Data {
+    
     // Copy of the value given to updateDataIntern.
     //
     // Making a copy is required because of how OSG works
-    EnvironmentXYZTheta data;
+    //FIXME remove all debug code afterwards
+    std::vector<maps::grid::Vector3d> debugRobotPositions;
+    //contains the min/max vectors for bounding boxes that collided with something
+    std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> debugCollisions;
+
     ref_ptr<osgviz::Object> root;
     double gridSize;
     Vec3d startPos;
@@ -43,7 +48,7 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
     Box* unitCube = new Box( Vec3(0,0,0), p->gridSize);
     ShapeDrawable* unitCubeDrawable = new ShapeDrawable(unitCube);
     unitCubeDrawable->setColor(osg::Vec4(1, 0, 0, 1));
-    for(const maps::grid::Vector3d& pos : p->data.debugRobotPositions)
+    for(const maps::grid::Vector3d& pos : p->debugRobotPositions)
     {
         PositionAttitudeTransform* trans = new PositionAttitudeTransform();
         const Vec3d osgPos(pos.x(), pos.y(), pos.z());
@@ -69,7 +74,7 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 
     Geode* collisionGeode = new Geode();
     osgviz::PrimitivesFactory fac(nullptr);
-    for(const std::pair<Eigen::Vector3d, Eigen::Vector3d>& aabb : p->data.debugCollisions)
+    for(const std::pair<Eigen::Vector3d, Eigen::Vector3d>& aabb : p->debugCollisions)
     {
         const double xSize = aabb.second.x() - aabb.first.x();
         const double ySize = aabb.second.y() - aabb.first.y();
@@ -234,7 +239,8 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 
 void EnvironmentXYZThetaVisualization::updateDataIntern(EnvironmentXYZTheta const& value)
 {
-    p->data = value;
+    p->debugCollisions = value.debugCollisions;
+    p->debugRobotPositions = value.debugRobotPositions;
 }
 
 void EnvironmentXYZThetaVisualization::setGridSize(const double gridSize)

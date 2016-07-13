@@ -1,7 +1,9 @@
 rock_library(ugv_nav4d
     SOURCES 
-        Planner.cpp
+        DiscreteTheta.cpp
         EnvironmentXYZTheta.cpp
+        Planner.cpp
+        PreComputedMotions.cpp
     HEADERS 
         EnvironmentXYZTheta.hpp
         Planner.hpp
