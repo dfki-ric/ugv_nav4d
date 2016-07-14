@@ -302,6 +302,9 @@ TraversabilityGenerator3d::Node *EnvironmentXYZTheta::movementPossible(Traversab
         }
     }
     
+    if(targetNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+        return nullptr;
+    
     //TODO add additionalCosts if something is near this node etc
     
     return targetNode;
@@ -348,7 +351,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         
         for(const maps::grid::Index &diff : motion.intermediateCells)
         {
-            
             maps::grid::Index newIndex = curIndex;
             
             //diff is always a full offset to the start position
