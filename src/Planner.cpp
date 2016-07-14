@@ -115,79 +115,9 @@ void Planner::updateMap(const maps::grid::MLSMapSloped &mlsSloped)
     }
 }
 
-void Planner::updateHeight(base::Vector3d &pos) const
-{
-    Eigen::Vector3d pose(pos);
-    const auto &ll = env->getTraversabilityMap().at(pose);
-
-    double lastDist = std::numeric_limits< double >::max();
-    double z = pos.z();
-    
-    for(const auto &sp: ll)
-    {
-        double curDist = fabs(sp->getHeight() - pos.z());
-        if(curDist < lastDist)
-        {
-            z = sp->getHeight();
-            lastDist = curDist;
-        }
-    }
-    
-    pos.z() = z;
-}
-
-
 void Planner::getTrajectory(std::vector< base::Trajectory >& trajectory)
 {
-    if(solution.size() < 2)
-        return;
-    
-    trajectory.clear();
-    
-    std::cout << "Solution: " << std::endl;
-    size_t lastMotion = env->getMotion(solution[0], solution[1]).id;
-    
-    base::Trajectory curPart;
-    
-    std::vector<base::Vector3d> positions;
-    
-    
-    
-    for(size_t i = 0; i < solution.size() - 1; ++i)
-    {
-        const Motion &curMotion(env->getMotion(solution[i], solution[i+1]));
-        
-//         std::cout << "Motion has id " << curMotion.id << std::endl;
-        
-        if(lastMotion != curMotion.id)
-        {
-            curPart.spline.interpolate(positions);
-            curPart.speed = 0.2;
-            positions.clear();
-            trajectory.push_back(curPart);
-        }
-
-//         std::cout << solution[i] << " ";
-        const maps::grid::Vector3d start = env->getStatePosition(solution[i]);
-//         std::cout << "Intermediate Poses : " << curMotion.intermediatePoses.size() << std::endl;
-        for(const base::Pose2D& pose : curMotion.intermediatePoses)
-        {
-            base::Vector3d pos(pose.position.x() + start.x(), pose.position.y() + start.y(), start.z());
-            
-            updateHeight(pos);
-            
-            //need to offset by start because the poses are relative to (0/0)
-            positions.emplace_back(pos);
-            
-//             std::cout << "Intermediate position " << pos.transpose() << std::endl;
-        }
-    }
-    std::cout << std::endl;
-
-    curPart.spline.interpolate(positions);
-    curPart.speed = 0;
-    trajectory.push_back(curPart);
-    
+    return env->getTrajectory(solution, trajectory);
 }
 
 maps::grid::TraversabilityMap3d< TraversabilityNodeBase* > Planner::getTraversabilityMap() const

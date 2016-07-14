@@ -558,56 +558,81 @@ void EnvironmentXYZTheta::PrintState(int stateID, bool bVerbose, FILE* fOut)
     
 }
 
-void EnvironmentXYZTheta::getTrajectory(const vector< int >& solution, std::vector< base::Trajectory >& trajectory)
+void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector< base::Trajectory >& result)
 {
-        if(solution.size() < 2)
+    if(stateIDPath.size() < 2)
         return;
     
-    trajectory.clear();
+    result.clear();
     
     std::cout << "Solution: " << std::endl;
-    size_t lastMotion = getMotion(solution[0], solution[1]).id;
+    size_t lastMotion = getMotion(stateIDPath[0], stateIDPath[1]).id;
     
     base::Trajectory curPart;
     
     std::vector<base::Vector3d> positions;
     
-    
-    
-    for(size_t i = 0; i < solution.size() - 1; ++i)
+    for(size_t i = 0; i < stateIDPath.size() - 1; ++i)
     {
-        const Motion &curMotion(getMotion(solution[i], solution[i+1]));
+        const Motion &curMotion(getMotion(stateIDPath[i], stateIDPath[i+1]));
         
-        std::cout << "Motion has id " << curMotion.id << std::endl;
+//         std::cout << "Motion has id " << curMotion.id << std::endl;
         
         if(lastMotion != curMotion.id)
         {
             curPart.spline.interpolate(positions);
             curPart.speed = 0.2;
             positions.clear();
-            trajectory.push_back(curPart);
+            result.push_back(curPart);
         }
 
-        std::cout << solution[i] << " ";
-        const maps::grid::Vector3d start = getStatePosition(solution[i]);
-        std::cout << "Intermediate Poses : " << curMotion.intermediatePoses.size() << std::endl;
+//         std::cout << stateIDPath[i] << " ";
+        const maps::grid::Vector3d start = getStatePosition(stateIDPath[i]);
+//         std::cout << "Intermediate Poses : " << curMotion.intermediatePoses.size() << std::endl;
+        
+        const Hash &startHash(idToHash[stateIDPath[i]]);
+        maps::grid::Index lastIndex = startHash.node->getIndex();
+        TraversabilityGenerator3d::Node *curNode = startHash.node->getUserData().travNode;
+        
         for(const base::Pose2D& pose : curMotion.intermediatePoses)
         {
             base::Vector3d pos(pose.position.x() + start.x(), pose.position.y() + start.y(), start.z());
             
-//             updateHeight(pos);
+            maps::grid::Index curIndex;
+            if(!travGen.getTraversabilityMap().toGrid(pos, curIndex))
+            {
+                throw std::runtime_error("Internal error, trajectory is off grid");
+            };
+
+            if(curIndex != lastIndex)
+            {
+//                 std::cout << "Getting connected node from " << lastIndex.transpose() << " to " << curIndex.transpose() << std::endl;
+                TraversabilityGenerator3d::Node *nextNode = curNode->getConnectedNode(curIndex);
+                if(!nextNode)
+                {
+//                     for(auto *n : curNode->getConnections())
+//                         std::cout << "Con Node " << n->getIndex().transpose() << std::endl;;
+                    throw std::runtime_error("Internal error, trajectory is not continous on tr grid");
+                }
+                
+                curNode = nextNode;
+
+                lastIndex = curIndex;
+            }
+            
+            pos.z() = curNode->getHeight();
             
             //need to offset by start because the poses are relative to (0/0)
             positions.emplace_back(pos);
             
-            std::cout << "Intermediate position " << pos.transpose() << std::endl;
+//             std::cout << "Intermediate position " << pos.transpose() << std::endl;
         }
     }
     std::cout << std::endl;
 
     curPart.spline.interpolate(positions);
     curPart.speed = 0;
-    trajectory.push_back(curPart);
+    result.push_back(curPart);
 }
 
 
