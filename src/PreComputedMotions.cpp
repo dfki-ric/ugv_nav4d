@@ -26,6 +26,9 @@ void PreComputedMotions::readMotionPrimitives(const motion_planning_libraries::S
     
     maps::grid::GridMap<int> dummyGrid(maps::grid::Vector2ui(10, 10), Eigen::Vector2d(gridResolution, gridResolution), 0);
     
+    Eigen::Vector3d zeroGridPos(0, 0 ,0);
+    dummyGrid.fromGrid(maps::grid::Index(0,0), zeroGridPos);
+    
     std::cout << "Num prims is " << primGen.mListPrimitives.size() << std::endl;
     for(const motion_planning_libraries::Primitive& prim : primGen.mListPrimitives)
     {
@@ -59,9 +62,10 @@ void PreComputedMotions::readMotionPrimitives(const motion_planning_libraries::S
             spline.interpolate(poses);
             const double splineLength = spline.getDistToGoal(spline.getStartParam());
             //set stepDist so small that we are guaranteed to oversample
-            const double stepDist = gridResolution - (gridResolution / 2.0);
+            const double stepDist = gridResolution / 4.0;
             double currentDist = 0;
             double currentParam = spline.getStartParam();
+            maps::grid::Index lastIdx(0,0);
             while(currentDist < splineLength)
             {
                 currentDist += stepDist;
@@ -69,7 +73,10 @@ void PreComputedMotions::readMotionPrimitives(const motion_planning_libraries::S
                 const base::Pose2D currentPose = spline.getIntermediatePointNormalized(currentParam);
                 
                 //convert pose to grid
-                const base::Vector3d position(currentPose.position.x(), currentPose.position.y(), 0);
+                base::Vector3d position(currentPose.position.x(), currentPose.position.y(), 0);
+                //everything is centered in the grid cells, therefor we need to add the zero pos here,
+                //to get the intermediate cells in the grid
+                position += zeroGridPos;
                 maps::grid::Index diff;
                 //only add pose if it is in a different cell than the one before
                 if(!dummyGrid.toGrid(position, diff, false))
@@ -77,12 +84,13 @@ void PreComputedMotions::readMotionPrimitives(const motion_planning_libraries::S
                     throw std::runtime_error("Internal Error : Cannot convert intermediate Pose to grid cell");
                 }
                 
-                if(motion.intermediateCells.size() == 0 || motion.intermediateCells.back() != diff)
+                if(lastIdx != diff)
                 {
                     motion.intermediateCells.push_back(diff);
                     motion.intermediatePoses.push_back(currentPose);
     //               std::cout << "intermediate poses: " << currentPose.position.transpose() << ", " << currentPose.orientation << 
     //                            "[" << diff.transpose() << "]" << std::endl;
+                    lastIdx = diff;
                 }            
             }
         }
