@@ -624,8 +624,11 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
             
             pos.z() = curNode->getHeight();
             
-            //need to offset by start because the poses are relative to (0/0)
-            positions.emplace_back(pos);
+            if(positions.empty() || !(positions.back().isApprox(pos)))
+            {
+                //need to offset by start because the poses are relative to (0/0)
+                positions.emplace_back(pos);
+            }
             
 //             std::cout << "Intermediate position " << pos.transpose() << std::endl;
         }
