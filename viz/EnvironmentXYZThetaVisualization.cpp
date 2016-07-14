@@ -18,6 +18,8 @@ struct EnvironmentXYZThetaVisualization::Data {
     std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> debugCollisions;
     
     std::vector<Eigen::Matrix<double, 3, 8>> debugRotatedCorners;
+    
+    std::vector<Eigen::Vector3d> intersectionPositions;
 
     ref_ptr<osgviz::Object> root;
     double gridSize;
@@ -113,59 +115,39 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
         }
         
         myBox->setVertexArray(vertices);
-        osg::DrawElementsUInt* bottom = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
-        bottom->push_back(0);
-        bottom->push_back(1);
-        bottom->push_back(2);
-        bottom->push_back(3);
-        myBox->addPrimitiveSet(bottom);
-        
-        osg::DrawElementsUInt* top = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
-        bottom->push_back(4);
-        bottom->push_back(5);
-        bottom->push_back(6);
-        bottom->push_back(7);
-        myBox->addPrimitiveSet(top);  
-        
-        osg::DrawElementsUInt* sideA = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
-        bottom->push_back(0);
-        bottom->push_back(1);
-        bottom->push_back(4);
-        bottom->push_back(7);
-        myBox->addPrimitiveSet(sideA);       
- 
-        osg::DrawElementsUInt* sideB = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
-        bottom->push_back(1);
-        bottom->push_back(2);
-        bottom->push_back(4);
-        bottom->push_back(5);
-        myBox->addPrimitiveSet(sideB);     
-
-        osg::DrawElementsUInt* sideC = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
-        bottom->push_back(2);
-        bottom->push_back(3);
-        bottom->push_back(5);
-        bottom->push_back(6);
-        myBox->addPrimitiveSet(sideC);
-        
-        osg::DrawElementsUInt* sideD = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
-        bottom->push_back(0);
-        bottom->push_back(3);
-        bottom->push_back(6);
-        bottom->push_back(7);
-        myBox->addPrimitiveSet(sideD);  
+        unsigned short bottomLines[8] = {0, 1, 1, 2, 2, 3, 3, 0};
+        myBox->addPrimitiveSet(new osg::DrawElementsUShort(osg::PrimitiveSet::LINES, 8, bottomLines));
+        unsigned short topLines[8] = {4, 5, 5, 6, 6, 7, 7, 4};
+        myBox->addPrimitiveSet(new osg::DrawElementsUShort(osg::PrimitiveSet::LINES, 8, topLines));        
+        unsigned short sideALines[8] = {0, 1, 1, 4, 4, 7, 7, 0};
+        myBox->addPrimitiveSet(new osg::DrawElementsUShort(osg::PrimitiveSet::LINES, 8, sideALines));        
+        unsigned short sideBLines[8] = {1, 1, 2, 4, 4, 5, 5, 1};
+        myBox->addPrimitiveSet(new osg::DrawElementsUShort(osg::PrimitiveSet::LINES, 8, sideBLines));        
+        unsigned short sideCLines[8] = {2, 3, 3, 5, 5, 6, 6, 2};
+        myBox->addPrimitiveSet(new osg::DrawElementsUShort(osg::PrimitiveSet::LINES, 8, sideCLines));        
+        unsigned short sideDLines[8] = {0, 3, 3, 6, 6, 7, 7, 0};
+        myBox->addPrimitiveSet(new osg::DrawElementsUShort(osg::PrimitiveSet::LINES, 8, sideDLines));        
         
         osg::Vec4Array* colors = new osg::Vec4Array;
-        colors->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.3f));
-        colors->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.3f));
-        colors->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.3f));
-        colors->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.3f));
-        colors->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.3f));
-        colors->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.3f));
+        colors->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
         myBox->setColorArray(colors);
-        myBox->setColorBinding(Geometry::BIND_PER_PRIMITIVE_SET);
+        myBox->setColorBinding(Geometry::BIND_OVERALL);
         
         p->root->addChild(geode);
+    }
+    
+    for(const Eigen::Vector3d& intersection : p->intersectionPositions)
+    {
+        PositionAttitudeTransform* trans = new PositionAttitudeTransform();
+        const Vec3d osgPos(intersection.x(), intersection.y(), intersection.z());
+        trans->setPosition(osgPos);
+        p->root->addChild(trans);
+        
+        osg::Sphere* s = new osg::Sphere(osg::Vec3d(0, 0, 0), 0.01);
+        
+        Geode* childGeode = new Geode();
+        childGeode->addDrawable(new osg::ShapeDrawable(s));
+        trans->addChild(childGeode);
     }
       
     
@@ -312,6 +294,7 @@ void EnvironmentXYZThetaVisualization::updateDataIntern(EnvironmentXYZTheta cons
     p->debugCollisions = value.debugCollisions;
     p->debugRobotPositions = value.debugRobotPositions;
     p->debugRotatedCorners = value.debugRotatedBoxes;
+    p->intersectionPositions = value.intersectionPositions;
 }
 
 void EnvironmentXYZThetaVisualization::setGridSize(const double gridSize)

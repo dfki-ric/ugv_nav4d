@@ -97,6 +97,8 @@ public:
     mutable std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> debugCollisions;
     
     mutable std::vector<Eigen::Matrix<double, 3, 8>> debugRotatedBoxes;
+    
+    mutable std::vector<Eigen::Vector3d> intersectionPositions;
   
     EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid,
                         const TraversabilityGenerator3d::Config &travConf,

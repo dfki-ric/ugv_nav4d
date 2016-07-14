@@ -6,6 +6,10 @@
 #include <base/Pose.hpp>
 #include <fstream>
 #include <dwa/SubTrajectory.hpp>
+#include <backward/backward.hpp>
+
+
+backward::SignalHandling crashHandler;
 
 using namespace std;
 using namespace motion_planning_libraries;
@@ -462,9 +466,10 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
         
         //TODO improve performance by pre calculating lots of stuff
         //create rotated robot bounding box
+        //FIXME z2 is divided by 2.0 to avoid intersecting the floor
         Eigen::Matrix<double, 3, 8> corners; //colwise corner vectors
         corners.col(0) << -x2, -y2, -(z2/2.0); //FIXME replace (z2/2.0) with real height?
-        corners.col(1) << x2, -y2, -(z2/2.0);
+        corners.col(1) << x2, -y2, -(z2/2.0); //FIXME if z2/2.0 is replaced, also replace it below in the collision check
         corners.col(2) << x2, y2, -(z2/2.0);
         corners.col(3) << -x2, y2, -(z2/2.0);
         corners.col(4) << x2, -y2, z2/2.0;
@@ -485,37 +490,40 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
         const Eigen::Matrix3d rotAA = Eigen::AngleAxisd(rotAngle, rotAxis).toRotationMatrix();
         
         const Eigen::Matrix3d rot = rotAA * zRotAA;
-        
-        const Eigen::Matrix<double, 3, 8> rotatedCorners = (rot * corners).colwise() + robotPosition;
-//         debugRotatedBoxes.push_back(rotatedCorners);
+        const Eigen::Matrix<double, 3, 8> rotatedCornersInOrigin = (rot * corners);
+        const Eigen::Matrix<double, 3, 8> rotatedCorners = rotatedCornersInOrigin.colwise() + robotPosition;
         
         //find min/max for bounding box
         const Eigen::Vector3d min = rotatedCorners.rowwise().minCoeff();
         const Eigen::Vector3d max = rotatedCorners.rowwise().maxCoeff();
         
-         const Eigen::AlignedBox3d aabb(min, max); //aabb around the rotated robot bounding box
-        //get all grid cells below robot bounding box
-        maps::grid::Index minIdx;
-        if(!mlsGrid->toGrid(Eigen::Vector3d(min.x(), min.y(), .0), minIdx, true))
-        {
-            std::cout << "bounding box outside map " << Eigen::Vector3d(min.x(), min.y(), .0).transpose() << std::endl;
-            throw std::runtime_error("bounding box outside map");
-        }
-        
-        maps::grid::Index maxIdx;
-        if(!mlsGrid->toGrid(Eigen::Vector3d(max.x(), max.y(), .0), maxIdx, true))
-        {
-            std::cout << "bounding box outside map " << Eigen::Vector3d(min.x(), min.y(), .0).transpose() << std::endl;
-            throw std::runtime_error("bounding box outside map");
-        }       
+        const Eigen::AlignedBox3d aabb(min, max); //aabb around the rotated robot bounding box    
 
-        std::size_t numIntersections = 0;
-        auto view = mlsGrid->intersectCuboid(aabb, numIntersections);
-        if(numIntersections > 0)
+        const auto intersectingPatches = mlsGrid->intersectAABB(aabb);
+        if(intersectingPatches.size() > 0)
         {
-            debugCollisions.emplace_back(min, max);
-            debugRotatedBoxes.push_back(rotatedCorners);
-            return false;
+            //the collision is inside the aabb. Still need to check whether at least
+            //one patch is inside the real box
+            const Eigen::Matrix3d rotInv = rot.inverse();
+            for(const pair<maps::grid::Index, const maps::grid::SurfacePatchBase*>& patch : intersectingPatches)
+            {
+                maps::grid::Vector3d pos;
+                mlsGrid->fromGrid(patch.first, pos, true);
+                pos.z() = patch.second->getMax(); 
+                //transform pos into coordinate system of oriented bounding box
+                pos -= robotPosition;
+                pos = rotInv * pos;
+                
+                if(pos.x() >= -x2 && pos.x() <= x2 &&
+                   pos.y() >= -y2 && pos.y() <= y2 &&
+                   pos.z() >= -z2/2.0 && pos.z() <= z2/2.0) //FIXME remove /2.0 if it is removed above
+                {
+                    intersectionPositions.push_back(rot * pos + robotPosition);
+                    debugRotatedBoxes.push_back(rotatedCorners);
+                    //found at least one patch that is inside the oriented bounding box
+                    return false;
+                }
+            }
         }
     }
     return true;
