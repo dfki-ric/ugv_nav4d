@@ -96,9 +96,8 @@ void PreComputedMotions::readMotionPrimitives(const motion_planning_libraries::S
         }
         else
         {
-            //Since our index is only x/y based (i.e. it ignores rotation)
-            //we do not need to add any intermediate positions for rotation-only
-            //movements.
+            //add rotation intermediate poses for collision checking
+            motion.intermediatePoses = poses;
         }
 
         preComputeCost(motion, model);
