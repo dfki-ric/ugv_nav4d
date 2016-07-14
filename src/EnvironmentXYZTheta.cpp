@@ -282,22 +282,11 @@ EnvironmentXYZTheta::ThetaNode *EnvironmentXYZTheta::createNewState(const Discre
 
 TraversabilityGenerator3d::Node *EnvironmentXYZTheta::movementPossible(TraversabilityGenerator3d::Node *fromTravNode, const maps::grid::Index &fromIdx, const maps::grid::Index &toIdx)
 {
-    TraversabilityGenerator3d::Node *targetNode = nullptr;
-    
     if(toIdx == fromIdx)
         return fromTravNode;
     
     //get trav node associated with the next index
-    //TODO, this is slow, make it faster
-    for(maps::grid::TraversabilityNodeBase *con: fromTravNode->getConnections())
-    {
-        if(toIdx == con->getIndex())
-        {
-            targetNode = static_cast<TraversabilityGenerator3d::Node *>(con);
-            break;
-        }
-    }
-
+    TraversabilityGenerator3d::Node *targetNode = fromTravNode->getConnectedNode(toIdx);
     if(!targetNode)
     {
         //FIXME this should not happen !
