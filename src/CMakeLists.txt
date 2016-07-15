@@ -4,14 +4,18 @@ rock_library(ugv_nav4d
         EnvironmentXYZTheta.cpp
         Planner.cpp
         PreComputedMotions.cpp
+        TraversabilityGenerator3d.cpp
     HEADERS 
+        DiscreteTheta.hpp
         EnvironmentXYZTheta.hpp
         Planner.hpp
+        TraversabilityGenerator3d.hpp
     DEPS_PKGCONFIG 
         base-types 
-        trav_gen_3d
         sbpl
         backward
         motion_planning_libraries
         dwa
+        maps
+    DEPS_CMAKE PCL
 )
