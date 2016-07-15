@@ -108,10 +108,15 @@ void PreComputedMotions::readMotionPrimitives(const motion_planning_libraries::S
                 
                 if(lastIdx != diff)
                 {
-                    motion.intermediateCells.push_back(diff);
-                    motion.intermediatePoses.push_back(currentPose);
+                    PoseWithCell s;
+                    s.cell = diff;
+                    s.pose = currentPose;
+                    motion.intermediateSteps.push_back(s);
     //               std::cout << "intermediate poses: " << currentPose.position.transpose() << ", " << currentPose.orientation << 
     //                            "[" << diff.transpose() << "]" << std::endl;
+                    if((lastIdx - diff).norm() > 1)
+                        throw std::runtime_error("Yea");
+                    
                     lastIdx = diff;
                 }            
             }
@@ -119,7 +124,13 @@ void PreComputedMotions::readMotionPrimitives(const motion_planning_libraries::S
         else
         {
             //add rotation intermediate poses for collision checking
-            motion.intermediatePoses = poses;
+            for(const auto &p: poses)
+            {
+                PoseWithCell s;
+                s.pose = p;
+                s.cell = maps::grid::Index(0,0);
+                motion.intermediateSteps.push_back(s);
+            }
         }
 
         preComputeCost(motion, model);
@@ -167,10 +178,10 @@ void PreComputedMotions::preComputeCost(Motion& motion, const RobotModel &model)
     //compute linear and angular time
     double linear_distance = 0;
     Eigen::Vector2d lastPos(0, 0);
-    for(const base::Pose2D &pos: motion.intermediatePoses)
+    for(const PoseWithCell &pwc: motion.intermediateSteps)
     {
-        linear_distance += (lastPos - pos.position).norm();
-        lastPos = pos.position;
+        linear_distance += (lastPos - pwc.pose.position).norm();
+        lastPos = pwc.pose.position;
     }
 
     double translationalVelocity = model.translationalVelocity;

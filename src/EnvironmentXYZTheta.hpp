@@ -135,7 +135,7 @@ public:
     /**Returns the intermediate poses of the motion connecting @p FromStateID 
      * and @p toStateID.
      * @throw std::runtime_error if no such motion exists*/
-    const std::vector< base::Pose2D >& getPoses(const int fromStateID, const int toStateID);
+    const std::vector<PoseWithCell> &getPoses(const int fromStateID, const int toStateID);
     
     /**returns the motion connection @p fromStateID and @p toStateID.
      * @throw std::runtime_error if no matching motion exists*/

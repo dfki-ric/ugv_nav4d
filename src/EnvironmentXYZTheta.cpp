@@ -228,10 +228,10 @@ const Motion& EnvironmentXYZTheta::getMotion(const int fromStateID, const int to
     return availableMotions.getMotion(motionId);
 }
 
-const vector<base::Pose2D> &EnvironmentXYZTheta::getPoses(const int fromStateID, const int toStateID)
+const vector<PoseWithCell> &EnvironmentXYZTheta::getPoses(const int fromStateID, const int toStateID)
 {
     const Motion& motion = getMotion(fromStateID, toStateID);
-    return motion.intermediatePoses;
+    return motion.intermediateSteps;
 }
 
 
@@ -353,12 +353,12 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
      
         int additionalCosts = 0;
         
-        for(const maps::grid::Index &diff : motion.intermediateCells)
+        for(const PoseWithCell &diff : motion.intermediateSteps)
         {
             maps::grid::Index newIndex = curIndex;
             
             //diff is always a full offset to the start position
-            newIndex = sourceIndex + diff;
+            newIndex = sourceIndex + diff.cell;
 
             travNode = movementPossible(travNode, curIndex, newIndex);
             nodesOnPath.push_back(travNode);
@@ -444,7 +444,7 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
     //Thus the size should always differ by one.
     assert(motion.intermediatePoses.size() + 1 == path.size());
     
-    std::vector<base::Pose2D> poses(motion.intermediatePoses);
+    std::vector<PoseWithCell> poses(motion.intermediateSteps);
     for(unsigned i = 0; i < path.size(); ++i)
     {
         const TraversabilityGenerator3d::Node* node(path[i]);
@@ -456,8 +456,8 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
         const double z2 = robotHeight / 2.0;
         
         //path contains the final element while intermediatePoses does not.
-        const double zRot = i < motion.intermediatePoses.size() ?
-                            motion.intermediatePoses[i].orientation :
+        const double zRot = i < motion.intermediateSteps.size() ?
+                            motion.intermediateSteps[i].pose.orientation :
                             motion.endTheta.getRadian();
         
         maps::grid::Vector3d robotPosition;
@@ -507,7 +507,7 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
             const Eigen::Matrix3d rotInv = rot.inverse();
             for(const pair<maps::grid::Index, const maps::grid::SurfacePatchBase*>& patch : intersectingPatches)
             {
-                maps::grid::Vector3d pos;
+                maps::grid::Vector3d pos(0, 0, 0);
                 mlsGrid->fromGrid(patch.first, pos, true);
                 pos.z() = patch.second->getMax(); 
                 //transform pos into coordinate system of oriented bounding box
@@ -596,23 +596,23 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
             result.push_back(curPart);
         }
 
-//         std::cout << stateIDPath[i] << " ";
+        std::cout << stateIDPath[i] << " ";
         const maps::grid::Vector3d start = getStatePosition(stateIDPath[i]);
-//         std::cout << "Intermediate Poses : " << curMotion.intermediatePoses.size() << std::endl;
+//         std::cout << "Intermediate Poses : " << curMotion.intermediateSteps.size() << std::endl;
         
         const Hash &startHash(idToHash[stateIDPath[i]]);
-        maps::grid::Index lastIndex = startHash.node->getIndex();
+        const maps::grid::Index startIndex(startHash.node->getIndex());
+        maps::grid::Index lastIndex = startIndex;
         TraversabilityGenerator3d::Node *curNode = startHash.node->getUserData().travNode;
         
-        for(const base::Pose2D& pose : curMotion.intermediatePoses)
+        
+        
+        for(const PoseWithCell &pwc : curMotion.intermediateSteps)
         {
-            base::Vector3d pos(pose.position.x() + start.x(), pose.position.y() + start.y(), start.z());
+            base::Vector3d pos(pwc.pose.position.x() + start.x(), pwc.pose.position.y() + start.y(), start.z());
+//             std::cout << "Intermediate position " << pos.transpose() << " Diff " << pwc.pose.position.transpose() << std::endl;
             
-            maps::grid::Index curIndex;
-            if(!travGen.getTraversabilityMap().toGrid(pos, curIndex))
-            {
-                throw std::runtime_error("Internal error, trajectory is off grid");
-            };
+            maps::grid::Index curIndex = startIndex + pwc.cell;
 
             if(curIndex != lastIndex)
             {
@@ -620,8 +620,8 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
                 TraversabilityGenerator3d::Node *nextNode = curNode->getConnectedNode(curIndex);
                 if(!nextNode)
                 {
-//                     for(auto *n : curNode->getConnections())
-//                         std::cout << "Con Node " << n->getIndex().transpose() << std::endl;;
+                    for(auto *n : curNode->getConnections())
+                        std::cout << "Con Node " << n->getIndex().transpose() << std::endl;;
                     throw std::runtime_error("Internal error, trajectory is not continous on tr grid");
                 }
                 
@@ -638,9 +638,10 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
                 positions.emplace_back(pos);
             }
             
-//             std::cout << "Intermediate position " << pos.transpose() << std::endl;
         }
     }
+    std::cout << stateIDPath.back() << " ";
+
     std::cout << std::endl;
 
     curPart.spline.interpolate(positions);
