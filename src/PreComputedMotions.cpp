@@ -40,6 +40,28 @@ void PreComputedMotions::readMotionPrimitives(const motion_planning_libraries::S
         motion.startTheta = DiscreteTheta(static_cast<int>(prim.mStartAngle), numAngles);
         motion.costMultiplier = prim.mCostMultiplier;
 
+        motion.speed = prim.mSpeed;
+        
+        switch(prim.mMovType)
+        {
+            case motion_planning_libraries::MOV_BACKWARD:
+            case motion_planning_libraries::MOV_BACKWARD_TURN:
+                motion.type = Motion::MOV_FORWARD;
+                break;
+            case motion_planning_libraries::MOV_FORWARD:
+            case motion_planning_libraries::MOV_FORWARD_TURN:
+                motion.type = Motion::MOV_BACKWARD;
+                break;
+            case motion_planning_libraries::MOV_LATERAL:
+                motion.type = Motion::MOV_LATERAL;
+                break;
+            case motion_planning_libraries::MOV_POINTTURN:
+                motion.type = Motion::MOV_POINTTURN;
+                break;
+            default:
+                throw std::runtime_error("Got Unsupported movement");
+        }
+        
         std::vector<base::Pose2D> poses;
         bool allPositionsSame = true;
         base::Vector2d firstPos = prim.mIntermediatePoses.front().topRows(2);
@@ -151,7 +173,10 @@ void PreComputedMotions::preComputeCost(Motion& motion, const RobotModel &model)
         lastPos = pos.position;
     }
 
-    double linear_time = linear_distance / model.translationalVelocity;
+    double translationalVelocity = model.translationalVelocity;
+        translationalVelocity = std::min(model.translationalVelocity, motion.speed);
+    
+    double linear_time = linear_distance / translationalVelocity;
 
     double angular_distance = motion.endTheta.shortestDist(motion.startTheta).getRadian();
     

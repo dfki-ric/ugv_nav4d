@@ -591,7 +591,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         if(lastMotion != curMotion.id)
         {
             curPart.spline.interpolate(positions);
-            curPart.speed = 0.2;
+            curPart.speed = curMotion.speed;
             positions.clear();
             result.push_back(curPart);
         }

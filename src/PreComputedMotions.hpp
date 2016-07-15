@@ -27,12 +27,23 @@ public:
     
 struct Motion
 {
+    enum Type {
+        MOV_FORWARD,
+        MOV_BACKWARD,
+        MOV_POINTTURN,
+        MOV_LATERAL,
+    };
+
     Motion(unsigned int numAngles) : endTheta(0, numAngles),startTheta(0, numAngles), baseCost(0), id(std::numeric_limits<size_t>::max()) {};
     
     int xDiff;
     int yDiff;
     DiscreteTheta endTheta;
     DiscreteTheta startTheta;
+    
+    double speed;
+    
+    Type type;
     
     /**the intermediate poses are not discrete.
         * They are relative to the starting cell*/
@@ -45,6 +56,7 @@ struct Motion
     int costMultiplier;
     
     size_t id;
+    
 };
 
 class PreComputedMotions
