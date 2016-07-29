@@ -1,7 +1,7 @@
 #pragma once
 
 #include <sbpl/discrete_space_information/environment.h>
-#include <trav_gen_3d/TraversabilityGenerator3d.hpp>
+#include "TraversabilityGenerator3d.hpp"
 #include <maps/grid/TraversabilityMap3d.hpp>
 #include <base/Pose.hpp>
 #include "DiscreteTheta.hpp"

@@ -4,7 +4,7 @@
 #include <boost/shared_ptr.hpp>
 #include <base/Trajectory.hpp>
 #include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
-#include <trav_gen_3d/TraversabilityGenerator3d.hpp>
+#include "TraversabilityGenerator3d.hpp"
 
 class EnvironmentXYZTheta;
 class ARAPlanner;
