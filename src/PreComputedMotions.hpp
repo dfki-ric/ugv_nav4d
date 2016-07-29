@@ -14,6 +14,9 @@ namespace motion_planning_libraries
     class MotionPrimitivesConfig;
 };
 
+namespace ugv_nav4d
+{
+
 class RobotModel
 {
 public:
@@ -91,3 +94,5 @@ public:
     
     const Motion &getMotion(std::size_t id) const;    
 };
+
+}

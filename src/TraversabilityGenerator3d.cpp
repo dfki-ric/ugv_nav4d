@@ -8,7 +8,10 @@
 
 using namespace maps::grid;
 
-TraversabilityGenerator3d::TraversabilityGenerator3d(const TraversabilityGenerator3d::Config& config) : config(config)
+namespace ugv_nav4d
+{
+
+TraversabilityGenerator3d::TraversabilityGenerator3d(const TraversabilityConfig& config) : config(config)
 {
     trMap.setResolution(Vector2d(config.gridResolution, config.gridResolution));
 }
@@ -553,3 +556,4 @@ TraversabilityMap3d< TraversabilityNodeBase *> TraversabilityGenerator3d::getTra
     return trBaseMap;
 }
 
+}

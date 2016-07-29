@@ -10,6 +10,7 @@ rock_library(ugv_nav4d
         EnvironmentXYZTheta.hpp
         Planner.hpp
         TraversabilityGenerator3d.hpp
+        TraversabilityConfig.hpp
     DEPS_PKGCONFIG 
         base-types 
         sbpl

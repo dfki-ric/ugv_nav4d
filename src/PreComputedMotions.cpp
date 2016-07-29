@@ -3,6 +3,9 @@
 #include <maps/grid/GridMap.hpp>
 #include <dwa/SubTrajectory.hpp>
 
+namespace ugv_nav4d
+{
+
 const double costScaleFactor = 1000;
 
 RobotModel::RobotModel(double tr, double rv) : translationalVelocity(tr), rotationalVelocity(rv)
@@ -207,3 +210,4 @@ const Motion& PreComputedMotions::getMotion(std::size_t id) const
     return idToMotion.at(id);
 }
 
+}

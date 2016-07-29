@@ -76,7 +76,7 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
         trans->addChild(childGeode);
     }
 
-    Geode* collisionGeode = new Geode();
+//     Geode* collisionGeode = new Geode();
     osgviz::PrimitivesFactory fac(nullptr);
 //     for(const std::pair<Eigen::Vector3d, Eigen::Vector3d>& aabb : p->debugCollisions)
 //     {
@@ -289,7 +289,7 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 //         p->root->addChild(trans);
 }
 
-void EnvironmentXYZThetaVisualization::updateDataIntern(EnvironmentXYZTheta const& value)
+void EnvironmentXYZThetaVisualization::updateDataIntern(ugv_nav4d::EnvironmentXYZTheta const& value)
 {
     p->debugCollisions = value.debugCollisions;
     p->debugRobotPositions = value.debugRobotPositions;

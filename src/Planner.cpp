@@ -6,12 +6,16 @@
 
 using namespace maps::grid;
 
-Planner::Planner(const motion_planning_libraries::MotionPrimitivesConfig& primitiveConfig1, const TraversabilityGenerator3d::Config& traversabilityConfig) : 
+namespace ugv_nav4d
+{
+
+Planner::Planner(const motion_planning_libraries::MotionPrimitivesConfig& primitiveConfig1, const TraversabilityConfig& traversabilityConfig) : 
     primitiveConfig(primitiveConfig1)
     , traversabilityConfig(traversabilityConfig)
 {
     if(traversabilityConfig.gridResolution != primitiveConfig.mGridSize)
         throw std::runtime_error("Planner::Planner : Configuration error, grid resolution of Primitives and TraversabilityGenerator3d differ");
+    
     
 }
 
@@ -62,6 +66,8 @@ bool Planner::plan(const base::Time &maxTime, base::samples::RigidBodyState& sta
         return false;
     }
 
+    planner->set_eps_step(0.5);
+    
     if(!planner->replan(maxTime.toSeconds(), &solution))
         return false;
         
@@ -130,3 +136,4 @@ boost::shared_ptr< EnvironmentXYZTheta > Planner::getEnv() const
     return env;
 }
 
+}

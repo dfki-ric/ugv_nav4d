@@ -16,6 +16,9 @@ namespace motion_planning_libraries
 
 std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle);
 
+namespace ugv_nav4d
+{
+
 class EnvironmentXYZTheta : public DiscreteSpaceInformation
 {
 public:
@@ -101,7 +104,7 @@ public:
     mutable std::vector<Eigen::Vector3d> intersectionPositions;
   
     EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid,
-                        const TraversabilityGenerator3d::Config &travConf,
+                        const TraversabilityConfig &travConf,
                         const motion_planning_libraries::MotionPrimitivesConfig &primitiveConfig);
     
     virtual ~EnvironmentXYZTheta();
@@ -156,9 +159,9 @@ private:
     Eigen::AlignedBox3d getRobotBoundingBox() const;
     
     TraversabilityGenerator3d::Node* movementPossible(TraversabilityGenerator3d::Node* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& to);
-    TraversabilityGenerator3d::Config travConf;
+    TraversabilityConfig travConf;
     
     unsigned int numAngles;
 };
 
-
+}

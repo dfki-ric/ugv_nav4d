@@ -10,7 +10,7 @@
 namespace vizkit3d
 {
     class EnvironmentXYZThetaVisualization
-        : public vizkit3d::Vizkit3DPlugin<EnvironmentXYZTheta>
+        : public vizkit3d::Vizkit3DPlugin<ugv_nav4d::EnvironmentXYZTheta>
         , boost::noncopyable
     {
     Q_OBJECT
@@ -18,8 +18,8 @@ namespace vizkit3d
         EnvironmentXYZThetaVisualization();
         ~EnvironmentXYZThetaVisualization();
 
-    Q_INVOKABLE void updateData(EnvironmentXYZTheta const &sample)
-    {vizkit3d::Vizkit3DPlugin<EnvironmentXYZTheta>::updateData(sample);}
+    Q_INVOKABLE void updateData(ugv_nav4d::EnvironmentXYZTheta const &sample)
+    {vizkit3d::Vizkit3DPlugin<ugv_nav4d::EnvironmentXYZTheta>::updateData(sample);}
     
     public slots:
       void setGridSize(const double gridSize);
@@ -30,7 +30,7 @@ namespace vizkit3d
     protected:
         virtual osg::ref_ptr<osg::Node> createMainNode();
         virtual void updateMainNode(osg::Node* node);
-        virtual void updateDataIntern(EnvironmentXYZTheta const& plan);
+        virtual void updateDataIntern(ugv_nav4d::EnvironmentXYZTheta const& plan);
         
     private:
         struct Data;

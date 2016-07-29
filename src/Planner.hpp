@@ -6,21 +6,26 @@
 #include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
 #include "TraversabilityGenerator3d.hpp"
 
-class EnvironmentXYZTheta;
 class ARAPlanner;
+
+namespace ugv_nav4d
+{
+
+class EnvironmentXYZTheta;
+
 class Planner
 {
     boost::shared_ptr<EnvironmentXYZTheta> env;
     boost::shared_ptr<ARAPlanner> planner;
     
     const motion_planning_libraries::MotionPrimitivesConfig primitiveConfig; 
-    const TraversabilityGenerator3d::Config traversabilityConfig;
+    const TraversabilityConfig traversabilityConfig;
     motion_planning_libraries::SbplMotionPrimitives *primitives;
     
     std::vector<int> solution;
     
 public:
-    Planner(const motion_planning_libraries::MotionPrimitivesConfig &primitiveConfig, const TraversabilityGenerator3d::Config &traversabilityConfig);
+    Planner(const motion_planning_libraries::MotionPrimitivesConfig &primitiveConfig, const TraversabilityConfig &traversabilityConfig);
     
     void updateMap(const maps::grid::MLSMapSloped& mlsSloped);
     
@@ -33,3 +38,4 @@ public:
     boost::shared_ptr<EnvironmentXYZTheta> getEnv() const;
 };
 
+}

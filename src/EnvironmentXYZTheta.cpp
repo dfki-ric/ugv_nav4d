@@ -14,10 +14,13 @@ backward::SignalHandling crashHandler;
 using namespace std;
 using namespace motion_planning_libraries;
 
+namespace ugv_nav4d
+{
+
 const double costScaleFactor = 1000;
 
 EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr< maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > > mlsGrid,
-                                         const TraversabilityGenerator3d::Config &travConf,
+                                         const TraversabilityConfig &travConf,
                                          const motion_planning_libraries::MotionPrimitivesConfig &primitiveConfig) : 
     travGen(travConf)
     , mlsGrid(mlsGrid)
@@ -711,3 +714,4 @@ const maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase >& Environment
 // }
 
 
+}

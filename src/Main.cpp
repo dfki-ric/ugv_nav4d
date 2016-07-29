@@ -58,14 +58,14 @@ int main(int argc, char** argv)
     config.mPrimAccuracy = 0.1;
     
     
-    TraversabilityGenerator3d::Config conf;
+    ugv_nav4d::TraversabilityConfig conf;
     conf.gridResolution = 0.1;
     conf.maxSlope = 0.5;
     conf.maxStepHeight = 0.2; //space below robot
     conf.robotSizeX = 0.5;
     conf.robotHeight = 0.9; //incl space below body
     
-    Planner planner(config, conf);
+    ugv_nav4d::Planner planner(config, conf);
     
     base::samples::RigidBodyState start;
     start.position = Eigen::Vector3d(0,-0,-0.7);
