@@ -8,11 +8,6 @@
 #include "PreComputedMotions.hpp"
 #include <base/Trajectory.hpp>
 
-namespace motion_planning_libraries 
-{
-    class SbplMotionPrimitives;
-}
-
 
 std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle);
 
