@@ -20,7 +20,6 @@ class Planner
     
     const motion_planning_libraries::MotionPrimitivesConfig primitiveConfig; 
     const TraversabilityConfig traversabilityConfig;
-    motion_planning_libraries::SbplMotionPrimitives *primitives;
     
     std::vector<int> solution;
     
