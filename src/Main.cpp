@@ -8,6 +8,8 @@
 #include <vizkit3d/MLSMapVisualization.hpp>
 #include <vizkit3d/TraversabilityMap3dVisualization.hpp>
 #include <vizkit3d/EnvironmentXYZThetaVisualization.hpp>
+#include <vizkit3d/MotionPlanningLibrariesSbplMprimsVisualization.hpp>
+#include <thread>
 
 #include "Planner.hpp"
 
@@ -91,18 +93,23 @@ int main(int argc, char** argv)
     vizkit3d::MLSMapVisualization mlsViz;
     vizkit3d::TraversabilityMap3dVisualization trav3dViz;
     vizkit3d::EnvironmentXYZThetaVisualization envViz;
+    vizkit3d::MotionPlanningLibrariesSbplMprimsVisualization primViz;
     widget.addPlugin(&viz);
     widget.addPlugin(&mlsViz);
     widget.addPlugin(&trav3dViz);
     widget.addPlugin(&envViz);
+    widget.addPlugin(&primViz);
     viz.setLineWidth(10);
     viz.updateTr(path);
     mlsViz.updateData(mlsSloped);
     trav3dViz.updateData(planner.getTraversabilityMap());
-    
+    primViz.updateData(planner.getEnv()->getAvailableMotions().getPrimitives());
+    envViz.setGridSize(config.mGridSize);
+    envViz.setSolutionMotions(planner.getMotions());
     envViz.updateData(*planner.getEnv().get());
     
     widget.show();
+
     
 
     

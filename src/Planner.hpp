@@ -5,6 +5,7 @@
 #include <base/Trajectory.hpp>
 #include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
 #include "TraversabilityGenerator3d.hpp"
+#include "PreComputedMotions.hpp"
 
 class ARAPlanner;
 
@@ -31,6 +32,8 @@ public:
     bool plan(const base::Time& maxTime, base::samples::RigidBodyState& start, base::samples::RigidBodyState& end);
     
     void getTrajectory(std::vector<base::Trajectory> &trajectory);
+    
+    std::vector<Motion> getMotions() const;
     
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* >getTraversabilityMap() const;
     

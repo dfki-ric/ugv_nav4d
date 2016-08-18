@@ -144,7 +144,11 @@ public:
 
     const maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> &getMlsMap() const;
     
+    std::vector<Motion> getMotions(const std::vector<int> &stateIDPath);
+    
     void getTrajectory(const std::vector<int> &stateIDPath, std::vector<base::Trajectory> &result);
+    
+    const PreComputedMotions& getAvailableMotions() const;
 private:
   
     //Return true if there is no collision on the given path.

@@ -1,5 +1,4 @@
 #include "PreComputedMotions.hpp"
-#include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
 #include <maps/grid/GridMap.hpp>
 #include <dwa/SubTrajectory.hpp>
 
@@ -13,12 +12,12 @@ RobotModel::RobotModel(double tr, double rv) : translationalVelocity(tr), rotati
 
 }
 
-PreComputedMotions::PreComputedMotions(const motion_planning_libraries::MotionPrimitivesConfig& primitiveConfig, const RobotModel &model)
+PreComputedMotions::PreComputedMotions(const motion_planning_libraries::MotionPrimitivesConfig& primitiveConfig,
+                                       const RobotModel &model) : primitives(primitiveConfig)
 {
-    motion_planning_libraries::SbplMotionPrimitives primGen(primitiveConfig);
-    primGen.createPrimitives();
+    primitives.createPrimitives();
     
-    readMotionPrimitives(primGen, model);
+    readMotionPrimitives(primitives, model);
 }
 
 
@@ -209,5 +208,11 @@ const Motion& PreComputedMotions::getMotion(std::size_t id) const
 {
     return idToMotion.at(id);
 }
+
+const motion_planning_libraries::SbplMotionPrimitives& PreComputedMotions::getPrimitives() const
+{
+    return primitives;
+}
+
 
 }

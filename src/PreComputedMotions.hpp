@@ -7,10 +7,10 @@
 #include <vector>
 #include <base/Pose.hpp>
 #include <maps/grid/Index.hpp>
+#include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
 
 namespace motion_planning_libraries
 {
-    class SbplMotionPrimitives;
     class MotionPrimitivesConfig;
 };
 
@@ -70,9 +70,9 @@ class PreComputedMotions
 {
     //indexed by discrete start theta
     std::vector<std::vector<Motion> > thetaToMotion;
-
     std::vector<Motion> idToMotion;
-    
+    motion_planning_libraries::SbplMotionPrimitives primitives;
+     
 public:
     PreComputedMotions(const motion_planning_libraries::MotionPrimitivesConfig& primitiveConfig, const RobotModel &model);
     
@@ -92,7 +92,9 @@ public:
         return thetaToMotion.at(theta.getTheta());
     };
     
-    const Motion &getMotion(std::size_t id) const;    
+    const Motion &getMotion(std::size_t id) const; 
+    
+    const motion_planning_libraries::SbplMotionPrimitives& getPrimitives() const;
 };
 
 }

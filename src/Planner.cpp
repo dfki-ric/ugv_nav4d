@@ -136,4 +136,11 @@ boost::shared_ptr< EnvironmentXYZTheta > Planner::getEnv() const
     return env;
 }
 
+std::vector<Motion> Planner::getMotions() const
+{
+    return env->getMotions(solution);
+}
+
+
+
 }

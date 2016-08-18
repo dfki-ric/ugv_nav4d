@@ -6,6 +6,7 @@
 #include <osg/Geode>
 #include <osg/Geometry>
 #include <ugv_nav4d/EnvironmentXYZTheta.hpp>
+#include <ugv_nav4d/PreComputedMotions.hpp>
 
 namespace vizkit3d
 {
@@ -22,10 +23,11 @@ namespace vizkit3d
     {vizkit3d::Vizkit3DPlugin<ugv_nav4d::EnvironmentXYZTheta>::updateData(sample);}
     
     public slots:
-      void setGridSize(const double gridSize);
+      void setGridSize(const double gridSize); //size of one grid cell
       void setStartPos(const double x, const double y, const double z);
       void setGoalPos(const double x, const double y, const double z);
       void setSolution(std::vector<QVector3D> path);
+      void setSolutionMotions(const std::vector<ugv_nav4d::Motion>& motions);
 
     protected:
         virtual osg::ref_ptr<osg::Node> createMainNode();

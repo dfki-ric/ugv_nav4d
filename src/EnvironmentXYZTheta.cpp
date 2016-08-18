@@ -571,6 +571,20 @@ void EnvironmentXYZTheta::PrintState(int stateID, bool bVerbose, FILE* fOut)
     
 }
 
+vector<Motion> EnvironmentXYZTheta::getMotions(const vector< int >& stateIDPath)
+{
+    vector<Motion> result;
+    if(stateIDPath.size() >= 2)
+    {
+        for(int i = 0; i < stateIDPath.size() -1; ++i)
+        {
+            result.push_back(getMotion(stateIDPath[i], stateIDPath[i + 1]));
+        }
+    }
+    return result;
+}
+
+
 void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector< base::Trajectory >& result)
 {
     if(stateIDPath.size() < 2)
@@ -712,6 +726,11 @@ const maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase >& Environment
 //         const Eigen::AlignedBox3d aabb(min, max); //aabb around the rotated robot bounding box
 //     }
 // }
+
+const PreComputedMotions& EnvironmentXYZTheta::getAvailableMotions() const
+{
+    return availableMotions;
+}
 
 
 }

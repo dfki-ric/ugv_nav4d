@@ -3,6 +3,7 @@
 #include <osgViz/OsgViz.hpp>
 #include <osg/PolygonMode>
 #include <osgViz/plugins/viz/Primitives/PrimitivesFactory.h>
+#include <vizkit3d/ColorConversionHelper.hpp>
 
 using namespace vizkit3d;
 using namespace osg;
@@ -26,7 +27,7 @@ struct EnvironmentXYZThetaVisualization::Data {
     Vec3d startPos;
     Vec3d goalPos;
     std::vector<QVector3D> solutionPath;
-    
+    std::vector<ugv_nav4d::Motion> solutionMotions;
 };
 
 
@@ -34,6 +35,7 @@ EnvironmentXYZThetaVisualization::EnvironmentXYZThetaVisualization()
     : p(new Data)
 {
     p->root = new osgviz::Object();
+    p->gridSize = 0.1;
 }
 
 EnvironmentXYZThetaVisualization::~EnvironmentXYZThetaVisualization()
@@ -49,6 +51,7 @@ ref_ptr<Node> EnvironmentXYZThetaVisualization::createMainNode()
 
 void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 {
+    std::cout << "AAAAA" << std::endl;
      Box* unitCube = new Box( Vec3(0,0,0), p->gridSize);
 //     ShapeDrawable* unitCubeDrawable = new ShapeDrawable(unitCube);
 //     unitCubeDrawable->setColor(osg::Vec4(1, 0, 0, 1));
@@ -149,10 +152,36 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
         childGeode->addDrawable(new osg::ShapeDrawable(s));
         trans->addChild(childGeode);
     }
-      
     
-    
-    
+    osg::Vec3 startPos(0, 0, 0);
+    double hue = 0.0;
+    float r, g, b;
+    const double hue_step = 0.35;
+    for(ugv_nav4d::Motion& motion : p->solutionMotions)
+    {  
+        osg::Geode* geode = new osg::Geode();
+        osg::Geometry* line = new osg::Geometry();
+        geode->addDrawable(line);
+        osg::Vec3Array* vertices = new osg::Vec3Array;
+        vertices->push_back(startPos);
+        for(const ugv_nav4d::PoseWithCell& pose : motion.intermediateSteps)
+        {
+            vertices->push_back(osg::Vec3(pose.pose.position.x() + startPos.x(), pose.pose.position.y() + startPos.y(), 0));
+        }
+        startPos.x() += motion.intermediateSteps.back().pose.position.x();
+        startPos.y() += motion.intermediateSteps.back().pose.position.y();
+        line->setVertexArray(vertices);
+        line->addPrimitiveSet(new osg::DrawArrays(GL_LINE_STRIP,0,vertices->size())); 
+        osg::Vec4Array* colors = new osg::Vec4Array;
+        vizkit3d::hslToRgb(hue, 1.0, 0.5, r, g, b);
+        hue += hue_step;
+        if(hue >= 1.0) hue = 0.0;
+        colors->push_back(osg::Vec4(r, g, b, 1.0f));
+        line->setColorArray(colors);
+        line->setColorBinding(Geometry::BIND_OVERALL);
+        p->root->addChild(geode);
+    }
+          
 //          const double robotSizeX = 0.5;
 //          const double robotSizeY = 0.8;
 //          const double robotSizeZ = 0.2;  
@@ -188,7 +217,7 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 //         trans->setAttitude(q);
 //         trans->addChild(box);
 //         p->root->addChild(trans);
-//         
+//         Benching
 //         
 //         osg::Sphere* s1 = new osg::Sphere(osg::Vec3d(rotatedCorners.col(0)(0),
 //                                                      rotatedCorners.col(0)(1),
@@ -315,6 +344,11 @@ void EnvironmentXYZThetaVisualization::setStartPos(const double x, const double 
 void EnvironmentXYZThetaVisualization::setSolution(std::vector< QVector3D > path)
 {
     p->solutionPath = path;
+}
+
+void EnvironmentXYZThetaVisualization::setSolutionMotions(const std::vector<ugv_nav4d::Motion>& motions)
+{
+    p->solutionMotions = motions;
 }
 
 
