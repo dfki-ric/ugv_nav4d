@@ -445,7 +445,7 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
 {
     //the final pose is part of the path but not of the posese.
     //Thus the size should always differ by one.
-    assert(motion.intermediatePoses.size() + 1 == path.size());
+    assert(motion.intermediateSteps.size() + 1 == path.size());
     
     std::vector<PoseWithCell> poses(motion.intermediateSteps);
     for(unsigned i = 0; i < path.size(); ++i)
