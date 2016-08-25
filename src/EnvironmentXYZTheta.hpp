@@ -94,7 +94,8 @@ public:
     //contains the min/max vectors for bounding boxes that collided with something
     mutable std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> debugCollisions;
     
-    mutable std::vector<Eigen::Matrix<double, 3, 8>> debugRotatedBoxes;
+    Eigen::Vector3d robotHalfSize;
+    mutable std::vector<base::Pose> debugCollisionPoses;
     
     mutable std::vector<Eigen::Vector3d> intersectionPositions;
   

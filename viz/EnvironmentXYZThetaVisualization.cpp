@@ -2,11 +2,49 @@
 #include <osg/ShapeDrawable>
 #include <osgViz/OsgViz.hpp>
 #include <osg/PolygonMode>
+#include <osg/Material>
 #include <osgViz/plugins/viz/Primitives/PrimitivesFactory.h>
 #include <vizkit3d/ColorConversionHelper.hpp>
 
 using namespace vizkit3d;
 using namespace osg;
+
+// TODO These helper functions should be moved to some common header
+template <class T>
+osg::Vec3 vec3( const Eigen::MatrixBase<T>& v )
+{
+    assert(v.size()==3 && "Must pass a 3x1 vector");
+    return osg::Vec3( v.x(), v.y(), v.z() );
+}
+
+template<class T>
+osg::Quat quat( const Eigen::QuaternionBase<T>& q)
+{
+    return osg::Quat(q.x(), q.y(), q.z(), q.w());
+}
+
+void setColor(const osg::Vec4d& color, osg::Geode* geode)
+{
+    osg::Material *material = new osg::Material();
+    material->setDiffuse(osg::Material::FRONT,  osg::Vec4(0.1, 0.1, 0.1, 1.0));
+    material->setSpecular(osg::Material::FRONT, osg::Vec4(0.6, 0.6, 0.6, 1.0));
+    material->setAmbient(osg::Material::FRONT,  osg::Vec4(0.1, 0.1, 0.1, 1.0));
+    material->setEmission(osg::Material::FRONT, color);
+    material->setShininess(osg::Material::FRONT, 10.0);
+
+    geode->getOrCreateStateSet()->setAttribute(material);
+}
+
+void addShape(osg::Group* group, osg::ref_ptr<osg::Shape> s, const osg::Vec4f& color)
+{
+    ref_ptr<Geode> geo = new Geode();
+    ref_ptr<ShapeDrawable> sd = new ShapeDrawable(s);
+    sd->setColor(color);
+    geo->addDrawable(sd);
+//    setColor(color, geo);
+    group->addChild(geo);
+}
+
 
 struct EnvironmentXYZThetaVisualization::Data {
     
@@ -18,7 +56,8 @@ struct EnvironmentXYZThetaVisualization::Data {
     //contains the min/max vectors for bounding boxes that collided with something
     std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> debugCollisions;
     
-    std::vector<Eigen::Matrix<double, 3, 8>> debugRotatedCorners;
+    Eigen::Vector3d robotSize2;
+    std::vector<base::Pose> collisionPoses;
     
     std::vector<Eigen::Vector3d> intersectionPositions;
 
@@ -105,6 +144,16 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
         childGeode->addDrawable(unitCubeDrawable2);
         trans->addChild(childGeode);
     }
+
+    for(const auto pose : p->collisionPoses)
+    {
+        osg::ref_ptr<osg::Box> box(new osg::Box);
+        box->setHalfLengths(vec3(p->robotSize2));
+        box->setRotation(quat(pose.orientation));
+        box->setCenter(vec3(pose.position));
+        addShape(p->root, box, osg::Vec4f(1.0f, 0.1f, 0.1f, 0.5f));
+    }
+#if 0
     for(const Eigen::Matrix<double, 3, 8>& corners : p->debugRotatedCorners)
     {
         osg::Geode* geode = new osg::Geode();
@@ -138,7 +187,8 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
         
         p->root->addChild(geode);
     }
-    
+#endif
+
     for(const Eigen::Vector3d& intersection : p->intersectionPositions)
     {
         PositionAttitudeTransform* trans = new PositionAttitudeTransform();
@@ -156,7 +206,7 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
     osg::Vec3 startPos(0, 0, 0);
     double hue = 0.0;
     float r, g, b;
-    const double hue_step = 0.35;
+    const double hue_step = 0.15;
     for(ugv_nav4d::Motion& motion : p->solutionMotions)
     {  
         osg::Geode* geode = new osg::Geode();
@@ -322,7 +372,8 @@ void EnvironmentXYZThetaVisualization::updateDataIntern(ugv_nav4d::EnvironmentXY
 {
     p->debugCollisions = value.debugCollisions;
     p->debugRobotPositions = value.debugRobotPositions;
-    p->debugRotatedCorners = value.debugRotatedBoxes;
+    p->robotSize2 = value.robotHalfSize;
+    p->collisionPoses = value.debugCollisionPoses;
     p->intersectionPositions = value.intersectionPositions;
 }
 
