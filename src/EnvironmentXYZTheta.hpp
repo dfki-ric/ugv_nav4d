@@ -50,7 +50,7 @@ protected:
         
         TraversabilityGenerator3d::Node *travNode;
         
-        ///contains alle nodes sorted by theta
+        ///contains all nodes sorted by theta
         std::map<DiscreteTheta, ThetaNode *> thetaToNodes; 
     };
     
