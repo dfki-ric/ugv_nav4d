@@ -3,7 +3,7 @@
 #include <osgViz/OsgViz.hpp>
 #include <osg/PolygonMode>
 #include <osg/Material>
-#include <osgViz/plugins/viz/Primitives/PrimitivesFactory.h>
+#include <osgViz/modules/viz/Primitives/PrimitivesFactory.h>
 #include <vizkit3d/ColorConversionHelper.hpp>
 
 using namespace vizkit3d;
@@ -119,7 +119,7 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
     }
 
 //     Geode* collisionGeode = new Geode();
-    osgviz::PrimitivesFactory fac(nullptr);
+    osgviz::PrimitivesFactory fac;
 //     for(const std::pair<Eigen::Vector3d, Eigen::Vector3d>& aabb : p->debugCollisions)
 //     {
 //         const double xSize = aabb.second.x() - aabb.first.x();
