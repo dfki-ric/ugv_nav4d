@@ -1,4 +1,4 @@
-find_package(PCL 1.7 REQUIRED COMPONENTS registration segmentation)
+find_package(PCL 1.7 REQUIRED COMPONENTS segmentation)
 
 rock_library(ugv_nav4d
     SOURCES 
@@ -21,6 +21,5 @@ rock_library(ugv_nav4d
         motion_planning_libraries
         dwa
         maps
-        pcl_registration-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
         pcl_segmentation-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
 )
