@@ -9,6 +9,7 @@ rock_library(ugv_nav4d
         DiscreteTheta.hpp
         EnvironmentXYZTheta.hpp
         Planner.hpp
+        PreComputedMotions.hpp
         TraversabilityGenerator3d.hpp
         TraversabilityConfig.hpp
     DEPS_PKGCONFIG 
