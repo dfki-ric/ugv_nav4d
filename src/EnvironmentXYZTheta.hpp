@@ -102,6 +102,11 @@ public:
                         const TraversabilityConfig &travConf,
                         const motion_planning_libraries::MotionPrimitivesConfig &primitiveConfig);
     
+    EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid,
+                        const TraversabilityConfig &travConf,
+                        const motion_planning_libraries::SplinePrimitivesConfig &primitiveConfig,
+                        const motion_planning_libraries::Mobility& mobilityConfig);
+    
     virtual ~EnvironmentXYZTheta();
     
     void updateMap(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid);
@@ -128,7 +133,6 @@ public:
     void setGoal(const Eigen::Vector3d &goalPos, double theta);
     
     maps::grid::Vector3d getStatePosition(const int stateID) const;
-    
     
     /**Returns the intermediate poses of the motion connecting @p FromStateID 
      * and @p toStateID.

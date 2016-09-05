@@ -4,6 +4,7 @@
 #include <boost/shared_ptr.hpp>
 #include <base/Trajectory.hpp>
 #include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
+#include <motion_planning_libraries/sbpl/SbplSplineMotionPrimitives.hpp>
 #include "TraversabilityGenerator3d.hpp"
 #include "PreComputedMotions.hpp"
 
@@ -20,12 +21,17 @@ class Planner
     boost::shared_ptr<ARAPlanner> planner;
     
     const motion_planning_libraries::MotionPrimitivesConfig primitiveConfig; 
+    const motion_planning_libraries::SplinePrimitivesConfig splinePrimitiveConfig; 
+    const motion_planning_libraries::Mobility mobility;
     const TraversabilityConfig traversabilityConfig;
     
     std::vector<int> solution;
     
 public:
     Planner(const motion_planning_libraries::MotionPrimitivesConfig &primitiveConfig, const TraversabilityConfig &traversabilityConfig);
+    Planner(const motion_planning_libraries::SplinePrimitivesConfig &primitiveConfig, const TraversabilityConfig &traversabilityConfig,
+            const motion_planning_libraries::Mobility& mobility);
+    
     
     void updateMap(const maps::grid::MLSMapSloped& mlsSloped);
     

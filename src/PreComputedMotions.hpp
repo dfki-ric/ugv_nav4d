@@ -8,6 +8,7 @@
 #include <base/Pose.hpp>
 #include <maps/grid/Index.hpp>
 #include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
+#include <motion_planning_libraries/sbpl/SbplSplineMotionPrimitives.hpp>
 
 namespace motion_planning_libraries
 {
@@ -76,7 +77,16 @@ class PreComputedMotions
 public:
     PreComputedMotions(const motion_planning_libraries::MotionPrimitivesConfig& primitiveConfig, const RobotModel &model);
     
+    /**Initialize using spline based primitives */
+    PreComputedMotions(const motion_planning_libraries::SplinePrimitivesConfig& primitiveConfig,
+                       const RobotModel &model,
+                       const motion_planning_libraries::Mobility& mobilityConfig);
+    
     void readMotionPrimitives(const motion_planning_libraries::SbplMotionPrimitives& primGen, const RobotModel& model);
+    
+    void readMotionPrimitives(const motion_planning_libraries::SbplSplineMotionPrimitives& primGen,
+                              const RobotModel& model,
+                              const motion_planning_libraries::Mobility& mobilityConfig);
     
     void setMotionForTheta(const Motion &motion, const DiscreteTheta &theta);
     

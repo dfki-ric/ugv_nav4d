@@ -51,7 +51,6 @@ ref_ptr<Node> EnvironmentXYZThetaVisualization::createMainNode()
 
 void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 {
-    std::cout << "AAAAA" << std::endl;
      Box* unitCube = new Box( Vec3(0,0,0), p->gridSize);
 //     ShapeDrawable* unitCubeDrawable = new ShapeDrawable(unitCube);
 //     unitCubeDrawable->setColor(osg::Vec4(1, 0, 0, 1));
@@ -153,7 +152,8 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
         trans->addChild(childGeode);
     }
     
-    osg::Vec3 startPos(0, 0, 0);
+    int cellX = 0;
+    int cellY = 0;
     double hue = 0.0;
     float r, g, b;
     const double hue_step = 0.35;
@@ -162,14 +162,19 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
         osg::Geode* geode = new osg::Geode();
         osg::Geometry* line = new osg::Geometry();
         geode->addDrawable(line);
+        
+        osg::ref_ptr<osg::PositionAttitudeTransform> cellTransform = new osg::PositionAttitudeTransform();
+        cellTransform->setPosition(osg::Vec3d(cellX * p->gridSize, cellY * p->gridSize, 0.1));
+        
         osg::Vec3Array* vertices = new osg::Vec3Array;
-        vertices->push_back(startPos);
+        vertices->push_back(osg::Vec3(0.5 * p->gridSize, 0.5 * p->gridSize, 0));
         for(const ugv_nav4d::PoseWithCell& pose : motion.intermediateSteps)
         {
-            vertices->push_back(osg::Vec3(pose.pose.position.x() + startPos.x(), pose.pose.position.y() + startPos.y(), 0));
+            vertices->push_back(osg::Vec3(pose.pose.position.x(), pose.pose.position.y(), 0));
         }
-        startPos.x() += motion.intermediateSteps.back().pose.position.x();
-        startPos.y() += motion.intermediateSteps.back().pose.position.y();
+        cellX += motion.xDiff;
+        cellY += motion.yDiff;
+        
         line->setVertexArray(vertices);
         line->addPrimitiveSet(new osg::DrawArrays(GL_LINE_STRIP,0,vertices->size())); 
         osg::Vec4Array* colors = new osg::Vec4Array;
@@ -179,7 +184,32 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
         colors->push_back(osg::Vec4(r, g, b, 1.0f));
         line->setColorArray(colors);
         line->setColorBinding(Geometry::BIND_OVERALL);
-        p->root->addChild(geode);
+        cellTransform->addChild(geode);
+        p->root->addChild(cellTransform);
+        
+        //add triangle in the end of each primitive to show end orientation
+        osg::ref_ptr<osg::Geometry> triangleGeometry = new osg::Geometry();
+        osg::ref_ptr<osg::Vec3Array> triangleVertices = new osg::Vec3Array();
+        triangleVertices->push_back(osg::Vec3(0.0, 0.01, 0));
+        triangleVertices->push_back(osg::Vec3(0.04, 0.0, 0));
+        triangleVertices->push_back(osg::Vec3(0.0, -0.01, 0));
+        triangleGeometry->setVertexArray(triangleVertices);
+        osg::ref_ptr<osg::DrawElementsUInt> triangleFace = 
+                new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, 0);
+        triangleFace->push_back(0);
+        triangleFace->push_back(1);
+        triangleFace->push_back(2);
+        triangleGeometry->addPrimitiveSet(triangleFace);
+        triangleGeometry->setColorArray(colors);
+        triangleGeometry->setColorBinding(osg::Geometry::BIND_OVERALL);
+        osg::ref_ptr<osg::Geode> triangleGeode = new osg::Geode();
+        triangleGeode->addDrawable(triangleGeometry);
+        osg::ref_ptr<osg::PositionAttitudeTransform> triangleTransform = new osg::PositionAttitudeTransform();
+        //cellX/Y is already at the the next cell at this point in the code
+        triangleTransform->setPosition(osg::Vec3d(cellX * p->gridSize + 0.5 * p->gridSize, cellY * p->gridSize + + 0.5 * p->gridSize, 0.1));
+        triangleTransform->setAttitude(osg::Quat(motion.endTheta.getRadian(), osg::Vec3f(0,0,1)));
+        triangleTransform->addChild(triangleGeode);
+        p->root->addChild(triangleTransform);
     }
           
 //          const double robotSizeX = 0.5;

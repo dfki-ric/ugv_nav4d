@@ -19,6 +19,17 @@ Planner::Planner(const motion_planning_libraries::MotionPrimitivesConfig& primit
     
 }
 
+Planner::Planner(const motion_planning_libraries::SplinePrimitivesConfig& primitiveConfig, const TraversabilityConfig& traversabilityConfig,
+                const motion_planning_libraries::Mobility& mobility) :
+    splinePrimitiveConfig(primitiveConfig)
+    , traversabilityConfig(traversabilityConfig),
+    mobility(mobility)
+{
+    if(traversabilityConfig.gridResolution != primitiveConfig.gridSize)
+        throw std::runtime_error("Planner::Planner : Configuration error, grid resolution of Primitives and TraversabilityGenerator3d differ");
+}
+
+
 
 bool Planner::plan(const base::Time &maxTime, base::samples::RigidBodyState& start, base::samples::RigidBodyState& end)
 {
@@ -113,7 +124,7 @@ void Planner::updateMap(const maps::grid::MLSMapSloped &mlsSloped)
     boost::shared_ptr<MultiLevelGridMap<SurfacePatchBase>> mlsPtr(mlsBase);
 
     if(!env) {
-        env.reset(new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, primitiveConfig));
+        env.reset(new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, splinePrimitiveConfig, mobility));
     }
     else
     {

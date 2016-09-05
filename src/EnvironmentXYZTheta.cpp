@@ -21,10 +21,10 @@ const double costScaleFactor = 1000;
 
 EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr< maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > > mlsGrid,
                                          const TraversabilityConfig &travConf,
-                                         const motion_planning_libraries::MotionPrimitivesConfig &primitiveConfig) : 
+                                         const MotionPrimitivesConfig &primitiveConfig) : 
     travGen(travConf)
     , mlsGrid(mlsGrid)
-    , robotModel(0.3, 0.1)    
+    , robotModel(0.3, 0.1)
     , availableMotions(primitiveConfig, robotModel)
     , startThetaNode(nullptr)
     , startXYZNode(nullptr)
@@ -32,13 +32,35 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr< maps::grid::MultiLev
     , goalXYZNode(nullptr)
     , travConf(travConf)
 {
-    numAngles = 16;
+    numAngles = primitiveConfig.mNumAngles;
     travGen = TraversabilityGenerator3d(travConf);
     travGen.setMLSGrid(mlsGrid);
     searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
-    std::cout  << "Extending map to " << travGen.getTraversabilityMap().getNumCells().transpose() << std::endl;
     searchGrid.extend(travGen.getTraversabilityMap().getNumCells());
 }
+
+EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase>> mlsGrid,
+                                         const TraversabilityConfig& travConf,
+                                         const SplinePrimitivesConfig& primitiveConfig,
+                                         const Mobility& mobilityConfig) :
+    travGen(travConf)
+    , mlsGrid(mlsGrid)
+    , robotModel(0.3, 0.1)    
+    , availableMotions(primitiveConfig, robotModel, mobilityConfig)
+    , startThetaNode(nullptr)
+    , startXYZNode(nullptr)
+    , goalThetaNode(nullptr)
+    , goalXYZNode(nullptr)
+    , travConf(travConf)
+{
+    numAngles = primitiveConfig.numAngles;
+    travGen = TraversabilityGenerator3d(travConf);
+    travGen.setMLSGrid(mlsGrid);
+    searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
+    searchGrid.extend(travGen.getTraversabilityMap().getNumCells());
+}
+
+
 
 void EnvironmentXYZTheta::clear()
 {
@@ -390,10 +412,10 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
         additionalCosts += (sourceIndex - finalPos).norm() + 1;
         
-        if(!checkCollisions(nodesOnPath, motion))
-        {
-          continue;
-        }
+//         if(!checkCollisions(nodesOnPath, motion))
+//         {
+//           continue;
+//         }
         
         curIndex = finalPos;
         
@@ -438,6 +460,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         CostV->push_back(motion.baseCost + additionalCosts);
         motionIdV.push_back(motion.id);
     }
+    std::cout << "succ count " << SourceStateID << ": " << SuccIDV->size() << std::endl;
 }
 
 bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGenerator3d::Node* >& path,
@@ -592,7 +615,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
     
     result.clear();
     
-    std::cout << "Solution: " << std::endl;
     size_t lastMotion = getMotion(stateIDPath[0], stateIDPath[1]).id;
     
     base::Trajectory curPart;
@@ -603,8 +625,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
     {
         const Motion &curMotion(getMotion(stateIDPath[i], stateIDPath[i+1]));
         
-//         std::cout << "Motion has id " << curMotion.id << std::endl;
-        
         if(lastMotion != curMotion.id)
         {
             curPart.spline.interpolate(positions);
@@ -613,27 +633,19 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
             result.push_back(curPart);
         }
 
-        std::cout << stateIDPath[i] << " ";
         const maps::grid::Vector3d start = getStatePosition(stateIDPath[i]);
-//         std::cout << "Intermediate Poses : " << curMotion.intermediateSteps.size() << std::endl;
-        
         const Hash &startHash(idToHash[stateIDPath[i]]);
         const maps::grid::Index startIndex(startHash.node->getIndex());
         maps::grid::Index lastIndex = startIndex;
         TraversabilityGenerator3d::Node *curNode = startHash.node->getUserData().travNode;
         
-        
-        
         for(const PoseWithCell &pwc : curMotion.intermediateSteps)
         {
             base::Vector3d pos(pwc.pose.position.x() + start.x(), pwc.pose.position.y() + start.y(), start.z());
-//             std::cout << "Intermediate position " << pos.transpose() << " Diff " << pwc.pose.position.transpose() << std::endl;
-            
             maps::grid::Index curIndex = startIndex + pwc.cell;
 
             if(curIndex != lastIndex)
             {
-//                 std::cout << "Getting connected node from " << lastIndex.transpose() << " to " << curIndex.transpose() << std::endl;
                 TraversabilityGenerator3d::Node *nextNode = curNode->getConnectedNode(curIndex);
                 if(!nextNode)
                 {

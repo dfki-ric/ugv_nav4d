@@ -4,7 +4,7 @@
 
 namespace ugv_nav4d
 {
-
+using namespace motion_planning_libraries;
 const double costScaleFactor = 1000;
 
 RobotModel::RobotModel(double tr, double rv) : translationalVelocity(tr), rotationalVelocity(rv)
@@ -12,16 +12,101 @@ RobotModel::RobotModel(double tr, double rv) : translationalVelocity(tr), rotati
 
 }
 
-PreComputedMotions::PreComputedMotions(const motion_planning_libraries::MotionPrimitivesConfig& primitiveConfig,
+PreComputedMotions::PreComputedMotions(const MotionPrimitivesConfig& primitiveConfig,
                                        const RobotModel &model) : primitives(primitiveConfig)
 {
     primitives.createPrimitives();
-    
     readMotionPrimitives(primitives, model);
 }
 
+PreComputedMotions::PreComputedMotions(const SplinePrimitivesConfig& primitiveConfig,
+                                       const RobotModel& model,
+                                       const motion_planning_libraries::Mobility& mobilityConfig)
+{
+    SbplSplineMotionPrimitives prims(primitiveConfig);
+    readMotionPrimitives(prims, model, mobilityConfig);
+}
 
-void PreComputedMotions::readMotionPrimitives(const motion_planning_libraries::SbplMotionPrimitives &primGen, const RobotModel &model)
+
+void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& primGen,
+                                              const RobotModel& model,
+                                              const motion_planning_libraries::Mobility& mobilityConfig)
+{
+    const int numAngles = primGen.getConfig().numAngles;
+    const double gridResolution = primGen.getConfig().gridSize;
+    
+    maps::grid::GridMap<int> dummyGrid(maps::grid::Vector2ui(10, 10), base::Vector2d(gridResolution, gridResolution), 0);
+
+    for(int angle = 0; angle < numAngles; ++angle)
+    {
+        for(const SplinePrimitive& prim : primGen.getPrimitiveForAngle(angle))
+        {
+            Motion motion(numAngles);
+
+            motion.xDiff = prim.endPosition[0];
+            motion.yDiff = prim.endPosition[1];
+            motion.endTheta =  DiscreteTheta(static_cast<int>(prim.endAngle), numAngles);
+            motion.startTheta = DiscreteTheta(static_cast<int>(prim.startAngle), numAngles);
+            motion.costMultiplier = 1; //is changed in the switch-case below
+            motion.speed = mobilityConfig.mSpeed;
+            
+            switch(prim.motionType)
+            {
+                case SplinePrimitive::SPLINE_MOVE_FORWARD:
+                    motion.type = Motion::MOV_FORWARD;
+                    motion.costMultiplier = mobilityConfig.mMultiplierForwardTurn;
+                    break;
+                case SplinePrimitive::SPLINE_MOVE_BACKWARD:
+                    motion.type = Motion::MOV_BACKWARD;
+                    motion.costMultiplier = mobilityConfig.mMultiplierBackwardTurn;
+                    break;
+                case SplinePrimitive::SPLINE_MOVE_LATERAL:
+                    motion.type = Motion::MOV_LATERAL;
+                    motion.costMultiplier = mobilityConfig.mMultiplierLateral;
+                    break;
+                default:
+                    throw std::runtime_error("Got Unsupported movement");
+            }
+            
+            const double stepDist = gridResolution / 4.0;
+            std::vector<double> parameters;
+            //NOTE we dont need the points, but there is no sample() api that returns parameters only
+            const std::vector<base::geometry::Spline2::vector_t> points = prim.spline.sample(stepDist, &parameters);
+            assert(parameters.size() == points.size());
+            
+            maps::grid::Index lastIdx(0,0);
+            
+            for(int i = 0; i < parameters.size(); ++i)
+            {
+                const double param = parameters[i];
+                base::Vector2d point, tangent;
+                std::tie(point,tangent) = prim.spline.getPointAndTangent(param);
+                const base::Orientation2D orientation(std::atan2(tangent.y(), tangent.x()));
+                const base::Pose2D pose(point, orientation);
+                maps::grid::Index diff;
+                if(!dummyGrid.toGrid(base::Vector3d(point.x(), point.y(), 0), diff, false))
+                    throw std::runtime_error("Internal Error : Cannot convert intermediate Pose to grid cell");
+                if(lastIdx != diff ||
+                   i == parameters.size() - 1) //make sure that the last position is added, even if there already is a pose in this cell
+                {
+                    PoseWithCell s;
+                    s.cell = diff;
+                    s.pose = pose;
+                    motion.intermediateSteps.push_back(s);
+                    if((lastIdx - diff).norm() > 1)
+                        throw std::runtime_error("skipped a cell");
+                    
+                    lastIdx = diff;
+                } 
+            }
+            assert(motion.intermediateSteps.size() > 0); //at least the end pose should always be part of the steps
+            preComputeCost(motion, model);
+            setMotionForTheta(motion, motion.startTheta);
+        }
+    }
+}
+
+void PreComputedMotions::readMotionPrimitives(const SbplMotionPrimitives &primGen, const RobotModel &model)
 {
     const size_t numAngles = primGen.mConfig.mNumAngles;
     const double gridResolution = primGen.mConfig.mGridSize;
@@ -31,8 +116,7 @@ void PreComputedMotions::readMotionPrimitives(const motion_planning_libraries::S
     Eigen::Vector3d zeroGridPos(0, 0 ,0);
     dummyGrid.fromGrid(maps::grid::Index(0,0), zeroGridPos);
     
-    std::cout << "Num prims is " << primGen.mListPrimitives.size() << std::endl;
-    for(const motion_planning_libraries::Primitive& prim : primGen.mListPrimitives)
+    for(const Primitive& prim : primGen.mListPrimitives)
     {
         Motion motion(numAngles);
 
@@ -46,18 +130,18 @@ void PreComputedMotions::readMotionPrimitives(const motion_planning_libraries::S
         
         switch(prim.mMovType)
         {
-            case motion_planning_libraries::MOV_BACKWARD:
-            case motion_planning_libraries::MOV_BACKWARD_TURN:
+            case MOV_BACKWARD:
+            case MOV_BACKWARD_TURN:
                 motion.type = Motion::MOV_FORWARD;
                 break;
-            case motion_planning_libraries::MOV_FORWARD:
-            case motion_planning_libraries::MOV_FORWARD_TURN:
+            case MOV_FORWARD:
+            case MOV_FORWARD_TURN:
                 motion.type = Motion::MOV_BACKWARD;
                 break;
-            case motion_planning_libraries::MOV_LATERAL:
+            case MOV_LATERAL:
                 motion.type = Motion::MOV_LATERAL;
                 break;
-            case motion_planning_libraries::MOV_POINTTURN:
+            case MOV_POINTTURN:
                 motion.type = Motion::MOV_POINTTURN;
                 break;
             default:
@@ -138,16 +222,8 @@ void PreComputedMotions::readMotionPrimitives(const motion_planning_libraries::S
         preComputeCost(motion, model);
 
         setMotionForTheta(motion, motion.startTheta);
-
-    //     std::cout << "startTheta " <<  prim.mStartAngle << std::endl;
-    //     std::cout << "mEndPose " <<  prim.mEndPose.transpose() << std::endl;
-    // 
-//         std::cout << "Adding Motion: 0, 0, " << motion.startTheta << " -> " << motion.xDiff << ", " << motion.yDiff << ", " << motion.endTheta << std::endl << std::endl;
     }
-
 }
-
-
 
 void PreComputedMotions::setMotionForTheta(const Motion& motion, const DiscreteTheta& theta)
 {
@@ -209,7 +285,7 @@ const Motion& PreComputedMotions::getMotion(std::size_t id) const
     return idToMotion.at(id);
 }
 
-const motion_planning_libraries::SbplMotionPrimitives& PreComputedMotions::getPrimitives() const
+const SbplMotionPrimitives& PreComputedMotions::getPrimitives() const
 {
     return primitives;
 }
