@@ -28,7 +28,7 @@ int main(int argc, char** argv)
     std::ifstream fileIn(argv[1]);
 
     // deserialize from string stream
-    boost::archive::polymorphic_binary_iarchive mlsIn(fileIn);
+    boost::archive::binary_iarchive mlsIn(fileIn);
     MLSMapSloped mlsSloped;
     
     mlsIn >> mlsSloped;
