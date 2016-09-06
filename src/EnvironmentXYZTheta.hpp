@@ -70,9 +70,7 @@ protected:
     std::vector<Hash> idToHash;
     
     RobotModel robotModel;
-    
     PreComputedMotions availableMotions;
-//     PreComputedBoundingBoxes boundingBoxes;
     
     ThetaNode *createNewState(const DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
     XYZNode *createNewXYZState(TraversabilityGenerator3d::Node* travNode);
@@ -97,10 +95,7 @@ public:
     mutable std::vector<Eigen::Matrix<double, 3, 8>> debugRotatedBoxes;
     
     mutable std::vector<Eigen::Vector3d> intersectionPositions;
-  
-    EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid,
-                        const TraversabilityConfig &travConf,
-                        const motion_planning_libraries::MotionPrimitivesConfig &primitiveConfig);
+
     
     EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid,
                         const TraversabilityConfig &travConf,

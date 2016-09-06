@@ -59,9 +59,8 @@ struct Motion
         * They are relative to the starting cell*/
     std::vector<PoseWithCell> intermediateSteps;
     
-    int baseCost;
-    
-    int costMultiplier;
+    int baseCost; //time the robot needs to follow the primivite scaled by some factors
+    int costMultiplier;//is used to scale the baseCost
     
     size_t id;
     
@@ -73,16 +72,16 @@ class PreComputedMotions
     std::vector<std::vector<Motion> > thetaToMotion;
     std::vector<Motion> idToMotion;
     motion_planning_libraries::SbplMotionPrimitives primitives;
+    
+    /**used to scale the costs because costs
+     * are int but real costs are most likely small doubles*/
+    const double costScaleFactor = 1000;
      
 public:
-    PreComputedMotions(const motion_planning_libraries::MotionPrimitivesConfig& primitiveConfig, const RobotModel &model);
-    
     /**Initialize using spline based primitives */
     PreComputedMotions(const motion_planning_libraries::SplinePrimitivesConfig& primitiveConfig,
                        const RobotModel &model,
                        const motion_planning_libraries::Mobility& mobilityConfig);
-    
-    void readMotionPrimitives(const motion_planning_libraries::SbplMotionPrimitives& primGen, const RobotModel& model);
     
     void readMotionPrimitives(const motion_planning_libraries::SbplSplineMotionPrimitives& primGen,
                               const RobotModel& model,

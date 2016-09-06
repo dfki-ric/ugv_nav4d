@@ -17,27 +17,8 @@ using namespace motion_planning_libraries;
 namespace ugv_nav4d
 {
 
-const double costScaleFactor = 1000;
+const double costScaleFactor = 1000; //FIXME WTF?
 
-EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr< maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > > mlsGrid,
-                                         const TraversabilityConfig &travConf,
-                                         const MotionPrimitivesConfig &primitiveConfig) : 
-    travGen(travConf)
-    , mlsGrid(mlsGrid)
-    , robotModel(0.3, 0.1)
-    , availableMotions(primitiveConfig, robotModel)
-    , startThetaNode(nullptr)
-    , startXYZNode(nullptr)
-    , goalThetaNode(nullptr)
-    , goalXYZNode(nullptr)
-    , travConf(travConf)
-{
-    numAngles = primitiveConfig.mNumAngles;
-    travGen = TraversabilityGenerator3d(travConf);
-    travGen.setMLSGrid(mlsGrid);
-    searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
-    searchGrid.extend(travGen.getTraversabilityMap().getNumCells());
-}
 
 EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase>> mlsGrid,
                                          const TraversabilityConfig& travConf,
@@ -348,8 +329,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
 void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, vector< int >* CostV, vector< size_t >& motionIdV)
 {
-//     std::cout << "GetSuccs " << SourceStateID << std::endl;
-    
     const Hash &sourceHash(idToHash[SourceStateID]);
     XYZNode *sourceNode = sourceHash.node;
     
@@ -375,8 +354,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         travNode = curNode->getUserData().travNode;
         maps::grid::Index curIndex = curNode->getIndex();
         std::vector<TraversabilityGenerator3d::Node*> nodesOnPath;
-     
-        int additionalCosts = 0;
         
         for(const PoseWithCell &diff : motion.intermediateSteps)
         {
@@ -392,7 +369,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             {
                 break;
             }
-            
             curIndex = newIndex;
         }
         
@@ -409,13 +385,11 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         nodesOnPath.push_back(travNode);
         if(!travNode)
             continue;
-
-        additionalCosts += (sourceIndex - finalPos).norm() + 1;
         
-//         if(!checkCollisions(nodesOnPath, motion))
-//         {
-//           continue;
-//         }
+        if(!checkCollisions(nodesOnPath, motion))
+        {
+          continue;
+        }
         
         curIndex = finalPos;
         
@@ -457,10 +431,9 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         }
         
         SuccIDV->push_back(successthetaNode->id);
-        CostV->push_back(motion.baseCost + additionalCosts);
+        CostV->push_back(motion.baseCost);// + additionalCosts);
         motionIdV.push_back(motion.id);
     }
-    std::cout << "succ count " << SourceStateID << ": " << SuccIDV->size() << std::endl;
 }
 
 bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGenerator3d::Node* >& path,
@@ -599,7 +572,7 @@ vector<Motion> EnvironmentXYZTheta::getMotions(const vector< int >& stateIDPath)
     vector<Motion> result;
     if(stateIDPath.size() >= 2)
     {
-        for(int i = 0; i < stateIDPath.size() -1; ++i)
+        for(int i = 0; i < ((int)stateIDPath.size()) -1; ++i)
         {
             result.push_back(getMotion(stateIDPath[i], stateIDPath[i + 1]));
         }
