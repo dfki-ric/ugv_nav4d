@@ -28,6 +28,7 @@ public:
     Planner(const motion_planning_libraries::MotionPrimitivesConfig &primitiveConfig, const TraversabilityConfig &traversabilityConfig);
     
     void updateMap(const maps::grid::MLSMapSloped& mlsSloped);
+    void updateMap(const maps::grid::MLSMapKalman& mlsKalman);
     
     bool plan(const base::Time& maxTime, base::samples::RigidBodyState& start, base::samples::RigidBodyState& end);
     

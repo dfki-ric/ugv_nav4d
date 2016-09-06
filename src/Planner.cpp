@@ -86,20 +86,21 @@ bool Planner::plan(const base::Time &maxTime, base::samples::RigidBodyState& sta
     return true;
 }
 
-void Planner::updateMap(const maps::grid::MLSMapSloped &mlsSloped)
+template <class mapType>
+boost::shared_ptr<MultiLevelGridMap<SurfacePatchBase>> getMLSBase(const mapType &map)
 {
-    std::cout << "Grid has size " << mlsSloped.getSize().transpose() << std::endl;
+    std::cout << "Grid has size " << map.getSize().transpose() << std::endl;
 
-    MultiLevelGridMap<SurfacePatchBase> *mlsBase = new MultiLevelGridMap<SurfacePatchBase>(mlsSloped.getNumCells(), mlsSloped.getResolution(), mlsSloped.getLocalMapData());
+    MultiLevelGridMap<SurfacePatchBase> *mlsBase = new MultiLevelGridMap<SurfacePatchBase>(map.getNumCells(), map.getResolution(), map.getLocalMapData());
 
     std::cout << "MLSBase Resolutition " << mlsBase->getResolution().transpose() << std::endl;
     
-    for(size_t y = 0 ; y < mlsSloped.getNumCells().y(); y++)
+    for(size_t y = 0 ; y < map.getNumCells().y(); y++)
     {
-        for(size_t x = 0 ; x < mlsSloped.getNumCells().x(); x++)
+        for(size_t x = 0 ; x < map.getNumCells().x(); x++)
         {
             Index idx(x, y);
-            for(auto &p : mlsSloped.at(idx))
+            for(auto &p : map.at(idx))
             {
 //                 std::cout << "Patch ! " << idx.transpose() << std::endl;
                 SurfacePatchBase basePatch(p.getTop(), p.getTop() - p.getBottom());
@@ -111,6 +112,27 @@ void Planner::updateMap(const maps::grid::MLSMapSloped &mlsSloped)
     std::cout << "BaseGrid has size " << mlsBase->getSize().transpose() << std::endl;
 
     boost::shared_ptr<MultiLevelGridMap<SurfacePatchBase>> mlsPtr(mlsBase);
+    
+    return mlsPtr;
+}
+
+void Planner::updateMap(const maps::grid::MLSMapKalman& mlsKalman)
+{
+    boost::shared_ptr<MultiLevelGridMap<SurfacePatchBase>> mlsPtr(getMLSBase(mlsKalman));
+
+    if(!env) {
+        env.reset(new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, primitiveConfig));
+    }
+    else
+    {
+        env->updateMap(mlsPtr);
+    }
+}
+
+
+void Planner::updateMap(const maps::grid::MLSMapSloped &mlsSloped)
+{
+    boost::shared_ptr<MultiLevelGridMap<SurfacePatchBase>> mlsPtr(getMLSBase(mlsSloped));
 
     if(!env) {
         env.reset(new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, primitiveConfig));
