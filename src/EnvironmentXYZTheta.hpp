@@ -89,6 +89,7 @@ public:
   
     //FIXME remove all debug code afterwards
     mutable std::vector<maps::grid::Vector3d> debugRobotPositions;
+    mutable std::vector<maps::grid::Vector3d> debugColissionCells;
     //contains the min/max vectors for bounding boxes that collided with something
     mutable std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> debugCollisions;
     

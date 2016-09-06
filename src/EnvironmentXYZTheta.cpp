@@ -443,6 +443,7 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
     //Thus the size should always differ by one.
     assert(motion.intermediateSteps.size() + 1 == path.size());
     
+    
     std::vector<PoseWithCell> poses(motion.intermediateSteps);
     for(unsigned i = 0; i < path.size(); ++i)
     {
@@ -519,11 +520,13 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
                 {
                     intersectionPositions.push_back(rot * pos + robotPosition);
                     debugRotatedBoxes.push_back(rotatedCorners);
+                    debugColissionCells.push_back(robotPosition);
                     //found at least one patch that is inside the oriented bounding box
                     return false;
                 }
             }
         }
+        debugRobotPositions.push_back(robotPosition);
     }
     return true;
 }

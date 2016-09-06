@@ -15,6 +15,7 @@ struct EnvironmentXYZThetaVisualization::Data {
     // Making a copy is required because of how OSG works
     //FIXME remove all debug code afterwards
     std::vector<maps::grid::Vector3d> debugRobotPositions;
+    std::vector<maps::grid::Vector3d> debugColissionCells;
     //contains the min/max vectors for bounding boxes that collided with something
     std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> debugCollisions;
     
@@ -52,9 +53,9 @@ ref_ptr<Node> EnvironmentXYZThetaVisualization::createMainNode()
 void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 {
      Box* unitCube = new Box( Vec3(0,0,0), p->gridSize);
-//     ShapeDrawable* unitCubeDrawable = new ShapeDrawable(unitCube);
-//     unitCubeDrawable->setColor(osg::Vec4(1, 0, 0, 1));
-//     for(const maps::grid::Vector3d& pos : p->data.debugRobotPositions)
+    ShapeDrawable* unitCubeDrawable = new ShapeDrawable(unitCube);
+    unitCubeDrawable->setColor(osg::Vec4(0, 1, 0, 1));
+//     for(const maps::grid::Vector3d& pos : p->debugRobotPositions)
 //     {
 //         PositionAttitudeTransform* trans = new PositionAttitudeTransform();
 //         const Vec3d osgPos(pos.x(), pos.y(), pos.z());
@@ -64,6 +65,20 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 //         childGeode->addDrawable(unitCubeDrawable);
 //         trans->addChild(childGeode);
 //     }
+
+    ShapeDrawable* unitCubeDrawable3 = new ShapeDrawable(unitCube);
+    unitCubeDrawable3->setColor(osg::Vec4(1, 0, 0, 1));
+    for(const maps::grid::Vector3d& pos : p->debugColissionCells)
+    {
+        PositionAttitudeTransform* trans = new PositionAttitudeTransform();
+        const Vec3d osgPos(pos.x(), pos.y(), pos.z());
+        trans->setPosition(osgPos);
+        p->root->addChild(trans);
+        Geode* childGeode = new Geode();
+        childGeode->addDrawable(unitCubeDrawable3);
+        trans->addChild(childGeode);
+    }
+    
     
     ShapeDrawable* unitCubeDrawable2 = new ShapeDrawable(unitCube);
     unitCubeDrawable2->setColor(osg::Vec4(0, 1, 0, 1));
@@ -351,6 +366,7 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 void EnvironmentXYZThetaVisualization::updateDataIntern(ugv_nav4d::EnvironmentXYZTheta const& value)
 {
     p->debugCollisions = value.debugCollisions;
+    p->debugColissionCells = value.debugColissionCells;
     p->debugRobotPositions = value.debugRobotPositions;
     p->debugRotatedCorners = value.debugRotatedBoxes;
     p->intersectionPositions = value.intersectionPositions;
