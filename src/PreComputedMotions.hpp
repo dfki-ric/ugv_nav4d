@@ -105,6 +105,13 @@ public:
     const Motion &getMotion(std::size_t id) const; 
     
     const motion_planning_libraries::SbplMotionPrimitives& getPrimitives() const;
+    
+private:
+    
+    void computeSplinePrimCost(const motion_planning_libraries::SplinePrimitive& prim,
+                               const RobotModel &model,
+                               Motion& outMotion) const;
+    
 };
 
 }

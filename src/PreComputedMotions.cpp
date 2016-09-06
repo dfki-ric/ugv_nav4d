@@ -49,7 +49,7 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
             motion.startTheta = DiscreteTheta(static_cast<int>(prim.startAngle), numAngles);
             motion.costMultiplier = 1; //is changed in the switch-case below
             motion.speed = mobilityConfig.mSpeed;
-            
+           
             switch(prim.motionType)
             {
                 case SplinePrimitive::SPLINE_MOVE_FORWARD:
@@ -76,7 +76,7 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
             
             maps::grid::Index lastIdx(0,0);
             
-            for(int i = 0; i < parameters.size(); ++i)
+            for(size_t i = 0; i < parameters.size(); ++i)
             {
                 const double param = parameters[i];
                 base::Vector2d point, tangent;
@@ -100,7 +100,7 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
                 } 
             }
             assert(motion.intermediateSteps.size() > 0); //at least the end pose should always be part of the steps
-            preComputeCost(motion, model);
+            computeSplinePrimCost(prim, model, motion);
             setMotionForTheta(motion, motion.startTheta);
         }
     }
@@ -250,6 +250,47 @@ void PreComputedMotions::setMotionForTheta(const Motion& motion, const DiscreteT
     idToMotion.push_back(copy);
     thetaToMotion[theta.getTheta()].push_back(copy);
 }
+
+void PreComputedMotions::computeSplinePrimCost(const SplinePrimitive& prim,
+                                              const RobotModel &model,
+                                              Motion& outMotion) const
+{
+    double linearDist = prim.spline.getCurveLength();
+    assert(linearDist > 0);
+    double angularDist = 0;
+    const double stepDist = prim.spline.getGeometricResolution();
+    std::vector<double> parameters;
+    
+    const std::vector<base::geometry::Spline2::vector_t> points = prim.spline.sample(stepDist, &parameters);
+    assert(parameters.size() == points.size());
+    
+    for(int i = 0; i < ((int)points.size()) - 1; ++i)
+    {
+        const double dist = prim.spline.getCurveLength(parameters[i], parameters[i+1], 0.01);
+        const double curvature = prim.spline.getCurvature(parameters[i]); //assume that the curvature is const between i and i+1
+        angularDist += dist / linearDist  * std::abs(curvature);
+    }
+    assert(angularDist >= 0);
+    
+    const double translationalVelocity = std::min(model.translationalVelocity, outMotion.speed);
+    const double rotationalVelocity = model.rotationalVelocity;
+    const double linearTime = linearDist / translationalVelocity;
+    const double angularTime = angularDist / rotationalVelocity;
+    
+    //use ulonglong to catch overflows caused by large cost multipliers
+    unsigned long long cost = ceil(std::max(angularTime, linearTime) * costScaleFactor * outMotion.costMultiplier);
+    
+    if(cost > std::numeric_limits<int>::max())
+    {
+        std::cerr << "WARNING: primitive cost too large for int. Clipping to int_max." << std::endl;
+        outMotion.baseCost = std::numeric_limits<int>::max();
+    }
+    else
+        outMotion.baseCost = cost;
+    
+    assert(outMotion.baseCost >= 0);
+}
+
 
 void PreComputedMotions::preComputeCost(Motion& motion, const RobotModel &model)
 {

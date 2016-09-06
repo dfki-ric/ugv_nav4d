@@ -48,8 +48,8 @@ int main(int argc, char** argv)
     motion_planning_libraries::SplinePrimitivesConfig config;
     config.gridSize = 0.1;
     config.destinationCircleRadius = 5;
-    config.numAngles = 8;
-    config.numEndAngles = 3;
+    config.numAngles = 16;
+    config.numEndAngles = 7;
     
     motion_planning_libraries::Mobility mobility;
     mobility.mSpeed = 1.3;
@@ -57,9 +57,9 @@ int main(int argc, char** argv)
     mobility.mMinTurningRadius = 0.1;
     
     mobility.mMultiplierForward = 1;
-    mobility.mMultiplierBackward = 50;
-    mobility.mMultiplierLateral = 10;
-    mobility.mMultiplierBackwardTurn = 50;
+    mobility.mMultiplierBackward = 9999999;
+    mobility.mMultiplierLateral = 9999999;
+    mobility.mMultiplierBackwardTurn = 99999999;
     mobility.mMultiplierForwardTurn = 1;
     mobility.mMultiplierPointTurn = 8; 
     
@@ -98,7 +98,7 @@ int main(int argc, char** argv)
     
     planner.updateMap(mlsSloped);
     std::cout << "planning" << std::endl;
-    if(!planner.plan(base::Time::fromMilliseconds(200), start, end))
+    if(!planner.plan(base::Time::fromMilliseconds(2000), start, end))
     {
         std::cout << "PLANNER FAIL" << std::endl;
         return 0;
@@ -123,13 +123,13 @@ int main(int argc, char** argv)
     widget.addPlugin(&splineViz);
     widget.addPlugin(&viz);
 //     widget.addPlugin(&mlsViz);
-    widget.addPlugin(&trav3dViz);
+//     widget.addPlugin(&trav3dViz);
     widget.addPlugin(&envViz);
 //     widget.addPlugin(&primViz);
     viz.setLineWidth(10);
     viz.updateTr(path);
 //     mlsViz.updateData(mlsSloped);
-    trav3dViz.updateData(planner.getTraversabilityMap());
+//     trav3dViz.updateData(planner.getTraversabilityMap());
 //     primViz.updateData(planner.getEnv()->getAvailableMotions().getPrimitives());
     envViz.setGridSize(config.gridSize);
     envViz.setSolutionMotions(planner.getMotions());
