@@ -39,6 +39,10 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLeve
     travGen.setMLSGrid(mlsGrid);
     searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
     searchGrid.extend(travGen.getTraversabilityMap().getNumCells());
+    // FIXME get real value from somewhere
+    double robotSizeY = 0.8;
+    // FIXME z2 is divided by 2.0 to avoid intersecting the floor
+    robotHalfSize << travConf.robotSizeX / 2, robotSizeY / 2, travConf.robotHeight/2/2;
 }
 
 
@@ -439,63 +443,37 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGenerator3d::Node* >& path,
                                           const Motion& motion) const
 {
-    //the final pose is part of the path but not of the posese.
+    //the final pose is part of the path but not of the poses.
     //Thus the size should always differ by one.
     assert(motion.intermediateSteps.size() + 1 == path.size());
     
-    
-    std::vector<PoseWithCell> poses(motion.intermediateSteps);
-    for(unsigned i = 0; i < path.size(); ++i)
+    const double robotHeight = travConf.robotHeight;
+
+    for(size_t i = 0; i < path.size(); ++i)
     {
         const TraversabilityGenerator3d::Node* node(path[i]);
-        const double robotSizeY = 0.8; //FIXME get real value frome somewhere
-        const double robotSizeX = travConf.robotSizeX;
-        const double robotHeight = travConf.robotHeight;
-        const double x2 = robotSizeX / 2.0;
-        const double y2 = robotSizeY / 2.0;
-        const double z2 = robotHeight / 2.0;
-        
         //path contains the final element while intermediatePoses does not.
         const double zRot = i < motion.intermediateSteps.size() ?
                             motion.intermediateSteps[i].pose.orientation :
                             motion.endTheta.getRadian();
-        
-        maps::grid::Vector3d robotPosition;
-        mlsGrid->fromGrid(node->getIndex(), robotPosition);
-        robotPosition.z() = node->getHeight() + robotHeight / 2.0;
-        
-        //TODO improve performance by pre calculating lots of stuff
-        //create rotated robot bounding box
-        //FIXME z2 is divided by 2.0 to avoid intersecting the floor
-        Eigen::Matrix<double, 3, 8> corners; //colwise corner vectors
-        corners.col(0) << -x2, -y2, -(z2/2.0); //FIXME replace (z2/2.0) with real height?
-        corners.col(1) << x2, -y2, -(z2/2.0); //FIXME if z2/2.0 is replaced, also replace it below in the collision check
-        corners.col(2) << x2, y2, -(z2/2.0);
-        corners.col(3) << -x2, y2, -(z2/2.0);
-        corners.col(4) << x2, -y2, z2/2.0;
-        corners.col(5) << x2, y2, z2/2.0;
-        corners.col(6) << -x2, y2, z2/2.0;
-        corners.col(7) << -x2, -y2, z2/2.0;
 
+        maps::grid::Vector3d robotPosition;
+        mlsGrid->fromGrid(node->getIndex(), robotPosition, node->getHeight() + robotHeight /2, false);
         
         const Eigen::Vector3d planeNormal = node->getUserData().plane.normal();       
         assert(planeNormal.allFinite()); 
-        const Eigen::Vector3d boxNormal(0, 0, 1); //FIXME use UnitZ
-        Eigen::Vector3d rotAxis = boxNormal.cross(planeNormal);
-        rotAxis.normalize();
-        const double rotAngle = acos(boxNormal.dot(planeNormal));
-        
+
         //FIXME names
-        const Eigen::Matrix3d zRotAA = Eigen::AngleAxisd(zRot, Eigen::Vector3d(0, 0, 1)).toRotationMatrix();
-        const Eigen::Matrix3d rotAA = Eigen::AngleAxisd(rotAngle, rotAxis).toRotationMatrix();
+        const Eigen::Quaterniond zRotAA( Eigen::AngleAxisd(zRot, Eigen::Vector3d::UnitZ()) );
+        const Eigen::Quaterniond rotAA = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), planeNormal);
+        const Eigen::Quaterniond rotQ = rotAA * zRotAA;
         
-        const Eigen::Matrix3d rot = rotAA * zRotAA;
-        const Eigen::Matrix<double, 3, 8> rotatedCornersInOrigin = (rot * corners);
-        const Eigen::Matrix<double, 3, 8> rotatedCorners = rotatedCornersInOrigin.colwise() + robotPosition;
+        const Eigen::Matrix3d rot = rotQ.toRotationMatrix();
         
         //find min/max for bounding box
-        const Eigen::Vector3d min = rotatedCorners.rowwise().minCoeff();
-        const Eigen::Vector3d max = rotatedCorners.rowwise().maxCoeff();
+        const Eigen::Vector3d extends = rot.cwiseAbs() * robotHalfSize;
+        const Eigen::Vector3d min = robotPosition - extends;
+        const Eigen::Vector3d max = robotPosition + extends;
         
         const Eigen::AlignedBox3d aabb(min, max); //aabb around the rotated robot bounding box    
 
@@ -504,29 +482,26 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
         {
             //the collision is inside the aabb. Still need to check whether at least
             //one patch is inside the real box
-            const Eigen::Matrix3d rotInv = rot.inverse();
+            const Eigen::Matrix3d rotInv = rot.transpose();
             for(const pair<maps::grid::Index, const maps::grid::SurfacePatchBase*>& patch : intersectingPatches)
             {
-                maps::grid::Vector3d pos(0, 0, 0);
-                mlsGrid->fromGrid(patch.first, pos, true);
-                pos.z() = patch.second->getMax(); 
+                // FIXME this actually only tests if the top of the patch intersects with the robot
+                maps::grid::Vector3d pos;
+                double z = patch.second->getMax();
+                mlsGrid->fromGrid(patch.first, pos, z, false);
                 //transform pos into coordinate system of oriented bounding box
                 pos -= robotPosition;
                 pos = rotInv * pos;
                 
-                if(pos.x() >= -x2 && pos.x() <= x2 &&
-                   pos.y() >= -y2 && pos.y() <= y2 &&
-                   pos.z() >= -z2/2.0 && pos.z() <= z2/2.0) //FIXME remove /2.0 if it is removed above
+                if( (abs(pos.array()) <= robotHalfSize.array()).all())
                 {
                     intersectionPositions.push_back(rot * pos + robotPosition);
-                    debugRotatedBoxes.push_back(rotatedCorners);
-                    debugColissionCells.push_back(robotPosition);
+                    debugCollisionPoses.push_back(base::Pose(robotPosition, rotQ));
                     //found at least one patch that is inside the oriented bounding box
                     return false;
                 }
             }
         }
-        debugRobotPositions.push_back(robotPosition);
     }
     return true;
 }
@@ -575,7 +550,7 @@ vector<Motion> EnvironmentXYZTheta::getMotions(const vector< int >& stateIDPath)
     vector<Motion> result;
     if(stateIDPath.size() >= 2)
     {
-        for(int i = 0; i < ((int)stateIDPath.size()) -1; ++i)
+        for(size_t i = 0; i < stateIDPath.size() -1; ++i)
         {
             result.push_back(getMotion(stateIDPath[i], stateIDPath[i + 1]));
         }

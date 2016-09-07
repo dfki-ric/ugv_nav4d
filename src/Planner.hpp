@@ -20,7 +20,6 @@ class Planner
     boost::shared_ptr<EnvironmentXYZTheta> env;
     boost::shared_ptr<ARAPlanner> planner;
     
-    const motion_planning_libraries::MotionPrimitivesConfig primitiveConfig; 
     const motion_planning_libraries::SplinePrimitivesConfig splinePrimitiveConfig; 
     const motion_planning_libraries::Mobility mobility;
     const TraversabilityConfig traversabilityConfig;
@@ -28,12 +27,12 @@ class Planner
     std::vector<int> solution;
     
 public:
-    Planner(const motion_planning_libraries::MotionPrimitivesConfig &primitiveConfig, const TraversabilityConfig &traversabilityConfig);
     Planner(const motion_planning_libraries::SplinePrimitivesConfig &primitiveConfig, const TraversabilityConfig &traversabilityConfig,
             const motion_planning_libraries::Mobility& mobility);
     
     
     void updateMap(const maps::grid::MLSMapSloped& mlsSloped);
+    void updateMap(const maps::grid::MLSMapKalman& mlsKalman);
     
     bool plan(const base::Time& maxTime, base::samples::RigidBodyState& start, base::samples::RigidBodyState& end);
     

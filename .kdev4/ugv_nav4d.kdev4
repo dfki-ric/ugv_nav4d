@@ -1,0 +1,50 @@
+[Buildset]
+BuildItems=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x01\x00\x00\x00\x12\x00u\x00g\x00v\x00_\x00n\x00a\x00v\x004\x00d)
+
+[CMake]
+Build Directory Count=1
+Current Build Directory Index=0
+ProjectRootRelative=./
+
+[CMake][CMake Build Directory 0]
+Build Directory Path=file:///home/dfki.uni-bremen.de/aboeckmann/git/rock-entern/planning/ugv_nav4d/build
+Build Type=RelWithDebInfo
+CMake Binary=file:///usr/bin/cmake
+Environment Profile=
+Extra Arguments=
+Install Directory=file:///home/dfki.uni-bremen.de/aboeckmann/git/rock-entern/install
+
+[Defines And Includes][Compiler]
+Name=GCC
+Path=gcc
+Type=GCC
+
+[Launch]
+Launch Configurations=Launch Configuration 0,Launch Configuration 1
+
+[Launch][Launch Configuration 0]
+Configured Launch Modes=execute
+Configured Launchers=nativeAppLauncher
+Name=New Compiled Binary Launcher (4)
+Type=Native Application
+
+[Launch][Launch Configuration 0][Data]
+Arguments=~/output_mls20160707.bin
+Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
+Dependency Action=Nothing
+EnvironmentGroup=
+Executable=file:///home/dfki.uni-bremen.de/aboeckmann/git/rock-entern/planning/ugv_nav4d/build/ugv_nav4d_bin
+External Terminal=konsole --noclose --workdir %workdir -e %exe
+Project Target=ugv_nav4d,ugv_nav4d_bin
+Use External Terminal=false
+Working Directory=
+isExecutable=true
+
+[Launch][Launch Configuration 1]
+Configured Launch Modes=execute
+Configured Launchers=nativeAppLauncher
+Name=mars_app
+Type=Native Application
+
+[Project]
+VersionControlSupport=kdevgit

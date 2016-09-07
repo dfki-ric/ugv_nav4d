@@ -1,3 +1,5 @@
+find_package(PCL 1.7 REQUIRED COMPONENTS segmentation)
+
 rock_library(ugv_nav4d
     SOURCES 
         DiscreteTheta.cpp
@@ -9,6 +11,7 @@ rock_library(ugv_nav4d
         DiscreteTheta.hpp
         EnvironmentXYZTheta.hpp
         Planner.hpp
+        PreComputedMotions.hpp
         TraversabilityGenerator3d.hpp
         TraversabilityConfig.hpp
     DEPS_PKGCONFIG 
@@ -18,5 +21,5 @@ rock_library(ugv_nav4d
         motion_planning_libraries
         dwa
         maps
-    DEPS_CMAKE PCL
+        pcl_segmentation-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
 )
