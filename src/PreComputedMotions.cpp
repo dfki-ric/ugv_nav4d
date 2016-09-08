@@ -58,42 +58,51 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
                     motion.type = Motion::MOV_LATERAL;
                     motion.costMultiplier = mobilityConfig.mMultiplierLateral;
                     break;
+                case SplinePrimitive::SPLINE_POINT_TURN:
+                    motion.type = Motion::MOV_POINTTURN;
+                    motion.costMultiplier = mobilityConfig.mMultiplierPointTurn;
+                    motion.speed = mobilityConfig.mTurningSpeed;
+                    break;
                 default:
                     throw std::runtime_error("Got Unsupported movement");
             }
             
-            const double stepDist = gridResolution / 4.0;
-            std::vector<double> parameters;
-            //NOTE we dont need the points, but there is no sample() api that returns parameters only
-            const std::vector<base::geometry::Spline2::vector_t> points = prim.spline.sample(stepDist, &parameters);
-            assert(parameters.size() == points.size());
-            
-            maps::grid::Index lastIdx(0,0);
-            
-            for(size_t i = 0; i < parameters.size(); ++i)
+            //there are no intermediate steps for point turns
+            if(prim.motionType != SplinePrimitive::SPLINE_POINT_TURN)
             {
-                const double param = parameters[i];
-                base::Vector2d point, tangent;
-                std::tie(point,tangent) = prim.spline.getPointAndTangent(param);
-                const base::Orientation2D orientation(std::atan2(tangent.y(), tangent.x()));
-                const base::Pose2D pose(point, orientation);
-                maps::grid::Index diff;
-                if(!dummyGrid.toGrid(base::Vector3d(point.x(), point.y(), 0), diff, false))
-                    throw std::runtime_error("Internal Error : Cannot convert intermediate Pose to grid cell");
-                if(lastIdx != diff ||
-                   i == parameters.size() - 1) //make sure that the last position is added, even if there already is a pose in this cell
+                const double stepDist = gridResolution / 4.0;
+                std::vector<double> parameters;
+                //NOTE we dont need the points, but there is no sample() api that returns parameters only
+                const std::vector<base::geometry::Spline2::vector_t> points = prim.spline.sample(stepDist, &parameters);
+                assert(parameters.size() == points.size());
+                
+                maps::grid::Index lastIdx(0,0);
+                
+                for(size_t i = 0; i < parameters.size(); ++i)
                 {
-                    PoseWithCell s;
-                    s.cell = diff;
-                    s.pose = pose;
-                    motion.intermediateSteps.push_back(s);
-                    if((lastIdx - diff).norm() > 1)
-                        throw std::runtime_error("skipped a cell");
-                    
-                    lastIdx = diff;
-                } 
+                    const double param = parameters[i];
+                    base::Vector2d point, tangent;
+                    std::tie(point,tangent) = prim.spline.getPointAndTangent(param);
+                    const base::Orientation2D orientation(std::atan2(tangent.y(), tangent.x()));
+                    const base::Pose2D pose(point, orientation);
+                    maps::grid::Index diff;
+                    if(!dummyGrid.toGrid(base::Vector3d(point.x(), point.y(), 0), diff, false))
+                        throw std::runtime_error("Internal Error : Cannot convert intermediate Pose to grid cell");
+                    if(lastIdx != diff ||
+                    i == parameters.size() - 1) //make sure that the last position is added, even if there already is a pose in this cell
+                    {
+                        PoseWithCell s;
+                        s.cell = diff;
+                        s.pose = pose;
+                        motion.intermediateSteps.push_back(s);
+                        if((lastIdx - diff).norm() > 1)
+                            throw std::runtime_error("skipped a cell");
+                        
+                        lastIdx = diff;
+                    } 
+                }
+                assert(motion.intermediateSteps.size() > 0); //at least the end pose should always be part of the steps
             }
-            assert(motion.intermediateSteps.size() > 0); //at least the end pose should always be part of the steps
             computeSplinePrimCost(prim, model, motion);
             setMotionForTheta(motion, motion.startTheta);
         }
@@ -131,23 +140,30 @@ void PreComputedMotions::computeSplinePrimCost(const SplinePrimitive& prim,
                                               const RobotModel &model,
                                               Motion& outMotion) const
 {
-    double linearDist = prim.spline.getCurveLength();
-    assert(linearDist > 0);
+    
+    double linearDist = 0;
     double angularDist = 0;
-    const double stepDist = prim.spline.getGeometricResolution();
-    std::vector<double> parameters;
-    
-    const std::vector<base::geometry::Spline2::vector_t> points = prim.spline.sample(stepDist, &parameters);
-    assert(parameters.size() == points.size());
-    
-    for(int i = 0; i < ((int)points.size()) - 1; ++i)
+    if(prim.motionType == SplinePrimitive::SPLINE_POINT_TURN)
     {
-        const double dist = prim.spline.getCurveLength(parameters[i], parameters[i+1], 0.01);
-        const double curvature = prim.spline.getCurvature(parameters[i]); //assume that the curvature is const between i and i+1
-        angularDist += dist / linearDist  * std::abs(curvature);
+        angularDist = outMotion.startTheta.shortestDist(outMotion.endTheta).getRadian();
     }
-    assert(angularDist >= 0);
-    
+    else
+    {
+        linearDist = prim.spline.getCurveLength();;
+        const double stepDist = prim.spline.getGeometricResolution();
+        std::vector<double> parameters;
+        
+        const std::vector<base::geometry::Spline2::vector_t> points = prim.spline.sample(stepDist, &parameters);
+        assert(parameters.size() == points.size());
+        
+        for(int i = 0; i < ((int)points.size()) - 1; ++i)
+        {
+            const double dist = prim.spline.getCurveLength(parameters[i], parameters[i+1], 0.01);
+            const double curvature = prim.spline.getCurvature(parameters[i]); //assume that the curvature is const between i and i+1
+            angularDist += dist / linearDist  * std::abs(curvature);
+        }
+    }
+        
     const double translationalVelocity = std::min(model.translationalVelocity, outMotion.speed);
     const double rotationalVelocity = model.rotationalVelocity;
     const double linearTime = linearDist / translationalVelocity;

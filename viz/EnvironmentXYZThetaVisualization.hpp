@@ -15,6 +15,7 @@ namespace vizkit3d
         , boost::noncopyable
     {
     Q_OBJECT
+    
     public:
         EnvironmentXYZThetaVisualization();
         ~EnvironmentXYZThetaVisualization();

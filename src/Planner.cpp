@@ -12,9 +12,9 @@ namespace ugv_nav4d
 
 Planner::Planner(const motion_planning_libraries::SplinePrimitivesConfig& primitiveConfig, const TraversabilityConfig& traversabilityConfig,
                 const motion_planning_libraries::Mobility& mobility) :
-    splinePrimitiveConfig(primitiveConfig)
-    , traversabilityConfig(traversabilityConfig),
-    mobility(mobility)
+    splinePrimitiveConfig(primitiveConfig),
+    mobility(mobility),
+    traversabilityConfig(traversabilityConfig)
 {
     if(traversabilityConfig.gridResolution != primitiveConfig.gridSize)
         throw std::runtime_error("Planner::Planner : Configuration error, grid resolution of Primitives and TraversabilityGenerator3d differ");

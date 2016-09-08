@@ -333,6 +333,9 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
 void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, vector< int >* CostV, vector< size_t >& motionIdV)
 {
+    SuccIDV->clear();
+    CostV->clear();
+    motionIdV.clear();
     const Hash &sourceHash(idToHash[SourceStateID]);
     XYZNode *sourceNode = sourceHash.node;
     
@@ -467,7 +470,7 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
         const Eigen::Quaterniond zRotAA( Eigen::AngleAxisd(zRot, Eigen::Vector3d::UnitZ()) );
         const Eigen::Quaterniond rotAA = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), planeNormal);
         const Eigen::Quaterniond rotQ = rotAA * zRotAA;
-        
+         
         const Eigen::Matrix3d rot = rotQ.toRotationMatrix();
         
         //find min/max for bounding box

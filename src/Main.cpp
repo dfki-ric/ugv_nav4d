@@ -50,6 +50,8 @@ int main(int argc, char** argv)
     config.destinationCircleRadius = 10;
     config.numAngles = 16;
     config.numEndAngles = 7;
+    config.cellSkipFactor = 0.1;
+    config.generatePointTurnMotions = false;
     
     motion_planning_libraries::Mobility mobility;
     mobility.mSpeed = 1.3;
@@ -58,8 +60,8 @@ int main(int argc, char** argv)
     
     mobility.mMultiplierForward = 1;
     mobility.mMultiplierBackward = 1;
-    mobility.mMultiplierLateral = 3;
-    mobility.mMultiplierBackwardTurn = 1;
+    mobility.mMultiplierLateral = 5;
+    mobility.mMultiplierBackwardTurn = 2;
     mobility.mMultiplierForwardTurn = 1;
     mobility.mMultiplierPointTurn = 8; 
     

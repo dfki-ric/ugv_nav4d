@@ -83,7 +83,7 @@ protected:
     XYZNode *goalXYZNode;
 
     int GetHeuristic(int stateID, EnvironmentXYZTheta::ThetaNode* targetThetaNode, EnvironmentXYZTheta::XYZNode* goalXYZNode) const;
-
+ 
     void clear();
 public:
   
