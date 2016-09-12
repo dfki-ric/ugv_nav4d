@@ -1,6 +1,7 @@
 #include "PreComputedMotions.hpp"
 #include <maps/grid/GridMap.hpp>
 #include <dwa/SubTrajectory.hpp>
+#include <cmath>
 
 namespace ugv_nav4d
 {
@@ -30,11 +31,16 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
     const double gridResolution = primGen.getConfig().gridSize;
     
     maps::grid::GridMap<int> dummyGrid(maps::grid::Vector2ui(10, 10), base::Vector2d(gridResolution, gridResolution), 0);
-
+    const double maxCurvature = calculateCurvatureFromRadius(mobilityConfig.mMinTurningRadius);
+    
     for(int angle = 0; angle < numAngles; ++angle)
     {
         for(const SplinePrimitive& prim : primGen.getPrimitiveForAngle(angle))
         {
+            //NOTE the const cast is only here because for some reason getCurvatureMax() is non-const (but shouldnt be)
+            if(const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() > maxCurvature)
+                continue;
+            
             Motion motion(numAngles);
 
             motion.xDiff = prim.endPosition[0];
@@ -191,6 +197,35 @@ const Motion& PreComputedMotions::getMotion(std::size_t id) const
 const SbplMotionPrimitives& PreComputedMotions::getPrimitives() const
 {
     return primitives;
+}
+
+double PreComputedMotions::calculateCurvatureFromRadius(const double r)
+{
+    assert(r > 0);
+    /*
+        Curvature:
+        c = abs(f''(x)/(1 + f'(x)^2)^(3/2))
+        
+        Circle equation:
+        f(x)   = sqrt(r^2 - x^2)       
+        f'(x)  = -x/sqrt(r^2-x^2)
+        f''(x) = -r^2/((r^2-x^2)^(3/2))
+        
+        Since the curvature of a circle is constant the value of x doesnt matter.
+        x has to be smaller than r since we calc sqrt(r^2 - x ^2) which is only defined for positive values.
+     */
+    const double x = r/2.0;
+    const double x2 = x * x;
+    const double r2 = r * r;
+    const double df = - (x / std::sqrt(r2 - x2));
+    const double ddf = - (r2 / std::pow(r2 - x2, 3.0 / 2.0));
+    assert(!std::isnan(df) && !std::isinf(df));
+    assert(!std::isnan(ddf) && !std::isinf(ddf));
+    
+    const double df2 = df * df;
+    const double c = (std::abs(ddf) / std::pow(1 + df2, 3.0 / 2.0));
+    
+    return c;
 }
 
 

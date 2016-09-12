@@ -78,7 +78,10 @@ class PreComputedMotions
     const double costScaleFactor = 1000;
      
 public:
-    /**Initialize using spline based primitives */
+    /**Initialize using spline based primitives.
+     * @param mobilityConfig Will be used to configure and filter the splines.
+     *                       mobilityConfig.mMinTurningRadius will be used to
+     *                       filter the splines and remove all splines with a smaller turning radius.*/
     PreComputedMotions(const motion_planning_libraries::SplinePrimitivesConfig& primitiveConfig,
                        const RobotModel &model,
                        const motion_planning_libraries::Mobility& mobilityConfig);
@@ -105,6 +108,8 @@ public:
     
     const motion_planning_libraries::SbplMotionPrimitives& getPrimitives() const;
     
+    /**Calculate the curvature of a circle based on the radius of the circle */
+    static double calculateCurvatureFromRadius(const double r);
 private:
     
     void computeSplinePrimCost(const motion_planning_libraries::SplinePrimitive& prim,
