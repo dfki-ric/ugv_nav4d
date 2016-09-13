@@ -36,12 +36,15 @@ int main(int argc, char** argv)
 
     std::ifstream fileIn(argv[1]);
 
-    // deserialize from string stream
-    boost::archive::binary_iarchive mlsIn(fileIn);
-    MLSMapSloped mlsSloped;
-    
-    mlsIn >> mlsSloped;
-    
+    MLSMapPrecalculated mlsSloped;
+    {
+        // deserialize from string stream
+        boost::archive::binary_iarchive mlsIn(fileIn);
+        MLSMapSloped mlsInput;
+
+        mlsIn >> mlsInput;
+        mlsSloped = MLSMapPrecalculated(mlsInput);
+    }
     std::cout << "MLS Resolutition " << mlsSloped.getResolution().transpose() << std::endl;
     
     
@@ -124,13 +127,19 @@ int main(int argc, char** argv)
        
     widget.addPlugin(&splineViz);
     widget.addPlugin(&viz);
-//     widget.addPlugin(&mlsViz);
+    widget.addPlugin(&mlsViz);
     widget.addPlugin(&trav3dViz);
     widget.addPlugin(&envViz);
 //     widget.addPlugin(&primViz);
     viz.setLineWidth(10);
     viz.updateTr(path);
-//     mlsViz.updateData(mlsSloped)
+
+    mlsViz.updateData(mlsSloped);
+    mlsViz.setPluginEnabled(false);
+    mlsViz.setCycleHeightColor(true);
+    mlsViz.setShowPatchExtents(false);
+    mlsViz.setShowNormals(true);
+
     trav3dViz.updateData(planner.getTraversabilityMap());
 //     primViz.updateData(planner.getEnv()->getAvailableMotions().getPrimitives());
     envViz.setGridSize(config.gridSize);
