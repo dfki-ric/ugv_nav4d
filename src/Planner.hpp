@@ -31,8 +31,7 @@ public:
             const motion_planning_libraries::Mobility& mobility);
     
     
-    void updateMap(const maps::grid::MLSMapSloped& mlsSloped);
-    void updateMap(const maps::grid::MLSMapKalman& mlsKalman);
+    void updateMap(const maps::grid::MLSMapPrecalculated& mlsSloped);
     
     bool plan(const base::Time& maxTime, base::samples::RigidBodyState& start, base::samples::RigidBodyState& end);
     
