@@ -46,10 +46,10 @@ int main(int argc, char** argv)
         mlsSloped = MLSMapPrecalculated(mlsInput);
     }
     std::cout << "MLS Resolutition " << mlsSloped.getResolution().transpose() << std::endl;
-    
+    assert(mlsSloped.getResolution().x() == mlsSloped.getResolution().y());
     
     motion_planning_libraries::SplinePrimitivesConfig config;
-    config.gridSize = 0.1;
+    config.gridSize = mlsSloped.getResolution().x();
     config.destinationCircleRadius = 10;
     config.numAngles = 16;
     config.numEndAngles = 7;
@@ -69,7 +69,7 @@ int main(int argc, char** argv)
     mobility.mMultiplierPointTurn = 8; 
     
     ugv_nav4d::TraversabilityConfig conf;
-    conf.gridResolution = 0.1;
+    conf.gridResolution = mlsSloped.getResolution().x();
     conf.maxSlope = 0.5;
     conf.maxStepHeight = 0.2; //space below robot
     conf.robotSizeX = 0.5;
@@ -95,10 +95,10 @@ int main(int argc, char** argv)
     ugv_nav4d::Planner planner(config, conf, mobility);
     
     base::samples::RigidBodyState start;
-    start.position = Eigen::Vector3d(0,-0,-0.7);
+    start.position = Eigen::Vector3d(-0.1, 3.725, -0.991625); //Eigen::Vector3d(0,-0,-0.7);
     start.orientation.setIdentity();
     base::samples::RigidBodyState end;
-    end.position = Eigen::Vector3d(4, 5, 3.23207);
+    end.position = Eigen::Vector3d(-6.08125, 2.475, 0.00661108); //Eigen::Vector3d(4, 5, 3.23207);
     end.orientation.setIdentity();
     
     planner.updateMap(mlsSloped);
