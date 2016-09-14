@@ -37,7 +37,7 @@ struct PoseWithCell
 
 struct Motion
 {
-    enum Type {
+    enum class Type {
         MOV_FORWARD,
         MOV_BACKWARD,
         MOV_POINTTURN,

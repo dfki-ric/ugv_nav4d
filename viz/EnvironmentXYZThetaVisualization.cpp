@@ -234,7 +234,7 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
     const double hue_step = 0.15;
     for(ugv_nav4d::Motion& motion : p->solutionMotions)
     {  
-        if(motion.type == ugv_nav4d::Motion::MOV_POINTTURN)
+        if(motion.type == ugv_nav4d::Motion::Type::MOV_POINTTURN)
         {
             osg::Geode* geode = new osg::Geode();
             osg::ref_ptr<osg::PositionAttitudeTransform> trans = new osg::PositionAttitudeTransform();

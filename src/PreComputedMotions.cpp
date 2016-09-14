@@ -38,7 +38,8 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
         for(const SplinePrimitive& prim : primGen.getPrimitiveForAngle(angle))
         {
             //NOTE the const cast is only here because for some reason getCurvatureMax() is non-const (but shouldnt be)
-            if(const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() > maxCurvature)
+            if(prim.motionType != SplinePrimitive::SPLINE_POINT_TURN && //cannot call getCurvatureMax on point turns cause spl ne is not initalized
+               const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() > maxCurvature)
                 continue;
             
             Motion motion(numAngles);
@@ -53,19 +54,19 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
             switch(prim.motionType)
             {
                 case SplinePrimitive::SPLINE_MOVE_FORWARD:
-                    motion.type = Motion::MOV_FORWARD;
+                    motion.type = Motion::Type::MOV_FORWARD;
                     motion.costMultiplier = mobilityConfig.mMultiplierForwardTurn;
                     break;
                 case SplinePrimitive::SPLINE_MOVE_BACKWARD:
-                    motion.type = Motion::MOV_BACKWARD;
+                    motion.type = Motion::Type::MOV_BACKWARD;
                     motion.costMultiplier = mobilityConfig.mMultiplierBackwardTurn;
                     break;
                 case SplinePrimitive::SPLINE_MOVE_LATERAL:
-                    motion.type = Motion::MOV_LATERAL;
+                    motion.type = Motion::Type::MOV_LATERAL;
                     motion.costMultiplier = mobilityConfig.mMultiplierLateral;
                     break;
                 case SplinePrimitive::SPLINE_POINT_TURN:
-                    motion.type = Motion::MOV_POINTTURN;
+                    motion.type = Motion::Type::MOV_POINTTURN;
                     motion.costMultiplier = mobilityConfig.mMultiplierPointTurn;
                     motion.speed = mobilityConfig.mTurningSpeed;
                     break;
@@ -127,9 +128,21 @@ void PreComputedMotions::setMotionForTheta(const Motion& motion, const DiscreteT
     //check if a motion to this target destination already exist, if yes skip it.
     for(const Motion& m : thetaToMotion[theta.getTheta()])
     {
-        if(m.xDiff == motion.xDiff && m.yDiff == motion.yDiff && m.endTheta == motion.endTheta)
+        if(m.xDiff == motion.xDiff && m.yDiff == motion.yDiff &&
+           m.endTheta == motion.endTheta && m.type == motion.type)
         {
-            std::cout << "WARNING: motion already exists (skipping): " << m.xDiff << ", " << m.yDiff << ", " << m.endTheta << std::endl;
+            std::string type;
+            switch(m.type)
+            {
+                case Motion::Type::MOV_FORWARD:  type ="MOV_FORWARD" ; break;
+                case Motion::Type::MOV_BACKWARD: type ="MOV_BACKWARD" ; break;
+                case Motion::Type::MOV_POINTTURN:type ="MOV_POINTTURN" ; break;
+                case Motion::Type::MOV_LATERAL:  type ="MOV_LATERAL" ; break;
+                default:
+                    throw std::runtime_error("ERROR: motion without valid type: ");
+                    
+            }
+            std::cout << "WARNING: motion already exists (skipping): " <<  m.xDiff << ", " << m.yDiff << ", " << m.endTheta << type << std::endl;
             //TODO add check if intermediate poses are similar
             return;
         }
