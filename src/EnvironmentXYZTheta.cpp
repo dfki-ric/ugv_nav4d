@@ -393,10 +393,10 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         if(!travNode)
             continue;
         
-        if(!checkCollisions(nodesOnPath, motion))
-        {
-          continue;
-        }
+//         if(!checkCollisions(nodesOnPath, motion))
+//         {
+//           continue;
+//         }
         
         curIndex = finalPos;
         

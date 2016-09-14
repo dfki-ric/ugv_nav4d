@@ -238,7 +238,7 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
         {
             osg::Geode* geode = new osg::Geode();
             osg::ref_ptr<osg::PositionAttitudeTransform> trans = new osg::PositionAttitudeTransform();
-            trans->setPosition(osg::Vec3d(cellX * p->gridSize + p->gridSize/2, cellY * p->gridSize + p->gridSize/2, 0.1));
+            trans->setPosition(osg::Vec3d(cellX * p->gridSize + p->gridSize/2 + p->startPos.x(), cellY * p->gridSize + p->gridSize/2 + + p->startPos.y(), + p->startPos.z()));
             p->root->addChild(trans);
             osg::Sphere* s = new osg::Sphere(osg::Vec3d(0, 0, 0), 0.02);
             Geode* childGeode = new Geode();
@@ -252,7 +252,7 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
             geode->addDrawable(line);
             
             osg::ref_ptr<osg::PositionAttitudeTransform> cellTransform = new osg::PositionAttitudeTransform();
-            cellTransform->setPosition(osg::Vec3d(cellX * p->gridSize, cellY * p->gridSize, 0.1));
+            cellTransform->setPosition(osg::Vec3d(cellX * p->gridSize + p->startPos.x(), cellY * p->gridSize + p->startPos.y(), + p->startPos.z()));
             
             osg::Vec3Array* vertices = new osg::Vec3Array;
             vertices->push_back(osg::Vec3(0.5 * p->gridSize, 0.5 * p->gridSize, 0));
