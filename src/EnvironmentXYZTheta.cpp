@@ -460,17 +460,22 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
                             motion.intermediateSteps[i].pose.orientation :
                             motion.endTheta.getRadian();
 
+        // calculate robot position in local grid coordinates
+        // TODO make this a member method of GridMap
         maps::grid::Vector3d robotPosition;
-        mlsGrid->fromGrid(node->getIndex(), robotPosition, node->getHeight() + robotHeight /2, false);
+        robotPosition <<
+                (node->getIndex().cast<double>() + Eigen::Vector2d(0.5, 0.5)).cwiseProduct(mlsGrid->getResolution()),
+                node->getHeight() + robotHeight * 0.5;
         
-        const Eigen::Vector3d planeNormal = node->getUserData().plane.normal();       
+        const Eigen::Vector3d planeNormal = node->getUserData().plane.normal();
         assert(planeNormal.allFinite()); 
 
         //FIXME names
-        const Eigen::Quaterniond zRotAA( Eigen::AngleAxisd(zRot, Eigen::Vector3d::UnitZ()) );
+        const Eigen::Quaterniond zRotAA( Eigen::AngleAxisd(zRot, Eigen::Vector3d::UnitZ()) ); // TODO these could be precalculated
         const Eigen::Quaterniond rotAA = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), planeNormal);
         const Eigen::Quaterniond rotQ = rotAA * zRotAA;
-         
+
+        // further calculations are more efficient with rotation matrix:
         const Eigen::Matrix3d rot = rotQ.toRotationMatrix();
         
         //find min/max for bounding box
@@ -491,7 +496,7 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
                 // FIXME this actually only tests if the top of the patch intersects with the robot
                 maps::grid::Vector3d pos;
                 double z = patch.second->getMax();
-                mlsGrid->fromGrid(patch.first, pos, z, false);
+                pos << (patch.first.cast<double>() + Eigen::Vector2d(0.5, 0.5)).cwiseProduct(mlsGrid->getResolution()), z;
                 //transform pos into coordinate system of oriented bounding box
                 pos -= robotPosition;
                 pos = rotInv * pos;
@@ -499,7 +504,7 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
                 if( (abs(pos.array()) <= robotHalfSize.array()).all())
                 {
                     intersectionPositions.push_back(rot * pos + robotPosition);
-                    debugCollisionPoses.push_back(base::Pose(robotPosition, rotQ));
+                    debugCollisionPoses.push_back(base::Pose(mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * robotPosition, rotQ));
                     //found at least one patch that is inside the oriented bounding box
                     return false;
                 }
