@@ -17,10 +17,10 @@ namespace ugv_nav4d
 class EnvironmentXYZTheta : public DiscreteSpaceInformation
 {
 public:
-
+    typedef maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > MLGrid;
 protected:
     TraversabilityGenerator3d travGen;
-    boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid;
+    boost::shared_ptr<MLGrid > mlsGrid;
 
     struct EnvironmentXYZThetaException : public SBPL_Exception
     {
@@ -99,14 +99,14 @@ public:
     mutable std::vector<Eigen::Vector3d> intersectionPositions;
 
     
-    EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid,
+    EnvironmentXYZTheta(boost::shared_ptr<MLGrid > mlsGrid,
                         const TraversabilityConfig &travConf,
                         const motion_planning_libraries::SplinePrimitivesConfig &primitiveConfig,
                         const motion_planning_libraries::Mobility& mobilityConfig);
     
     virtual ~EnvironmentXYZTheta();
     
-    void updateMap(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid);
+    void updateMap(boost::shared_ptr<MLGrid > mlsGrid);
     
     virtual bool InitializeEnv(const char* sEnvFile);
     virtual bool InitializeMDPCfg(MDPConfig* MDPCfg);
@@ -143,7 +143,7 @@ public:
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;
     const maps::grid::TraversabilityMap3d< TraversabilityGenerator3d::Node *> &getTraversabilityMap() const;
 
-    const maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> &getMlsMap() const;
+    const MLGrid &getMlsMap() const;
     
     std::vector<Motion> getMotions(const std::vector<int> &stateIDPath);
     

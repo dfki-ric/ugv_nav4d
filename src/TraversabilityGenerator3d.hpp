@@ -24,26 +24,27 @@ public:
 
 private:
     
+    typedef maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > MLGrid;
+    typedef MLGrid::CellType Cell;
+    typedef MLGrid::View View;
+    typedef View::CellType ViewCell;
+    typedef MLGrid::PatchType Patch;
     
-    typedef maps::grid::LevelList<maps::grid::SurfacePatchBase> Cell;
-    typedef maps::grid::LevelList<maps::grid::SurfacePatchBase *> ViewCell;
-
-    typedef maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase >::View View;
     
-    boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid;
+    boost::shared_ptr<MLGrid > mlsGrid;
     maps::grid::TraversabilityMap3d<Node *> trMap;
     
     
-    bool computePlaneRansac(maps::grid::TraversabilityNode<TrackingData> &node, const maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase>::View &area);
+    bool computePlaneRansac(Node &node, const View &area);
     
-    bool computePlane(maps::grid::TraversabilityNode<TrackingData> &node, const maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase>::View &area);
+    bool computePlane(Node &node, const View &area);
     
-    bool checkForObstacles(const maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase >::View& area, maps::grid::TraversabilityNode< TraversabilityGenerator3d::TrackingData >* node);
+    bool checkForObstacles(const View& area, Node* node);
     
     
-    void addConnectedPatches(maps::grid::TraversabilityNode< TraversabilityGenerator3d::TrackingData >* node);
+    void addConnectedPatches(Node* node);
 
-    bool getConnectedPatch(const maps::grid::Index& idx, double height, const maps::grid::SurfacePatchBase*& patch);
+    bool getConnectedPatch(const maps::grid::Index& idx, double height, const Patch*& patch);
   
     bool updateDistToStart(double newValue, maps::grid::TraversabilityNodeBase* node);
     
@@ -54,14 +55,14 @@ public:
     TraversabilityGenerator3d(const TraversabilityConfig &config);
     ~TraversabilityGenerator3d();
 
-    maps::grid::TraversabilityNode<TrackingData> *generateStartNode(const Eigen::Vector3d &startPosWorld);
+    Node *generateStartNode(const Eigen::Vector3d &startPosWorld);
     void expandAll(const Eigen::Vector3d &startPosWorld);
 
-    void expandAll(maps::grid::TraversabilityNode<TrackingData> *startNode);
+    void expandAll(Node *startNode);
 
-    bool expandNode(maps::grid::TraversabilityNode< TraversabilityGenerator3d::TrackingData >* node);
+    bool expandNode(Node *node);
     
-    void setMLSGrid(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > &grid);
+    void setMLSGrid(boost::shared_ptr<MLGrid> &grid);
     
     const maps::grid::TraversabilityMap3d<Node *> &getTraversabilityMap() const;
 

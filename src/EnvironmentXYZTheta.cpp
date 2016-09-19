@@ -20,7 +20,7 @@ namespace ugv_nav4d
 const double costScaleFactor = 1000; //FIXME WTF?
 
 
-EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase>> mlsGrid,
+EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<MLGrid> mlsGrid,
                                          const TraversabilityConfig& travConf,
                                          const SplinePrimitivesConfig& primitiveConfig,
                                          const Mobility& mobilityConfig) :

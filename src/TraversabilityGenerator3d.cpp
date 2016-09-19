@@ -13,7 +13,7 @@ namespace ugv_nav4d
 
 TraversabilityGenerator3d::TraversabilityGenerator3d(const TraversabilityConfig& config) : config(config)
 {
-    trMap.setResolution(Vector2d(config.gridResolution, config.gridResolution));
+    trMap.setResolution(Eigen::Vector2d(config.gridResolution, config.gridResolution));
 }
 
 TraversabilityGenerator3d::~TraversabilityGenerator3d()
@@ -21,12 +21,12 @@ TraversabilityGenerator3d::~TraversabilityGenerator3d()
     clearTrMap();
 }
 
-const maps::grid::TraversabilityMap3d< TraversabilityNode< TraversabilityGenerator3d::TrackingData >* >& TraversabilityGenerator3d::getTraversabilityMap() const
+const maps::grid::TraversabilityMap3d< TraversabilityGenerator3d::Node * >& TraversabilityGenerator3d::getTraversabilityMap() const
 {
     return trMap;
 }
 
-bool TraversabilityGenerator3d::computePlaneRansac(TraversabilityNode< TraversabilityGenerator3d::TrackingData >& node, const maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase>::View &area)
+bool TraversabilityGenerator3d::computePlaneRansac(TraversabilityGenerator3d::Node& node, const View &area)
 {
     typedef pcl::PointXYZ PointT;
     
@@ -128,7 +128,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TraversabilityNode< Traversab
 }
 
 
-bool TraversabilityGenerator3d::computePlane(TraversabilityNode< TraversabilityGenerator3d::TrackingData >& node, const maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase>::View &area)
+bool TraversabilityGenerator3d::computePlane( TraversabilityGenerator3d::Node & node, const View &area)
 {
     //estimate the plane of the surfaces
     numeric::PlaneFitting<double> planeFit;
@@ -196,7 +196,7 @@ bool TraversabilityGenerator3d::computePlane(TraversabilityNode< TraversabilityG
     return true;
 }
 
-bool TraversabilityGenerator3d::checkForObstacles(const MultiLevelGridMap< SurfacePatchBase >::View& area,  TraversabilityNode< TraversabilityGenerator3d::TrackingData > *node)
+bool TraversabilityGenerator3d::checkForObstacles(const View& area, TraversabilityGenerator3d::Node *node)
 {
     const Eigen::Hyperplane<double, 3> &plane(node->getUserData().plane);
     const Eigen::Vector3d planeNormal(plane.normal());
@@ -243,17 +243,17 @@ bool TraversabilityGenerator3d::checkForObstacles(const MultiLevelGridMap< Surfa
 
 void TraversabilityGenerator3d::expandAll(const Eigen::Vector3d& startPosWorld)
 {
-    TraversabilityNode<TrackingData> *startNode = generateStartNode(startPosWorld);
+    Node *startNode = generateStartNode(startPosWorld);
 
     expandAll(startNode);
 }
 
-void TraversabilityGenerator3d::expandAll(TraversabilityNode< TraversabilityGenerator3d::TrackingData >* startNode)
+void TraversabilityGenerator3d::expandAll( TraversabilityGenerator3d::Node* startNode)
 {
     if(!startNode)
         return;
 
-    std::deque<TraversabilityNode<TrackingData> *> candidates;
+    std::deque<Node *> candidates;
     candidates.push_back(startNode);
     
     int cnd = 0;
@@ -261,7 +261,7 @@ void TraversabilityGenerator3d::expandAll(TraversabilityNode< TraversabilityGene
     
     while(!candidates.empty())
     {
-        TraversabilityNode<TrackingData> *node = candidates.front();
+        Node *node = candidates.front();
         candidates.pop_front();
 
         //check if the node was evaluated before somehow
@@ -297,7 +297,7 @@ void TraversabilityGenerator3d::expandAll(TraversabilityNode< TraversabilityGene
         for(auto *n : node->getConnections())
         {
             if(!n->isExpanded())
-                candidates.push_back(static_cast<TraversabilityNode<TrackingData> *>(n));
+                candidates.push_back(static_cast<Node *>(n));
         }
     }
     
@@ -305,7 +305,7 @@ void TraversabilityGenerator3d::expandAll(TraversabilityNode< TraversabilityGene
 }
 
 
-void TraversabilityGenerator3d::setMLSGrid(boost::shared_ptr< MultiLevelGridMap< SurfacePatchBase > >& grid)
+void TraversabilityGenerator3d::setMLSGrid(boost::shared_ptr< MLGrid >& grid)
 {
     mlsGrid = grid;
     
@@ -336,7 +336,7 @@ void TraversabilityGenerator3d::clearTrMap()
     }
 }
 
-TraversabilityNode< TraversabilityGenerator3d::TrackingData >* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d& startPosWorld)
+TraversabilityGenerator3d::Node* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d& startPosWorld)
 {
     Index idx;
     if(!trMap.toGrid(startPosWorld, idx))
@@ -347,7 +347,7 @@ TraversabilityNode< TraversabilityGenerator3d::TrackingData >* TraversabilityGen
 
     //check if not already exists...
     auto candidates = trMap.at(idx);
-    for(TraversabilityNode<TrackingData> *node : candidates)
+    for(Node *node : candidates)
     {
         if(fabs(node->getHeight() - startPosWorld.z()) < config.maxStepHeight)
         {
@@ -357,14 +357,14 @@ TraversabilityNode< TraversabilityGenerator3d::TrackingData >* TraversabilityGen
     }
 
     
-    TraversabilityNode<TrackingData> *startNode = new TraversabilityNode<TrackingData>(startPosWorld.z(), idx);
+    Node *startNode = new Node(startPosWorld.z(), idx);
     trMap.at(idx).insert(startNode);
 
     return startNode;
 }
 
 
-bool TraversabilityGenerator3d::expandNode(TraversabilityNode< TraversabilityGenerator3d::TrackingData >* node)
+bool TraversabilityGenerator3d::expandNode( TraversabilityGenerator3d::Node * node)
 {
     Eigen::Vector3d nodePos;
     if(!trMap.fromGrid(node->getIndex(), nodePos))
@@ -383,7 +383,7 @@ bool TraversabilityGenerator3d::expandNode(TraversabilityNode< TraversabilityGen
 //     std::cout << "Min Pos " << min.transpose() << std::endl;
 //     std::cout << "Max Pos " << max.transpose() << std::endl;
 //     
-    maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase>::View intersections = mlsGrid->intersectCuboid(Eigen::AlignedBox3d(min, max));
+    View intersections = mlsGrid->intersectCuboid(Eigen::AlignedBox3d(min, max));
 
 //     std::cout << "Size of Intersection " << intersections.getSize().transpose() << "  " << std::endl;
 //     std::cout << "NumCells of Intersection " << intersections.getNumCells().transpose() << "  " << std::endl;
@@ -441,7 +441,7 @@ bool TraversabilityGenerator3d::updateDistToStart(double newValue, Traversabilit
 }
 
 
-void TraversabilityGenerator3d::addConnectedPatches(TraversabilityNode< TraversabilityGenerator3d::TrackingData >*  node)
+void TraversabilityGenerator3d::addConnectedPatches( TraversabilityGenerator3d::Node *  node)
 {
     struct MotionWithDist
     {
@@ -491,10 +491,10 @@ void TraversabilityGenerator3d::addConnectedPatches(TraversabilityNode< Traversa
 
         curHeight = newPos.z();
         
-        TraversabilityNode<TrackingData> *toAdd = nullptr;
+        Node *toAdd = nullptr;
         
         //check if we got an existing node
-        for(TraversabilityNode<TrackingData> *snode : trMap.at(idx))
+        for(Node *snode : trMap.at(idx))
         {
 //             std::cout << "Testing if " << snode->getHeight() << " is in reach of " << curHeight << std::endl;
             const double searchHeight = snode->getHeight();
@@ -524,7 +524,7 @@ void TraversabilityGenerator3d::addConnectedPatches(TraversabilityNode< Traversa
         if(!toAdd)
         {
 //             std::cout << "No Node at " << idx.transpose() << " creating new one" << std::endl;
-            toAdd = new TraversabilityNode<TrackingData>(curHeight, idx);
+            toAdd = new Node(curHeight, idx);
             toAdd->setDistToStart(node->getDistToStart() + mwd.dist);
             trMap.maxDist = std::max(node->getDistToStart() + mwd.dist, trMap.maxDist);
             trMap.at(idx).insert(toAdd);
