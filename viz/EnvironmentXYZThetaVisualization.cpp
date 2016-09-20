@@ -252,7 +252,7 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
             geode->addDrawable(line);
             
             osg::ref_ptr<osg::PositionAttitudeTransform> cellTransform = new osg::PositionAttitudeTransform();
-            cellTransform->setPosition(osg::Vec3d(cellX * p->gridSize + p->startPos.x(), cellY * p->gridSize + p->startPos.y(), + p->startPos.z()));
+            cellTransform->setPosition(osg::Vec3d(cellX * p->gridSize + p->startPos.x(), cellY * p->gridSize + p->startPos.y(),  p->startPos.z()));
             
             osg::Vec3Array* vertices = new osg::Vec3Array;
             vertices->push_back(osg::Vec3(0.5 * p->gridSize, 0.5 * p->gridSize, 0));
@@ -294,7 +294,7 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
             triangleGeode->addDrawable(triangleGeometry);
             osg::ref_ptr<osg::PositionAttitudeTransform> triangleTransform = new osg::PositionAttitudeTransform();
             //cellX/Y is already at the the next cell at this point in the code
-            triangleTransform->setPosition(osg::Vec3d(cellX * p->gridSize + 0.5 * p->gridSize, cellY * p->gridSize + + 0.5 * p->gridSize, 0.1));
+            triangleTransform->setPosition(osg::Vec3d(cellX * p->gridSize + + p->startPos.x() + 0.5 * p->gridSize, cellY * p->gridSize + + p->startPos.y() + 0.5 * p->gridSize, p->startPos.z()));
             triangleTransform->setAttitude(osg::Quat(motion.endTheta.getRadian(), osg::Vec3f(0,0,1)));
             triangleTransform->addChild(triangleGeode);
             p->root->addChild(triangleTransform);

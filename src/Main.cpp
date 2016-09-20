@@ -11,6 +11,8 @@
 #include <vizkit3d/EnvironmentXYZThetaVisualization.hpp>
 #include <vizkit3d/MotionPlanningLibrariesSbplMprimsVisualization.hpp>
 #include <vizkit3d/MotionPlanningLibrariesSbplSplineVisualization.hpp>
+#include <envire_core/items/Item.hpp>
+#include <envire_core/graph/EnvireGraph.hpp>
 #include <thread>
 
 
@@ -40,19 +42,19 @@ int main(int argc, char** argv)
     {
         // deserialize from string stream
         boost::archive::binary_iarchive mlsIn(fileIn);
-        MLSMapSloped mlsInput;
-
-        mlsIn >> mlsInput;
+        envire::core::EnvireGraph g;
+        g.loadFromFile(argv[1]);
+        maps::grid::MLSMapKalman mlsInput = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
         mlsSloped = MLSMapPrecalculated(mlsInput);
     }
     std::cout << "MLS Resolutition " << mlsSloped.getResolution().transpose() << std::endl;
     assert(mlsSloped.getResolution().x() == mlsSloped.getResolution().y());
     
     motion_planning_libraries::SplinePrimitivesConfig config;
-    config.gridSize = mlsSloped.getResolution().x();
-    config.destinationCircleRadius = 10;
-    config.numAngles = 16;
-    config.numEndAngles = 7;
+    config.gridSize = 0.1;//mlsSloped.getResolution().x();
+    config.destinationCircleRadius = 6;
+    config.numAngles = 10;
+    config.numEndAngles = 5;
     config.cellSkipFactor = 0.1;
     config.generatePointTurnMotions = false;
     
@@ -69,9 +71,9 @@ int main(int argc, char** argv)
     mobility.mMultiplierPointTurn = 8; 
     
     ugv_nav4d::TraversabilityConfig conf;
-    conf.gridResolution = mlsSloped.getResolution().x();
-    conf.maxSlope = 0.5;
-    conf.maxStepHeight = 0.2; //space below robot
+    conf.gridResolution = 0.1;//mlsSloped.getResolution().x();
+    conf.maxSlope = 50.0/180.0 * M_PI;
+    conf.maxStepHeight = 0.5; //space below robot
     conf.robotSizeX = 0.5;
     conf.robotHeight = 0.9; //incl space below body
     
@@ -95,10 +97,11 @@ int main(int argc, char** argv)
     ugv_nav4d::Planner planner(config, conf, mobility);
     
     base::samples::RigidBodyState start;
-    start.position = Eigen::Vector3d(-0.1, 3.725, -0.991625); //Eigen::Vector3d(0,-0,-0.7);
+    start.position << 0.725, -0.825, -1.38856;
+//     start.position = Eigen::Vector3d(-0.975, 17.975, 8.5299); //6.225, -4.575, -0.330785);//(0,-0,-0.7);
     start.orientation.setIdentity();
     base::samples::RigidBodyState end;
-    end.position = Eigen::Vector3d(-6.08125, 2.475, 0.00661108); //Eigen::Vector3d(4, 5, 3.23207);
+    end.position << 5.075, 9.875, 3.06537;
     end.orientation.setIdentity();
     
     planner.updateMap(mlsSloped);
@@ -112,6 +115,11 @@ int main(int argc, char** argv)
     std::vector<base::Trajectory> path;
 
     planner.getTrajectory(path);
+    
+    for(base::Trajectory& t : path)
+    {
+        std::cout << t.spline.getStartPoint().transpose() << " -> " << t.spline.getEndPoint().transpose() << std::endl;
+    }
     
 
     QApplication app(argc, argv);
@@ -144,6 +152,7 @@ int main(int argc, char** argv)
 //     primViz.updateData(planner.getEnv()->getAvailableMotions().getPrimitives());
     envViz.setGridSize(config.gridSize);
     envViz.setSolutionMotions(planner.getMotions());
+    envViz.setStartPos(start.position.x(), start.position.y(), start.position.z());
     envViz.updateData(*planner.getEnv().get());
     motion_planning_libraries::SbplSplineMotionPrimitives primitives(config);
     splineViz.updateData(primitives);
