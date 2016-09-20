@@ -204,7 +204,7 @@ maps::grid::Vector3d EnvironmentXYZTheta::getStatePosition(const int stateID) co
     const Hash &sourceHash(idToHash[stateID]);
     const XYZNode *node = sourceHash.node;
     maps::grid::Vector3d ret;
-    mlsGrid->fromGrid(node->getIndex(), ret);
+    travGen.getTraversabilityBaseMap().fromGrid(node->getIndex(), ret);
     ret.z() = node->getHeight();
     return ret;
 }
