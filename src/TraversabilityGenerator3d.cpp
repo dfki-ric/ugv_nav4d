@@ -77,7 +77,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TraversabilityGenerator3d::No
     // Mandatory
     seg.setModelType (pcl::SACMODEL_PLANE);
     seg.setMethodType (pcl::SAC_RANSAC);
-    seg.setMaxIterations (5);
+    seg.setMaxIterations (50);
     seg.setDistanceThreshold (0.1);
 
     // Create the filtering object
@@ -89,7 +89,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TraversabilityGenerator3d::No
     // Segment the largest planar component from the remaining cloud
     seg.setInputCloud (points);
     seg.segment (*inliers, *coefficients);
-    if (inliers->indices.size () == 0)
+    if (inliers->indices.size () <= 5)
     {
         std::cerr << "Could not estimate Ground Plane" << std::endl;
         return false;
@@ -128,73 +128,6 @@ bool TraversabilityGenerator3d::computePlaneRansac(TraversabilityGenerator3d::No
 }
 
 
-bool TraversabilityGenerator3d::computePlane( TraversabilityGenerator3d::Node & node, const View &area)
-{
-    //estimate the plane of the surfaces
-    numeric::PlaneFitting<double> planeFit;
-    
-    Eigen::Vector2d sizeHalf(area.getSize() / 2.0);
-    
-    double fX = area.getSize().x() / area.getNumCells().x();
-    double fY = area.getSize().y() / area.getNumCells().y();
-    
-    int patchCnt = 0;
-    
-    for(size_t y = 0; y < area.getNumCells().y(); y++)
-    {
-        for(size_t x = 0; x < area.getNumCells().x(); x++)
-        {
-            Eigen::Vector3d pos;
-            pos.x() = x * fX - sizeHalf.x();
-            pos.y() = y * fY - sizeHalf.y();
-            
-            for(const SurfacePatchBase *p : area.at(x, y))
-            {
-                pos.z() = p->getTop();
-                planeFit.update(pos);
-                
-                patchCnt++;
-            }
-        }
-    }
-
-//     if(node.getHeight() > -0.2)
-//         std::cout << "PatchCnt is " << patchCnt << std::endl;
-    
-    //if less than 3 planes -> hole
-    //TODO where to implement ? here or in check obstacles ?
-    if(patchCnt < 3)
-    {
-        return false;
-    }
-    numeric::PlaneFitting<double>::ResultNormal plane(planeFit.solveNormal());
-    
-    node.getUserData().plane = plane.getPlane();
-    
-    //adjust height of patch
-    Eigen::ParametrizedLine<double, 3> line(Vector3d::Zero(), Eigen::Vector3d::UnitZ());
-    Vector3d newPos =  line.intersectionPoint(plane.getPlane());
-    
-//     if(node.getHeight() > -0.2)
-//         std::cout << "Corrected height from " << node.getHeight() << " to " << newPos.transpose() << std::endl;
-
-    if(newPos.x() > 0.0001 || newPos.y() > 0.0001)
-        throw std::runtime_error("TraversabilityGenerator3d: Error, adjustement height calculation is weird");
-
-    //remove and reeinter node
-    auto &list(trMap.at(node.getIndex()));
-    
-    if(newPos.allFinite())
-    {
-        list.erase(&node);
-        node.setHeight(newPos.z());
-        list.insert(&node);
-    }    
-//     if(node.getHeight() > -0.2)
-//         std::cout << "Plane Computed for " << node.getIndex().transpose() << " : Normal " << plane.getNormal().transpose() << std::endl; 
-    
-    return true;
-}
 
 bool TraversabilityGenerator3d::checkForObstacles(const View& area, TraversabilityGenerator3d::Node *node)
 {
@@ -257,7 +190,6 @@ void TraversabilityGenerator3d::expandAll( TraversabilityGenerator3d::Node* star
     candidates.push_back(startNode);
     
     int cnd = 0;
-    int cndLast = 0;
     
     while(!candidates.empty())
     {
@@ -269,11 +201,10 @@ void TraversabilityGenerator3d::expandAll( TraversabilityGenerator3d::Node* star
             continue;
         
         cnd++;
-
-        if(cnd - cndLast > 1000)
+        
+        if((cnd % 1000) == 0)
         {
-//             std::cout  << "Expanded " << cnd << " Nodes " << std::endl;
-            cndLast = cnd;
+            std::cout << "Expanded " << cnd << " nodes" << std::endl;
         }
         
         
@@ -496,6 +427,12 @@ void TraversabilityGenerator3d::addConnectedPatches( TraversabilityGenerator3d::
         curHeight = newPos.z();
         
         Node *toAdd = nullptr;
+
+        if(!newPos.allFinite())
+        {
+            std::cout << "newPos contains inf" << std::endl;
+            continue;
+        }
         
         //check if we got an existing node
         for(Node *snode : trMap.at(idx))
