@@ -489,6 +489,10 @@ void TraversabilityGenerator3d::addConnectedPatches( TraversabilityGenerator3d::
         if((patchPosPlane.head(2) - newPos.head(2)).norm() > 0.001)
             throw std::runtime_error("TraversabilityGenerator3d: Error, adjustement height calculation is weird");
 
+        //The new patch is not reachable from the current patch
+        if(fabs(newPos.z() - curHeight) > config.maxStepHeight)
+            continue;
+        
         curHeight = newPos.z();
         
         Node *toAdd = nullptr;
@@ -523,6 +527,8 @@ void TraversabilityGenerator3d::addConnectedPatches( TraversabilityGenerator3d::
         
         if(!toAdd)
         {
+            
+            
 //             std::cout << "No Node at " << idx.transpose() << " creating new one" << std::endl;
             toAdd = new Node(curHeight, idx);
             toAdd->setDistToStart(node->getDistToStart() + mwd.dist);
