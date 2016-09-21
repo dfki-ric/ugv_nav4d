@@ -600,7 +600,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         
         for(const PoseWithCell &pwc : curMotion.intermediateSteps)
         {
-            base::Vector3d pos(pwc.pose.position.x() + start.x(), pwc.pose.position.y() + start.y(), start.z());
+            base::Vector3d posLocal(pwc.pose.position.x(), pwc.pose.position.y(), 0);
             maps::grid::Index curIndex = startIndex + pwc.cell;
 
             if(curIndex != lastIndex)
@@ -618,12 +618,14 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
                 lastIndex = curIndex;
             }
             
-            pos.z() = curNode->getHeight();
+            posLocal.z() = curNode->getHeight();
             
-            if(positions.empty() || !(positions.back().isApprox(pos)))
+            base::Vector3d posGlobal = travGen.getTraversabilityMap().getLocalFrame().rotation() * posLocal + start;
+            
+            if(positions.empty() || !(positions.back().isApprox(posGlobal)))
             {
                 //need to offset by start because the poses are relative to (0/0)
-                positions.emplace_back(pos);
+                positions.emplace_back(posGlobal);
             }
             
         }
