@@ -11,6 +11,7 @@ public:
     double maxSlope;
     double robotHeight;
     double robotSizeX;
+    double robotSizeY;
     double maxGapSize;
     int numTraversabilityClasses;
     /**

@@ -40,9 +40,8 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<MLGrid> mlsGrid,
     searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
     searchGrid.extend(travGen.getTraversabilityMap().getNumCells());
     // FIXME get real value from somewhere
-    double robotSizeY = 0.8;
     // FIXME z2 is divided by 2.0 to avoid intersecting the floor
-    robotHalfSize << travConf.robotSizeX / 2, robotSizeY / 2, travConf.robotHeight/2/2;
+    robotHalfSize << travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight/2/2;
 }
 
 
@@ -204,7 +203,7 @@ maps::grid::Vector3d EnvironmentXYZTheta::getStatePosition(const int stateID) co
     const Hash &sourceHash(idToHash[stateID]);
     const XYZNode *node = sourceHash.node;
     maps::grid::Vector3d ret;
-    travGen.getTraversabilityBaseMap().fromGrid(node->getIndex(), ret);
+    travGen.getTraversabilityMap().fromGrid(node->getIndex(), ret);
     ret.z() = node->getHeight();
     return ret;
 }
