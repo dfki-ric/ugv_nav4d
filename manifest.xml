@@ -13,4 +13,5 @@
   <depend package="control/dwa" />
   <depend package="slam/maps" />
   <depend package="slam/pcl" />
+  <depend package="envire/envire_core" />
 </package>
