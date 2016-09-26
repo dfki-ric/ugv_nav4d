@@ -42,6 +42,7 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<MLGrid> mlsGrid,
     // FIXME get real value from somewhere
     // FIXME z2 is divided by 2.0 to avoid intersecting the floor
     robotHalfSize << travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight/2/2;
+//     travGen.expandAll(Eigen::Vector3d(-0.525, -0.275, -1.28381));
 }
 
 
@@ -599,7 +600,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         
         for(const PoseWithCell &pwc : curMotion.intermediateSteps)
         {
-            base::Vector3d posLocal(pwc.pose.position.x(), pwc.pose.position.y(), 0);
+            base::Vector3d pos(pwc.pose.position.x() + start.x(), pwc.pose.position.y() + start.y(), start.z());
             maps::grid::Index curIndex = startIndex + pwc.cell;
 
             if(curIndex != lastIndex)
@@ -617,14 +618,12 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
                 lastIndex = curIndex;
             }
             
-            posLocal.z() = curNode->getHeight();
+            pos.z() = curNode->getHeight();
             
-            base::Vector3d posGlobal = travGen.getTraversabilityMap().getLocalFrame().rotation() * posLocal + start;
-            
-            if(positions.empty() || !(positions.back().isApprox(posGlobal)))
+            if(positions.empty() || !(positions.back().isApprox(pos)))
             {
                 //need to offset by start because the poses are relative to (0/0)
-                positions.emplace_back(posGlobal);
+                positions.emplace_back(pos);
             }
             
         }
