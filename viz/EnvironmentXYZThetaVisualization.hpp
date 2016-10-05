@@ -29,6 +29,7 @@ namespace vizkit3d
       void setGoalPos(const double x, const double y, const double z);
       void setSolution(std::vector<QVector3D> path);
       void setSolutionMotions(const std::vector<ugv_nav4d::Motion>& motions);
+      void setHeuristic(const std::vector<Eigen::Vector4d>& cost);
 
     protected:
         virtual osg::ref_ptr<osg::Node> createMainNode();

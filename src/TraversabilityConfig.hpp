@@ -14,6 +14,7 @@ public:
     double robotSizeY;
     double maxGapSize;
     int numTraversabilityClasses;
+    double slopeMetricScale;
     /**
         * The amount of measurements a MLS-Patch needs
         * to get a probability of 1.0

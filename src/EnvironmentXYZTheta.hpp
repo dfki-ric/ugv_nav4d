@@ -35,23 +35,28 @@ protected:
     };
      
 
-    class ThetaNode
+    struct ThetaNode
     {
-        public:
             ThetaNode(const DiscreteTheta &t) :theta(t) {};
             int id;
             DiscreteTheta theta;
     };
     
-    class PlannerData
+    struct PlannerData
     {
-    public:
         PlannerData() : travNode(nullptr) {};
         
         TraversabilityGenerator3d::Node *travNode;
         
         ///contains all nodes sorted by theta
         std::map<DiscreteTheta, ThetaNode *> thetaToNodes; 
+    };
+    
+    struct Distance
+    {
+        double distToStart = 0;
+        double distToGoal = 0;
+        Distance(double toStart, double toGoal) : distToStart(toStart), distToGoal(toGoal){}
     };
     
     typedef maps::grid::TraversabilityNode<PlannerData> XYZNode;
@@ -68,6 +73,9 @@ protected:
     };
     
     std::vector<Hash> idToHash;
+    /**Contains the distance from each travNode to start and goal
+     * Stored in real-world coordinates (i.e. do NOT scale with gridResolution before use)*/
+    std::vector<Distance> travNodeIdToDistance;
     
     RobotModel robotModel;
     PreComputedMotions availableMotions;
@@ -92,6 +100,7 @@ public:
     mutable std::vector<maps::grid::Vector3d> debugColissionCells;
     //contains the min/max vectors for bounding boxes that collided with something
     mutable std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> debugCollisions;
+    mutable std::vector<Eigen::Vector4d> debugCost;
     
     Eigen::Vector3d robotHalfSize;
     mutable std::vector<base::Pose> debugCollisionPoses;
@@ -111,8 +120,17 @@ public:
     virtual bool InitializeEnv(const char* sEnvFile);
     virtual bool InitializeMDPCfg(MDPConfig* MDPCfg);
     
+     /**
+     * \brief heuristic estimate from state FromStateID to state ToStateID
+     */
     virtual int GetFromToHeuristic(int FromStateID, int ToStateID);
+    /**
+     * \brief heuristic estimate from start state to state with stateID
+     */
     virtual int GetStartHeuristic(int stateID);
+    /**
+     * \brief heuristic estimate from state with stateID to goal state
+     */
     virtual int GetGoalHeuristic(int stateID);
     
     virtual void GetPreds(int TargetStateID, std::vector< int >* PredIDV, std::vector< int >* CostV);
@@ -157,6 +175,14 @@ private:
                          const Motion& motion) const;
   
     Eigen::AlignedBox3d getRobotBoundingBox() const;
+    
+    void precomputeCost();
+    void dijkstraComputeCost(TraversabilityGenerator3d::Node* source, std::vector<double> &cost);
+    
+    /**Return the avg slope of all patches on the given @p path */
+    double getAvgSlope(std::vector<TraversabilityGenerator3d::Node*> path) const;
+    
+    double getAnglebetweenPlaneAndXY(const Eigen::Hyperplane<double, 3>& plane) const;
     
     TraversabilityGenerator3d::Node* movementPossible(TraversabilityGenerator3d::Node* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& to);
     TraversabilityConfig travConf;

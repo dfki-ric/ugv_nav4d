@@ -214,8 +214,8 @@ void TraversabilityGenerator3d::expandAll( TraversabilityGenerator3d::Node* star
         }
         
         
-//          if(cnd > 4000)
-//              return;
+//         if(cnd > 7000)
+//             return;
         
         if(!expandNode(node))
         {
@@ -316,9 +316,7 @@ bool TraversabilityGenerator3d::expandNode( TraversabilityGenerator3d::Node * no
     
     min += nodePos;
     max += nodePos;
-
-//FIXME distToStart    
-//     std::cout << "Expanding: " << node << ", " << node->isExpanded() << ": "  << nodePos.transpose() << ", dist: " << node->getDistToStart() << std::endl;
+    
 //     std::cout << "Node Pos " << nodePos.transpose() << std::endl;
 //     std::cout << "Min Pos " << min.transpose() << std::endl;
 //     std::cout << "Max Pos " << max.transpose() << std::endl;
@@ -333,7 +331,7 @@ bool TraversabilityGenerator3d::expandNode( TraversabilityGenerator3d::Node * no
     //note, computePlane must be done before checkForObstacles !
     if(!computePlaneRansac(*node, intersections))
     {
-        std::cout << "Could not compute ransac" << std::endl;
+//         std::cout << "Could not compute ransac" << std::endl;
         node->setType(TraversabilityNodeBase::UNKNOWN);
         return false;
     }
@@ -354,36 +352,78 @@ bool TraversabilityGenerator3d::expandNode( TraversabilityGenerator3d::Node * no
     return true;
 }
 
+bool TraversabilityGenerator3d::updateDistToStart(double newValue, TraversabilityNodeBase* node)
+{
+    const static double dist2 = sqrt(2);
+    
+//     node->setDistToStart(newValue);
+    
+//     for(TraversabilityNodeBase *conNode : node->getConnections())
+//     {
+//         double dist = 1;
+//         Eigen::Vector2i diff(Eigen::Vector2i(node->getIndex().x(), node->getIndex().y()) - Eigen::Vector2i(conNode->getIndex().x(), conNode->getIndex().y()));
+//         if(diff.squaredNorm() > 1)
+//         {
+//             dist = dist2;
+//         }
+//         
+//         double newDist = node->getDistToStart() + dist;
+//         
+//         trMap.maxDist = std::max(newDist, trMap.maxDist);
+//         
+//         if(conNode->getDistToStart() > newDist)
+//             updateDistToStart(newDist, conNode);
+//     }
+    
+    return false;
+}
+
+
 void TraversabilityGenerator3d::addConnectedPatches( TraversabilityGenerator3d::Node *  node)
-{   
-    static std::vector<Eigen::Vector2i> surounding = {
-        Eigen::Vector2i(1, 1),
-        Eigen::Vector2i(1, 0),
-        Eigen::Vector2i(1, -1),
-        Eigen::Vector2i(0, 1),
-        Eigen::Vector2i(0, -1),
-        Eigen::Vector2i(-1, 1),
-        Eigen::Vector2i(-1, 0),
-        Eigen::Vector2i(-1, -1)};
+{
+    struct MotionWithDist
+    {
+        MotionWithDist(const Eigen::Vector2i &motion, double dir) : motion(motion), dist(dir)
+        {
+        };
+        Eigen::Vector2i motion;
+        double dist;
+    };
+    
+    static std::vector<MotionWithDist> surounding = {
+        {Eigen::Vector2i(1,1), sqrt(2.0)},
+        {Eigen::Vector2i(1,0), 1.0},
+        {Eigen::Vector2i(1,-1), sqrt(2.0)},
+        {Eigen::Vector2i(0,1), 1.0},
+        {Eigen::Vector2i(0,-1), 1.0},
+        {Eigen::Vector2i(-1,1), sqrt(2.0)},
+        {Eigen::Vector2i(-1,0), 1.0},
+        {Eigen::Vector2i(-1,-1), sqrt(2.0)}
+    };
 
 //     std::cout << "Adding connections for " << node->getIndex().transpose() << std::endl<< std::endl;
     
     double curHeight = node->getHeight();
-    for(const Eigen::Vector2i &motion : surounding)
+    for(const MotionWithDist &mwd : surounding)
     {
-        const Index idx(node->getIndex().x() + motion.x(), node->getIndex().y() + motion.y());
+        const Eigen::Vector2i &idxS(mwd.motion);
+        const Index idx(node->getIndex().x() + idxS.x(), node->getIndex().y() + idxS.y());
+        
         
         if(!trMap.inGrid(idx))
         {
-            std::cout << "Out of Map" << std::endl;
+//             std::cout << "Out of Map" << std::endl;
             continue;
         }
 
         //compute height of cell in respect to plane
-        Vector3d patchPosPlane(motion.x() * trMap.getResolution().x(), motion.y() * trMap.getResolution().y(), 0);
+        Vector3d patchPosPlane(idxS.x() * trMap.getResolution().x(), idxS.y() * trMap.getResolution().y(), 0);
         Eigen::ParametrizedLine<double, 3> line(patchPosPlane, Eigen::Vector3d::UnitZ());
         Vector3d newPos =  line.intersectionPoint(node->getUserData().plane);
         
+//         if(node->getHeight() > -0.2)
+//         std::cout << "Corrected height from " << node->getHeight() << " to " << newPos.transpose() << std::endl;
+
         if((patchPosPlane.head(2) - newPos.head(2)).norm() > 0.001)
             throw std::runtime_error("TraversabilityGenerator3d: Error, adjustement height calculation is weird");
 
@@ -397,18 +437,31 @@ void TraversabilityGenerator3d::addConnectedPatches( TraversabilityGenerator3d::
 
         if(!newPos.allFinite())
         {
-            std::cout << "newPos contains inf or nan" << std::endl;
+            std::cout << "newPos contains inf" << std::endl;
             continue;
         }
         
         //check if we got an existing node
         for(Node *snode : trMap.at(idx))
         {
+//             std::cout << "Testing if " << snode->getHeight() << " is in reach of " << curHeight << std::endl;
             const double searchHeight = snode->getHeight();
             if((searchHeight - config.maxStepHeight) < curHeight && (searchHeight + config.maxStepHeight) > curHeight)
             {
                 //found a connectable node !
-                toAdd = snode;               
+                toAdd = snode;
+                
+//                 std::cout << "FOOOOOOOOOO" << std::endl;
+                
+//                 std::cout << "Found connectable node at " << idx.transpose() << std::endl;
+                
+//                 const double curDist = node->getDistToStart() + mwd.dist;
+                
+//                 if(toAdd->getDistToStart() > curDist)
+//                 {
+//                     updateDistToStart(curDist, toAdd);
+//                 }
+                
                 break;
             }
             
@@ -418,7 +471,12 @@ void TraversabilityGenerator3d::addConnectedPatches( TraversabilityGenerator3d::
         
         if(!toAdd)
         {
+            
+            
+//             std::cout << "No Node at " << idx.transpose() << " creating new one" << std::endl;
             toAdd = new Node(curHeight, idx);
+//             toAdd->setDistToStart(node->getDistToStart() + mwd.dist);
+//             trMap.maxDist = std::max(node->getDistToStart() + mwd.dist, trMap.maxDist);
             toAdd->getUserData().id = currentNodeId++;
             trMap.at(idx).insert(toAdd);
         }
@@ -432,7 +490,6 @@ TraversabilityMap3d< TraversabilityNodeBase *> TraversabilityGenerator3d::getTra
 {
     maps::grid::TraversabilityMap3d<maps::grid::TraversabilityNodeBase *> trBaseMap(trMap.getNumCells(), trMap.getResolution(), trMap.getLocalMapData());
     
-    //FIXME distToStart
 //     trBaseMap.maxDist = trMap.maxDist;
     
     for(size_t y = 0 ; y < trMap.getNumCells().y(); y++)

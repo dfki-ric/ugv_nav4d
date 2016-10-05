@@ -24,21 +24,29 @@ public slots:
     
     //display the planner results
     void setPlannerResult(const std::vector<base::Trajectory>& path,
-                          const maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>& travMap);
+                          const maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>& travMap,
+                          const std::vector<ugv_nav4d::Motion> motions);
     /**plan from @p staro to @p goal */
-    void plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal);
+    void plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal, const double slopeMetricScale);
     
 signals:
     //is emitted if the planner thread is done
     void plannerDone(const std::vector<base::Trajectory>& path,
-                     const maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>& travMap);
+                     const maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>& travMap,
+                     const std::vector<ugv_nav4d::Motion> motions);
+    
+private slots:
+    void slopeMetricEditingFinished();
             
 private:
     void loadMls();
+    void startPlanThread();
     
 private:
     QApplication app;
     vizkit3d::Vizkit3DWidget widget;
+    QWidget window;
+    QDoubleSpinBox* slopeMetricSpinBox;
     vizkit3d::MotionPlanningLibrariesSbplSplineVisualization splineViz;
     vizkit3d::TrajectoryVisualization trajViz;
     vizkit3d::MLSMapVisualization mlsViz;
@@ -47,5 +55,6 @@ private:
     maps::grid::MLSMapPrecalculated mlsMap;
     Eigen::Vector3f start; //is inf if not set
     Eigen::Vector3f goal; //is inf if not set
-    bool planning; //true while planning is running in background
+    bool pickStart = true;
+    
 };

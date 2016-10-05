@@ -7,8 +7,7 @@
 #include "Planner.hpp"
 
 
-PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv),
-    planning(false)
+PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
 {
     start.setConstant(std::numeric_limits<float>::infinity());
     goal.setConstant(std::numeric_limits<float>::infinity());
@@ -20,6 +19,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv),
     widget.addPlugin(&trav3dViz);
     widget.addPlugin(&envViz);
     
+    
     mlsViz.setCycleHeightColor(true);
     mlsViz.setShowPatchExtents(false);
     mlsViz.setShowNormals(false);
@@ -29,20 +29,38 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv),
     
     loadMls();
     
+    QVBoxLayout* layout = new QVBoxLayout();
+       
+    layout->addWidget(&widget);
+
+    
+    slopeMetricSpinBox = new QDoubleSpinBox();
+    slopeMetricSpinBox->setMinimum(0);
+    slopeMetricSpinBox->setMaximum(9999999999999);
+    slopeMetricSpinBox->setValue(1);
+    layout->addWidget(slopeMetricSpinBox);
+    
+    window.setLayout(layout);
+
+
     //to be able to send Trajectory via slot
+    qRegisterMetaType<std::vector<ugv_nav4d::Motion>>("std::vector<ugv_nav4d::Motion>");
     qRegisterMetaType<std::vector<base::Trajectory>>("std::vector<base::Trajectory>");
     qRegisterMetaType<maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>>("maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>");
 
     connect(&mlsViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
     connect(&trav3dViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
     
-    connect(this, SIGNAL(plannerDone(std::vector<base::Trajectory>,maps::grid::TraversabilityMap3d<maps::grid::TraversabilityNodeBase*>)),
-            this, SLOT(setPlannerResult(std::vector<base::Trajectory>,maps::grid::TraversabilityMap3d<maps::grid::TraversabilityNodeBase*>)));
+    connect(this, SIGNAL(plannerDone(std::vector<base::Trajectory>,maps::grid::TraversabilityMap3d<maps::grid::TraversabilityNodeBase*>,std::vector<ugv_nav4d::Motion>)),
+            this, SLOT(setPlannerResult(std::vector<base::Trajectory>,maps::grid::TraversabilityMap3d<maps::grid::TraversabilityNodeBase*>,std::vector<ugv_nav4d::Motion>)));
+    
+    connect(slopeMetricSpinBox, SIGNAL(editingFinished()), this, SLOT(slopeMetricEditingFinished()));
+    
 }
 
 void PlannerGui::exec()
 {
-    widget.show();
+    window.show();
     app.exec();
     
 }
@@ -56,25 +74,22 @@ void PlannerGui::loadMls()
     if(!file.isEmpty())
     {
         std::ifstream fileIn(file.toStdString());
-        //try different approaches to load the file.
-        //this is by no means exhaustive. It merely covers the cases encountered so far.
-//         std::ifstream fileIn(file.toStdString());
-//         try
-//         {
-//             boost::archive::binary_iarchive mlsIn(fileIn);
-//             maps::grid::MLSMapSloped mlsInput;
-//             mlsIn >> mlsInput;
-//             mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
-//             mlsViz.updateData(mlsMap);
-//             return;
-//         }
-//         catch(...) {}
+        try
+        {
+            boost::archive::binary_iarchive mlsIn(fileIn);
+            maps::grid::MLSMapSloped mlsInput;
+            mlsIn >> mlsInput;
+            mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
+            mlsViz.updateData(mlsMap);
+            return;
+        }
+        catch(...) {}
         
         //NOTE try/catch does not work for boost deserialization. It will just segault
         //if the file is broken or in another format.
         //A solution might be to try deserialization in a fork and see if the subprocess crashes.
         
-        try
+/*        try
         {
             boost::archive::binary_iarchive mlsIn(fileIn);
             envire::core::EnvireGraph g;
@@ -84,7 +99,7 @@ void PlannerGui::loadMls()
             mlsViz.updateData(mlsMap);
             return;
         }
-        catch(...) {}      
+        catch(...) {}   */   
         
         std::cerr << "Unabled to load mls. Unknown format" << std::endl;
     }
@@ -92,36 +107,56 @@ void PlannerGui::loadMls()
 
 
 void PlannerGui::picked(float x, float y, float z)
-{
-    
-    if(!start.allFinite() && !goal.allFinite())
+{   
+    if(pickStart)
     {
         start << x, y, z;
+        std::cout << "Start: " << start.transpose() << std::endl;
+        pickStart = false;
     }
-    else if(start.allFinite() && !goal.allFinite())
+    else
     {
         goal << x, y, z;
-        planning = true;
-        std::thread t([this](){
-            this->plan(this->start, this->goal);
-            this->start.setConstant(std::numeric_limits<float>::infinity());
-            this->goal.setConstant(std::numeric_limits<float>::infinity());
-        });
-        t.detach(); //needed to avoid destruction of thread at end of method
+        std::cout << "goal: " << goal.transpose() << std::endl;
+        startPlanThread();
+        pickStart = true;
     }
 }
 
+
+void PlannerGui::slopeMetricEditingFinished()
+{
+    if(start.allFinite() && goal.allFinite())
+        startPlanThread();   
+}
+
+
+void PlannerGui::startPlanThread()
+{
+    std::thread t([this](){
+        this->plan(this->start, this->goal, this->slopeMetricSpinBox->value());
+    });
+    t.detach(); //needed to avoid destruction of thread at end of method
+}
+
+
 void PlannerGui::setPlannerResult(const std::vector<base::Trajectory>& path,
-                                  const maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>& travMap)
+                                  const maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>& travMap,
+                                  const std::vector<ugv_nav4d::Motion> motions)
 {
     trajViz.updateTr(path);
     trav3dViz.updateData(travMap);
+    
+    envViz.setGridSize(mlsMap.getResolution().x());
+    envViz.setSolutionMotions(motions);
+    envViz.setStartPos(start.x(), start.y(), start.z());
 }
 
-void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal)
+void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal,
+                      const double slopeMetricScale)
 {
     motion_planning_libraries::SplinePrimitivesConfig config;
-    config.gridSize = mlsMap.getResolution().x();
+    config.gridSize = 0.2;// mlsMap.getResolution().x();
     config.destinationCircleRadius = 12;
     config.numAngles = 16;
     config.numEndAngles = 8;
@@ -141,12 +176,13 @@ void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal)
     mobility.mMultiplierPointTurn = 8;
     
     ugv_nav4d::TraversabilityConfig conf;
-    conf.gridResolution =  mlsMap.getResolution().x();
-    conf.maxSlope = 50.0/180.0 * M_PI;
+    conf.gridResolution = 0.2;//  mlsMap.getResolution().x();
+    conf.maxSlope = 90.0/180.0 * M_PI;
     conf.maxStepHeight = 0.5; //space below robot
     conf.robotSizeX = 0.5;
     conf.robotSizeY =  0.7;
     conf.robotHeight = 0.9; //incl space below body
+    conf.slopeMetricScale = slopeMetricScale;
     
     ugv_nav4d::Planner planner(config, conf, mobility);
     
@@ -161,7 +197,7 @@ void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal)
     
     std::cout << std::endl << std::endl;
     std::cout << "Planning: " << start.transpose() << " -> " << goal.transpose() << std::endl;
-    const bool result = planner.plan(base::Time::fromMilliseconds(16000), startState, endState);
+    const bool result = planner.plan(base::Time::fromSeconds(30), startState, endState);
 
     if(!result)
         std::cout << "FAIL" << std::endl;
@@ -172,6 +208,8 @@ void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal)
         planner.getTrajectory(path);
         std::cout << "DONE" << std::endl;
     }
-    emit plannerDone(path, planner.getTraversabilityMap());
+    
+    envViz.setHeuristic(planner.getEnv()->debugCost);
+    emit plannerDone(path, planner.getTraversabilityMap(), planner.getMotions());
 }
 

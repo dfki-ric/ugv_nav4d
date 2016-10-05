@@ -44,6 +44,8 @@ private:
     void addConnectedPatches(Node* node);
 
     bool getConnectedPatch(const maps::grid::Index& idx, double height, const Patch*& patch);
+  
+    bool updateDistToStart(double newValue, maps::grid::TraversabilityNodeBase* node);
     
     void clearTrMap();
     
