@@ -13,11 +13,10 @@ namespace ugv_nav4d
 class TraversabilityGenerator3d
 {
 public:
-    class TrackingData
+    struct TrackingData
     {
-    public:
         Eigen::Hyperplane<double, 3> plane;
-        
+        int id; //contiguous  unique id  that can be used as index for additional metadata
     };
     
     typedef maps::grid::TraversabilityNode<TrackingData> Node;
@@ -33,7 +32,7 @@ private:
     
     boost::shared_ptr<MLGrid > mlsGrid;
     maps::grid::TraversabilityMap3d<Node *> trMap;
-    
+    int currentNodeId = 0; //used while expanding
     
     bool computePlaneRansac(Node &node, const View &area);
     
@@ -45,8 +44,6 @@ private:
     void addConnectedPatches(Node* node);
 
     bool getConnectedPatch(const maps::grid::Index& idx, double height, const Patch*& patch);
-  
-    bool updateDistToStart(double newValue, maps::grid::TraversabilityNodeBase* node);
     
     void clearTrMap();
     
@@ -63,6 +60,9 @@ public:
     bool expandNode(Node *node);
     
     void setMLSGrid(boost::shared_ptr<MLGrid> &grid);
+    
+    /**Returns the number of nodes after expansion*/
+    int getNumNodes() const;
     
     const maps::grid::TraversabilityMap3d<Node *> &getTraversabilityMap() const;
 
