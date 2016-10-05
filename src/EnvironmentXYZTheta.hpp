@@ -90,8 +90,6 @@ protected:
     ThetaNode *goalThetaNode;
     XYZNode *goalXYZNode;
 
-    int GetHeuristic(int stateID, EnvironmentXYZTheta::ThetaNode* targetThetaNode, EnvironmentXYZTheta::XYZNode* goalXYZNode) const;
- 
     void clear();
 public:
   
@@ -177,7 +175,7 @@ private:
     Eigen::AlignedBox3d getRobotBoundingBox() const;
     
     void precomputeCost();
-    void dijkstraComputeCost(TraversabilityGenerator3d::Node* source, std::vector<double> &cost);
+    void dijkstraComputeCost(TraversabilityGenerator3d::Node* source, std::vector<double> &outDistances);
     
     /**Return the avg slope of all patches on the given @p path */
     double getAvgSlope(std::vector<TraversabilityGenerator3d::Node*> path) const;

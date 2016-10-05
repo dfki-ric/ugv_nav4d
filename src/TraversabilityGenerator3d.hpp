@@ -9,14 +9,13 @@
 namespace ugv_nav4d
 {
 
-
-class TraversabilityGenerator3d
+    class TraversabilityGenerator3d
 {
 public:
     struct TrackingData
     {
         Eigen::Hyperplane<double, 3> plane;
-        int id; //contiguous  unique id  that can be used as index for additional metadata
+        int id; //contiguous unique id  that can be used as index for additional metadata
     };
     
     typedef maps::grid::TraversabilityNode<TrackingData> Node;
@@ -44,8 +43,6 @@ private:
     void addConnectedPatches(Node* node);
 
     bool getConnectedPatch(const maps::grid::Index& idx, double height, const Patch*& patch);
-  
-    bool updateDistToStart(double newValue, maps::grid::TraversabilityNodeBase* node);
     
     void clearTrMap();
     

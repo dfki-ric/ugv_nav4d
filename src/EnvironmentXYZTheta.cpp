@@ -147,8 +147,6 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     goalThetaNode = createNewStateFromPose(goalPos, theta, &goalXYZNode);
     
     goalXYZNode->getUserData().travNode->setNotExpanded();
-    //FIXME
-//     goalXYZNode->getUserData().travNode->setDistToStart(std::numeric_limits<double>::max());
     
     travGen.expandAll(startXYZNode->getUserData().travNode);
     std::cout << "All expanded " << std::endl;
@@ -159,14 +157,6 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
 void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta)
 {
     startThetaNode = createNewStateFromPose(startPos, theta, &startXYZNode);
-    
-    //FIXME why was this here?
-//     for(auto *n : startXYZNode->getUserData().travNode->getConnections())
-//     {
-//         n->setDistToStart(std::numeric_limits< double >::max());
-//     }
-    //FIXME
-//     startXYZNode->getUserData().travNode->setDistToStart(0);
     startXYZNode->getUserData().travNode->setNotExpanded();
 }
 
@@ -184,24 +174,6 @@ void EnvironmentXYZTheta::SetAllActionsandAllOutcomes(CMDPSTATE* state)
     throw EnvironmentXYZThetaException("SetAllActionsandAllOutcomes() not implemented");
 }
 
-int EnvironmentXYZTheta::GetHeuristic(int stateID, EnvironmentXYZTheta::ThetaNode* targetThetaNode, EnvironmentXYZTheta::XYZNode* targetXYZNode) const
-{
-    const Hash &sourceHash(idToHash[stateID]);
-    XYZNode *sourceNode = sourceHash.node;
-
-    //FIXME distToStart
-//     double dist = sourceNode->getUserData().travNode->getDistToStart() * travConf.gridResolution;
-    const double dist = 1;
-    double timeTranslation = dist / robotModel.translationalVelocity;
-    
-    double timeRotation = sourceHash.thetaNode->theta.shortestDist(targetThetaNode->theta).getRadian() / robotModel.rotationalVelocity;
-    
-//     std::cout << "Theta " << sourceHash.thetaNode->theta << " to " << targetThetaNode->theta << " shortest dist is " << sourceHash.thetaNode->theta.shortestDist(targetThetaNode->theta) << " rad " << sourceHash.thetaNode->theta.shortestDist(targetThetaNode->theta).getRadian() << std::endl;
-//     
-//     std::cout << "Heuristic " << stateID << " " << sourceNode->getIndex().transpose() << " to " <<  targetXYZNode->getIndex().transpose() << " timeTranslation " << timeTranslation << " timeRotation " << timeRotation << " result "<< floor(std::max(timeTranslation, timeRotation) * costScaleFactor) << std::endl;
-    
-    return floor(std::max(timeTranslation, timeRotation) * costScaleFactor);
-}
 
 int EnvironmentXYZTheta::GetFromToHeuristic(int FromStateID, int ToStateID)
 {
@@ -265,14 +237,11 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     const TraversabilityGenerator3d::Node* travNode = sourceNode->getUserData().travNode;
     const ThetaNode *sourceThetaNode = sourceHash.thetaNode;
     
-    //FIXME distToStart
-     const double sourceToGoalDist = travNodeIdToDistance[travNode->getUserData().id].distToGoal;
-//     const double sourceToGoalDist = (travNode->getIndex() - goalXYZNode->getUserData().travNode->getIndex()).cast<double>().norm() * travConf.gridResolution;
+    const double sourceToGoalDist = travNodeIdToDistance[travNode->getUserData().id].distToGoal;
     const double timeTranslation = sourceToGoalDist / robotModel.translationalVelocity;
     const double timeRotation = sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian() / robotModel.rotationalVelocity;
     
     const int result = floor(std::max(timeTranslation, timeRotation) * costScaleFactor);
-//     std::cout << "GetGoalHeuristic: travnode id:" << travNode->getUserData().id << ", coord: " << sourceNode->getIndex().transpose() << ", result:"  << result << std::endl;
     return result;
 }
 
@@ -282,17 +251,12 @@ int EnvironmentXYZTheta::GetStartHeuristic(int stateID)
     const XYZNode *targetNode = targetHash.node;
     const TraversabilityGenerator3d::Node* travNode = targetNode->getUserData().travNode;
     const ThetaNode *targetThetaNode = targetHash.thetaNode;
-    
-    //FIXME distToStart
 
     const double startToTargetDist = travNodeIdToDistance[travNode->getUserData().id].distToStart;
-//     const double startToTargetDist = (travNode->getIndex() - startXYZNode->getUserData().travNode->getIndex()).cast<double>().norm() * travConf.gridResolution;
-    
     const double timeTranslation = startToTargetDist / robotModel.translationalVelocity;
     double timeRotation = startThetaNode->theta.shortestDist(targetThetaNode->theta).getRadian() / robotModel.rotationalVelocity;
     
     const int result = floor(std::max(timeTranslation, timeRotation) * costScaleFactor);;
-//     std::cout << "GetStartHeuristic: travnode id:" << travNode->getUserData().id << ", result:"  << result << std::endl;
     return result;
 }
 
@@ -343,9 +307,7 @@ TraversabilityGenerator3d::Node *EnvironmentXYZTheta::movementPossible(Traversab
     TraversabilityGenerator3d::Node *targetNode = fromTravNode->getConnectedNode(toIdx);
     if(!targetNode)
     {
-        //FIXME this should not happen !
-        std::cout << "THIS SHOULD NOT HAPPEN" << std::endl;
-        return nullptr;
+        throw std::runtime_error("should not happen");
     }
     
     if(!targetNode->isExpanded())
@@ -353,14 +315,12 @@ TraversabilityGenerator3d::Node *EnvironmentXYZTheta::movementPossible(Traversab
         //current node is not drivable
         if(!travGen.expandNode(targetNode))
         {
-//             std::cout << "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB" << std::endl;
             return nullptr;
         }
     }
     
     if(targetNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
     {
-//         std::cout << "NODE NOT TRAVERSABLE: " << targetNode->getIndex().transpose() << std::endl;
         return nullptr;
     }
     
@@ -396,7 +356,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         //current node is not drivable
         if(!travGen.expandNode(travNode))
         {
-//             cout << "Node " << travNode->getIndex().transpose() << "Is not drivable" << endl;
             return;
         }
     }
@@ -441,7 +400,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         
         if(!checkCollisions(nodesOnPath, motion))
         {
-//         std::cout << "COLLLIIIIISSSSSION" << std::endl;
 //         continue;
         }
         
@@ -483,27 +441,9 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         {
             successthetaNode = createNewState(motion.endTheta, successXYNode);
         }
-        
-//         const int startHeu = GetStartHeuristic(SourceStateID);
-//                 
-//         const int curHeu = GetStartHeuristic(successthetaNode->id);
-//         
+               
          const double avgSlope = getAvgSlope(nodesOnPath) * travConf.slopeMetricScale;
-//         
-//         if(std::abs(startHeu - curHeu) > int(motion.baseCost + motion.baseCost * avgSlope))
-//         {
-//             std::cout <<  "sourceNode->getIndex(): " << sourceNode->getIndex().transpose() << std::endl;
-//             std::cout <<  "successthetaNode->getIndex(): " << successXYNode->getIndex() << std::endl;
-//             std::cout << "norm: " << (sourceNode->getIndex() - successXYNode->getIndex()).norm() << std::endl;
-//             
-//             std::cout << "startHeu: " << startHeu << std::endl;
-//             std::cout << "curHeu: " << curHeu << std::endl;
-//             std::cout << "motion.baseCost: " << motion.baseCost << std::endl;
-//             std::cout << "int(motion.baseCost + motion.baseCost * avgSlope): " << int(motion.baseCost + motion.baseCost * avgSlope) << std::endl;
-//         }
-        
-//         oassert(std::abs(startHeu - curHeu) <= int(motion.baseCost + motion.baseCost * avgSlope));
-        
+
         SuccIDV->push_back(successthetaNode->id);
         
         oassert(int(motion.baseCost + motion.baseCost * avgSlope) >= motion.baseCost);
@@ -511,14 +451,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         CostV->push_back(int(motion.baseCost + motion.baseCost * avgSlope));
         motionIdV.push_back(motion.id);
     }
-    
-//     std::cout << "SUCCS: " << SourceStateID << " -> ";
-//     for(int id : *SuccIDV)
-//     {
-//         std::cout << id << ", ";
-//     }
-//     std::cout << std::endl;
-    
 }
 
 bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGenerator3d::Node* >& path,
@@ -707,14 +639,12 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         }
     }
     std::cout << stateIDPath.back() << " ";
-
     std::cout << std::endl;
 
     curPart.spline.interpolate(positions);
     curPart.speed = 0;
     result.push_back(curPart);
 }
-
 
 maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > EnvironmentXYZTheta::getTraversabilityBaseMap() const
 {
@@ -731,51 +661,6 @@ const maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase >& Environment
     return *(mlsGrid.get());
 }
 
-// const Eigen::AlignedBox3d& EnvironmentXYZTheta::PreComputedBoundingBoxes::getBoundingBox(const int theta) const
-// {
-//   //TODO
-// }
-
-// void EnvironmentXYZTheta::PreComputedBoundingBoxes::preComputeBoxes(const double robotXSize, const double robotYSize,
-//                                                                     const double robotZSize, const int numAngles,
-//                                                                     boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> > mlsGrid)
-// {
-//     const double x2 = robotXSize / 2.0;
-//     const double y2 = robotYSize / 2.0;
-//     const double z2 = robotZSize / 2.0;
-// 
-//     maps::grid::Vector3d robotPosition(0, 0, 0);
-// 
-//     //TODO improve performance by pre calculating lots of stuff
-//     //create rotated robot bounding box
-//     Eigen::Matrix<double, 3, 8> corners; //colwise corner vectors
-//     corners.col(0) << -x2, -y2, -(z2/2.0); //FIXME replace -(z2/2.0) with something real.
-//     corners.col(1) << x2, -y2, -(z2/2.0);
-//     corners.col(2) << x2, y2, -(z2/2.0);
-//     corners.col(3) << -x2, y2, -(z2/2.0);
-//     corners.col(4) << x2, -y2, z2/2.0;
-//     corners.col(5) << x2, y2, z2/2.0;
-//     corners.col(6) << -x2, y2, z2/2.0;
-//     corners.col(7) << -x2, -y2, z2/2.0;
-//     
-//     const double stepDist = 2.0 * M_PI / numAngles;
-//     const double stepDist2 = stepDist / 2.0;
-//     std::cout << "rotations: " << std::endl;
-//     for(int i = 0; i < numAngles; ++i)
-//     {
-//         const double rot = i * stepDist + stepDist2;
-//         std::cout << i << std::endl;
-//         const Eigen::Matrix3d rot = Eigen::AngleAxisd(rot, Eigen::Vector3d(0, 0, 1)).toRotationMatrix();
-//         const Eigen::Matrix<double, 3, 8> rotatedCorners = (rot * corners).colwise() + robotPosition;
-// 
-//         //find min/max for bounding box
-//         const Eigen::Vector3d min = rotatedCorners.rowwise().minCoeff();
-//         const Eigen::Vector3d max = rotatedCorners.rowwise().maxCoeff();
-// 
-//         const Eigen::AlignedBox3d aabb(min, max); //aabb around the rotated robot bounding box
-//     }
-// }
-
 const PreComputedMotions& EnvironmentXYZTheta::getAvailableMotions() const
 {
     return availableMotions;
@@ -790,6 +675,7 @@ double EnvironmentXYZTheta::getAvgSlope(std::vector<TraversabilityGenerator3d::N
     }
     return slopeSum / path.size();
 }
+
 double EnvironmentXYZTheta::getAnglebetweenPlaneAndXY(const Eigen::Hyperplane< double, int(3) >& plane) const
 {
     const Eigen::Vector3d zNormal(Eigen::Vector3d::UnitZ());
@@ -798,18 +684,6 @@ double EnvironmentXYZTheta::getAnglebetweenPlaneAndXY(const Eigen::Hyperplane< d
     const double angle = acos(planeNormal.dot(zNormal));
     oassert(!std::isnan(angle));
     oassert(!std::isinf(angle));
-    
-    bool val =(angle >= 0);
-    
-    if(!val)
-    {
-        std::cout << "znormal: " << zNormal.transpose() << std::endl;
-        std::cout << "planeNormal: " << planeNormal.transpose() << std::endl;
-        std::cout << "angle: " << angle << std::endl;
-        std::cout << "planeNormal.dot(zNormal): " << planeNormal.dot(zNormal) << std::endl;
-    }
-    
-    oassert(val);
     return angle;
 }
 
@@ -832,34 +706,35 @@ void EnvironmentXYZTheta::precomputeCost()
            i != goalXYZNode->getUserData().travNode->getUserData().id &&
            costToStart[i] <= 0)
         {
-            std::cout << "heuristic: " << costToStart[i] << std::endl;
+            throw std::runtime_error("Heuristic of node other than start or goal is 0");
         }
-        
     }
 }
 
 //Adapted from: https://rosettacode.org/wiki/Dijkstra%27s_algorithm#C.2B.2B
 void EnvironmentXYZTheta::dijkstraComputeCost(TraversabilityGenerator3d::Node* source,
-                          std::vector<double> &cost)
+                          std::vector<double> &outDistances)
 {
-    using weight_t = double;
     using namespace maps::grid;
     
-    int n = travGen.getNumNodes();
-    cost.clear();
-    cost.resize(n, std::numeric_limits< int >::max());
+    outDistances.clear();
+    outDistances.resize(travGen.getNumNodes(), std::numeric_limits< int >::max());
+    
     const int sourceId = source->getUserData().id;
-    cost[sourceId] = 0;
-    std::set<std::pair<weight_t, TraversabilityGenerator3d::Node*>> vertex_queue;
-    std::set<std::pair<weight_t, TraversabilityGenerator3d::Node*>> vertex_queue_debug; //FIXME remove after debug
-    vertex_queue.insert(std::make_pair(cost[sourceId], source));
-    vertex_queue_debug.insert(std::make_pair(cost[sourceId], source));
+    outDistances[sourceId] = 0;
+    
+    std::set<std::pair<double, TraversabilityGenerator3d::Node*>> vertexQ;
+    
+//     std::set<std::pair<double, TraversabilityGenerator3d::Node*>> vertex_queue_debug; //FIXME remove after debug
+    
+    vertexQ.insert(std::make_pair(outDistances[sourceId], source));
+//     vertex_queue_debug.insert(std::make_pair(outDistances[sourceId], source));
  
-    while (!vertex_queue.empty()) 
+    while (!vertexQ.empty()) 
     {
-        weight_t dist = vertex_queue.begin()->first;
-        TraversabilityGenerator3d::Node* u = vertex_queue.begin()->second;
-        vertex_queue.erase(vertex_queue.begin());
+        double dist = vertexQ.begin()->first;
+        TraversabilityGenerator3d::Node* u = vertexQ.begin()->second;
+        vertexQ.erase(vertexQ.begin());
         
         const Eigen::Vector3d uPos(u->getIndex().x() * travConf.gridResolution,
                                    u->getIndex().y() * travConf.gridResolution,
@@ -872,31 +747,30 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TraversabilityGenerator3d::Node* s
             const Eigen::Vector3d vPos(vCasted->getIndex().x() * travConf.gridResolution,
                                        vCasted->getIndex().y() * travConf.gridResolution,
                                        vCasted->getHeight());
-            //FIXME not sure if using height is a good idea
-            const weight_t distance = (vPos - uPos).norm();
-            weight_t distance_through_u = dist + distance;
+
+            const double distance = (vPos - uPos).norm();
+            double distance_through_u = dist + distance;
             const int vId = vCasted->getUserData().id;
-            if (distance_through_u < cost[vId])
+            if (distance_through_u < outDistances[vId])
             {
-                vertex_queue.erase(std::make_pair(cost[vId], vCasted));
-                vertex_queue_debug.erase(std::make_pair(cost[vId], vCasted));
-                cost[vId] = distance_through_u;
-                vertex_queue.insert(std::make_pair(cost[vId], vCasted));
-                vertex_queue_debug.insert(std::make_pair(cost[vId], vCasted));
+                vertexQ.erase(std::make_pair(outDistances[vId], vCasted));
+//                 vertex_queue_debug.erase(std::make_pair(outDistances[vId], vCasted));
+                outDistances[vId] = distance_through_u;
+                vertexQ.insert(std::make_pair(outDistances[vId], vCasted));
+//                 vertex_queue_debug.insert(std::make_pair(outDistances[vId], vCasted));
             }
         }
     }
-    
-    //FIXME remove after debug
-    debugCost.clear();
-    for(const std::pair<weight_t, TraversabilityGenerator3d::Node*>& it : vertex_queue_debug)
-    {
-        const int cost = it.first;
-        const TraversabilityGenerator3d::Node* node = it.second;
-        Eigen::Vector3d pos(node->getIndex().x() * travConf.gridResolution, node->getIndex().y() * travConf.gridResolution, node->getHeight());
-        pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-        debugCost.push_back(Eigen::Vector4d(pos.x(), pos.y(), pos.z(), cost));
-    }
+
+//     debugCost.clear();
+//     for(const std::pair<double, TraversabilityGenerator3d::Node*>& it : vertex_queue_debug)
+//     {
+//         const int cost = it.first;
+//         const TraversabilityGenerator3d::Node* node = it.second;
+//         Eigen::Vector3d pos(node->getIndex().x() * travConf.gridResolution, node->getIndex().y() * travConf.gridResolution, node->getHeight());
+//         pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+//         debugCost.push_back(Eigen::Vector4d(pos.x(), pos.y(), pos.z(), cost));
+//     }
 }
 
 }
