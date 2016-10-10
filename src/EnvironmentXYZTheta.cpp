@@ -400,7 +400,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         
         if(!checkCollisions(nodesOnPath, motion))
         {
-//         continue;
+            continue;
         }
         
         curIndex = finalPos;
@@ -495,32 +495,38 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
         
         const Eigen::AlignedBox3d aabb(min, max); //aabb around the rotated robot bounding box    
 
-        const auto intersectingPatches = mlsGrid->intersectAABB(aabb);
-        if(intersectingPatches.size() > 0)
-        {
-            //the collision is inside the aabb. Still need to check whether at least
-            //one patch is inside the real box
-            const Eigen::Matrix3d rotInv = rot.transpose();
-            for(const pair<maps::grid::Index, const maps::grid::SurfacePatchBase*>& patch : intersectingPatches)
+        
+        const Eigen::Matrix3d rotInv = rot.transpose();
+        bool intersects = false;
+        mlsGrid->intersectAABB_callback(aabb,
+            [&rotInv, &intersects, this, &robotPosition, &rotQ, &rot] //FIXME do not catch rotQ after debug
+            (const maps::grid::Index& idx, const maps::grid::SurfacePatchBase& p)
             {
-                // FIXME this actually only tests if the top of the patch intersects with the robot
+                //FIXME this actually only tests if the top of the patch intersects with the robot
                 maps::grid::Vector3d pos;
-                double z = patch.second->getMax();
-                pos << (patch.first.cast<double>() + Eigen::Vector2d(0.5, 0.5)).cwiseProduct(mlsGrid->getResolution()), z;
+                double z = p.getMax();
+                pos << (idx.cast<double>() + Eigen::Vector2d(0.5, 0.5)).cwiseProduct(this->mlsGrid->getResolution()), z;
                 //transform pos into coordinate system of oriented bounding box
                 pos -= robotPosition;
                 pos = rotInv * pos;
                 
-                if( (abs(pos.array()) <= robotHalfSize.array()).all())
+                if((abs(pos.array()) <= this->robotHalfSize.array()).all())
                 {
-                    intersectionPositions.push_back(rot * pos + robotPosition);
-                    debugCollisionPoses.push_back(base::Pose(mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * robotPosition, rotQ));
-                    //found at least one patch that is inside the oriented bchecounding box
-                    return false;
+                    //found at least one patch that is inside the oriented boundingbox
+                    //FIXME remove after debug
+                    this->intersectionPositions.push_back(rot * pos + robotPosition);
+                    this->debugCollisionPoses.push_back(base::Pose(this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * robotPosition, rotQ));
+                    intersects = true;
+                    return true;//abort intersection check
                 }
-            }
-        }
+                return false; //continue intersection check
+            });
+        
+        //abort if one of the path elements intersects the map
+        if(intersects)
+            return false;
     }
+    
     return true;
 }
 
@@ -697,7 +703,7 @@ void EnvironmentXYZTheta::precomputeCost()
     assert(costToStart.size() == costToEnd.size());
     
     travNodeIdToDistance.resize(costToStart.size(), Distance(std::numeric_limits<double>::max(), std::numeric_limits<double>::max()));
-    for(int i = 0; i < costToStart.size(); ++i)
+    for(size_t i = 0; i < costToStart.size(); ++i)
     {
         travNodeIdToDistance[i].distToStart = costToStart[i];
         travNodeIdToDistance[i].distToGoal = costToEnd[i];

@@ -157,9 +157,9 @@ void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal,
 {
     motion_planning_libraries::SplinePrimitivesConfig config;
     config.gridSize = 0.2;// mlsMap.getResolution().x();
-    config.destinationCircleRadius = 12;
-    config.numAngles = 16;
-    config.numEndAngles = 8;
+    config.destinationCircleRadius = 8;
+    config.numAngles = 10;
+    config.numEndAngles = 5;
     config.cellSkipFactor = 0.1;
     config.generatePointTurnMotions = false;
     
@@ -177,7 +177,7 @@ void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal,
     
     ugv_nav4d::TraversabilityConfig conf;
     conf.gridResolution = 0.2;//  mlsMap.getResolution().x();
-    conf.maxSlope = 90.0/180.0 * M_PI;
+    conf.maxSlope = 30.0/180.0 * M_PI;
     conf.maxStepHeight = 0.5; //space below robot
     conf.robotSizeX = 0.5;
     conf.robotSizeY =  0.7;
@@ -197,7 +197,7 @@ void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal,
     
     std::cout << std::endl << std::endl;
     std::cout << "Planning: " << start.transpose() << " -> " << goal.transpose() << std::endl;
-    const bool result = planner.plan(base::Time::fromSeconds(30), startState, endState);
+    const bool result = planner.plan(base::Time::fromSeconds(60), startState, endState);
 
     if(!result)
         std::cout << "FAIL" << std::endl;
@@ -210,6 +210,8 @@ void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal,
     }
     
     envViz.setHeuristic(planner.getEnv()->debugCost);
+    envViz.setCollisionPoses(planner.getEnv()->debugCollisionPoses);
+    envViz.setRobotHalfSize(planner.getEnv()->robotHalfSize);
     emit plannerDone(path, planner.getTraversabilityMap(), planner.getMotions());
 }
 

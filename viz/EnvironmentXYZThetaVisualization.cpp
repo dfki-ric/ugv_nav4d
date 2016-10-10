@@ -189,10 +189,8 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
     const int maxPoses = 500;
     int step = p->collisionPoses.size() / maxPoses;
     if(step <= 0)
-        step = 1;
-    std::cout << "STEP: " << step << std::endl;
-    std::cout << "SIZE: " << p->collisionPoses.size() << std::endl;
-    for(int i = 0; i < p->collisionPoses.size(); i += step)
+        step = 1; 
+    for(size_t i = 0; i < p->collisionPoses.size(); i += step)
     {
         const auto pose = p->collisionPoses[i];
         osg::ref_ptr<osg::Box> box(new osg::Box);
@@ -260,7 +258,6 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
     {  
         if(motion.type == ugv_nav4d::Motion::Type::MOV_POINTTURN)
         {
-            osg::Geode* geode = new osg::Geode();
             osg::ref_ptr<osg::PositionAttitudeTransform> trans = new osg::PositionAttitudeTransform();
             trans->setPosition(osg::Vec3d(cellX * p->gridSize + p->gridSize/2 + p->startPos.x(), cellY * p->gridSize + p->gridSize/2 + + p->startPos.y(), + p->startPos.z()));
             p->root->addChild(trans);
@@ -505,6 +502,17 @@ void EnvironmentXYZThetaVisualization::setHeuristic(const std::vector<Eigen::Vec
 {
     p->cost = cost;
 }
+
+void EnvironmentXYZThetaVisualization::setCollisionPoses(std::vector<base::Pose>& poses)
+{
+    p->collisionPoses = poses;
+}
+
+void EnvironmentXYZThetaVisualization::setRobotHalfSize(const Eigen::Vector3d& value)
+{
+    p->robotSize2 = value;
+}
+
 
 
 

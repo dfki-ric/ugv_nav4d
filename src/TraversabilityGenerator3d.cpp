@@ -94,7 +94,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TraversabilityGenerator3d::No
     seg.segment (*inliers, *coefficients);
     if (inliers->indices.size () <= 5)
     {
-        std::cerr << "Could not estimate Ground Plane" << std::endl;
+//         std::cerr << "Could not estimate Ground Plane" << std::endl;
         return false;
     }
 

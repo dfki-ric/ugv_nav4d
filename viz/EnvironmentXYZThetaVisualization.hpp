@@ -30,6 +30,8 @@ namespace vizkit3d
       void setSolution(std::vector<QVector3D> path);
       void setSolutionMotions(const std::vector<ugv_nav4d::Motion>& motions);
       void setHeuristic(const std::vector<Eigen::Vector4d>& cost);
+      void setCollisionPoses(std::vector<base::Pose>& poses);
+      void setRobotHalfSize(const Eigen::Vector3d& value);
 
     protected:
         virtual osg::ref_ptr<osg::Node> createMainNode();
