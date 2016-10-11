@@ -12,7 +12,7 @@
 //If this is defined, additional debug data for visualization will be generated.
 //It might slow down the planning
 
-//#define ENVIRONMENT_XYZ_THETA_GENERATE_DEBUG_DATA
+#define ENVIRONMENT_XYZ_THETA_GENERATE_DEBUG_DATA
 
 backward::SignalHandling crashHandler;
 
@@ -453,13 +453,13 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             successthetaNode = createNewState(motion.endTheta, successXYNode);
         }
                
-//          const double avgSlope = getAvgSlope(nodesOnPath) * travConf.slopeMetricScale;
+        const double avgSlope = getAvgSlope(nodesOnPath) * travConf.slopeMetricScale;
         
         SuccIDV->push_back(successthetaNode->id);
         
-//         oassert(int(motion.baseCost + motion.baseCost * avgSlope) >= motion.baseCost);
+         oassert(int(motion.baseCost + motion.baseCost * avgSlope) >= motion.baseCost);
         oassert(motion.baseCost > 0);
-        CostV->push_back(int(motion.baseCost)); // + motion.baseCost * avgSlope));
+        CostV->push_back(int(motion.baseCost + motion.baseCost * avgSlope));
         motionIdV.push_back(motion.id);
     }
 }
