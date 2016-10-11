@@ -101,28 +101,28 @@ void PlannerGui::loadMls()
     if(!file.isEmpty())
     {
         std::ifstream fileIn(file.toStdString());       
-        try
-        {
-            boost::archive::binary_iarchive mlsIn(fileIn);
-            maps::grid::MLSMapSloped mlsInput;
-            mlsIn >> mlsInput;
-            mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
-            mlsViz.updateData(mlsMap);
-            return;
-        }
-        catch(...) {}
-        
 //         try
 //         {
 //             boost::archive::binary_iarchive mlsIn(fileIn);
-//             envire::core::EnvireGraph g;
-//             g.loadFromFile(file.toStdString());
-//             maps::grid::MLSMapKalman mlsInput = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
+//             maps::grid::MLSMapSloped mlsInput;
+//             mlsIn >> mlsInput;
 //             mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
 //             mlsViz.updateData(mlsMap);
 //             return;
 //         }
-//         catch(...) {}   
+//         catch(...) {}
+        
+        try
+        {
+            boost::archive::binary_iarchive mlsIn(fileIn);
+            envire::core::EnvireGraph g;
+            g.loadFromFile(file.toStdString());
+            maps::grid::MLSMapKalman mlsInput = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
+            mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
+            mlsViz.updateData(mlsMap);
+            return;
+        }
+        catch(...) {}   
         
 
         

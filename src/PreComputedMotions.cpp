@@ -8,23 +8,15 @@ namespace ugv_nav4d
 using namespace motion_planning_libraries;
 
 
-
-RobotModel::RobotModel(double tr, double rv) : translationalVelocity(tr), rotationalVelocity(rv)
-{
-
-}
-
 PreComputedMotions::PreComputedMotions(const SplinePrimitivesConfig& primitiveConfig,
-                                       const RobotModel& model,
                                        const motion_planning_libraries::Mobility& mobilityConfig)
 {
     SbplSplineMotionPrimitives prims(primitiveConfig);
-    readMotionPrimitives(prims, model, mobilityConfig);
+    readMotionPrimitives(prims, mobilityConfig);
 }
 
 
 void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& primGen,
-                                              const RobotModel& model,
                                               const motion_planning_libraries::Mobility& mobilityConfig)
 {
     const int numAngles = primGen.getConfig().numAngles;
@@ -110,7 +102,7 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
                 }
                 assert(motion.intermediateSteps.size() > 0); //at least the end pose should always be part of the steps
             }
-            computeSplinePrimCost(prim, model, motion);
+            computeSplinePrimCost(prim, mobilityConfig, motion);
             setMotionForTheta(motion, motion.startTheta);
         }
     }
@@ -156,8 +148,8 @@ void PreComputedMotions::setMotionForTheta(const Motion& motion, const DiscreteT
 }
 
 void PreComputedMotions::computeSplinePrimCost(const SplinePrimitive& prim,
-                                              const RobotModel &model,
-                                              Motion& outMotion) const
+                                               const Mobility& mobilityConfig,
+                                               Motion& outMotion) const
 {
     
     double linearDist = 0;
@@ -183,10 +175,10 @@ void PreComputedMotions::computeSplinePrimCost(const SplinePrimitive& prim,
         }
     }
         
-    const double translationalVelocity = std::min(model.translationalVelocity, outMotion.speed);
-    const double rotationalVelocity = model.rotationalVelocity;
+    const double translationalVelocity = std::min(mobilityConfig.mSpeed, outMotion.speed);
+
     const double linearTime = linearDist / translationalVelocity;
-    const double angularTime = angularDist / rotationalVelocity;
+    const double angularTime = angularDist / mobilityConfig.mTurningSpeed;
     
     //use ulonglong to catch overflows caused by large cost multipliers
     unsigned long long cost = ceil(std::max(angularTime, linearTime) * costScaleFactor * outMotion.costMultiplier);

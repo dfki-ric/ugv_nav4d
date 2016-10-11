@@ -41,13 +41,13 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<MLGrid> mlsGrid,
                                          const Mobility& mobilityConfig) :
     travGen(travConf)
     , mlsGrid(mlsGrid)
-    , robotModel(mobilityConfig.mSpeed, mobilityConfig.mTurningSpeed)    
-    , availableMotions(primitiveConfig, robotModel, mobilityConfig)
+    , availableMotions(primitiveConfig, mobilityConfig)
     , startThetaNode(nullptr)
     , startXYZNode(nullptr)
     , goalThetaNode(nullptr)
     , goalXYZNode(nullptr)
     , travConf(travConf)
+    , mobilityConfig(mobilityConfig)
 {
     numAngles = primitiveConfig.numAngles;
     travGen = TraversabilityGenerator3d(travConf);
@@ -243,8 +243,8 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     const ThetaNode *sourceThetaNode = sourceHash.thetaNode;
     
     const double sourceToGoalDist = travNodeIdToDistance[travNode->getUserData().id].distToGoal;
-    const double timeTranslation = sourceToGoalDist / robotModel.translationalVelocity;
-    const double timeRotation = sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian() / robotModel.rotationalVelocity;
+    const double timeTranslation = sourceToGoalDist / mobilityConfig.mSpeed;
+    const double timeRotation = sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian() / mobilityConfig.mTurningSpeed;
     
     const int result = floor(std::max(timeTranslation, timeRotation) * costScaleFactor);
     oassert(result >= 0);
@@ -259,8 +259,8 @@ int EnvironmentXYZTheta::GetStartHeuristic(int stateID)
     const ThetaNode *targetThetaNode = targetHash.thetaNode;
 
     const double startToTargetDist = travNodeIdToDistance[travNode->getUserData().id].distToStart;
-    const double timeTranslation = startToTargetDist / robotModel.translationalVelocity;
-    double timeRotation = startThetaNode->theta.shortestDist(targetThetaNode->theta).getRadian() / robotModel.rotationalVelocity;
+    const double timeTranslation = startToTargetDist / mobilityConfig.mSpeed;
+    double timeRotation = startThetaNode->theta.shortestDist(targetThetaNode->theta).getRadian() / mobilityConfig.mTurningSpeed;
     
     const int result = floor(std::max(timeTranslation, timeRotation) * costScaleFactor);
     oassert(result >= 0);

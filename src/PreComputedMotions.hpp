@@ -18,17 +18,6 @@ namespace motion_planning_libraries
 namespace ugv_nav4d
 {
 
-class RobotModel
-{
-public:
-    RobotModel(double tr, double rv);
-    
-    ///in m per sec
-    double translationalVelocity;
-    ///in rad per sec
-    double rotationalVelocity;
-};
-  
 struct PoseWithCell
 {
     base::Pose2D pose;
@@ -83,16 +72,14 @@ public:
      *                       mobilityConfig.mMinTurningRadius will be used to
      *                       filter the splines and remove all splines with a smaller turning radius.*/
     PreComputedMotions(const motion_planning_libraries::SplinePrimitivesConfig& primitiveConfig,
-                       const RobotModel &model,
                        const motion_planning_libraries::Mobility& mobilityConfig);
     
     void readMotionPrimitives(const motion_planning_libraries::SbplSplineMotionPrimitives& primGen,
-                              const RobotModel& model,
                               const motion_planning_libraries::Mobility& mobilityConfig);
     
     void setMotionForTheta(const Motion &motion, const DiscreteTheta &theta);
     
-    void preComputeCost(Motion &motion, const RobotModel &model);
+    void preComputeCost(Motion &motion);
     
     const std::vector<Motion> &getMotionForStartTheta(const DiscreteTheta &theta) const
     {
@@ -113,8 +100,7 @@ public:
 private:
     
     void computeSplinePrimCost(const motion_planning_libraries::SplinePrimitive& prim,
-                               const RobotModel &model,
-                               Motion& outMotion) const;
+                               const motion_planning_libraries::Mobility& mobilityConfig, Motion& outMotion) const;
     
 };
 

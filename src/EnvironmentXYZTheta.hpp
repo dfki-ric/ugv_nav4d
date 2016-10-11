@@ -77,7 +77,6 @@ protected:
      * Stored in real-world coordinates (i.e. do NOT scale with gridResolution before use)*/
     std::vector<Distance> travNodeIdToDistance;
     
-    RobotModel robotModel;
     PreComputedMotions availableMotions;
     
     ThetaNode *createNewState(const DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
@@ -184,6 +183,8 @@ private:
     TraversabilityConfig travConf;
     
     unsigned int numAngles;
+    
+    motion_planning_libraries::Mobility mobilityConfig;
 };
 
 }

@@ -46,7 +46,7 @@ namespace vizkit3d
         
     private:
         struct Data;
-        int numSuccs = 9999999999999999;
+        int numSuccs = 999999;
         Data* p;
     };
 }
