@@ -17,6 +17,7 @@ namespace vizkit3d
     Q_OBJECT
     
     Q_PROPERTY(int numSuccs READ getNumSuccs WRITE setNumSuccs)
+    Q_PROPERTY(bool showHeuristic READ getShowHeuristic WRITE setShowHeuristic)
     
     public:
         EnvironmentXYZThetaVisualization();
@@ -29,8 +30,6 @@ namespace vizkit3d
       void setGridSize(const double gridSize); //size of one grid cell
       void setStartPos(const double x, const double y, const double z);
       void setGoalPos(const double x, const double y, const double z);
-      void setSolution(std::vector<QVector3D> path);
-      void setSolutionMotions(const std::vector<ugv_nav4d::Motion>& motions);
       void setHeuristic(const std::vector<Eigen::Vector4d>& cost);
       void setCollisionPoses(std::vector<base::Pose>& poses);
       void setRobotHalfSize(const Eigen::Vector3d& value);
@@ -38,6 +37,9 @@ namespace vizkit3d
       
       int getNumSuccs();
       void setNumSuccs(int val);
+      
+      void setShowHeuristic(bool val);
+      bool getShowHeuristic();
 
     protected:
         virtual osg::ref_ptr<osg::Node> createMainNode();
@@ -47,6 +49,7 @@ namespace vizkit3d
     private:
         struct Data;
         int numSuccs = 999999;
+        bool showHeuristic = false;
         Data* p;
     };
 }
