@@ -56,5 +56,9 @@ private:
     Eigen::Vector3f start; //is inf if not set
     Eigen::Vector3f goal; //is inf if not set
     bool pickStart = true;
+    bool threadRunning = false;
+    motion_planning_libraries::SplinePrimitivesConfig config;
+    motion_planning_libraries::Mobility mobility;
+    ugv_nav4d::TraversabilityConfig conf;
     
 };

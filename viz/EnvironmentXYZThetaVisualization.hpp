@@ -16,6 +16,8 @@ namespace vizkit3d
     {
     Q_OBJECT
     
+    Q_PROPERTY(int numSuccs READ getNumSuccs WRITE setNumSuccs)
+    
     public:
         EnvironmentXYZThetaVisualization();
         ~EnvironmentXYZThetaVisualization();
@@ -32,6 +34,10 @@ namespace vizkit3d
       void setHeuristic(const std::vector<Eigen::Vector4d>& cost);
       void setCollisionPoses(std::vector<base::Pose>& poses);
       void setRobotHalfSize(const Eigen::Vector3d& value);
+      void setSuccessors(std::vector<Eigen::Vector3d>& succs);
+      
+      int getNumSuccs();
+      void setNumSuccs(int val);
 
     protected:
         virtual osg::ref_ptr<osg::Node> createMainNode();
@@ -40,6 +46,7 @@ namespace vizkit3d
         
     private:
         struct Data;
+        int numSuccs = 9999999999999999;
         Data* p;
     };
 }

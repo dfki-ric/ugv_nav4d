@@ -57,20 +57,9 @@ void addShape(osg::Group* group, osg::ref_ptr<osg::Shape> s, const osg::Vec4f& c
 
 
 struct EnvironmentXYZThetaVisualization::Data {
-    
-    // Copy of the value given to updateDataIntern.
-    //
-    // Making a copy is required because of how OSG works
-    //FIXME remove all debug code afterwards
-    std::vector<maps::grid::Vector3d> debugRobotPositions;
-    std::vector<maps::grid::Vector3d> debugColissionCells;
-    //contains the min/max vectors for bounding boxes that collided with something
-    std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> debugCollisions;
-    
     Eigen::Vector3d robotSize2;
     std::vector<base::Pose> collisionPoses;
-    
-    std::vector<Eigen::Vector3d> intersectionPositions;
+    std::vector<Eigen::Vector3d> succs;
     
     //[0..2] = x,y,z, [3] = cost
     std::vector<Eigen::Vector4d> cost;
@@ -104,7 +93,11 @@ ref_ptr<Node> EnvironmentXYZThetaVisualization::createMainNode()
 
 void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 {
-     Box* unitCube = new Box( Vec3(0,0,0), p->gridSize);
+    
+    osg::Group* group = node->asGroup();
+    group->removeChildren(0, node->asGroup()->getNumChildren());
+
+    Box* unitCube = new Box( Vec3(0,0,0), p->gridSize);
     ShapeDrawable* unitCubeDrawable = new ShapeDrawable(unitCube);
     unitCubeDrawable->setColor(osg::Vec4(0, 1, 0, 1));
 //     for(const maps::grid::Vector3d& pos : p->debugRobotPositions)
@@ -118,20 +111,42 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 //         trans->addChild(childGeode);
 //     }
 
-    Box* costBox = new Box( Vec3(0,0,0), 0.2);
+    Box* costBox = new Box(Vec3(0,0,0), 0.1);
+    costBox->setHalfLengths(osg::Vec3(0.05, 0.05, 0.05));
     
-    double costMax = -9999999;
-    for(const Eigen::Vector4d& cost : p->cost)
-    {
-        costMax = std::max(costMax, cost[3]);
-    }
     
-    for(const Eigen::Vector4d& cost : p->cost)
-    { 
-        ShapeDrawable* costDrawable = new ShapeDrawable(costBox);
-        costDrawable->setColor(osg::Vec4(1, cost[3]/costMax, 0, 1));
+//     double costMax = -9999999;
+//     for(const Eigen::Vector4d& cost : p->cost)
+//     {
+//         costMax = std::max(costMax, cost[3]);
+//     }
+    
+//     std::cout << "COSTMAX: " << costMax << std::endl;
+//     costMax = 100; //FIXME because ransac sometimes produces extrem heights
+//     
+//     for(const Eigen::Vector4d& cost : p->cost)
+//     { 
+//         ShapeDrawable* costDrawable = new ShapeDrawable(costBox);
+//         costDrawable->setColor(osg::Vec4(1, cost[3]/costMax, 0, 0.5));
+//         PositionAttitudeTransform* trans = new PositionAttitudeTransform();
+//         const Vec3d osgPos(cost.x(), cost.y(), cost.z());
+//         trans->setPosition(osgPos);
+//         p->root->addChild(trans);
+//         Geode* childGeode = new Geode();
+//         childGeode->addDrawable(costDrawable);
+//         trans->addChild(childGeode);
+//     }
+    
+    Box* succBox = new Box(Vec3(0,0,0), 0.05);
+    succBox->setHalfLengths(osg::Vec3(0.05, 0.05, 0.05));
+    const int end = std::min(numSuccs, int(p->succs.size()));
+    for(int i = 0; i < end; ++i)
+    {  
+        const Eigen::Vector3d succ = p->succs[i];
+        ShapeDrawable* costDrawable = new ShapeDrawable(succBox);
+        costDrawable->setColor(osg::Vec4(double(i)/double(p->succs.size()), 0, 1, 0.3));
         PositionAttitudeTransform* trans = new PositionAttitudeTransform();
-        const Vec3d osgPos(cost.x(), cost.y(), cost.z());
+        const Vec3d osgPos(succ.x(), succ.y(), succ.z());
         trans->setPosition(osgPos);
         p->root->addChild(trans);
         Geode* childGeode = new Geode();
@@ -176,7 +191,7 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 //     }
     
 //     for(const QVector3D& pos : p->solutionPath)
-//     {
+//     {node
 //         PositionAttitudeTransform* trans = new PositionAttitudeTransform();
 //         const Vec3d osgPos(pos.x(), pos.y(), pos.z());
 //         trans->setPosition(osgPos);
@@ -234,20 +249,6 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
         p->root->addChild(geode);
     }
 #endif
-
-    for(const Eigen::Vector3d& intersection : p->intersectionPositions)
-    {
-//         PositionAttitudeTransform* trans = new PositionAttitudeTransform();
-//         const Vec3d osgPos(intersection.x(), intersection.y(), intersection.z());
-//         trans->setPosition(osgPos);
-//         p->root->addChild(trans);
-//         
-//         osg::Sphere* s = new osg::Sphere(osg::Vec3d(0, 0, 0), 0.01);
-//         
-//         Geode* childGeode = new Geode();
-//         childGeode->addDrawable(new osg::ShapeDrawable(s));
-//         trans->addChild(childGeode);
-    }
     
     int cellX = 0;
     int cellY = 0;
@@ -460,12 +461,8 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 
 void EnvironmentXYZThetaVisualization::updateDataIntern(ugv_nav4d::EnvironmentXYZTheta const& value)
 {
-    p->debugCollisions = value.debugCollisions;
-    p->debugColissionCells = value.debugColissionCells;
-    p->debugRobotPositions = value.debugRobotPositions;
     p->robotSize2 = value.robotHalfSize;
     p->collisionPoses = value.debugCollisionPoses;
-    p->intersectionPositions = value.intersectionPositions;
 }
 
 void EnvironmentXYZThetaVisualization::setGridSize(const double gridSize)
@@ -513,6 +510,22 @@ void EnvironmentXYZThetaVisualization::setRobotHalfSize(const Eigen::Vector3d& v
     p->robotSize2 = value;
 }
 
+void EnvironmentXYZThetaVisualization::setSuccessors(std::vector<Eigen::Vector3d>& succs)
+{
+    p->succs = succs;
+}
+
+int EnvironmentXYZThetaVisualization::getNumSuccs()
+{
+    return numSuccs;
+}
+
+void EnvironmentXYZThetaVisualization::setNumSuccs(int val)
+{
+    numSuccs = val;
+    emit propertyChanged("numSuccs");
+    setDirty();
+}
 
 
 

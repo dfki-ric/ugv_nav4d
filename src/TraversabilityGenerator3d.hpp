@@ -15,6 +15,7 @@ public:
     struct TrackingData
     {
         Eigen::Hyperplane<double, 3> plane;
+        double slope;
         int id; //contiguous unique id  that can be used as index for additional metadata
     };
     
@@ -36,6 +37,8 @@ private:
     bool computePlaneRansac(Node &node, const View &area);
     
     bool computePlane(Node &node, const View &area);
+    
+    double computeSlope(const Eigen::Hyperplane< double, int(3) >& plane) const;
     
     bool checkForObstacles(const View& area, Node* node);
     

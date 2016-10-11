@@ -92,20 +92,15 @@ protected:
 
     void clear();
 public:
-  
-    //FIXME remove all debug code afterwards
-    mutable std::vector<maps::grid::Vector3d> debugRobotPositions;
-    mutable std::vector<maps::grid::Vector3d> debugColissionCells;
-    //contains the min/max vectors for bounding boxes that collided with something
-    mutable std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> debugCollisions;
-    mutable std::vector<Eigen::Vector4d> debugCost;
+    mutable std::vector<Eigen::Vector4d> debugHeuristic; /**< The heuristic [x, y, z, cost]. (in world coordinates) */
+    mutable std::vector<base::Pose> debugCollisionPoses; /**< Poses of collisions that occured while planning (in world coordinates) */
+    mutable std::vector<Eigen::Vector3d> debugSuccessors; /**< All positions that the planner visited while planning in chronological order (in world coordinates) */
     
-    Eigen::Vector3d robotHalfSize;
-    mutable std::vector<base::Pose> debugCollisionPoses;
-    
-    mutable std::vector<Eigen::Vector3d> intersectionPositions;
 
+    Eigen::Vector3d robotHalfSize;
     
+    /** @param generateDebugData If true, lots of debug information will becollected
+     *                           and stored in members starting with debug*/
     EnvironmentXYZTheta(boost::shared_ptr<MLGrid > mlsGrid,
                         const TraversabilityConfig &travConf,
                         const motion_planning_libraries::SplinePrimitivesConfig &primitiveConfig,
@@ -175,7 +170,10 @@ private:
     Eigen::AlignedBox3d getRobotBoundingBox() const;
     
     void precomputeCost();
-    void dijkstraComputeCost(TraversabilityGenerator3d::Node* source, std::vector<double> &outDistances);
+    /** @param maxDist The value that should be used as maximum distance. This value is used for
+     *                 non-traversable nodes and for initialization.*/ 
+    void dijkstraComputeCost(TraversabilityGenerator3d::Node* source, std::vector<double> &outDistances,
+                             const double maxDist);
     
     /**Return the avg slope of all patches on the given @p path */
     double getAvgSlope(std::vector<TraversabilityGenerator3d::Node*> path) const;

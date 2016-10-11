@@ -119,11 +119,31 @@ bool TraversabilityGenerator3d::computePlaneRansac(TraversabilityGenerator3d::No
     {
         list.erase(&node);
         node.setHeight(newPos.z());
+//         if(abs(newPos.z()) > 1000)
+//         {
+//             std::cout << "extreme high ransac: " << newPos.z() << std::endl;// << ", idx: "<< idx.transpose() << std::endl;
+//             std::cout << "based on: ";
+//             for(PointT p : *points)
+//             {
+//                 std::cout << "(" << p.x << "," << p.y << "," << p.z << ") ";
+//             }
+//             std::cout << std::endl;
+//         }
         list.insert(&node);
     }    
+    
+    node.getUserData().slope = computeSlope(node.getUserData().plane);
+    
     return true;
 }
 
+double TraversabilityGenerator3d::computeSlope(const Eigen::Hyperplane< double, int(3) >& plane) const
+{
+    const Eigen::Vector3d zNormal(Eigen::Vector3d::UnitZ());
+    Eigen::Vector3d planeNormal = plane.normal();
+    planeNormal.normalize(); //just in case
+    return acos(planeNormal.dot(zNormal));
+}
 
 
 bool TraversabilityGenerator3d::checkForObstacles(const View& area, TraversabilityGenerator3d::Node *node)
@@ -379,6 +399,8 @@ void TraversabilityGenerator3d::addConnectedPatches( TraversabilityGenerator3d::
         
         if(!toAdd)
         {
+            if(abs(curHeight) > 1000)
+                std::cout << "extreme high node: " << curHeight << ", idx: "<< idx.transpose() << std::endl;
             toAdd = new Node(curHeight, idx);
             toAdd->getUserData().id = currentNodeId++;
             trMap.at(idx).insert(toAdd);

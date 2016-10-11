@@ -71,8 +71,12 @@ bool Planner::plan(const base::Time &maxTime, base::samples::RigidBodyState& sta
     planner->set_eps_step(0.5);
     
     if(!planner->replan(maxTime.toSeconds(), &solution))
+    {
+        std::cout << "num expands: " << planner->get_n_expands() << std::endl;
         return false;
+    }
         
+    std::cout << "num expands: " << planner->get_n_expands() << std::endl;
     std::cout << "Epsilon is " << planner->get_final_epsilon() << std::endl;
 
     std::vector<PlannerStats> stats;
