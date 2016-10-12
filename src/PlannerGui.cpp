@@ -174,7 +174,6 @@ void PlannerGui::setPlannerResult(const std::vector<base::Trajectory>& path,
     trav3dViz.updateData(travMap);
     
     envViz.setGridSize(mlsMap.getResolution().x());
-    envViz.setSolutionMotions(motions);
     envViz.setStartPos(start.x(), start.y(), start.z());
 }
 
