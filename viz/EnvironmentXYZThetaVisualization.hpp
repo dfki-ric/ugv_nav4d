@@ -18,6 +18,7 @@ namespace vizkit3d
     
     Q_PROPERTY(int numSuccs READ getNumSuccs WRITE setNumSuccs)
     Q_PROPERTY(bool showHeuristic READ getShowHeuristic WRITE setShowHeuristic)
+    Q_PROPERTY(bool showCollisions READ getShowCollisions WRITE setShowCollisions)
     
     public:
         EnvironmentXYZThetaVisualization();
@@ -40,6 +41,9 @@ namespace vizkit3d
       
       void setShowHeuristic(bool val);
       bool getShowHeuristic();
+      
+      bool getShowCollisions();
+      void setShowCollisions(bool val);
 
     protected:
         virtual osg::ref_ptr<osg::Node> createMainNode();
@@ -50,6 +54,7 @@ namespace vizkit3d
         struct Data;
         int numSuccs = 999999;
         bool showHeuristic = false;
+        bool showCollisions = false;
         Data* p;
     };
 }

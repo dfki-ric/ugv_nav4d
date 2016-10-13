@@ -717,7 +717,7 @@ void EnvironmentXYZTheta::precomputeCost()
     
     assert(costToStart.size() == costToEnd.size());
     
-    
+    travNodeIdToDistance.clear();
     travNodeIdToDistance.resize(costToStart.size(), Distance(std::numeric_limits<double>::max(), std::numeric_limits<double>::max()));
     for(size_t i = 0; i < costToStart.size(); ++i)
     {

@@ -27,20 +27,10 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     
     trajViz.setLineWidth(5);
     trajViz.setColor(QColor("Cyan"));
-    
-    loadMls();
-    
+        
     QVBoxLayout* layout = new QVBoxLayout();
        
-    layout->addWidget(&widget);
-
-    
-    slopeMetricSpinBox = new QDoubleSpinBox();
-    slopeMetricSpinBox->setMinimum(0);
-    slopeMetricSpinBox->setMaximum(9999999999999);
-    slopeMetricSpinBox->setValue(1);
-    layout->addWidget(slopeMetricSpinBox);
-    
+    layout->addWidget(&widget);    
     window.setLayout(layout);
 
     //to be able to send Trajectory via slot
@@ -51,21 +41,18 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     connect(&mlsViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
     connect(&trav3dViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
     
-    connect(this, SIGNAL(plannerDone(std::vector<base::Trajectory>,maps::grid::TraversabilityMap3d<maps::grid::TraversabilityNodeBase*>,std::vector<ugv_nav4d::Motion>)),
-            this, SLOT(setPlannerResult(std::vector<base::Trajectory>,maps::grid::TraversabilityMap3d<maps::grid::TraversabilityNodeBase*>,std::vector<ugv_nav4d::Motion>)));
-    
-    connect(slopeMetricSpinBox, SIGNAL(editingFinished()), this, SLOT(slopeMetricEditingFinished()));
+    connect(this, SIGNAL(plannerDone()), this, SLOT(plannerIsDone()));
     
     config.gridSize = 0.1;// mlsMap.getResolution().x();
-    config.destinationCircleRadius = 8;
-    config.numAngles = 12;
-    config.numEndAngles = 6;
-    config.cellSkipFactor = 0.1;
+    config.destinationCircleRadius = 5;
+    config.numAngles = 10;
+    config.numEndAngles = 5;
+    config.cellSkipFactor = 0.01;
     config.generatePointTurnMotions = false;
     
-    mobility.mSpeed = 1.3;
-    mobility.mTurningSpeed = 5.4;
-    mobility.mMinTurningRadius = 0.1;
+    mobility.mSpeed = 2.3;
+    mobility.mTurningSpeed = 3.4;
+    mobility.mMinTurningRadius = 0.08;
     
     mobility.mMultiplierForward = 1;
     mobility.mMultiplierBackward = 1;
@@ -73,17 +60,22 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     mobility.mMultiplierBackwardTurn = 2;
     mobility.mMultiplierForwardTurn = 1;
     mobility.mMultiplierPointTurn = 8;
-    
+     
     conf.gridResolution = 0.1;//  mlsMap.getResolution().x();
-    conf.maxSlope = 60.0/180.0 * M_PI;
+    conf.maxSlope = 40.0/180.0 * M_PI;
     conf.maxStepHeight = 0.5; //space below robot
     conf.robotSizeX = 0.5;
     conf.robotSizeY =  0.7;
     conf.robotHeight = 0.9; //incl space below body
+    conf.slopeMetricScale = 0.0;
+    
+    planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
     
     motion_planning_libraries::SbplSplineMotionPrimitives primitives(config);
     splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.mMinTurningRadius));
     splineViz.updateData(primitives);
+    
+    loadMls();
 }
 
 void PlannerGui::exec()
@@ -108,6 +100,7 @@ void PlannerGui::loadMls()
 //             mlsIn >> mlsInput;
 //             mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
 //             mlsViz.updateData(mlsMap);
+//             planner->updateMap(mlsMap);
 //             return;
 //         }
 //         catch(...) {}
@@ -120,6 +113,7 @@ void PlannerGui::loadMls()
             maps::grid::MLSMapKalman mlsInput = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
             mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
             mlsViz.updateData(mlsMap);
+            planner->updateMap(mlsMap);
             return;
         }
         catch(...) {}   
@@ -149,41 +143,37 @@ void PlannerGui::picked(float x, float y, float z)
 }
 
 
-void PlannerGui::slopeMetricEditingFinished()
-{
-    if(start.allFinite() && goal.allFinite())
-        startPlanThread();   
-}
-
-
 void PlannerGui::startPlanThread()
 {
     std::thread t([this](){
-        this->plan(this->start, this->goal, this->slopeMetricSpinBox->value());
+        this->plan(this->start, this->goal);
     });
     t.detach(); //needed to avoid destruction of thread at end of method
 }
 
 
-void PlannerGui::setPlannerResult(const std::vector<base::Trajectory>& path,
-                                  const maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>& travMap,
-                                  const std::vector<ugv_nav4d::Motion> motions)
+void PlannerGui::plannerIsDone()
 {
+    std::vector<base::Trajectory> path;
+    planner->getTrajectory(path);    
     trajViz.updateTr(path);
     trajViz.setLineWidth(8);
-    trav3dViz.updateData(travMap);
+    
+    trav3dViz.updateData((planner->getEnv()->getTraversabilityBaseMap()));
     
     envViz.setGridSize(mlsMap.getResolution().x());
     envViz.setStartPos(start.x(), start.y(), start.z());
+    
+    envViz.setHeuristic(planner->getEnv()->debugHeuristic);
+    envViz.setCollisionPoses(planner->getEnv()->debugCollisionPoses);
+    envViz.setRobotHalfSize(planner->getEnv()->robotHalfSize);
+    envViz.setSuccessors(planner->getEnv()->debugSuccessors);
 }
 
-void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal,
-                      const double slopeMetricScale)
+void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal)
 {
-
-    conf.slopeMetricScale = slopeMetricScale;
-    
-    ugv_nav4d::Planner planner(config, conf, mobility);
+    planner->getEnv()->debugSuccessors.clear();
+    planner->getEnv()->debugCollisionPoses.clear();
     
     base::samples::RigidBodyState startState;
     startState.position = start.cast<double>();
@@ -192,26 +182,18 @@ void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal,
     endState.position << goal.cast<double>();
     endState.orientation.setIdentity();
     
-    planner.updateMap(mlsMap);
-    
     std::cout << std::endl << std::endl;
     std::cout << "Planning: " << start.transpose() << " -> " << goal.transpose() << std::endl;
-    const bool result = planner.plan(base::Time::fromSeconds(120), startState, endState);
-
-    if(!result)
-        std::cout << "FAIL" << std::endl;
-    
-    std::vector<base::Trajectory> path;
+    const bool result = planner->plan(base::Time::fromSeconds(500), startState, endState);
     if(result)
     {
-        planner.getTrajectory(path);
         std::cout << "DONE" << std::endl;
     }
-    
-    envViz.setHeuristic(planner.getEnv()->debugHeuristic);
-    envViz.setCollisionPoses(planner.getEnv()->debugCollisionPoses);
-    envViz.setRobotHalfSize(planner.getEnv()->robotHalfSize);
-    envViz.setSuccessors(planner.getEnv()->debugSuccessors);
-    emit plannerDone(path, planner.getTraversabilityMap(), planner.getMotions());
+    else
+    {
+        std::cout << "FAIL" << std::endl;
+    }
+
+    emit plannerDone();
 }
 

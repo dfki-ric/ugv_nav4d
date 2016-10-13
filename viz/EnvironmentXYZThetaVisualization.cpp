@@ -132,18 +132,21 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
         trans->addChild(childGeode);
     }
     
-    const int maxPoses = 1000; //to avoid lag
-    int step = p->collisionPoses.size() / maxPoses;
-    if(step <= 0)
-        step = 1; 
-    for(size_t i = 0; i < p->collisionPoses.size(); i += step)
+    if(showCollisions)
     {
-        const auto pose = p->collisionPoses[i];
-        osg::ref_ptr<osg::Box> box(new osg::Box);
-        box->setHalfLengths(vec3(p->robotSize2));
-        box->setRotation(quat(pose.orientation));
-        box->setCenter(vec3(pose.position));
-        addShape(p->root, box, osg::Vec4f(1.0f, 0.1f, 0.1f, 1.0f), true);
+        const int maxPoses = 500; //to avoid lag
+        int step = p->collisionPoses.size() / maxPoses;
+        if(step <= 0)
+            step = 1; 
+        for(size_t i = 0; i < p->collisionPoses.size(); i += step)
+        {
+            const auto pose = p->collisionPoses[i];
+            osg::ref_ptr<osg::Box> box(new osg::Box);
+            box->setHalfLengths(vec3(p->robotSize2));
+            box->setRotation(quat(pose.orientation));
+            box->setCenter(vec3(pose.position));
+            addShape(p->root, box, osg::Vec4f(1.0f, 0.1f, 0.1f, 1.0f), true);
+        }
     }
 }
 
@@ -215,6 +218,19 @@ void EnvironmentXYZThetaVisualization::setShowHeuristic(bool val)
     emit propertyChanged("showHeuristic");
     setDirty();
 }
+
+bool EnvironmentXYZThetaVisualization::getShowCollisions()
+{
+    return showCollisions;
+}
+
+void EnvironmentXYZThetaVisualization::setShowCollisions(bool val)
+{
+    showCollisions = val;
+    emit propertyChanged("showCollisions");
+    setDirty();
+}
+
 
 
 

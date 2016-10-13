@@ -9,6 +9,7 @@
 #include <vizkit3d/MotionPlanningLibrariesSbplSplineVisualization.hpp>
 #include <maps/grid/MLSMap.hpp>
 #include <base/Eigen.hpp>
+#include "Planner.hpp"
 
 class PlannerGui : public QObject
 {
@@ -23,21 +24,18 @@ public slots:
     void picked(float x, float y, float z);
     
     //display the planner results
-    void setPlannerResult(const std::vector<base::Trajectory>& path,
-                          const maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>& travMap,
-                          const std::vector<ugv_nav4d::Motion> motions);
+    void plannerIsDone();
+    
     /**plan from @p staro to @p goal */
-    void plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal, const double slopeMetricScale);
+    void plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal);
     
 signals:
     //is emitted if the planner thread is done
-    void plannerDone(const std::vector<base::Trajectory>& path,
-                     const maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>& travMap,
-                     const std::vector<ugv_nav4d::Motion> motions);
+    void plannerDone();
     
 private slots:
-    void slopeMetricEditingFinished();
-            
+    
+    
 private:
     void loadMls();
     void startPlanThread();
@@ -46,7 +44,6 @@ private:
     QApplication app;
     vizkit3d::Vizkit3DWidget widget;
     QWidget window;
-    QDoubleSpinBox* slopeMetricSpinBox;
     vizkit3d::MotionPlanningLibrariesSbplSplineVisualization splineViz;
     vizkit3d::TrajectoryVisualization trajViz;
     vizkit3d::MLSMapVisualization mlsViz;
@@ -60,5 +57,6 @@ private:
     motion_planning_libraries::SplinePrimitivesConfig config;
     motion_planning_libraries::Mobility mobility;
     ugv_nav4d::TraversabilityConfig conf;
+    std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
     
 };
