@@ -47,13 +47,14 @@ private:
 
     bool getConnectedPatch(const maps::grid::Index& idx, double height, const Patch*& patch);
     
-    void clearTrMap();
     
     TraversabilityConfig config;
 public:
     TraversabilityGenerator3d(const TraversabilityConfig &config);
     ~TraversabilityGenerator3d();
 
+    void clearTrMap();
+    
     Node *generateStartNode(const Eigen::Vector3d &startPosWorld);
     void expandAll(const Eigen::Vector3d &startPosWorld);
 

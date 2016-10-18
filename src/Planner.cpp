@@ -22,12 +22,15 @@ Planner::Planner(const motion_planning_libraries::SplinePrimitivesConfig& primit
 
 
 
+
 bool Planner::plan(const base::Time &maxTime, base::samples::RigidBodyState& start, base::samples::RigidBodyState& end)
 {
     solution.clear();
     
     if(!env)
         throw std::runtime_error("Planner::plan : Error : No map was set");
+    
+    env->clear();
     
     try {
         env->setStart(start.position, start.getYaw());
@@ -47,7 +50,7 @@ bool Planner::plan(const base::Time &maxTime, base::samples::RigidBodyState& sta
     
     if(!planner)
         planner.reset(new ARAPlanner(env.get(), true));
-    
+    planner->force_planning_from_scratch_and_free_memory();
     planner->set_search_mode(false);
 
     MDPConfig mdp_cfg;

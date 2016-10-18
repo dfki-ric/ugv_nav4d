@@ -44,15 +44,15 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     connect(this, SIGNAL(plannerDone()), this, SLOT(plannerIsDone()));
     
     config.gridSize = 0.1;// mlsMap.getResolution().x();
-    config.destinationCircleRadius = 5;
-    config.numAngles = 10;
-    config.numEndAngles = 5;
-    config.cellSkipFactor = 0.01;
+    config.destinationCircleRadius = 12;
+    config.numAngles = 16;
+    config.numEndAngles = 7;
+    config.cellSkipFactor = 0.1;
     config.generatePointTurnMotions = false;
     
-    mobility.mSpeed = 2.3;
-    mobility.mTurningSpeed = 3.4;
-    mobility.mMinTurningRadius = 0.08;
+    mobility.mSpeed = 1.3;
+    mobility.mTurningSpeed = 5.4;
+    mobility.mMinTurningRadius = 0.1;
     
     mobility.mMultiplierForward = 1;
     mobility.mMultiplierBackward = 1;
@@ -127,6 +127,10 @@ void PlannerGui::loadMls()
 
 void PlannerGui::picked(float x, float y, float z)
 {   
+//     start << 5.91327,  1.38306, -1.39575;
+//     goal <<  7.47328,  1.34183, -1.39437;
+//     startPlanThread();
+    
     if(pickStart)
     {
         start << x, y, z;
@@ -184,7 +188,7 @@ void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal)
     
     std::cout << std::endl << std::endl;
     std::cout << "Planning: " << start.transpose() << " -> " << goal.transpose() << std::endl;
-    const bool result = planner->plan(base::Time::fromSeconds(500), startState, endState);
+    const bool result = planner->plan(base::Time::fromSeconds(10), startState, endState);
     if(result)
     {
         std::cout << "DONE" << std::endl;

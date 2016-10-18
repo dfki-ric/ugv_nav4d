@@ -73,8 +73,10 @@ void EnvironmentXYZTheta::clear()
         }
         l.clear();
     }
+    searchGrid.clear();
     
     idToHash.clear();
+    travNodeIdToDistance.clear();
 
     startThetaNode = nullptr;
     startXYZNode = nullptr;
@@ -86,7 +88,7 @@ void EnvironmentXYZTheta::clear()
     {
         delete p;
     }
-    StateID2IndexMapping.clear();
+    StateID2IndexMapping.clear();    
 }
 
 
@@ -457,11 +459,12 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         
         SuccIDV->push_back(successthetaNode->id);
         
-         oassert(int(motion.baseCost + motion.baseCost * avgSlope) >= motion.baseCost);
+        oassert(int(motion.baseCost + motion.baseCost * avgSlope) >= motion.baseCost);
         oassert(motion.baseCost > 0);
+        
         CostV->push_back(int(motion.baseCost + motion.baseCost * avgSlope));
         motionIdV.push_back(motion.id);
-    }
+    } 
 }
 
 bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGenerator3d::Node* >& path,
@@ -655,8 +658,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
             
         }
     }
-    std::cout << stateIDPath.back() << " ";
-    std::cout << std::endl;
+
 
     curPart.spline.interpolate(positions);
     curPart.speed = 0;

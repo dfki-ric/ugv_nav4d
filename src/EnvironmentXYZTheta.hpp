@@ -79,17 +79,16 @@ protected:
     
     PreComputedMotions availableMotions;
     
+    ThetaNode *startThetaNode;
+    XYZNode *startXYZNode;
+    ThetaNode *goalThetaNode;
+    XYZNode *goalXYZNode;
+    
     ThetaNode *createNewState(const DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
     XYZNode *createNewXYZState(TraversabilityGenerator3d::Node* travNode);
     
     ThetaNode *createNewStateFromPose(const Eigen::Vector3d& pos, double theta, EnvironmentXYZTheta::XYZNode** xyzNode);
     
-    ThetaNode *startThetaNode;
-    XYZNode *startXYZNode;
-    ThetaNode *goalThetaNode;
-    XYZNode *goalXYZNode;
-
-    void clear();
 public:
     mutable std::vector<Eigen::Vector4d> debugHeuristic; /**< The heuristic [x, y, z, cost]. (in world coordinates) */
     mutable std::vector<base::Pose> debugCollisionPoses; /**< Poses of collisions that occured while planning (in world coordinates) */
@@ -160,6 +159,10 @@ public:
     void getTrajectory(const std::vector<int> &stateIDPath, std::vector<base::Trajectory> &result);
     
     const PreComputedMotions& getAvailableMotions() const;
+    
+    /**Clears the state of the environment. Clears everything except the mls map. */
+    void clear();
+    
 private:
   
     //Return true if there is no collision on the given path.
