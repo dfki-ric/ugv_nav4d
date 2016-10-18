@@ -30,7 +30,14 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
         
     QVBoxLayout* layout = new QVBoxLayout();
        
-    layout->addWidget(&widget);    
+    layout->addWidget(&widget);
+
+    
+    slopeMetricSpinBox = new QDoubleSpinBox();
+    slopeMetricSpinBox->setMinimum(0);
+    slopeMetricSpinBox->setMaximum(9999999999999);
+    layout->addWidget(slopeMetricSpinBox);
+    
     window.setLayout(layout);
 
     //to be able to send Trajectory via slot
@@ -40,7 +47,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
 
     connect(&mlsViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
     connect(&trav3dViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
-    
+    connect(slopeMetricSpinBox, SIGNAL(editingFinished()), this, SLOT(slopeMetricEditingFinished()));
     connect(this, SIGNAL(plannerDone()), this, SLOT(plannerIsDone()));
     
     config.gridSize = 0.1;// mlsMap.getResolution().x();
@@ -68,6 +75,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     conf.robotSizeY =  0.7;
     conf.robotHeight = 0.9; //incl space below body
     conf.slopeMetricScale = 0.0;
+    slopeMetricSpinBox->setValue(conf.slopeMetricScale);
     
     planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
     
@@ -146,6 +154,15 @@ void PlannerGui::picked(float x, float y, float z)
     }
 }
 
+
+void PlannerGui::slopeMetricEditingFinished()
+{
+    if(start.allFinite() && goal.allFinite())
+    {
+        conf.slopeMetricScale = slopeMetricSpinBox->value();
+        startPlanThread();   
+    }
+}
 
 void PlannerGui::startPlanThread()
 {
