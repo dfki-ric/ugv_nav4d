@@ -5,6 +5,7 @@
 #include <osg/Material>
 #include <osgViz/modules/viz/Primitives/PrimitivesFactory.h>
 #include <vizkit3d/ColorConversionHelper.hpp>
+#include <QString>
 
 using namespace vizkit3d;
 using namespace osg;
@@ -89,6 +90,10 @@ ref_ptr<Node> EnvironmentXYZThetaVisualization::createMainNode()
 }
 
 
+
+
+
+
 void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 {
     
@@ -96,21 +101,21 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
     group->removeChildren(0, node->asGroup()->getNumChildren());
 
     if(showHeuristic)
-    {
-        Box* costBox = new Box(Vec3(0,0,0), 0.1);
-        costBox->setHalfLengths(osg::Vec3(0.05, 0.05, 0.05));
-        const double costMax = 100; //FIXME because ransac sometimes produces extrem heights
-        
+    {       
         for(const Eigen::Vector4d& cost : p->cost)
         { 
-            ShapeDrawable* costDrawable = new ShapeDrawable(costBox);
-            costDrawable->setColor(osg::Vec4(1, cost[3]/costMax, 0, 0.5));
+            osgText::Text *text= new ::osgText::Text;
+            text->setText(QString::number(cost[3], 'f', 3).toStdString());
+            text->setCharacterSize(0.1/4.0);
+            text->setAxisAlignment(osgText::Text::XY_PLANE);
+            text->setColor(osg::Vec4(0.9f, 0.1f, 0.1f, 1.0f));
+            text->setPosition(osg::Vec3(0, 0, 0.05));
             PositionAttitudeTransform* trans = new PositionAttitudeTransform();
             const Vec3d osgPos(cost.x(), cost.y(), cost.z());
             trans->setPosition(osgPos);
             p->root->addChild(trans);
             Geode* childGeode = new Geode();
-            childGeode->addDrawable(costDrawable);
+            childGeode->addDrawable(text);
             trans->addChild(childGeode);
         }
     }
