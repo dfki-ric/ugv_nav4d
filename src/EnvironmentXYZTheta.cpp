@@ -797,4 +797,10 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TraversabilityGenerator3d::Node* s
 #endif
 }
 
+const TraversabilityGenerator3d& EnvironmentXYZTheta::getTravGen() const
+{
+    return travGen;
+}
+
+
 }

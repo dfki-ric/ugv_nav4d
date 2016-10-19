@@ -71,6 +71,9 @@ public:
 
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;
     
+    /**Contains the slopes of all travnodes if debug is defined */
+    std::vector<Eigen::Vector4d> debugSlopes;
+    
 protected:
     int intersections();
 };

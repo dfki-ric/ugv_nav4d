@@ -18,6 +18,7 @@ namespace vizkit3d
     
     Q_PROPERTY(int numSuccs READ getNumSuccs WRITE setNumSuccs)
     Q_PROPERTY(bool showHeuristic READ getShowHeuristic WRITE setShowHeuristic)
+    Q_PROPERTY(bool showSlopes READ getShowSlopes WRITE setShowSlopes)
     Q_PROPERTY(bool showCollisions READ getShowCollisions WRITE setShowCollisions)
     
     public:
@@ -35,6 +36,7 @@ namespace vizkit3d
       void setCollisionPoses(std::vector<base::Pose>& poses);
       void setRobotHalfSize(const Eigen::Vector3d& value);
       void setSuccessors(std::vector<Eigen::Vector3d>& succs);
+      void setSlopes(const std::vector<Eigen::Vector4d>& slopes);
       
       int getNumSuccs();
       void setNumSuccs(int val);
@@ -44,6 +46,9 @@ namespace vizkit3d
       
       bool getShowCollisions();
       void setShowCollisions(bool val);
+      
+      bool getShowSlopes();
+      void setShowSlopes(bool val);
 
     protected:
         virtual osg::ref_ptr<osg::Node> createMainNode();
@@ -55,6 +60,7 @@ namespace vizkit3d
         int numSuccs = 999999;
         bool showHeuristic = false;
         bool showCollisions = false;
+        bool showSlopes = false;
         Data* p;
     };
 }

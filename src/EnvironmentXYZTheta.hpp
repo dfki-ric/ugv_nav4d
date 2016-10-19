@@ -151,6 +151,7 @@ public:
     
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;
     const maps::grid::TraversabilityMap3d< TraversabilityGenerator3d::Node *> &getTraversabilityMap() const;
+    const TraversabilityGenerator3d& getTravGen() const;
 
     const MLGrid &getMlsMap() const;
     

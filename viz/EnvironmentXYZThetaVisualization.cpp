@@ -64,6 +64,8 @@ struct EnvironmentXYZThetaVisualization::Data {
     
     //[0..2] = x,y,z, [3] = cost
     std::vector<Eigen::Vector4d> cost;
+    //[0..2] = x,y,z, [3] = slope
+    std::vector<Eigen::Vector4d> slopes;
 
     ref_ptr<osgviz::Object> root;
     double gridSize;
@@ -119,6 +121,27 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
             trans->addChild(childGeode);
         }
     }
+    
+    if(showSlopes)
+    {       
+        for(const Eigen::Vector4d& slope : p->slopes)
+        { 
+            osgText::Text *text= new ::osgText::Text;
+            text->setText(QString::number(slope[3], 'f', 3).toStdString());
+            text->setCharacterSize(0.1/4.0);
+            text->setAxisAlignment(osgText::Text::XY_PLANE);
+            text->setColor(osg::Vec4(0.1f, 0.1f, 0.9f, 1.0f));
+            text->setPosition(osg::Vec3(0, 0, 0.05));
+            PositionAttitudeTransform* trans = new PositionAttitudeTransform();
+            const Vec3d osgPos(slope.x(), slope.y(), slope.z());
+            trans->setPosition(osgPos);
+            p->root->addChild(trans);
+            Geode* childGeode = new Geode();
+            childGeode->addDrawable(text);
+            trans->addChild(childGeode);
+        }
+    }
+    
     
     Box* succBox = new Box(Vec3(0,0,0), 0.05);
     succBox->setHalfLengths(osg::Vec3(0.05, 0.05, 0.05));
@@ -185,6 +208,12 @@ void EnvironmentXYZThetaVisualization::setHeuristic(const std::vector<Eigen::Vec
     p->cost = cost;
 }
 
+void EnvironmentXYZThetaVisualization::setSlopes(const std::vector< Eigen::Vector4d >& slopes)
+{
+    p->slopes = slopes;
+}
+
+
 void EnvironmentXYZThetaVisualization::setCollisionPoses(std::vector<base::Pose>& poses)
 {
     p->collisionPoses = poses;
@@ -235,6 +264,21 @@ void EnvironmentXYZThetaVisualization::setShowCollisions(bool val)
     emit propertyChanged("showCollisions");
     setDirty();
 }
+
+bool EnvironmentXYZThetaVisualization::getShowSlopes()
+{
+    return showSlopes;
+}
+
+void EnvironmentXYZThetaVisualization::setShowSlopes(bool val)
+{
+    showSlopes = val;
+    emit propertyChanged("showSlopes");
+    setDirty();
+}
+
+
+
 
 
 
