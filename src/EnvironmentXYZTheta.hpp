@@ -180,8 +180,6 @@ private:
     /**Return the avg slope of all patches on the given @p path */
     double getAvgSlope(std::vector<TraversabilityGenerator3d::Node*> path) const;
     
-    double getAnglebetweenPlaneAndXY(const Eigen::Hyperplane<double, 3>& plane) const;
-    
     TraversabilityGenerator3d::Node* movementPossible(TraversabilityGenerator3d::Node* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& to);
     TraversabilityConfig travConf;
     

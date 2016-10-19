@@ -692,18 +692,8 @@ double EnvironmentXYZTheta::getAvgSlope(std::vector<TraversabilityGenerator3d::N
     {
         slopeSum += node->getUserData().slope; 
     }
-    return slopeSum / path.size();
-}
-
-double EnvironmentXYZTheta::getAnglebetweenPlaneAndXY(const Eigen::Hyperplane< double, int(3) >& plane) const
-{
-    const Eigen::Vector3d zNormal(Eigen::Vector3d::UnitZ());
-    Eigen::Vector3d planeNormal = plane.normal();
-    planeNormal.normalize(); //just in case
-    const double angle = acos(planeNormal.dot(zNormal));
-    oassert(!std::isnan(angle));
-    oassert(!std::isinf(angle));
-    return angle;
+    const double avgSlope = slopeSum / path.size();
+    return avgSlope;
 }
 
 void EnvironmentXYZTheta::precomputeCost()
@@ -720,7 +710,7 @@ void EnvironmentXYZTheta::precomputeCost()
     assert(costToStart.size() == costToEnd.size());
     
     travNodeIdToDistance.clear();
-    travNodeIdToDistance.resize(costToStart.size(), Distance(std::numeric_limits<double>::max(), std::numeric_limits<double>::max()));
+    travNodeIdToDistance.resize(costToStart.size(), Distance(maxDist, maxDist));
     for(size_t i = 0; i < costToStart.size(); ++i)
     {
         travNodeIdToDistance[i].distToStart =  costToStart[i];
@@ -761,9 +751,8 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TraversabilityGenerator3d::Node* s
         TraversabilityGenerator3d::Node* u = vertexQ.begin()->second;
         vertexQ.erase(vertexQ.begin());
         
-        const Eigen::Vector3d uPos(u->getIndex().x() * travConf.gridResolution,
-                                   u->getIndex().y() * travConf.gridResolution,
-                                   0);
+        const Eigen::Vector2d uPos(u->getIndex().x() * travConf.gridResolution,
+                                   u->getIndex().y() * travConf.gridResolution);
         
         // Visit each edge exiting u
         for(TraversabilityNodeBase *v : u->getConnections())
@@ -773,10 +762,8 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TraversabilityGenerator3d::Node* s
                 continue;
             
             TraversabilityGenerator3d::Node * vCasted = static_cast<TraversabilityGenerator3d::Node*>(v);
-            //FIXME use vector2d
-            const Eigen::Vector3d vPos(vCasted->getIndex().x() * travConf.gridResolution,
-                                       vCasted->getIndex().y() * travConf.gridResolution,
-                                       0);
+            const Eigen::Vector2d vPos(vCasted->getIndex().x() * travConf.gridResolution,
+                                       vCasted->getIndex().y() * travConf.gridResolution);
 
             const double distance = (vPos - uPos).norm();
             double distance_through_u = dist + distance;
@@ -801,7 +788,7 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TraversabilityGenerator3d::Node* s
     debugHeuristic.clear();
     for(const std::pair<double, TraversabilityGenerator3d::Node*>& it : vertex_queue_debug)
     {
-        const int cost = it.first;
+        const double cost = it.first;
         const TraversabilityGenerator3d::Node* node = it.second;
         Eigen::Vector3d pos(node->getIndex().x() * travConf.gridResolution, node->getIndex().y() * travConf.gridResolution, node->getHeight());
         pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
