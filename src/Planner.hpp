@@ -22,7 +22,7 @@ class Planner
     
     const motion_planning_libraries::SplinePrimitivesConfig splinePrimitiveConfig; 
     const motion_planning_libraries::Mobility mobility;
-    const TraversabilityConfig traversabilityConfig;
+    TraversabilityConfig traversabilityConfig;
     
     std::vector<int> solution;
     
@@ -38,6 +38,8 @@ public:
     void getTrajectory(std::vector<base::Trajectory> &trajectory);
     
     std::vector<Motion> getMotions() const;
+    
+    void setTravConfig(const TraversabilityConfig& config);
     
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* >getTraversabilityMap() const;
     

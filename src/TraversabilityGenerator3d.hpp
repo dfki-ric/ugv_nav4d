@@ -16,7 +16,7 @@ public:
     {
         Eigen::Hyperplane<double, 3> plane;
         double slope;
-        int id; //contiguous unique id  that can be used as index for additional metadata
+        size_t id; //contiguous unique id  that can be used as index for additional metadata
     };
     
     typedef maps::grid::TraversabilityNode<TrackingData> Node;
@@ -72,7 +72,7 @@ public:
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;
     
     /**Contains the slopes of all travnodes if debug is defined */
-    std::vector<Eigen::Vector4d> debugSlopes;
+    mutable std::vector<Eigen::Vector4d> debugSlopes;
     
 protected:
     int intersections();

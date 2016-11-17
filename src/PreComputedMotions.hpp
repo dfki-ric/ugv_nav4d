@@ -85,8 +85,7 @@ public:
     {
         if(theta.getTheta() >= (int)thetaToMotion.size())
         {
-            std::cout << "Input theta is " << theta.getTheta();
-            throw std::runtime_error("Internal error, motion for requested theta ist not available");
+            throw std::runtime_error("Internal error, motion for requested theta ist not available. Input  theta:" + std::to_string(theta.getTheta()));
         }
         return thetaToMotion.at(theta.getTheta());
     };

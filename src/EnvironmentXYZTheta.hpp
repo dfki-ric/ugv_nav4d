@@ -151,7 +151,7 @@ public:
     
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;
     const maps::grid::TraversabilityMap3d< TraversabilityGenerator3d::Node *> &getTraversabilityMap() const;
-    const TraversabilityGenerator3d& getTravGen() const;
+    TraversabilityGenerator3d& getTravGen();
 
     const MLGrid &getMlsMap() const;
     
@@ -163,6 +163,8 @@ public:
     
     /**Clears the state of the environment. Clears everything except the mls map. */
     void clear();
+    
+    void setTravConfig(const TraversabilityConfig& cfg);
     
 private:
   

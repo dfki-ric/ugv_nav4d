@@ -2,6 +2,7 @@
 #include <envire_core/graph/EnvireGraph.hpp>
 #include <envire_core/items/Item.hpp>
 #include <QFileDialog>
+#include <QPushButton>
 #include <thread>
 #include <motion_planning_libraries/Config.hpp>
 #include "Planner.hpp"
@@ -31,12 +32,21 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     QVBoxLayout* layout = new QVBoxLayout();
        
     layout->addWidget(&widget);
+    
+    QPushButton* expandButton = new QPushButton("Create travMap");
+    layout->addWidget(expandButton);
 
     
     slopeMetricSpinBox = new QDoubleSpinBox();
     slopeMetricSpinBox->setMinimum(0);
     slopeMetricSpinBox->setMaximum(9999999999999);
     layout->addWidget(slopeMetricSpinBox);
+    
+    QPushButton* replanButton = new QPushButton("Replan");
+    layout->addWidget(replanButton);
+    
+    connect(replanButton, SIGNAL(released()), this, SLOT(replanButtonReleased()));
+    connect(expandButton, SIGNAL(released()), this, SLOT(expandPressed()));
     
     window.setLayout(layout);
 
@@ -45,7 +55,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     qRegisterMetaType<std::vector<base::Trajectory>>("std::vector<base::Trajectory>");
     qRegisterMetaType<maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>>("maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>");
 
-    connect(&mlsViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
+     connect(&mlsViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
     connect(&trav3dViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
     connect(slopeMetricSpinBox, SIGNAL(editingFinished()), this, SLOT(slopeMetricEditingFinished()));
     connect(this, SIGNAL(plannerDone()), this, SLOT(plannerIsDone()));
@@ -83,7 +93,17 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.mMinTurningRadius));
     splineViz.updateData(primitives);
     
-    loadMls();
+    if(argc > 1)
+    {
+        const std::string mls(argv[1]);
+        loadMls(mls);
+    }
+    else
+    {
+        loadMls();
+    }
+    
+
 }
 
 void PlannerGui::exec()
@@ -100,36 +120,41 @@ void PlannerGui::loadMls()
                                                         nullptr, QFileDialog::DontUseNativeDialog);
     if(!file.isEmpty())
     {
-        std::ifstream fileIn(file.toStdString());       
-//         try
-//         {
-//             boost::archive::binary_iarchive mlsIn(fileIn);
-//             maps::grid::MLSMapSloped mlsInput;
-//             mlsIn >> mlsInput;
-//             mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
-//             mlsViz.updateData(mlsMap);
-//             planner->updateMap(mlsMap);
-//             return;
-//         }
-//         catch(...) {}
-        
-        try
-        {
-            boost::archive::binary_iarchive mlsIn(fileIn);
-            envire::core::EnvireGraph g;
-            g.loadFromFile(file.toStdString());
-            maps::grid::MLSMapKalman mlsInput = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
-            mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
-            mlsViz.updateData(mlsMap);
-            planner->updateMap(mlsMap);
-            return;
-        }
-        catch(...) {}   
-        
-
-        
-        std::cerr << "Unabled to load mls. Unknown format" << std::endl;
+        loadMls(file.toStdString());
     }
+}
+
+void PlannerGui::loadMls(const std::string& path)
+{
+    std::ifstream fileIn(path);       
+//     try
+//     {
+//         boost::archive::binary_iarchive mlsIn(fileIn);
+//         maps::grid::MLSMapSloped mlsInput;
+//         mlsIn >> mlsInput;
+//         mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
+//         mlsViz.updateData(mlsMap);
+//         planner->updateMap(mlsMap);
+//         return;
+//     }
+//     catch(...) {}
+    
+    try
+    {
+        envire::core::EnvireGraph g;
+        g.loadFromFile(path);
+        maps::grid::MLSMapKalman mlsInput = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
+        mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
+        mlsViz.updateData(mlsMap);
+        planner->updateMap(mlsMap);
+        return;
+    }
+    catch(...) {}   
+    
+
+    
+    std::cerr << "Unabled to load mls. Unknown format" << std::endl;
+    
 }
 
 
@@ -160,8 +185,13 @@ void PlannerGui::slopeMetricEditingFinished()
     if(start.allFinite() && goal.allFinite())
     {
         conf.slopeMetricScale = slopeMetricSpinBox->value();
-        startPlanThread();   
     }
+}
+
+void PlannerGui::replanButtonReleased()
+{
+    planner->setTravConfig(conf);
+    startPlanThread();       
 }
 
 void PlannerGui::startPlanThread()
@@ -186,10 +216,23 @@ void PlannerGui::plannerIsDone()
     envViz.setStartPos(start.x(), start.y(), start.z());
     
     envViz.setHeuristic(planner->getEnv()->debugHeuristic);
+    envViz.setSlopes(planner->getEnv()->getTravGen().debugSlopes);
     envViz.setCollisionPoses(planner->getEnv()->debugCollisionPoses);
     envViz.setRobotHalfSize(planner->getEnv()->robotHalfSize);
     envViz.setSuccessors(planner->getEnv()->debugSuccessors);
 }
+
+void PlannerGui::expandPressed()
+{
+    planner->getEnv()->getTravGen().expandAll(Eigen::Vector3d(5.99972, 0.399847, -1.31341));
+    trav3dViz.updateData((planner->getEnv()->getTraversabilityBaseMap()));
+}
+
+
+/*
+Start:  5.99972 0.399847 -1.31341
+goal: -0.455198   7.99133   2.08586
+*/
 
 void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal)
 {
@@ -205,7 +248,7 @@ void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal)
     
     std::cout << std::endl << std::endl;
     std::cout << "Planning: " << start.transpose() << " -> " << goal.transpose() << std::endl;
-    const bool result = planner->plan(base::Time::fromSeconds(10), startState, endState);
+    const bool result = planner->plan(base::Time::fromSeconds(14), startState, endState);
     if(result)
     {
         std::cout << "DONE" << std::endl;

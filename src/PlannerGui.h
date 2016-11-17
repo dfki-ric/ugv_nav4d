@@ -35,9 +35,12 @@ signals:
     
 private slots:
     void slopeMetricEditingFinished();
+    void replanButtonReleased();
+    void expandPressed();
     
 private:
     void loadMls();
+    void loadMls(const std::string& path);
     void startPlanThread();
     
 private:
