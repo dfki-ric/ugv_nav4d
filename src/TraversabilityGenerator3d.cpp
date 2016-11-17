@@ -186,6 +186,11 @@ bool TraversabilityGenerator3d::checkForObstacles(const View& area, Traversabili
     return true;
 }
 
+void TraversabilityGenerator3d::setConfig(const TraversabilityConfig &config)
+{
+    this->config = config;
+}
+
 void TraversabilityGenerator3d::expandAll(const Eigen::Vector3d& startPosWorld)
 {
     Node *startNode = generateStartNode(startPosWorld);

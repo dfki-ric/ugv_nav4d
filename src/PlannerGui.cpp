@@ -21,6 +21,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     widget.addPlugin(&trav3dViz);
     widget.addPlugin(&envViz);
     
+    splineViz.setPluginEnabled(false);
     
     mlsViz.setCycleHeightColor(true);
     mlsViz.setShowPatchExtents(false);
@@ -30,20 +31,40 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     trajViz.setColor(QColor("Cyan"));
         
     QVBoxLayout* layout = new QVBoxLayout();
+    
        
     layout->addWidget(&widget);
     
     QPushButton* expandButton = new QPushButton("Create travMap");
-    layout->addWidget(expandButton);
-
     
-    slopeMetricSpinBox = new QDoubleSpinBox();
-    slopeMetricSpinBox->setMinimum(0);
-    slopeMetricSpinBox->setMaximum(9999999999999);
-    layout->addWidget(slopeMetricSpinBox);
+    maxSlopeSpinBox = new QDoubleSpinBox();
+    maxSlopeSpinBox->setMinimum(1);
+    maxSlopeSpinBox->setMaximum(60);
+    connect(maxSlopeSpinBox, SIGNAL(editingFinished()), this, SLOT(maxSlopeEditingFinished()));
+    QHBoxLayout* slopeLayout = new QHBoxLayout();
+    QLabel* lab = new QLabel();
+    lab->setText("max slope:");
+    slopeLayout->addWidget(lab);
+    slopeLayout->addWidget(maxSlopeSpinBox);
+    slopeLayout->addWidget(expandButton);
+    layout->addLayout(slopeLayout);
+    
+    QHBoxLayout* timeLayout = new QHBoxLayout();
+    time = new QDoubleSpinBox();
+    time->setMinimum(1);
+    time->setMaximum(999);
+    time->setValue(14);
+    QLabel* lab2 = new QLabel();
+    lab2->setText("Max planning time:");
+    timeLayout->addWidget(lab2);
+    timeLayout->addWidget(time);
+    timeLayout->addWidget(time);
+    layout->addLayout(timeLayout);
+    connect(time, SIGNAL(editingFinished()), this, SLOT(timeEditingFinished()));
+    
     
     QPushButton* replanButton = new QPushButton("Replan");
-    layout->addWidget(replanButton);
+    timeLayout->addWidget(replanButton);
     
     connect(replanButton, SIGNAL(released()), this, SLOT(replanButtonReleased()));
     connect(expandButton, SIGNAL(released()), this, SLOT(expandPressed()));
@@ -57,7 +78,6 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
 
      connect(&mlsViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
     connect(&trav3dViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
-    connect(slopeMetricSpinBox, SIGNAL(editingFinished()), this, SLOT(slopeMetricEditingFinished()));
     connect(this, SIGNAL(plannerDone()), this, SLOT(plannerIsDone()));
     
     config.gridSize = 0.1;// mlsMap.getResolution().x();
@@ -80,12 +100,13 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
      
     conf.gridResolution = 0.1;//  mlsMap.getResolution().x();
     conf.maxSlope = 40.0/180.0 * M_PI;
+    maxSlopeSpinBox->setValue(40);
     conf.maxStepHeight = 0.5; //space below robot
     conf.robotSizeX = 0.5;
     conf.robotSizeY =  0.7;
     conf.robotHeight = 0.9; //incl space below body
     conf.slopeMetricScale = 0.0;
-    slopeMetricSpinBox->setValue(conf.slopeMetricScale);
+    maxSlopeSpinBox->setValue(conf.slopeMetricScale);
     
     planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
     
@@ -180,12 +201,14 @@ void PlannerGui::picked(float x, float y, float z)
 }
 
 
-void PlannerGui::slopeMetricEditingFinished()
+void PlannerGui::maxSlopeEditingFinished()
 {
-    if(start.allFinite() && goal.allFinite())
-    {
-        conf.slopeMetricScale = slopeMetricSpinBox->value();
-    }
+    conf.maxSlope = maxSlopeSpinBox->value()/180.0 * M_PI;
+}
+
+void PlannerGui::timeEditingFinished()
+{
+    
 }
 
 void PlannerGui::replanButtonReleased()
@@ -224,13 +247,16 @@ void PlannerGui::plannerIsDone()
 
 void PlannerGui::expandPressed()
 {
+    planner->getEnv()->getTravGen().clearTrMap();
+    planner->getEnv()->getTravGen().setConfig(conf);
     planner->getEnv()->getTravGen().expandAll(Eigen::Vector3d(5.99972, 0.399847, -1.31341));
     trav3dViz.updateData((planner->getEnv()->getTraversabilityBaseMap()));
+    mlsViz.setPluginEnabled(false);
 }
 
 
-/*
-Start:  5.99972 0.399847 -1.31341
+/* 
+Start:  5.99972 0.399847 -1.31341d
 goal: -0.455198   7.99133   2.08586
 */
 
@@ -248,7 +274,7 @@ void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal)
     
     std::cout << std::endl << std::endl;
     std::cout << "Planning: " << start.transpose() << " -> " << goal.transpose() << std::endl;
-    const bool result = planner->plan(base::Time::fromSeconds(14), startState, endState);
+    const bool result = planner->plan(base::Time::fromSeconds(time->value()), startState, endState);
     if(result)
     {
         std::cout << "DONE" << std::endl;

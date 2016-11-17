@@ -34,7 +34,8 @@ signals:
     void plannerDone();
     
 private slots:
-    void slopeMetricEditingFinished();
+    void maxSlopeEditingFinished();
+    void timeEditingFinished();
     void replanButtonReleased();
     void expandPressed();
     
@@ -46,7 +47,8 @@ private:
 private:
     QApplication app;
     vizkit3d::Vizkit3DWidget widget;
-    QDoubleSpinBox* slopeMetricSpinBox;
+    QDoubleSpinBox* maxSlopeSpinBox;
+    QDoubleSpinBox* time;
     QWidget window;
     vizkit3d::MotionPlanningLibrariesSbplSplineVisualization splineViz;
     vizkit3d::TrajectoryVisualization trajViz;

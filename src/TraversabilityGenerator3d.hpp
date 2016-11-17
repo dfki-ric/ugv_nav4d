@@ -74,6 +74,8 @@ public:
     /**Contains the slopes of all travnodes if debug is defined */
     mutable std::vector<Eigen::Vector4d> debugSlopes;
     
+    void setConfig(const TraversabilityConfig &config);
+    
 protected:
     int intersections();
 };
