@@ -316,7 +316,9 @@ TraversabilityGenerator3d::Node *EnvironmentXYZTheta::movementPossible(Traversab
     TraversabilityGenerator3d::Node *targetNode = fromTravNode->getConnectedNode(toIdx);
     if(!targetNode)
     {
-        throw std::runtime_error("should not happen");
+        return nullptr;
+        //FIXME this should never happen but it does on the garage map with 0.5 resolution
+//         throw std::runtime_error("should not happen");
     }
     
     if(!targetNode->isExpanded())

@@ -35,8 +35,8 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
        
     layout->addWidget(&widget);
     
-    QPushButton* expandButton = new QPushButton("Create travMap");
-    
+    expandButton = new QPushButton("Create travMap");
+    expandButton->setEnabled(false);
     maxSlopeSpinBox = new QDoubleSpinBox();
     maxSlopeSpinBox->setMinimum(1);
     maxSlopeSpinBox->setMaximum(60);
@@ -62,12 +62,19 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     layout->addLayout(timeLayout);
     connect(time, SIGNAL(editingFinished()), this, SLOT(timeEditingFinished()));
     
+    bar = new QProgressBar();
+    bar->setMinimum(0);
+    bar->setMaximum(1);
+//     bar->hide();
+    
     
     QPushButton* replanButton = new QPushButton("Replan");
     timeLayout->addWidget(replanButton);
     
     connect(replanButton, SIGNAL(released()), this, SLOT(replanButtonReleased()));
     connect(expandButton, SIGNAL(released()), this, SLOT(expandPressed()));
+    
+    layout->addWidget(bar);
     
     window.setLayout(layout);
 
@@ -80,7 +87,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     connect(&trav3dViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
     connect(this, SIGNAL(plannerDone()), this, SLOT(plannerIsDone()));
     
-    config.gridSize = 0.1;// mlsMap.getResolution().x();
+    config.gridSize = 0.5;// mlsMap.getResolution().x();
     config.destinationCircleRadius = 12;
     config.numAngles = 16;
     config.numEndAngles = 7;
@@ -98,7 +105,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     mobility.mMultiplierForwardTurn = 1;
     mobility.mMultiplierPointTurn = 8;
      
-    conf.gridResolution = 0.1;//  mlsMap.getResolution().x();
+    conf.gridResolution = 0.5;//  mlsMap.getResolution().x();
     conf.maxSlope = 40.0/180.0 * M_PI;
     maxSlopeSpinBox->setValue(40);
     conf.maxStepHeight = 0.5; //space below robot
@@ -106,7 +113,6 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     conf.robotSizeY =  0.7;
     conf.robotHeight = 0.9; //incl space below body
     conf.slopeMetricScale = 0.0;
-    maxSlopeSpinBox->setValue(conf.slopeMetricScale);
     
     planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
     
@@ -148,29 +154,36 @@ void PlannerGui::loadMls()
 void PlannerGui::loadMls(const std::string& path)
 {
     std::ifstream fileIn(path);       
-//     try
-//     {
-//         boost::archive::binary_iarchive mlsIn(fileIn);
-//         maps::grid::MLSMapSloped mlsInput;
-//         mlsIn >> mlsInput;
-//         mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
-//         mlsViz.updateData(mlsMap);
-//         planner->updateMap(mlsMap);
-//         return;
-//     }
-//     catch(...) {}
     
-    try
+    if(path.find("graph_mls_kalman") != std::string::npos)
     {
-        envire::core::EnvireGraph g;
-        g.loadFromFile(path);
-        maps::grid::MLSMapKalman mlsInput = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
-        mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
-        mlsViz.updateData(mlsMap);
-        planner->updateMap(mlsMap);
-        return;
+        try
+        {
+            envire::core::EnvireGraph g;
+            g.loadFromFile(path);
+            maps::grid::MLSMapKalman mlsInput = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
+            mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
+            mlsViz.updateData(mlsMap);
+            planner->updateMap(mlsMap);
+            return;
+        }
+        catch(...) {}   
     }
-    catch(...) {}   
+    else
+    {
+        try
+        {
+            boost::archive::binary_iarchive mlsIn(fileIn);
+            maps::grid::MLSMapSloped mlsInput;
+            mlsIn >> mlsInput;
+            mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
+            mlsViz.updateData(mlsMap);
+            planner->updateMap(mlsMap);
+            return;
+        }
+        catch(...) {}
+    }
+    
     
 
     
@@ -184,7 +197,7 @@ void PlannerGui::picked(float x, float y, float z)
 //     start << 5.91327,  1.38306, -1.39575;
 //     goal <<  7.47328,  1.34183, -1.39437;
 //     startPlanThread();
-    
+    expandButton->setEnabled(true);
     if(pickStart)
     {
         start << x, y, z;
@@ -219,6 +232,7 @@ void PlannerGui::replanButtonReleased()
 
 void PlannerGui::startPlanThread()
 {
+    bar->setMaximum(0);
     std::thread t([this](){
         this->plan(this->start, this->goal);
     });
@@ -243,13 +257,14 @@ void PlannerGui::plannerIsDone()
     envViz.setCollisionPoses(planner->getEnv()->debugCollisionPoses);
     envViz.setRobotHalfSize(planner->getEnv()->robotHalfSize);
     envViz.setSuccessors(planner->getEnv()->debugSuccessors);
+    bar->setMaximum(1);
 }
 
 void PlannerGui::expandPressed()
 {
     planner->getEnv()->getTravGen().clearTrMap();
     planner->getEnv()->getTravGen().setConfig(conf);
-    planner->getEnv()->getTravGen().expandAll(Eigen::Vector3d(5.99972, 0.399847, -1.31341));
+    planner->getEnv()->getTravGen().expandAll(start.cast<double>());
     trav3dViz.updateData((planner->getEnv()->getTraversabilityBaseMap()));
     mlsViz.setPluginEnabled(false);
 }

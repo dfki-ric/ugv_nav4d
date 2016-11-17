@@ -49,6 +49,8 @@ private:
     vizkit3d::Vizkit3DWidget widget;
     QDoubleSpinBox* maxSlopeSpinBox;
     QDoubleSpinBox* time;
+    QPushButton* expandButton;
+    QProgressBar* bar;
     QWidget window;
     vizkit3d::MotionPlanningLibrariesSbplSplineVisualization splineViz;
     vizkit3d::TrajectoryVisualization trajViz;
