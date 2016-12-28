@@ -125,11 +125,16 @@ bool TraversabilityGenerator3d::computePlaneRansac(TraversabilityGenerator3d::No
     }    
     
     node.getUserData().slope = computeSlope(node.getUserData().plane);
+    node.getUserData().slopeDirection = computeSlopeDirection(node.getUserData().plane);
     
 #ifdef ENVIRONMENT_XYZ_THETA_GENERATE_DEBUG_DATA
     Eigen::Vector3d pos(node.getIndex().x() * config.gridResolution, node.getIndex().y() * config.gridResolution, node.getHeight());
     pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
     debugSlopes.push_back(Eigen::Vector4d(pos.x(), pos.y(), pos.z(), node.getUserData().slope));
+    Eigen::Matrix<double, 2, 3> slopeDir;
+    slopeDir.row(0) << pos.x(), pos.y(), pos.z();
+    slopeDir.row(1) = node.getUserData().slopeDirection;
+    debugSlopeDirs.push_back(slopeDir);
 #endif
     
     return true;
@@ -143,11 +148,23 @@ double TraversabilityGenerator3d::computeSlope(const Eigen::Hyperplane< double, 
     return acos(planeNormal.dot(zNormal));
 }
 
+Eigen::Vector3d TraversabilityGenerator3d::computeSlopeDirection(const Eigen::Hyperplane< double, int(3) >& plane) const
+{
+    /** The vector of maximum slope on a plane is the projection of (0,0,1) onto the plane.
+     *  (0,0,1) is the steepest vector possible in the global frame, thus by projecting it onto
+     *  the plane we get the steepest vector possible on that plane.
+     */
+    const Eigen::Vector3d zNormal(Eigen::Vector3d::UnitZ());
+    const Eigen::Vector3d planeNormal(plane.normal().normalized());
+    const Eigen::Vector3d projection = zNormal - zNormal.dot(planeNormal) * planeNormal;
+    return projection;
+}
+
 
 bool TraversabilityGenerator3d::checkForObstacles(const View& area, TraversabilityGenerator3d::Node *node)
 {
     const Eigen::Hyperplane<double, 3> &plane(node->getUserData().plane);
-    const Eigen::Vector3d planeNormal(plane.normal());
+    const Eigen::Vector3d planeNormal(plane.normal().normalized());
     double slope = acos(planeNormal.dot(Eigen::Vector3d::UnitZ()));
     
     if(slope > config.maxSlope)

@@ -261,6 +261,7 @@ void PlannerGui::plannerIsDone()
     
     envViz.setHeuristic(planner->getEnv()->debugHeuristic);
     envViz.setSlopes(planner->getEnv()->getTravGen().debugSlopes);
+    envViz.setSlopeDirs(planner->getEnv()->getTravGen().debugSlopeDirs);
     envViz.setCollisionPoses(planner->getEnv()->debugCollisionPoses);
     envViz.setRobotHalfSize(planner->getEnv()->robotHalfSize);
     envViz.setSuccessors(planner->getEnv()->debugSuccessors);

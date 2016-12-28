@@ -16,6 +16,7 @@ public:
     {
         Eigen::Hyperplane<double, 3> plane;
         double slope;
+        Eigen::Vector3d slopeDirection; //normalized direction of the maximum slope. Only valid if slope > 0
         size_t id; //contiguous unique id  that can be used as index for additional metadata
     };
     
@@ -39,6 +40,7 @@ private:
     bool computePlane(Node &node, const View &area);
     
     double computeSlope(const Eigen::Hyperplane< double, int(3) >& plane) const;
+    Eigen::Vector3d computeSlopeDirection(const Eigen::Hyperplane< double, int(3) >& plane) const;
     
     bool checkForObstacles(const View& area, Node* node);
     
@@ -73,6 +75,9 @@ public:
     
     /**Contains the slopes of all travnodes if debug is defined */
     mutable std::vector<Eigen::Vector4d> debugSlopes;
+    /**Contains the sloep directions of all travnoces if debug is defined.
+     * rows(0) is the location, rows(1) the slope direction*/
+    mutable std::vector<Eigen::Matrix<double, 2, 3>> debugSlopeDirs;
     
     void setConfig(const TraversabilityConfig &config);
     

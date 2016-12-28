@@ -4,6 +4,7 @@
 #include <osg/PolygonMode>
 #include <osg/Material>
 #include <osgViz/modules/viz/Primitives/PrimitivesFactory.h>
+#include <osgViz/modules/viz/Primitives/Primitives/LinesNode.h>
 #include <vizkit3d/ColorConversionHelper.hpp>
 #include <QString>
 
@@ -66,6 +67,8 @@ struct EnvironmentXYZThetaVisualization::Data {
     std::vector<Eigen::Vector4d> cost;
     //[0..2] = x,y,z, [3] = slope
     std::vector<Eigen::Vector4d> slopes;
+    
+    std::vector<Eigen::Matrix<double, 2, 3>> slopeDirections; //rows(0) is location, rows(1) is direction
 
     ref_ptr<osgviz::Object> root;
     double gridSize;
@@ -140,6 +143,17 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
             childGeode->addDrawable(text);
             trans->addChild(childGeode);
         }
+        
+        osgviz::LinesNode* slopeLines = new osgviz::LinesNode(osg::Vec4(1, 0, 0, 1));
+        for(const Eigen::Matrix<double, 2, 3>& slopeDir : p->slopeDirections)
+        {
+            const Eigen::Vector3d pos = slopeDir.row(0);
+            const Eigen::Vector3d dir = slopeDir.row(1) * p->gridSize;
+            const osg::Vec3 start(pos.x(), pos.y(), pos.z());
+            const osg::Vec3 end(pos.x() + dir.x(), pos.y() + dir.y(), pos.z() + dir.z());
+            slopeLines->addLine(start, end);          
+        }
+        p->root->addChild(slopeLines);
     }
     
     
@@ -212,6 +226,12 @@ void EnvironmentXYZThetaVisualization::setSlopes(const std::vector< Eigen::Vecto
 {
     p->slopes = slopes;
 }
+
+void vizkit3d::EnvironmentXYZThetaVisualization::setSlopeDirs(const std::vector<Eigen::Matrix<double, 2, 3> >& slopeDirs)
+{
+    p->slopeDirections = slopeDirs;
+}
+
 
 
 void EnvironmentXYZThetaVisualization::setCollisionPoses(std::vector<base::Pose>& poses)

@@ -37,6 +37,7 @@ namespace vizkit3d
       void setRobotHalfSize(const Eigen::Vector3d& value);
       void setSuccessors(std::vector<Eigen::Vector3d>& succs);
       void setSlopes(const std::vector<Eigen::Vector4d>& slopes);
+      void setSlopeDirs(const std::vector<Eigen::Matrix<double, 2, 3>>& slopeDirs);
       
       int getNumSuccs();
       void setNumSuccs(int val);
