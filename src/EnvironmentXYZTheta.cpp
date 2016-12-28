@@ -428,7 +428,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         const auto &candidateMap = searchGrid.at(curIndex);
 
         if(travNode->getIndex() != curIndex)
-            throw std::runtime_error("Internal error, indexes to not match");
+            throw std::runtime_error("Internal error, indexes do not match");
         
         XYZNode searchTmp(travNode->getHeight(), travNode->getIndex());
         
