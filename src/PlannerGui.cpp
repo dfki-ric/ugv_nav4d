@@ -258,17 +258,14 @@ void PlannerGui::plannerIsDone()
     
     trav3dViz.updateData((planner->getEnv()->getTraversabilityBaseMap()));
     
-    envViz.setGridSize(mlsMap.getResolution().x());
-    envViz.setStartPos(start.x(), start.y(), start.z());
-    
+    envViz.setGridSize(mlsMap.getResolution().x());   
+    envViz.setRobotHalfSize(planner->getEnv()->robotHalfSize);
     
     UGV_DEBUG(
         envViz.setEnvDebugData(planner->getEnv()->debugData);
+        envViz.setSlopes(planner->getEnv()->getTravGen().debugSlopes);
+        envViz.setSlopeDirs(planner->getEnv()->getTravGen().debugSlopeDirs);
     )
-    
-    envViz.setSlopes(planner->getEnv()->getTravGen().debugSlopes);
-    envViz.setSlopeDirs(planner->getEnv()->getTravGen().debugSlopeDirs);
-    envViz.setRobotHalfSize(planner->getEnv()->robotHalfSize);
 
     bar->setMaximum(1);
 }
