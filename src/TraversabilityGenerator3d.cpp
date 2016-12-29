@@ -129,10 +129,12 @@ bool TraversabilityGenerator3d::computePlaneRansac(TraversabilityGenerator3d::No
     
 #ifdef ENVIRONMENT_XYZ_THETA_GENERATE_DEBUG_DATA
     Eigen::Vector3d pos(node.getIndex().x() * config.gridResolution, node.getIndex().y() * config.gridResolution, node.getHeight());
+    
+    
     pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
     debugSlopes.push_back(Eigen::Vector4d(pos.x(), pos.y(), pos.z(), node.getUserData().slope));
     Eigen::Matrix<double, 2, 3> slopeDir;
-    slopeDir.row(0) << pos.x(), pos.y(), pos.z();
+    slopeDir.row(0) << pos.x() + config.gridResolution/2, pos.y() + config.gridResolution/2, pos.z();
     slopeDir.row(1) = node.getUserData().slopeDirection;
     debugSlopeDirs.push_back(slopeDir);
 #endif

@@ -381,7 +381,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         travNode = curNode->getUserData().travNode;
         maps::grid::Index curIndex = curNode->getIndex();
         std::vector<TraversabilityGenerator3d::Node*> nodesOnPath;
-        
+        bool intermediateStepsOk = true;
         for(const PoseWithCell &diff : motion.intermediateSteps)
         {
             maps::grid::Index newIndex = curIndex;
@@ -392,14 +392,16 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             travNode = movementPossible(travNode, curIndex, newIndex);
             nodesOnPath.push_back(travNode);
             
-            if(!travNode)
+            if(!travNode ||
+               !checkOrientationAllowed(travNode, diff.pose.orientation))
             {
+                intermediateStepsOk = false;
                 break;
             }
             curIndex = newIndex;
         }
         
-        if(!travNode)
+        if(!intermediateStepsOk)
         {
             continue;
         }
@@ -467,6 +469,67 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         CostV->push_back(int(motion.baseCost + motion.baseCost * avgSlope));
         motionIdV.push_back(motion.id);
     } 
+}
+
+bool EnvironmentXYZTheta::checkOrientationAllowed(const TraversabilityGenerator3d::Node* node,
+                                const base::Orientation2D& orientation) const
+{
+//     if(orientation > 0.000001 || orientation < -0.0000001)
+//         std::cout << "ORIENTATION: " << orientation << std::endl;
+    if(node->getUserData().slope <= 0.1) //FIXME constant
+        return true;
+    
+    const Eigen::Vector3d& steepestSlopeDir = node->getUserData().slopeDirection;
+    //FIXME atan2 can be precomputed and stored in the travnode
+    const double steepestSlopeAngle = std::atan2(steepestSlopeDir.y(), steepestSlopeDir.x());
+    const double min1 = std::min(steepestSlopeAngle - 0.2, steepestSlopeAngle + 0.2);
+    const double max1 = std::max(steepestSlopeAngle - 0.2, steepestSlopeAngle + 0.2);
+    
+    const double min2 = std::min((steepestSlopeAngle + M_PI) - 0.2, (steepestSlopeAngle + M_PI) + 0.2);
+    const double max2 = std::max((steepestSlopeAngle + M_PI) - 0.2, (steepestSlopeAngle + M_PI) + 0.2);
+       
+//     std::cout << "min1: " << min1 << ", max1: " << max1 << ", min2: " << min2 << ", max2: " << max2 << std::endl;
+    
+    DebugSlopeData d;
+    d.start << (node->getIndex().x() + 0.5) * travConf.gridResolution, (node->getIndex().y() + 0.5) * travConf.gridResolution, node->getHeight();
+    d.i = node->getIndex();
+        
+    const Eigen::Vector3d one(0.05, 0, 0);
+    d.end1 = d.start + Eigen::AngleAxisd(min1, Eigen::Vector3d(0,0,1)) * one;
+    d.end2 = d.start + Eigen::AngleAxisd(min2, Eigen::Vector3d(0,0,1)) * one;
+    d.end3 = d.start + Eigen::AngleAxisd(max1, Eigen::Vector3d(0,0,1)) * one;
+    d.end4 = d.start + Eigen::AngleAxisd(max2, Eigen::Vector3d(0,0,1)) * one;
+    
+    DebugSlopeCandidate candidate;
+    candidate.start = d.start;
+    candidate.end = candidate.start + Eigen::AngleAxisd(orientation, Eigen::Vector3d(0,0,1)) * one;
+    candidate.i = node->getIndex();
+    candidate.orientation = orientation;
+    
+    candidate.end = this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * candidate.end;
+    candidate.start = this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * candidate.start;
+    d.start = this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * d.start;
+    d.end1 = this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * d.end1;
+    d.end2 = this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * d.end2;
+    d.end3 = this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * d.end3;
+    d.end4 = this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * d.end4;
+    debugSlopeData.insert(d);
+    
+    
+    
+    if((orientation >= min1 && orientation <= max1) ||
+       (orientation >= min2 && orientation <= max2))
+    {
+        candidate.color = DebugSlopeCandidate::GREEN;
+        debugSlopeCandidates.insert(candidate);
+        return true;
+    }
+    else 
+    {
+        candidate.color = DebugSlopeCandidate::RED;
+        debugSlopeCandidates.insert(candidate);
+        return false;
+    }
 }
 
 bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGenerator3d::Node* >& path,
@@ -751,6 +814,7 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TraversabilityGenerator3d::Node* s
     {
         double dist = vertexQ.begin()->first;
         TraversabilityGenerator3d::Node* u = vertexQ.begin()->second;
+        
         vertexQ.erase(vertexQ.begin());
         
         const Eigen::Vector2d uPos(u->getIndex().x() * travConf.gridResolution,

@@ -265,6 +265,20 @@ void PlannerGui::plannerIsDone()
     envViz.setCollisionPoses(planner->getEnv()->debugCollisionPoses);
     envViz.setRobotHalfSize(planner->getEnv()->robotHalfSize);
     envViz.setSuccessors(planner->getEnv()->debugSuccessors);
+    
+    std::vector<EnvironmentXYZTheta::DebugSlopeData> deb;
+    for(const EnvironmentXYZTheta::DebugSlopeData& data : planner->getEnv()->debugSlopeData)
+    {
+        deb.push_back(data);
+    }
+    
+    std::vector<EnvironmentXYZTheta::DebugSlopeCandidate> debCan;
+    for(const EnvironmentXYZTheta::DebugSlopeCandidate& data : planner->getEnv()->debugSlopeCandidates)
+    {
+        debCan.push_back(data);
+    }    
+    envViz.setSlopeDebug(deb);
+    envViz.setSlopeDebugCandidate(debCan);
     bar->setMaximum(1);
 }
 

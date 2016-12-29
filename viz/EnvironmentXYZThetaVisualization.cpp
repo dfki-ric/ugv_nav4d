@@ -69,7 +69,8 @@ struct EnvironmentXYZThetaVisualization::Data {
     std::vector<Eigen::Vector4d> slopes;
     
     std::vector<Eigen::Matrix<double, 2, 3>> slopeDirections; //rows(0) is location, rows(1) is direction
-
+    std::vector<EnvironmentXYZTheta::DebugSlopeData> slopeDebug;
+    std::vector<EnvironmentXYZTheta::DebugSlopeCandidate> slopeDebugCandidates;
     ref_ptr<osgviz::Object> root;
     double gridSize;
     Vec3d startPos;
@@ -156,7 +157,47 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
         p->root->addChild(slopeLines);
     }
     
+    if(showAllowedSlopes)
+    {
+        osgviz::LinesNode* slopeLines = new osgviz::LinesNode(osg::Vec4(1, 1, 0, 1));
+        std::cout << "SLOPE DEBUG: " << p->slopeDebug.size() << std::endl;
+        std::cout << "SLOPE CAND DEBUG: " << p->slopeDebugCandidates.size() << std::endl;
+        for(const EnvironmentXYZTheta::DebugSlopeData& data : p->slopeDebug)
+        {
+            const osg::Vec3 start(data.start.x(), data.start.y(), data.start.z() + 0.05);            
+            const osg::Vec3 end1(data.end1.x(), data.end1.y(), data.end1.z() + 0.05);
+            const osg::Vec3 end2(data.end2.x(), data.end2.y(), data.end2.z() + 0.05);
+            const osg::Vec3 end3(data.end3.x(), data.end3.y(), data.end3.z() + 0.05);
+            const osg::Vec3 end4(data.end4.x(), data.end4.y(), data.end4.z() + 0.05);
+        
+            slopeLines->addLine(start, end1);
+            slopeLines->addLine(start, end2);
+            slopeLines->addLine(start, end3);
+            slopeLines->addLine(start, end4);
+        }
+        p->root->addChild(slopeLines);
+        
+        osgviz::LinesNode* redLines = new osgviz::LinesNode(osg::Vec4(1, 0, 0, 1));
+        osgviz::LinesNode* greenLines = new osgviz::LinesNode(osg::Vec4(0, 1, 0, 1));
+        for(const EnvironmentXYZTheta::DebugSlopeCandidate& candidate : p->slopeDebugCandidates)
+        {
+            
+            const osg::Vec3 start(candidate.start.x(), candidate.start.y(), candidate.start.z() + 0.05);
+            const osg::Vec3 end(candidate.end.x(), candidate.end.y(), candidate.end.z() + 0.05);
+
+            if(candidate.color == EnvironmentXYZTheta::DebugSlopeCandidate::RED)
+                redLines->addLine(start, end);
+            else if(candidate.color == EnvironmentXYZTheta::DebugSlopeCandidate::GREEN)
+                greenLines->addLine(start, end);
+            else
+                std::cout << "UNKNOWN COLOR ERROR!!! ARRRR" << std::endl;
+        }
+        p->root->addChild(redLines);
+        p->root->addChild(greenLines);
+        
+    }
     
+
     Box* succBox = new Box(Vec3(0,0,0), 0.05);
     succBox->setHalfLengths(osg::Vec3(0.05, 0.05, 0.05));
     const int end = std::min(numSuccs, int(p->succs.size()));
@@ -290,6 +331,16 @@ bool EnvironmentXYZThetaVisualization::getShowSlopes()
     return showSlopes;
 }
 
+bool EnvironmentXYZThetaVisualization::getshowAllowedSlopes()
+{
+    return showAllowedSlopes;
+}
+
+void EnvironmentXYZThetaVisualization::setshowAllowedSlopes(bool val)
+{
+    showAllowedSlopes = val;
+}
+
 void EnvironmentXYZThetaVisualization::setShowSlopes(bool val)
 {
     showSlopes = val;
@@ -298,7 +349,15 @@ void EnvironmentXYZThetaVisualization::setShowSlopes(bool val)
 }
 
 
+void EnvironmentXYZThetaVisualization::setSlopeDebug(const std::vector<EnvironmentXYZTheta::DebugSlopeData>& data)
+{
+    p->slopeDebug = data;
+}
 
+void EnvironmentXYZThetaVisualization::setSlopeDebugCandidate(const std::vector<EnvironmentXYZTheta::DebugSlopeCandidate>& data)
+{
+    p->slopeDebugCandidates = data;
+}
 
 
 

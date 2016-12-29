@@ -7,6 +7,7 @@
 #include "DiscreteTheta.hpp"
 #include "PreComputedMotions.hpp"
 #include <base/Trajectory.hpp>
+#include <unordered_set>
 
 
 std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle);
@@ -86,7 +87,6 @@ protected:
     
     ThetaNode *createNewState(const DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
     XYZNode *createNewXYZState(TraversabilityGenerator3d::Node* travNode);
-    
     ThetaNode *createNewStateFromPose(const Eigen::Vector3d& pos, double theta, EnvironmentXYZTheta::XYZNode** xyzNode);
     
 public:
@@ -94,6 +94,50 @@ public:
     mutable std::vector<base::Pose> debugCollisionPoses; /**< Poses of collisions that occured while planning (in world coordinates) */
     mutable std::vector<Eigen::Vector3d> debugSuccessors; /**< All positions that the planner visited while planning in chronological order (in world coordinates) */
     
+    struct DebugSlopeData
+    {
+        Eigen::Vector3d start, end1, end2, end3, end4;
+        maps::grid::Index i;
+        bool operator==(const DebugSlopeData& other) const
+        {
+            return i.x() == other.i.x() && i.y() == other.i.y();
+        }
+    };
+    
+    struct DebugSlopeData_hash
+    {
+        std::size_t operator()(const DebugSlopeData& p) const
+        {
+            return std::hash<int>()(p.i.x()) ^ std::hash<int>()(p.i.y());
+        }
+    };
+
+    mutable std::unordered_set<DebugSlopeData, DebugSlopeData_hash> debugSlopeData;
+    
+    struct DebugSlopeCandidate
+    {
+        Eigen::Vector3d start, end;
+        maps::grid::Index i;
+        double orientation;
+        enum SLOP_COL { RED, GREEN};
+        SLOP_COL color;
+        bool operator==(const DebugSlopeCandidate& other) const
+        {
+            return i.x() == other.i.x() && i.y() == other.i.y() &&
+                   int(orientation * 100) == int(other.orientation * 100);
+        }
+    };
+    
+    struct DebugSlopeCandidate_hash
+    {
+        std::size_t operator()(const DebugSlopeCandidate& p) const
+        {
+//              std::cout << "Hash: " << p.i.transpose() << ", " << p.orientation << ", " << (int)(p.orientation * 100) << std::endl;
+            return std::hash<int>()(p.i.x()) ^ std::hash<int>()(p.i.y()) ^ std::hash<int>()((int)(p.orientation * 100));
+        }
+    };
+    
+    mutable std::unordered_set<DebugSlopeCandidate, DebugSlopeCandidate_hash> debugSlopeCandidates;
 
     Eigen::Vector3d robotHalfSize;
     
@@ -171,6 +215,12 @@ private:
     //Return true if there is no collision on the given path.
     bool checkCollisions(const std::vector<TraversabilityGenerator3d::Node*>& path,
                          const Motion& motion) const;
+                         
+    /** Some movement directions are not allowed depending on the slope of the patch.
+     *  @return true if the movement direction is allowed on that patch
+     */
+    bool checkOrientationAllowed(const TraversabilityGenerator3d::Node* node,
+                                 const base::Orientation2D& orientation) const;
   
     Eigen::AlignedBox3d getRobotBoundingBox() const;
     

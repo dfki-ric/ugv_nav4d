@@ -8,6 +8,8 @@
 #include <ugv_nav4d/EnvironmentXYZTheta.hpp>
 #include <ugv_nav4d/PreComputedMotions.hpp>
 
+using namespace ugv_nav4d;
+
 namespace vizkit3d
 {
     class EnvironmentXYZThetaVisualization
@@ -19,6 +21,7 @@ namespace vizkit3d
     Q_PROPERTY(int numSuccs READ getNumSuccs WRITE setNumSuccs)
     Q_PROPERTY(bool showHeuristic READ getShowHeuristic WRITE setShowHeuristic)
     Q_PROPERTY(bool showSlopes READ getShowSlopes WRITE setShowSlopes)
+    Q_PROPERTY(bool showAllowedSlopes READ getshowAllowedSlopes WRITE setshowAllowedSlopes)
     Q_PROPERTY(bool showCollisions READ getShowCollisions WRITE setShowCollisions)
     
     public:
@@ -39,6 +42,9 @@ namespace vizkit3d
       void setSlopes(const std::vector<Eigen::Vector4d>& slopes);
       void setSlopeDirs(const std::vector<Eigen::Matrix<double, 2, 3>>& slopeDirs);
       
+      void setSlopeDebug(const std::vector<EnvironmentXYZTheta::DebugSlopeData>& data);
+      void setSlopeDebugCandidate(const std::vector<EnvironmentXYZTheta::DebugSlopeCandidate>& data);
+      
       int getNumSuccs();
       void setNumSuccs(int val);
       
@@ -50,6 +56,9 @@ namespace vizkit3d
       
       bool getShowSlopes();
       void setShowSlopes(bool val);
+      
+      bool getshowAllowedSlopes();
+      void setshowAllowedSlopes(bool val);
 
     protected:
         virtual osg::ref_ptr<osg::Node> createMainNode();
@@ -62,6 +71,7 @@ namespace vizkit3d
         bool showHeuristic = false;
         bool showCollisions = false;
         bool showSlopes = false;
+        bool showAllowedSlopes = true;
         Data* p;
     };
 }
