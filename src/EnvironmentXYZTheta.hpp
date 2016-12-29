@@ -7,7 +7,12 @@
 #include "DiscreteTheta.hpp"
 #include "PreComputedMotions.hpp"
 #include <base/Trajectory.hpp>
-#include <unordered_set>
+
+//If this is defined, additional debug data for visualization will be generated.
+//It might slow down the planning
+#define ENVIRONMENT_XYZ_THETA_GENERATE_DEBUG_DATA
+#include "EnvironmentXYZThetaDebugData.hpp"
+
 
 
 std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle);
@@ -90,54 +95,10 @@ protected:
     ThetaNode *createNewStateFromPose(const Eigen::Vector3d& pos, double theta, EnvironmentXYZTheta::XYZNode** xyzNode);
     
 public:
-    mutable std::vector<Eigen::Vector4d> debugHeuristic; /**< The heuristic [x, y, z, cost]. (in world coordinates) */
-    mutable std::vector<base::Pose> debugCollisionPoses; /**< Poses of collisions that occured while planning (in world coordinates) */
-    mutable std::vector<Eigen::Vector3d> debugSuccessors; /**< All positions that the planner visited while planning in chronological order (in world coordinates) */
     
-    struct DebugSlopeData
-    {
-        Eigen::Vector3d start, end1, end2, end3, end4;
-        maps::grid::Index i;
-        bool operator==(const DebugSlopeData& other) const
-        {
-            return i.x() == other.i.x() && i.y() == other.i.y();
-        }
-    };
-    
-    struct DebugSlopeData_hash
-    {
-        std::size_t operator()(const DebugSlopeData& p) const
-        {
-            return std::hash<int>()(p.i.x()) ^ std::hash<int>()(p.i.y());
-        }
-    };
-
-    mutable std::unordered_set<DebugSlopeData, DebugSlopeData_hash> debugSlopeData;
-    
-    struct DebugSlopeCandidate
-    {
-        Eigen::Vector3d start, end;
-        maps::grid::Index i;
-        double orientation;
-        enum SLOP_COL { RED, GREEN};
-        SLOP_COL color;
-        bool operator==(const DebugSlopeCandidate& other) const
-        {
-            return i.x() == other.i.x() && i.y() == other.i.y() &&
-                   int(orientation * 100) == int(other.orientation * 100);
-        }
-    };
-    
-    struct DebugSlopeCandidate_hash
-    {
-        std::size_t operator()(const DebugSlopeCandidate& p) const
-        {
-//              std::cout << "Hash: " << p.i.transpose() << ", " << p.orientation << ", " << (int)(p.orientation * 100) << std::endl;
-            return std::hash<int>()(p.i.x()) ^ std::hash<int>()(p.i.y()) ^ std::hash<int>()((int)(p.orientation * 100));
-        }
-    };
-    
-    mutable std::unordered_set<DebugSlopeCandidate, DebugSlopeCandidate_hash> debugSlopeCandidates;
+    UGV_DEBUG(
+        mutable ugv_nav4d_debug::EnvironmentXYZThetaDebugData debugData;
+    );
 
     Eigen::Vector3d robotHalfSize;
     

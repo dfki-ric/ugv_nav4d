@@ -8,6 +8,8 @@
 #include "Planner.hpp"
 #include "PreComputedMotions.hpp"
 
+#include "UgvDebug.hpp"
+
 
 PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
 {
@@ -259,26 +261,15 @@ void PlannerGui::plannerIsDone()
     envViz.setGridSize(mlsMap.getResolution().x());
     envViz.setStartPos(start.x(), start.y(), start.z());
     
-    envViz.setHeuristic(planner->getEnv()->debugHeuristic);
+    
+    UGV_DEBUG(
+        envViz.setEnvDebugData(planner->getEnv()->debugData);
+    )
+    
     envViz.setSlopes(planner->getEnv()->getTravGen().debugSlopes);
     envViz.setSlopeDirs(planner->getEnv()->getTravGen().debugSlopeDirs);
-    envViz.setCollisionPoses(planner->getEnv()->debugCollisionPoses);
     envViz.setRobotHalfSize(planner->getEnv()->robotHalfSize);
-    envViz.setSuccessors(planner->getEnv()->debugSuccessors);
-    
-    std::vector<EnvironmentXYZTheta::DebugSlopeData> deb;
-    for(const EnvironmentXYZTheta::DebugSlopeData& data : planner->getEnv()->debugSlopeData)
-    {
-        deb.push_back(data);
-    }
-    
-    std::vector<EnvironmentXYZTheta::DebugSlopeCandidate> debCan;
-    for(const EnvironmentXYZTheta::DebugSlopeCandidate& data : planner->getEnv()->debugSlopeCandidates)
-    {
-        debCan.push_back(data);
-    }    
-    envViz.setSlopeDebug(deb);
-    envViz.setSlopeDebugCandidate(debCan);
+
     bar->setMaximum(1);
 }
 
@@ -299,8 +290,10 @@ goal: -0.455198   7.99133   2.08586
 
 void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal)
 {
-    planner->getEnv()->debugSuccessors.clear();
-    planner->getEnv()->debugCollisionPoses.clear();
+    UGV_DEBUG(
+        planner->getEnv()->debugData.getSuccs().clear();
+        planner->getEnv()->debugData.getCollisions().clear();
+    )
     
     base::samples::RigidBodyState startState;
     startState.position = start.cast<double>();

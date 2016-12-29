@@ -60,21 +60,13 @@ void addShape(osg::Group* group, osg::ref_ptr<osg::Shape> s, const osg::Vec4f& c
 
 struct EnvironmentXYZThetaVisualization::Data {
     Eigen::Vector3d robotSize2;
-    std::vector<base::Pose> collisionPoses;
-    std::vector<Eigen::Vector3d> succs;
-    
-    //[0..2] = x,y,z, [3] = cost
-    std::vector<Eigen::Vector4d> cost;
     //[0..2] = x,y,z, [3] = slope
     std::vector<Eigen::Vector4d> slopes;
     
     std::vector<Eigen::Matrix<double, 2, 3>> slopeDirections; //rows(0) is location, rows(1) is direction
-    std::vector<EnvironmentXYZTheta::DebugSlopeData> slopeDebug;
-    std::vector<EnvironmentXYZTheta::DebugSlopeCandidate> slopeDebugCandidates;
     ref_ptr<osgviz::Object> root;
-    double gridSize;
-    Vec3d startPos;
-    Vec3d goalPos;
+    double gridSize;    
+    ugv_nav4d_debug::EnvironmentXYZThetaDebugData envDebug;
 };
 
 
@@ -95,11 +87,6 @@ ref_ptr<Node> EnvironmentXYZThetaVisualization::createMainNode()
     return p->root;
 }
 
-
-
-
-
-
 void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 {
     
@@ -108,7 +95,8 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 
     if(showHeuristic)
     {       
-        for(const Eigen::Vector4d& cost : p->cost)
+        std::vector<Eigen::Vector4d> costs = p->envDebug.getHeuristicCostForViz();
+        for(const Eigen::Vector4d& cost : costs)
         { 
             osgText::Text *text= new ::osgText::Text;
             text->setText(QString::number(cost[3], 'f', 3).toStdString());
@@ -126,86 +114,86 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
         }
     }
     
-    if(showSlopes)
-    {       
-        for(const Eigen::Vector4d& slope : p->slopes)
-        { 
-            osgText::Text *text= new ::osgText::Text;
-            text->setText(QString::number(slope[3], 'f', 3).toStdString());
-            text->setCharacterSize(0.1/4.0);
-            text->setAxisAlignment(osgText::Text::XY_PLANE);
-            text->setColor(osg::Vec4(0.1f, 0.1f, 0.9f, 1.0f));
-            text->setPosition(osg::Vec3(0, 0, 0.05));
-            PositionAttitudeTransform* trans = new PositionAttitudeTransform();
-            const Vec3d osgPos(slope.x(), slope.y(), slope.z());
-            trans->setPosition(osgPos);
-            p->root->addChild(trans);
-            Geode* childGeode = new Geode();
-            childGeode->addDrawable(text);
-            trans->addChild(childGeode);
-        }
-        
-        osgviz::LinesNode* slopeLines = new osgviz::LinesNode(osg::Vec4(1, 0, 0, 1));
-        for(const Eigen::Matrix<double, 2, 3>& slopeDir : p->slopeDirections)
-        {
-            const Eigen::Vector3d pos = slopeDir.row(0);
-            const Eigen::Vector3d dir = slopeDir.row(1) * p->gridSize;
-            const osg::Vec3 start(pos.x(), pos.y(), pos.z());
-            const osg::Vec3 end(pos.x() + dir.x(), pos.y() + dir.y(), pos.z() + dir.z());
-            slopeLines->addLine(start, end);          
-        }
-        p->root->addChild(slopeLines);
-    }
-    
-    if(showAllowedSlopes)
-    {
-        osgviz::LinesNode* slopeLines = new osgviz::LinesNode(osg::Vec4(1, 1, 0, 1));
-        std::cout << "SLOPE DEBUG: " << p->slopeDebug.size() << std::endl;
-        std::cout << "SLOPE CAND DEBUG: " << p->slopeDebugCandidates.size() << std::endl;
-        for(const EnvironmentXYZTheta::DebugSlopeData& data : p->slopeDebug)
-        {
-            const osg::Vec3 start(data.start.x(), data.start.y(), data.start.z() + 0.05);            
-            const osg::Vec3 end1(data.end1.x(), data.end1.y(), data.end1.z() + 0.05);
-            const osg::Vec3 end2(data.end2.x(), data.end2.y(), data.end2.z() + 0.05);
-            const osg::Vec3 end3(data.end3.x(), data.end3.y(), data.end3.z() + 0.05);
-            const osg::Vec3 end4(data.end4.x(), data.end4.y(), data.end4.z() + 0.05);
-        
-            slopeLines->addLine(start, end1);
-            slopeLines->addLine(start, end2);
-            slopeLines->addLine(start, end3);
-            slopeLines->addLine(start, end4);
-        }
-        p->root->addChild(slopeLines);
-        
-        osgviz::LinesNode* redLines = new osgviz::LinesNode(osg::Vec4(1, 0, 0, 1));
-        osgviz::LinesNode* greenLines = new osgviz::LinesNode(osg::Vec4(0, 1, 0, 1));
-        for(const EnvironmentXYZTheta::DebugSlopeCandidate& candidate : p->slopeDebugCandidates)
-        {
-            
-            const osg::Vec3 start(candidate.start.x(), candidate.start.y(), candidate.start.z() + 0.05);
-            const osg::Vec3 end(candidate.end.x(), candidate.end.y(), candidate.end.z() + 0.05);
-
-            if(candidate.color == EnvironmentXYZTheta::DebugSlopeCandidate::RED)
-                redLines->addLine(start, end);
-            else if(candidate.color == EnvironmentXYZTheta::DebugSlopeCandidate::GREEN)
-                greenLines->addLine(start, end);
-            else
-                std::cout << "UNKNOWN COLOR ERROR!!! ARRRR" << std::endl;
-        }
-        p->root->addChild(redLines);
-        p->root->addChild(greenLines);
-        
-    }
+//     if(showSlopes)
+//     {       
+//         for(const Eigen::Vector4d& slope : p->slopes)
+//         { 
+//             osgText::Text *text= new ::osgText::Text;
+//             text->setText(QString::number(slope[3], 'f', 3).toStdString());
+//             text->setCharacterSize(0.1/4.0);
+//             text->setAxisAlignment(osgText::Text::XY_PLANE);
+//             text->setColor(osg::Vec4(0.1f, 0.1f, 0.9f, 1.0f));
+//             text->setPosition(osg::Vec3(0, 0, 0.05));
+//             PositionAttitudeTransform* trans = new PositionAttitudeTransform();
+//             const Vec3d osgPos(slope.x(), slope.y(), slope.z());
+//             trans->setPosition(osgPos);
+//             p->root->addChild(trans);
+//             Geode* childGeode = new Geode();
+//             childGeode->addDrawable(text);
+//             trans->addChild(childGeode);
+//         }
+//         
+//         osgviz::LinesNode* slopeLines = new osgviz::LinesNode(osg::Vec4(1, 0, 0, 1));
+//         for(const Eigen::Matrix<double, 2, 3>& slopeDir : p->slopeDirections)
+//         {
+//             const Eigen::Vector3d pos = slopeDir.row(0);
+//             const Eigen::Vector3d dir = slopeDir.row(1) * p->gridSize;
+//             const osg::Vec3 start(pos.x(), pos.y(), pos.z());
+//             const osg::Vec3 end(pos.x() + dir.x(), pos.y() + dir.y(), pos.z() + dir.z());
+//             slopeLines->addLine(start, end);          
+//         }
+//         p->root->addChild(slopeLines);
+//     }
+//     
+//     if(showAllowedSlopes)
+//     {
+//         osgviz::LinesNode* slopeLines = new osgviz::LinesNode(osg::Vec4(1, 1, 0, 1));
+//         std::cout << "SLOPE DEBUG: " << p->slopeDebug.size() << std::endl;
+//         std::cout << "SLOPE CAND DEBUG: " << p->slopeDebugCandidates.size() << std::endl;
+//         for(const EnvironmentXYZTheta::DebugSlopeData& data : p->slopeDebug)
+//         {
+//             const osg::Vec3 start(data.start.x(), data.start.y(), data.start.z() + 0.05);            
+//             const osg::Vec3 end1(data.end1.x(), data.end1.y(), data.end1.z() + 0.05);
+//             const osg::Vec3 end2(data.end2.x(), data.end2.y(), data.end2.z() + 0.05);
+//             const osg::Vec3 end3(data.end3.x(), data.end3.y(), data.end3.z() + 0.05);
+//             const osg::Vec3 end4(data.end4.x(), data.end4.y(), data.end4.z() + 0.05);
+//         
+//             slopeLines->addLine(start, end1);
+//             slopeLines->addLine(start, end2);
+//             slopeLines->addLine(start, end3);
+//             slopeLines->addLine(start, end4);
+//         }
+//         p->root->addChild(slopeLines);
+//         
+//         osgviz::LinesNode* redLines = new osgviz::LinesNode(osg::Vec4(1, 0, 0, 1));
+//         osgviz::LinesNode* greenLines = new osgviz::LinesNode(osg::Vec4(0, 1, 0, 1));
+//         for(const EnvironmentXYZTheta::DebugSlopeCandidate& candidate : p->slopeDebugCandidates)
+//         {
+//             
+//             const osg::Vec3 start(candidate.start.x(), candidate.start.y(), candidate.start.z() + 0.05);
+//             const osg::Vec3 end(candidate.end.x(), candidate.end.y(), candidate.end.z() + 0.05);
+// 
+//             if(candidate.color == EnvironmentXYZTheta::DebugSlopeCandidate::RED)
+//                 redLines->addLine(start, end);
+//             else if(candidate.color == EnvironmentXYZTheta::DebugSlopeCandidate::GREEN)
+//                 greenLines->addLine(start, end);
+//             else
+//                 std::cout << "UNKNOWN COLOR ERROR!!! ARRRR" << std::endl;
+//         }
+//         p->root->addChild(redLines);
+//         p->root->addChild(greenLines);
+//         
+//     }
     
 
     Box* succBox = new Box(Vec3(0,0,0), 0.05);
     succBox->setHalfLengths(osg::Vec3(0.05, 0.05, 0.05));
-    const int end = std::min(numSuccs, int(p->succs.size()));
+    const int end = std::min(numSuccs, int(p->envDebug.getSuccs().size()));
     for(int i = 0; i < end; ++i)
     {  
-        const Eigen::Vector3d succ = p->succs[i];
+        const Eigen::Vector3d succ = p->envDebug.getSuccs()[i];
         ShapeDrawable* costDrawable = new ShapeDrawable(succBox);
-        costDrawable->setColor(osg::Vec4(double(i)/double(p->succs.size()), 0, 1, 0.3));
+        costDrawable->setColor(osg::Vec4(double(i)/double(p->envDebug.getSuccs().size()), 0, 1, 0.3));
         PositionAttitudeTransform* trans = new PositionAttitudeTransform();
         const Vec3d osgPos(succ.x(), succ.y(), succ.z());
         trans->setPosition(osgPos);
@@ -218,12 +206,12 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
     if(showCollisions)
     {
         const int maxPoses = 500; //to avoid lag
-        int step = p->collisionPoses.size() / maxPoses;
+        int step = p->envDebug.getCollisions().size() / maxPoses;
         if(step <= 0)
             step = 1; 
-        for(size_t i = 0; i < p->collisionPoses.size(); i += step)
+        for(size_t i = 0; i < p->envDebug.getCollisions().size(); i += step)
         {
-            const auto pose = p->collisionPoses[i];
+            const auto pose = p->envDebug.getCollisions()[i];
             osg::ref_ptr<osg::Box> box(new osg::Box);
             box->setHalfLengths(vec3(p->robotSize2));
             box->setRotation(quat(pose.orientation));
@@ -236,7 +224,6 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
 void EnvironmentXYZThetaVisualization::updateDataIntern(ugv_nav4d::EnvironmentXYZTheta const& value)
 {
     p->robotSize2 = value.robotHalfSize;
-    p->collisionPoses = value.debugCollisionPoses;
 }
 
 void EnvironmentXYZThetaVisualization::setGridSize(const double gridSize)
@@ -245,23 +232,6 @@ void EnvironmentXYZThetaVisualization::setGridSize(const double gridSize)
     setDirty();
 }
 
-void EnvironmentXYZThetaVisualization::setGoalPos(const double x, const double y, const double z)
-{
-    p->goalPos = Vec3d(x, y, z);
-    setDirty();
-}
-
-void EnvironmentXYZThetaVisualization::setStartPos(const double x, const double y, const double z)
-{
-    p->startPos = Vec3d(x, y, z);
-    setDirty();
-}
-
-
-void EnvironmentXYZThetaVisualization::setHeuristic(const std::vector<Eigen::Vector4d>& cost)
-{
-    p->cost = cost;
-}
 
 void EnvironmentXYZThetaVisualization::setSlopes(const std::vector< Eigen::Vector4d >& slopes)
 {
@@ -274,20 +244,9 @@ void vizkit3d::EnvironmentXYZThetaVisualization::setSlopeDirs(const std::vector<
 }
 
 
-
-void EnvironmentXYZThetaVisualization::setCollisionPoses(std::vector<base::Pose>& poses)
-{
-    p->collisionPoses = poses;
-}
-
 void EnvironmentXYZThetaVisualization::setRobotHalfSize(const Eigen::Vector3d& value)
 {
     p->robotSize2 = value;
-}
-
-void EnvironmentXYZThetaVisualization::setSuccessors(std::vector<Eigen::Vector3d>& succs)
-{
-    p->succs = succs;
 }
 
 int EnvironmentXYZThetaVisualization::getNumSuccs()
@@ -348,17 +307,10 @@ void EnvironmentXYZThetaVisualization::setShowSlopes(bool val)
     setDirty();
 }
 
-
-void EnvironmentXYZThetaVisualization::setSlopeDebug(const std::vector<EnvironmentXYZTheta::DebugSlopeData>& data)
+void EnvironmentXYZThetaVisualization::setEnvDebugData(const ugv_nav4d_debug::EnvironmentXYZThetaDebugData& data)
 {
-    p->slopeDebug = data;
+    p->envDebug = data;
 }
-
-void EnvironmentXYZThetaVisualization::setSlopeDebugCandidate(const std::vector<EnvironmentXYZTheta::DebugSlopeCandidate>& data)
-{
-    p->slopeDebugCandidates = data;
-}
-
 
 
 

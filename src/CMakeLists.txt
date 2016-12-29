@@ -14,6 +14,8 @@ rock_library(ugv_nav4d
         PreComputedMotions.hpp
         TraversabilityGenerator3d.hpp
         TraversabilityConfig.hpp
+        UgvDebug.hpp
+        EnvironmentXYZThetaDebugData.hpp
     DEPS_PKGCONFIG 
         base-types 
         sbpl

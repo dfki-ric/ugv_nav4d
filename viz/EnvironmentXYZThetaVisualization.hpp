@@ -33,17 +33,13 @@ namespace vizkit3d
     
     public slots:
       void setGridSize(const double gridSize); //size of one grid cell
-      void setStartPos(const double x, const double y, const double z);
-      void setGoalPos(const double x, const double y, const double z);
-      void setHeuristic(const std::vector<Eigen::Vector4d>& cost);
-      void setCollisionPoses(std::vector<base::Pose>& poses);
       void setRobotHalfSize(const Eigen::Vector3d& value);
-      void setSuccessors(std::vector<Eigen::Vector3d>& succs);
       void setSlopes(const std::vector<Eigen::Vector4d>& slopes);
       void setSlopeDirs(const std::vector<Eigen::Matrix<double, 2, 3>>& slopeDirs);
+      void setEnvDebugData(const ugv_nav4d_debug::EnvironmentXYZThetaDebugData& data);
       
-      void setSlopeDebug(const std::vector<EnvironmentXYZTheta::DebugSlopeData>& data);
-      void setSlopeDebugCandidate(const std::vector<EnvironmentXYZTheta::DebugSlopeCandidate>& data);
+//       void setSlopeDebug(const std::vector<EnvironmentXYZTheta::DebugSlopeData>& data);
+//       void setSlopeDebugCandidate(const std::vector<EnvironmentXYZTheta::DebugSlopeCandidate>& data);
       
       int getNumSuccs();
       void setNumSuccs(int val);

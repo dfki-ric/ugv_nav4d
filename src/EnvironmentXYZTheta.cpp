@@ -9,11 +9,6 @@
 #include <backward/backward.hpp>
 
 
-//If this is defined, additional debug data for visualization will be generated.
-//It might slow down the planning
-
-#define ENVIRONMENT_XYZ_THETA_GENERATE_DEBUG_DATA
-
 backward::SignalHandling crashHandler;
 
 using namespace std;
@@ -56,6 +51,13 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<MLGrid> mlsGrid,
     searchGrid.extend(travGen.getTraversabilityMap().getNumCells());
     // FIXME z2 is divided by 2.0 to avoid intersecting the floor
     robotHalfSize << travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight/2/2;
+    
+    UGV_DEBUG(
+        debugData.setTravConf(travConf);
+        debugData.setTravGen(&travGen);
+        debugData.setMlsGrid(mlsGrid);
+    )
+    
 }
 
 void EnvironmentXYZTheta::clear()
@@ -105,6 +107,10 @@ void EnvironmentXYZTheta::updateMap(boost::shared_ptr< maps::grid::MultiLevelGri
     
     travGen.setMLSGrid(mlsGrid);
     this->mlsGrid = mlsGrid;
+    
+    UGV_DEBUG(
+        debugData.setMlsGrid(mlsGrid);
+    )
 
     clear();
 }
@@ -355,12 +361,10 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     const Hash &sourceHash(idToHash[SourceStateID]);
     XYZNode *sourceNode = sourceHash.node;
     
-#ifdef ENVIRONMENT_XYZ_THETA_GENERATE_DEBUG_DATA    
-    Eigen::Vector3d succ((sourceNode->getUserData().travNode->getIndex().x() + 0.5) * travConf.gridResolution,
-                         (sourceNode->getUserData().travNode->getIndex().y() + 0.5) * travConf.gridResolution,
-                        sourceNode->getUserData().travNode->getHeight());
-    debugSuccessors.push_back(this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * succ);
-#endif
+    UGV_DEBUG
+    (
+        debugData.addSucc(sourceNode->getUserData().travNode);
+    )
     
     ThetaNode *thetaNode = sourceHash.thetaNode;
     maps::grid::Index sourceIndex = sourceNode->getIndex();
@@ -474,62 +478,31 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 bool EnvironmentXYZTheta::checkOrientationAllowed(const TraversabilityGenerator3d::Node* node,
                                 const base::Orientation2D& orientation) const
 {
-//     if(orientation > 0.000001 || orientation < -0.0000001)
-//         std::cout << "ORIENTATION: " << orientation << std::endl;
     if(node->getUserData().slope <= 0.1) //FIXME constant
         return true;
     
     const Eigen::Vector3d& steepestSlopeDir = node->getUserData().slopeDirection;
     //FIXME atan2 can be precomputed and stored in the travnode
     const double steepestSlopeAngle = std::atan2(steepestSlopeDir.y(), steepestSlopeDir.x());
+    //FIXME constant
     const double min1 = std::min(steepestSlopeAngle - 0.2, steepestSlopeAngle + 0.2);
     const double max1 = std::max(steepestSlopeAngle - 0.2, steepestSlopeAngle + 0.2);
     
     const double min2 = std::min((steepestSlopeAngle + M_PI) - 0.2, (steepestSlopeAngle + M_PI) + 0.2);
-    const double max2 = std::max((steepestSlopeAngle + M_PI) - 0.2, (steepestSlopeAngle + M_PI) + 0.2);
-       
-//     std::cout << "min1: " << min1 << ", max1: " << max1 << ", min2: " << min2 << ", max2: " << max2 << std::endl;
+    const double max2 = std::max((steepestSlopeAngle + M_PI) - 0.2, (steepestSlopeAngle + M_PI) + 0.2);    
     
-    DebugSlopeData d;
-    d.start << (node->getIndex().x() + 0.5) * travConf.gridResolution, (node->getIndex().y() + 0.5) * travConf.gridResolution, node->getHeight();
-    d.i = node->getIndex();
-        
-    const Eigen::Vector3d one(0.05, 0, 0);
-    d.end1 = d.start + Eigen::AngleAxisd(min1, Eigen::Vector3d(0,0,1)) * one;
-    d.end2 = d.start + Eigen::AngleAxisd(min2, Eigen::Vector3d(0,0,1)) * one;
-    d.end3 = d.start + Eigen::AngleAxisd(max1, Eigen::Vector3d(0,0,1)) * one;
-    d.end4 = d.start + Eigen::AngleAxisd(max2, Eigen::Vector3d(0,0,1)) * one;
-    
-    DebugSlopeCandidate candidate;
-    candidate.start = d.start;
-    candidate.end = candidate.start + Eigen::AngleAxisd(orientation, Eigen::Vector3d(0,0,1)) * one;
-    candidate.i = node->getIndex();
-    candidate.orientation = orientation;
-    
-    candidate.end = this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * candidate.end;
-    candidate.start = this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * candidate.start;
-    d.start = this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * d.start;
-    d.end1 = this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * d.end1;
-    d.end2 = this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * d.end2;
-    d.end3 = this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * d.end3;
-    d.end4 = this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * d.end4;
-    debugSlopeData.insert(d);
-    
-    
-    
+    bool isInside = false;
     if((orientation >= min1 && orientation <= max1) ||
        (orientation >= min2 && orientation <= max2))
     {
-        candidate.color = DebugSlopeCandidate::GREEN;
-        debugSlopeCandidates.insert(candidate);
-        return true;
+        isInside = true;
     }
-    else 
-    {
-        candidate.color = DebugSlopeCandidate::RED;
-        debugSlopeCandidates.insert(candidate);
-        return false;
-    }
+    
+    UGV_DEBUG(
+        debugData.orientationCheck(node, min1, max1, min2, max2, orientation, isInside);
+    )
+    
+    return isInside;
 }
 
 bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGenerator3d::Node* >& path,
@@ -592,9 +565,9 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
                 if((abs(pos.array()) <= this->robotHalfSize.array()).all())
                 {
                     //found at least one patch that is inside the oriented boundingbox
-#ifdef ENVIRONMENT_XYZ_THETA_GENERATE_DEBUG_DATA
-                    this->debugCollisionPoses.push_back(base::Pose(this->mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * robotPosition, rotQ));
-#endif
+                    UGV_DEBUG(
+                        debugData.addCollision(robotPosition, rotQ);
+                    )
                     intersects = true;
                     return true;//abort intersection check
                 }
@@ -805,10 +778,9 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TraversabilityGenerator3d::Node* s
     std::set<std::pair<double, TraversabilityGenerator3d::Node*>> vertexQ;
     vertexQ.insert(std::make_pair(outDistances[sourceId], source));
     
-#ifdef ENVIRONMENT_XYZ_THETA_GENERATE_DEBUG_DATA
-    std::set<std::pair<double, TraversabilityGenerator3d::Node*>> vertex_queue_debug;
-    vertex_queue_debug.insert(std::make_pair(outDistances[sourceId], source));
-#endif
+    UGV_DEBUG(
+        debugData.clearHeuristic();
+    )
     
     while (!vertexQ.empty()) 
     {
@@ -827,7 +799,7 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TraversabilityGenerator3d::Node* s
             if(v->getType() != TraversabilityNodeBase::TRAVERSABLE)
                 continue;
             
-            TraversabilityGenerator3d::Node * vCasted = static_cast<TraversabilityGenerator3d::Node*>(v);
+            TraversabilityGenerator3d::Node* vCasted = static_cast<TraversabilityGenerator3d::Node*>(v);
             const Eigen::Vector2d vPos(vCasted->getIndex().x() * travConf.gridResolution,
                                        vCasted->getIndex().y() * travConf.gridResolution);
 
@@ -838,29 +810,14 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TraversabilityGenerator3d::Node* s
             if (distance_through_u < outDistances[vId])
             {
                 vertexQ.erase(std::make_pair(outDistances[vId], vCasted));
-#ifdef ENVIRONMENT_XYZ_THETA_GENERATE_DEBUG_DATA
-                vertex_queue_debug.erase(std::make_pair(outDistances[vId], vCasted));
-#endif
                 outDistances[vId] = distance_through_u;
                 vertexQ.insert(std::make_pair(outDistances[vId], vCasted));
-#ifdef ENVIRONMENT_XYZ_THETA_GENERATE_DEBUG_DATA
-                vertex_queue_debug.insert(std::make_pair(outDistances[vId], vCasted));
-#endif
+                UGV_DEBUG(
+                    debugData.addHeuristicCost(vCasted, outDistances[vId]); 
+                )
             }
         }
     }
-    
-#ifdef ENVIRONMENT_XYZ_THETA_GENERATE_DEBUG_DATA
-    debugHeuristic.clear();
-    for(const std::pair<double, TraversabilityGenerator3d::Node*>& it : vertex_queue_debug)
-    {
-        const double cost = it.first;
-        const TraversabilityGenerator3d::Node* node = it.second;
-        Eigen::Vector3d pos(node->getIndex().x() * travConf.gridResolution, node->getIndex().y() * travConf.gridResolution, node->getHeight());
-        pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-        debugHeuristic.push_back(Eigen::Vector4d(pos.x(), pos.y(), pos.z(), cost));
-    }
-#endif
 }
 
 TraversabilityGenerator3d& EnvironmentXYZTheta::getTravGen()
