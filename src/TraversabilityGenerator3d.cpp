@@ -5,9 +5,6 @@
 #include <pcl/filters/extract_indices.h>
 
 #include <deque>
-
-#define ENVIRONMENT_XYZ_THETA_GENERATE_DEBUG_DATA
-
 using namespace maps::grid;
 
 namespace ugv_nav4d
@@ -16,6 +13,10 @@ namespace ugv_nav4d
 TraversabilityGenerator3d::TraversabilityGenerator3d(const TraversabilityConfig& config) : config(config)
 {
     trMap.setResolution(Eigen::Vector2d(config.gridResolution, config.gridResolution));
+    UGV_DEBUG(
+        debugData.setTravConfig(config);
+        debugData.setTravGen(this);
+    )
 }
 
 TraversabilityGenerator3d::~TraversabilityGenerator3d()
@@ -23,7 +24,7 @@ TraversabilityGenerator3d::~TraversabilityGenerator3d()
     clearTrMap();
 }
 
-const maps::grid::TraversabilityMap3d< TraversabilityGenerator3d::Node * >& TraversabilityGenerator3d::getTraversabilityMap() const
+const maps::grid::TraversabilityMap3d<TravGenNode *> & TraversabilityGenerator3d::getTraversabilityMap() const
 {
     return trMap;
 }
@@ -34,7 +35,7 @@ int TraversabilityGenerator3d::getNumNodes() const
 }
 
 
-bool TraversabilityGenerator3d::computePlaneRansac(TraversabilityGenerator3d::Node& node, const View &area)
+bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node, const View &area)
 {
     typedef pcl::PointXYZ PointT;
     
@@ -127,17 +128,13 @@ bool TraversabilityGenerator3d::computePlaneRansac(TraversabilityGenerator3d::No
     node.getUserData().slope = computeSlope(node.getUserData().plane);
     node.getUserData().slopeDirection = computeSlopeDirection(node.getUserData().plane);
     
-#ifdef ENVIRONMENT_XYZ_THETA_GENERATE_DEBUG_DATA
     Eigen::Vector3d pos(node.getIndex().x() * config.gridResolution, node.getIndex().y() * config.gridResolution, node.getHeight());
-    
-    
     pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-    debugSlopes.push_back(Eigen::Vector4d(pos.x(), pos.y(), pos.z(), node.getUserData().slope));
-    Eigen::Matrix<double, 2, 3> slopeDir;
-    slopeDir.row(0) << pos.x() + config.gridResolution/2, pos.y() + config.gridResolution/2, pos.z();
-    slopeDir.row(1) = node.getUserData().slopeDirection;
-    debugSlopeDirs.push_back(slopeDir);
-#endif
+    std::cout << this << std::endl;
+    UGV_DEBUG(
+        debugData.planeComputed(node);
+    )
+
     
     return true;
 }
@@ -163,7 +160,7 @@ Eigen::Vector3d TraversabilityGenerator3d::computeSlopeDirection(const Eigen::Hy
 }
 
 
-bool TraversabilityGenerator3d::checkForObstacles(const View& area, TraversabilityGenerator3d::Node *node)
+bool TraversabilityGenerator3d::checkForObstacles(const View& area, TravGenNode *node)
 {
     const Eigen::Hyperplane<double, 3> &plane(node->getUserData().plane);
     const Eigen::Vector3d planeNormal(plane.normal().normalized());
@@ -207,29 +204,32 @@ bool TraversabilityGenerator3d::checkForObstacles(const View& area, Traversabili
 
 void TraversabilityGenerator3d::setConfig(const TraversabilityConfig &config)
 {
+    UGV_DEBUG(
+        debugData.setTravConfig(config);
+    )
     this->config = config;
 }
 
 void TraversabilityGenerator3d::expandAll(const Eigen::Vector3d& startPosWorld)
 {
-    Node *startNode = generateStartNode(startPosWorld);
+    TravGenNode *startNode = generateStartNode(startPosWorld);
 
     expandAll(startNode);
 }
 
-void TraversabilityGenerator3d::expandAll( TraversabilityGenerator3d::Node* startNode)
+void TraversabilityGenerator3d::expandAll(TravGenNode* startNode)
 {
     if(!startNode)
         return;
 
-    std::deque<Node *> candidates;
+    std::deque<TravGenNode *> candidates;
     candidates.push_back(startNode);
     
     int cnd = 0;
     
     while(!candidates.empty())
     {
-        Node *node = candidates.front();
+        TravGenNode *node = candidates.front();
         candidates.pop_front();
 
         //check if the node was evaluated before somehow
@@ -251,7 +251,7 @@ void TraversabilityGenerator3d::expandAll( TraversabilityGenerator3d::Node* star
         for(auto *n : node->getConnections())
         {
             if(!n->isExpanded())
-                candidates.push_back(static_cast<Node *>(n));
+                candidates.push_back(static_cast<TravGenNode *>(n));
         }
     }
     
@@ -279,9 +279,9 @@ void TraversabilityGenerator3d::setMLSGrid(boost::shared_ptr< MLGrid >& grid)
 
 void TraversabilityGenerator3d::clearTrMap()
 {
-    for(LevelList<Node *> &l : trMap)
+    for(LevelList<TravGenNode *> &l : trMap)
     {
-        for(Node *n : l)
+        for(TravGenNode *n : l)
         {
             delete n;
         }
@@ -290,7 +290,7 @@ void TraversabilityGenerator3d::clearTrMap()
     }
 }
 
-TraversabilityGenerator3d::Node* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d& startPosWorld)
+TravGenNode* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d& startPosWorld)
 {
     Index idx;
     if(!trMap.toGrid(startPosWorld, idx))
@@ -301,7 +301,7 @@ TraversabilityGenerator3d::Node* TraversabilityGenerator3d::generateStartNode(co
 
     //check if not already exists...
     auto candidates = trMap.at(idx);
-    for(Node *node : candidates)
+    for(TravGenNode *node : candidates)
     {
         if(fabs(node->getHeight() - startPosWorld.z()) < config.maxStepHeight)
         {
@@ -311,7 +311,7 @@ TraversabilityGenerator3d::Node* TraversabilityGenerator3d::generateStartNode(co
     }
 
     
-    Node *startNode = new Node(startPosWorld.z(), idx);
+    TravGenNode *startNode = new TravGenNode(startPosWorld.z(), idx);
     startNode->getUserData().id = currentNodeId++;
     trMap.at(idx).insert(startNode);
 
@@ -319,7 +319,7 @@ TraversabilityGenerator3d::Node* TraversabilityGenerator3d::generateStartNode(co
 }
 
 
-bool TraversabilityGenerator3d::expandNode( TraversabilityGenerator3d::Node * node)
+bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
 {
     Eigen::Vector3d nodePos;
     if(!trMap.fromGrid(node->getIndex(), nodePos))
@@ -359,7 +359,7 @@ bool TraversabilityGenerator3d::expandNode( TraversabilityGenerator3d::Node * no
     return true;
 }
 
-void TraversabilityGenerator3d::addConnectedPatches( TraversabilityGenerator3d::Node *  node)
+void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
 {  
     static std::vector<Eigen::Vector2i> surounding = {
         Eigen::Vector2i(1, 1),
@@ -396,7 +396,7 @@ void TraversabilityGenerator3d::addConnectedPatches( TraversabilityGenerator3d::
         
         curHeight = newPos.z();
         
-        Node *toAdd = nullptr;
+        TravGenNode *toAdd = nullptr;
 
         if(!newPos.allFinite())
         {
@@ -405,7 +405,7 @@ void TraversabilityGenerator3d::addConnectedPatches( TraversabilityGenerator3d::
         }
         
         //check if we got an existing node
-        for(Node *snode : trMap.at(idx))
+        for(TravGenNode *snode : trMap.at(idx))
         {
             const double searchHeight = snode->getHeight();
             if((searchHeight - config.maxStepHeight) < curHeight && (searchHeight + config.maxStepHeight) > curHeight)
@@ -421,7 +421,7 @@ void TraversabilityGenerator3d::addConnectedPatches( TraversabilityGenerator3d::
         
         if(!toAdd)
         {
-            toAdd = new Node(curHeight, idx);
+            toAdd = new TravGenNode(curHeight, idx);
             toAdd->getUserData().id = currentNodeId++;
             trMap.at(idx).insert(toAdd);
         }

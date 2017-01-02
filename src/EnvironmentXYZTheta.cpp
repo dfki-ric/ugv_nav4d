@@ -45,7 +45,6 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<MLGrid> mlsGrid,
     , mobilityConfig(mobilityConfig)
 {
     numAngles = primitiveConfig.numAngles;
-    travGen = TraversabilityGenerator3d(travConf);
     travGen.setMLSGrid(mlsGrid);
     searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
     searchGrid.extend(travGen.getTraversabilityMap().getNumCells());
@@ -57,7 +56,6 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<MLGrid> mlsGrid,
         debugData.setTravGen(&travGen);
         debugData.setMlsGrid(mlsGrid);
     )
-    
 }
 
 void EnvironmentXYZTheta::clear()
@@ -115,7 +113,7 @@ void EnvironmentXYZTheta::updateMap(boost::shared_ptr< maps::grid::MultiLevelGri
     clear();
 }
 
-EnvironmentXYZTheta::XYZNode* EnvironmentXYZTheta::createNewXYZState(TraversabilityGenerator3d::Node* travNode)
+EnvironmentXYZTheta::XYZNode* EnvironmentXYZTheta::createNewXYZState(TravGenNode* travNode)
 {
     XYZNode *xyzNode = new XYZNode(travNode->getHeight(), travNode->getIndex());
     xyzNode->getUserData().travNode = travNode;
@@ -127,7 +125,7 @@ EnvironmentXYZTheta::XYZNode* EnvironmentXYZTheta::createNewXYZState(Traversabil
 
 EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(const Eigen::Vector3d& pos, double theta, XYZNode **xyzBackNode)
 {
-    TraversabilityGenerator3d::Node *travNode = travGen.generateStartNode(pos);
+    TravGenNode *travNode = travGen.generateStartNode(pos);
     if(!travNode)
     {
         cout << "createNewStateFromPose: Error Pose " << pos.transpose() << " is out of grid" << endl;
@@ -247,7 +245,7 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
 {
     const Hash &sourceHash(idToHash[stateID]);
     const XYZNode *sourceNode = sourceHash.node;
-    const TraversabilityGenerator3d::Node* travNode = sourceNode->getUserData().travNode;
+    const TravGenNode* travNode = sourceNode->getUserData().travNode;
     const ThetaNode *sourceThetaNode = sourceHash.thetaNode;
     
     const double sourceToGoalDist = travNodeIdToDistance[travNode->getUserData().id].distToGoal;
@@ -263,7 +261,7 @@ int EnvironmentXYZTheta::GetStartHeuristic(int stateID)
 {
     const Hash &targetHash(idToHash[stateID]);
     const XYZNode *targetNode = targetHash.node;
-    const TraversabilityGenerator3d::Node* travNode = targetNode->getUserData().travNode;
+    const TravGenNode* travNode = targetNode->getUserData().travNode;
     const ThetaNode *targetThetaNode = targetHash.thetaNode;
 
     const double startToTargetDist = travNodeIdToDistance[travNode->getUserData().id].distToStart;
@@ -313,13 +311,13 @@ EnvironmentXYZTheta::ThetaNode *EnvironmentXYZTheta::createNewState(const Discre
     return newNode;
 }
 
-TraversabilityGenerator3d::Node *EnvironmentXYZTheta::movementPossible(TraversabilityGenerator3d::Node *fromTravNode, const maps::grid::Index &fromIdx, const maps::grid::Index &toIdx)
+TravGenNode *EnvironmentXYZTheta::movementPossible(TravGenNode *fromTravNode, const maps::grid::Index &fromIdx, const maps::grid::Index &toIdx)
 {
     if(toIdx == fromIdx)
         return fromTravNode;
     
     //get trav node associated with the next index
-    TraversabilityGenerator3d::Node *targetNode = fromTravNode->getConnectedNode(toIdx);
+    TravGenNode *targetNode = fromTravNode->getConnectedNode(toIdx);
     if(!targetNode)
     {
         return nullptr;
@@ -370,7 +368,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     maps::grid::Index sourceIndex = sourceNode->getIndex();
     XYZNode *curNode = sourceNode;
 
-    TraversabilityGenerator3d::Node *travNode = curNode->getUserData().travNode;
+    TravGenNode *travNode = curNode->getUserData().travNode;
     if(!travNode->isExpanded())
     {
         //current node is not drivable
@@ -384,7 +382,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     {
         travNode = curNode->getUserData().travNode;
         maps::grid::Index curIndex = curNode->getIndex();
-        std::vector<TraversabilityGenerator3d::Node*> nodesOnPath;
+        std::vector<TravGenNode*> nodesOnPath;
         bool intermediateStepsOk = true;
         for(const PoseWithCell &diff : motion.intermediateSteps)
         {
@@ -475,7 +473,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     } 
 }
 
-bool EnvironmentXYZTheta::checkOrientationAllowed(const TraversabilityGenerator3d::Node* node,
+bool EnvironmentXYZTheta::checkOrientationAllowed(const TravGenNode* node,
                                 const base::Orientation2D& orientation) const
 {
     if(node->getUserData().slope <= 0.1) //FIXME constant
@@ -505,7 +503,7 @@ bool EnvironmentXYZTheta::checkOrientationAllowed(const TraversabilityGenerator3
     return isInside;
 }
 
-bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGenerator3d::Node* >& path,
+bool EnvironmentXYZTheta::checkCollisions(const std::vector<TravGenNode*>& path,
                                           const Motion& motion) const
 {
     //the final pose is part of the path but not of the poses.
@@ -516,7 +514,7 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector< TraversabilityGener
 
     for(size_t i = 0; i < path.size(); ++i)
     {
-        const TraversabilityGenerator3d::Node* node(path[i]);
+        const TravGenNode* node(path[i]);
         //path contains the final element while intermediatePoses does not.
         const double zRot = i < motion.intermediateSteps.size() ?
                             motion.intermediateSteps[i].pose.orientation :
@@ -664,7 +662,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         const Hash &startHash(idToHash[stateIDPath[i]]);
         const maps::grid::Index startIndex(startHash.node->getIndex());
         maps::grid::Index lastIndex = startIndex;
-        TraversabilityGenerator3d::Node *curNode = startHash.node->getUserData().travNode;
+        TravGenNode *curNode = startHash.node->getUserData().travNode;
         
         for(const PoseWithCell &pwc : curMotion.intermediateSteps)
         {
@@ -673,7 +671,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
 
             if(curIndex != lastIndex)
             {
-                TraversabilityGenerator3d::Node *nextNode = curNode->getConnectedNode(curIndex);
+                TravGenNode *nextNode = curNode->getConnectedNode(curIndex);
                 if(!nextNode)
                 {
                     for(auto *n : curNode->getConnections())
@@ -708,7 +706,7 @@ maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > Environme
     return travGen.getTraversabilityBaseMap();
 }
 
-const maps::grid::TraversabilityMap3d< TraversabilityGenerator3d::Node* >& EnvironmentXYZTheta::getTraversabilityMap() const
+const maps::grid::TraversabilityMap3d<TravGenNode*>& EnvironmentXYZTheta::getTraversabilityMap() const
 {
     return travGen.getTraversabilityMap();
 }
@@ -723,10 +721,10 @@ const PreComputedMotions& EnvironmentXYZTheta::getAvailableMotions() const
     return availableMotions;
 }
 
-double EnvironmentXYZTheta::getAvgSlope(std::vector<TraversabilityGenerator3d::Node*> path) const
+double EnvironmentXYZTheta::getAvgSlope(std::vector<TravGenNode*> path) const
 {
     double slopeSum = 0;
-    for(TraversabilityGenerator3d::Node* node : path)
+    for(TravGenNode* node : path)
     {
         slopeSum += node->getUserData().slope; 
     }
@@ -764,7 +762,7 @@ void EnvironmentXYZTheta::precomputeCost()
 }
 
 //Adapted from: https://rosettacode.org/wiki/Dijkstra%27s_algorithm#C.2B.2B
-void EnvironmentXYZTheta::dijkstraComputeCost(TraversabilityGenerator3d::Node* source,
+void EnvironmentXYZTheta::dijkstraComputeCost(TravGenNode* source,
                           std::vector<double> &outDistances, const double maxDist)
 {
     using namespace maps::grid;
@@ -775,7 +773,7 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TraversabilityGenerator3d::Node* s
     const int sourceId = source->getUserData().id;
     outDistances[sourceId] = 0;
     
-    std::set<std::pair<double, TraversabilityGenerator3d::Node*>> vertexQ;
+    std::set<std::pair<double, TravGenNode*>> vertexQ;
     vertexQ.insert(std::make_pair(outDistances[sourceId], source));
     
     UGV_DEBUG(
@@ -785,7 +783,7 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TraversabilityGenerator3d::Node* s
     while (!vertexQ.empty()) 
     {
         double dist = vertexQ.begin()->first;
-        TraversabilityGenerator3d::Node* u = vertexQ.begin()->second;
+        TravGenNode* u = vertexQ.begin()->second;
         
         vertexQ.erase(vertexQ.begin());
         
@@ -799,7 +797,7 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TraversabilityGenerator3d::Node* s
             if(v->getType() != TraversabilityNodeBase::TRAVERSABLE)
                 continue;
             
-            TraversabilityGenerator3d::Node* vCasted = static_cast<TraversabilityGenerator3d::Node*>(v);
+            TravGenNode* vCasted = static_cast<TravGenNode*>(v);
             const Eigen::Vector2d vPos(vCasted->getIndex().x() * travConf.gridResolution,
                                        vCasted->getIndex().y() * travConf.gridResolution);
 

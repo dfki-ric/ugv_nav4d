@@ -8,9 +8,8 @@
 #include "PreComputedMotions.hpp"
 #include <base/Trajectory.hpp>
 
-//If this is defined, additional debug data for visualization will be generated.
-//It might slow down the planning
-#define ENVIRONMENT_XYZ_THETA_GENERATE_DEBUG_DATA
+#define GENERATE_DEBUG_DATA
+#include "UgvDebug.hpp"
 #include "EnvironmentXYZThetaDebugData.hpp"
 
 
@@ -52,7 +51,7 @@ protected:
     {
         PlannerData() : travNode(nullptr) {};
         
-        TraversabilityGenerator3d::Node *travNode;
+        TravGenNode *travNode;
         
         ///contains all nodes sorted by theta
         std::map<DiscreteTheta, ThetaNode *> thetaToNodes; 
@@ -91,7 +90,7 @@ protected:
     XYZNode *goalXYZNode;
     
     ThetaNode *createNewState(const DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
-    XYZNode *createNewXYZState(TraversabilityGenerator3d::Node* travNode);
+    XYZNode *createNewXYZState(TravGenNode* travNode);
     ThetaNode *createNewStateFromPose(const Eigen::Vector3d& pos, double theta, EnvironmentXYZTheta::XYZNode** xyzNode);
     
 public:
@@ -155,7 +154,7 @@ public:
     const Motion& getMotion(const int fromStateID, const int toStateID);
     
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;
-    const maps::grid::TraversabilityMap3d< TraversabilityGenerator3d::Node *> &getTraversabilityMap() const;
+    const maps::grid::TraversabilityMap3d<TravGenNode *> &getTraversabilityMap() const;
     TraversabilityGenerator3d& getTravGen();
 
     const MLGrid &getMlsMap() const;
@@ -174,13 +173,13 @@ public:
 private:
   
     //Return true if there is no collision on the given path.
-    bool checkCollisions(const std::vector<TraversabilityGenerator3d::Node*>& path,
+    bool checkCollisions(const std::vector<TravGenNode*>& path,
                          const Motion& motion) const;
                          
     /** Some movement directions are not allowed depending on the slope of the patch.
      *  @return true if the movement direction is allowed on that patch
      */
-    bool checkOrientationAllowed(const TraversabilityGenerator3d::Node* node,
+    bool checkOrientationAllowed(const TravGenNode* node,
                                  const base::Orientation2D& orientation) const;
   
     Eigen::AlignedBox3d getRobotBoundingBox() const;
@@ -188,13 +187,13 @@ private:
     void precomputeCost();
     /** @param maxDist The value that should be used as maximum distance. This value is used for
      *                 non-traversable nodes and for initialization.*/ 
-    void dijkstraComputeCost(TraversabilityGenerator3d::Node* source, std::vector<double> &outDistances,
+    void dijkstraComputeCost(TravGenNode* source, std::vector<double> &outDistances,
                              const double maxDist);
     
     /**Return the avg slope of all patches on the given @p path */
-    double getAvgSlope(std::vector<TraversabilityGenerator3d::Node*> path) const;
+    double getAvgSlope(std::vector<TravGenNode*> path) const;
     
-    TraversabilityGenerator3d::Node* movementPossible(TraversabilityGenerator3d::Node* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& to);
+    TravGenNode* movementPossible(TravGenNode* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& to);
     TraversabilityConfig travConf;
     
     unsigned int numAngles;

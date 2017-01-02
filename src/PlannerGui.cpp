@@ -91,12 +91,12 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     connect(&trav3dViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
     connect(this, SIGNAL(plannerDone()), this, SLOT(plannerIsDone()));
     
-    double res = 0.5;
+    double res = 0.1;
      if(argc > 2)
          res =atof(argv[2]);
     
     std::cout << "RES = " << res << std::endl;
-    config.gridSize = res;//0.5;// mlsMap.getResolution().x();
+    config.gridSize = res;
     config.destinationCircleRadius = 12;
     config.numAngles = 16;
     config.numEndAngles = 7;
@@ -114,7 +114,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     mobility.mMultiplierForwardTurn = 1;
     mobility.mMultiplierPointTurn = 8;
      
-    conf.gridResolution = res;//0.5;//  mlsMap.getResolution().x();
+    conf.gridResolution = res;
     conf.maxSlope = 40.0/180.0 * M_PI;
     maxSlopeSpinBox->setValue(40);
     conf.maxStepHeight = 0.5; //space below robot
@@ -263,8 +263,7 @@ void PlannerGui::plannerIsDone()
     
     UGV_DEBUG(
         envViz.setEnvDebugData(planner->getEnv()->debugData);
-        envViz.setSlopes(planner->getEnv()->getTravGen().debugSlopes);
-        envViz.setSlopeDirs(planner->getEnv()->getTravGen().debugSlopeDirs);
+        envViz.setTravGenDebugData(planner->getEnv()->getTravGen().debugData);
     )
 
     bar->setMaximum(1);

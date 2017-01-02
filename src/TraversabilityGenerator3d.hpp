@@ -2,9 +2,13 @@
 
 #include <maps/grid/MLSMap.hpp>
 #include <boost/shared_ptr.hpp>
-
-#include <maps/grid/TraversabilityMap3d.hpp>
 #include "TraversabilityConfig.hpp"
+#include "TravGenNode.hpp"
+
+#define GENERATE_DEBUG_DATA
+#include "UgvDebug.hpp"
+#include "TravGenDebugData.hpp"
+
 
 namespace ugv_nav4d
 {
@@ -12,16 +16,11 @@ namespace ugv_nav4d
     class TraversabilityGenerator3d
 {
 public:
-    struct TrackingData
-    {
-        Eigen::Hyperplane<double, 3> plane;
-        double slope;
-        Eigen::Vector3d slopeDirection; //normalized direction of the maximum slope. Only valid if slope > 0
-        size_t id; //contiguous unique id  that can be used as index for additional metadata
-    };
-    
-    typedef maps::grid::TraversabilityNode<TrackingData> Node;
 
+    UGV_DEBUG(
+        ugv_nav4d_debug::TravGenDebugData debugData;
+    )
+    
 private:
     
     typedef maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > MLGrid;
@@ -32,20 +31,20 @@ private:
     
     
     boost::shared_ptr<MLGrid > mlsGrid;
-    maps::grid::TraversabilityMap3d<Node *> trMap;
+    maps::grid::TraversabilityMap3d<TravGenNode*> trMap;
     int currentNodeId = 0; //used while expanding
     
-    bool computePlaneRansac(Node &node, const View &area);
+    bool computePlaneRansac(TravGenNode &node, const View &area);
     
-    bool computePlane(Node &node, const View &area);
+    bool computePlane(TravGenNode &node, const View &area);
     
     double computeSlope(const Eigen::Hyperplane< double, int(3) >& plane) const;
     Eigen::Vector3d computeSlopeDirection(const Eigen::Hyperplane< double, int(3) >& plane) const;
     
-    bool checkForObstacles(const View& area, Node* node);
+    bool checkForObstacles(const View& area, TravGenNode* node);
     
     
-    void addConnectedPatches(Node* node);
+    void addConnectedPatches(TravGenNode* node);
 
     bool getConnectedPatch(const maps::grid::Index& idx, double height, const Patch*& patch);
     
@@ -53,32 +52,27 @@ private:
     TraversabilityConfig config;
 public:
     TraversabilityGenerator3d(const TraversabilityConfig &config);
+
     ~TraversabilityGenerator3d();
 
     void clearTrMap();
     
-    Node *generateStartNode(const Eigen::Vector3d &startPosWorld);
+    TravGenNode *generateStartNode(const Eigen::Vector3d &startPosWorld);
     void expandAll(const Eigen::Vector3d &startPosWorld);
 
-    void expandAll(Node *startNode);
+    void expandAll(TravGenNode *startNode);
 
-    bool expandNode(Node *node);
+    bool expandNode(TravGenNode *node);
     
     void setMLSGrid(boost::shared_ptr<MLGrid> &grid);
     
     /**Returns the number of nodes after expansion*/
     int getNumNodes() const;
     
-    const maps::grid::TraversabilityMap3d<Node *> &getTraversabilityMap() const;
+    const maps::grid::TraversabilityMap3d<TravGenNode *> &getTraversabilityMap() const;
 
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;
-    
-    /**Contains the slopes of all travnodes if debug is defined */
-    mutable std::vector<Eigen::Vector4d> debugSlopes;
-    /**Contains the sloep directions of all travnoces if debug is defined.
-     * rows(0) is the location, rows(1) the slope direction*/
-    mutable std::vector<Eigen::Matrix<double, 2, 3>> debugSlopeDirs;
-    
+        
     void setConfig(const TraversabilityConfig &config);
     
 protected:

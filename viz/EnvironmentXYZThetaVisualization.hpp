@@ -34,9 +34,8 @@ namespace vizkit3d
     public slots:
       void setGridSize(const double gridSize); //size of one grid cell
       void setRobotHalfSize(const Eigen::Vector3d& value);
-      void setSlopes(const std::vector<Eigen::Vector4d>& slopes);
-      void setSlopeDirs(const std::vector<Eigen::Matrix<double, 2, 3>>& slopeDirs);
       void setEnvDebugData(const ugv_nav4d_debug::EnvironmentXYZThetaDebugData& data);
+      void setTravGenDebugData(const ugv_nav4d_debug::TravGenDebugData& data);
       
 //       void setSlopeDebug(const std::vector<EnvironmentXYZTheta::DebugSlopeData>& data);
 //       void setSlopeDebugCandidate(const std::vector<EnvironmentXYZTheta::DebugSlopeCandidate>& data);

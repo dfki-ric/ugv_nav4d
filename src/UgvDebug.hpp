@@ -1,8 +1,8 @@
 #pragma once
 
-#ifndef ENVIRONMENT_XYZ_THETA_GENERATE_DEBUG_DATA
+#ifndef GENERATE_DEBUG_DATA
 
-#define UGV_DEBUG(code) ((void)0);
+#define UGV_DEBUG(code)
 
 #else
 

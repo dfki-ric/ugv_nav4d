@@ -3,8 +3,6 @@
 #include "TraversabilityGenerator3d.hpp"
 #include <unordered_set>
 #include <unordered_map>
-#include "UgvDebug.hpp"
-
  
 namespace ugv_nav4d_debug
 {
@@ -71,7 +69,7 @@ public:
         travGen = gen;
     }
     
-    void addSucc(ugv_nav4d::TraversabilityGenerator3d::Node* node)
+    void addSucc(ugv_nav4d::TravGenNode* node)
     {
         Eigen::Vector3d succ((node->getIndex().x() + 0.5) * travConf.gridResolution,
                              (node->getIndex().y() + 0.5) * travConf.gridResolution,
@@ -80,7 +78,7 @@ public:
     successors.push_back(mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * succ);
     }
     
-    void orientationCheck(const ugv_nav4d::TraversabilityGenerator3d::Node* node, double min1, double max1,
+    void orientationCheck(const ugv_nav4d::TravGenNode* node, double min1, double max1,
                           double min2, double max2, const base::Orientation2D& orientation, bool candidateInside)
     {
     
@@ -128,7 +126,7 @@ public:
         heuristicCost.clear();
     }
     
-    void addHeuristicCost(ugv_nav4d::TraversabilityGenerator3d::Node* node, double cost)
+    void addHeuristicCost(ugv_nav4d::TravGenNode* node, double cost)
     {
         if(heuristicCost.find(node) == heuristicCost.end())
         {
@@ -149,7 +147,7 @@ public:
         std::vector<Eigen::Vector4d> output;
         for(auto i : heuristicCost)
         {
-            const ugv_nav4d::TraversabilityGenerator3d::Node* node = i.first;
+            const ugv_nav4d::TravGenNode* node = i.first;
             const double cost = i.second;
             Eigen::Vector3d pos(node->getIndex().x() * travConf.gridResolution, node->getIndex().y() * travConf.gridResolution, node->getHeight());
             pos = travGen->getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
@@ -168,6 +166,15 @@ public:
         return collisions;
     }
     
+    const std::unordered_set<DebugSlopeData, DebugSlopeDataHash>& getSlopeData()
+    {
+        return slopeData;
+    }
+    
+    const std::unordered_set<DebugSlopeCandidate, DebugSlopeCandidateHash>& getSlopeCandidates()
+    {
+        return slopeCandidates;
+    }
     
 private:
     ugv_nav4d::TraversabilityConfig travConf;
@@ -180,27 +187,9 @@ private:
     std::unordered_set<DebugSlopeData, DebugSlopeDataHash> slopeData;
     std::unordered_set<DebugSlopeCandidate, DebugSlopeCandidateHash> slopeCandidates;
     std::vector<base::Pose> collisions;
-    std::unordered_map<ugv_nav4d::TraversabilityGenerator3d::Node*, double> heuristicCost;
+    std::unordered_map<ugv_nav4d::TravGenNode*, double> heuristicCost;
 };
 
 }
-
-
-
-//     mutable std::vector<Eigen::Vector4d> debugHeuristic; /**< The heuristic [x, y, z, cost]. (in world coordinates) */
-//     mutable  /**< Poses of collisions that occured while planning (in world coordinates) */
-//     mutable std::vector<Eigen::Vector3d> debugSuccessors; /**< All positions that the planner visited while planning in chronological order (in world coordinates) */
-//     
-
-//     
-
-// 
-//     mutable 
-//     
-
-//     
-
-//     
-//     mutable 
     
  
