@@ -480,8 +480,7 @@ bool EnvironmentXYZTheta::checkOrientationAllowed(const TravGenNode* node,
         return true;
     
     const Eigen::Vector3d& steepestSlopeDir = node->getUserData().slopeDirection;
-    //FIXME atan2 can be precomputed and stored in the travnode
-    const double steepestSlopeAngle = std::atan2(steepestSlopeDir.y(), steepestSlopeDir.x());
+    const double steepestSlopeAngle = node->getUserData().slopeDirectionAtan2;
     //FIXME constant
     const double min1 = std::min(steepestSlopeAngle - 0.2, steepestSlopeAngle + 0.2);
     const double max1 = std::max(steepestSlopeAngle - 0.2, steepestSlopeAngle + 0.2);

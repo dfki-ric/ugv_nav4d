@@ -125,12 +125,13 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node, const View
         list.insert(&node);
     }    
     
+    const Eigen::Vector3d slopeDir = computeSlopeDirection(node.getUserData().plane);
     node.getUserData().slope = computeSlope(node.getUserData().plane);
-    node.getUserData().slopeDirection = computeSlopeDirection(node.getUserData().plane);
+    node.getUserData().slopeDirection = slopeDir;
+    node.getUserData().slopeDirectionAtan2 = std::atan2(slopeDir.y(), slopeDir.x());
     
     Eigen::Vector3d pos(node.getIndex().x() * config.gridResolution, node.getIndex().y() * config.gridResolution, node.getHeight());
     pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-    std::cout << this << std::endl;
     UGV_DEBUG(
         debugData.planeComputed(node);
     )
