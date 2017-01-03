@@ -122,6 +122,8 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     conf.robotSizeY =  0.7;
     conf.robotHeight = 0.9; //incl space below body
     conf.slopeMetricScale = 0.0;
+    conf.inclineLimittingMinSlope = 10.0 * M_PI/180.0;
+    conf.inclineLimittingLimit = 5.0 * M_PI/180.0;
     
     planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
     
@@ -217,6 +219,7 @@ void PlannerGui::picked(float x, float y, float z)
     {
         goal << x, y, z;
         std::cout << "goal: " << goal.transpose() << std::endl;
+        planner->setTravConfig(conf);
         startPlanThread();
         pickStart = true;
     }

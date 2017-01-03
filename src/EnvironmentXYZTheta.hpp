@@ -172,6 +172,8 @@ public:
     
 private:
   
+    double interpolate(double x, double x0, double y0, double x1, double y1) const;
+    
     //Return true if there is no collision on the given path.
     bool checkCollisions(const std::vector<TravGenNode*>& path,
                          const Motion& motion) const;

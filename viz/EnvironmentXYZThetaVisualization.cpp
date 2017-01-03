@@ -144,7 +144,8 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
     
     if(showAllowedSlopes)
     {
-        osgviz::LinesNode* slopeLines = new osgviz::LinesNode(osg::Vec4(1, 1, 0, 1));
+        osgviz::LinesNode* slopeLinesA = new osgviz::LinesNode(osg::Vec4(1, 1, 0, 1));
+        osgviz::LinesNode* slopeLinesB = new osgviz::LinesNode(osg::Vec4(0, 1, 1, 1));
 //         std::cout << "SLOPE DEBUG: " << p->slopeDebug.size() << std::endl;
 //         std::cout << "SLOPE CAND DEBUG: " << p->slopeDebugCandidates.size() << std::endl;
         for(const auto& data : p->envDebug.getSlopeData())
@@ -155,12 +156,13 @@ void EnvironmentXYZThetaVisualization::updateMainNode ( Node* node )
             const osg::Vec3 end3(data.end3.x(), data.end3.y(), data.end3.z() + 0.05);
             const osg::Vec3 end4(data.end4.x(), data.end4.y(), data.end4.z() + 0.05);
         
-            slopeLines->addLine(start, end1);
-            slopeLines->addLine(start, end2);
-            slopeLines->addLine(start, end3);
-            slopeLines->addLine(start, end4);
+            slopeLinesA->addLine(start, end1);
+            slopeLinesA->addLine(start, end2);
+            slopeLinesB->addLine(start, end3);
+            slopeLinesB->addLine(start, end4);
         }
-        p->root->addChild(slopeLines);
+        p->root->addChild(slopeLinesA);
+        p->root->addChild(slopeLinesB);
         
         osgviz::LinesNode* redLines = new osgviz::LinesNode(osg::Vec4(1, 0, 0, 1));
         osgviz::LinesNode* greenLines = new osgviz::LinesNode(osg::Vec4(0, 1, 0, 1));

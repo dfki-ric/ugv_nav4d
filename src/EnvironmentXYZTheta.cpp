@@ -56,6 +56,14 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<MLGrid> mlsGrid,
         debugData.setTravGen(&travGen);
         debugData.setMlsGrid(mlsGrid);
     )
+    
+    for(double slope = travConf.inclineLimittingMinSlope; slope < travConf.maxSlope; slope += 0.017)
+    {
+        const double limit = interpolate(slope, travConf.inclineLimittingMinSlope,
+                                         M_PI, travConf.maxSlope, travConf.inclineLimittingLimit);
+        std::cout << slope << " -> " << limit << std::endl;
+    }    
+    
 }
 
 void EnvironmentXYZTheta::clear()
@@ -474,32 +482,33 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 }
 
 bool EnvironmentXYZTheta::checkOrientationAllowed(const TravGenNode* node,
-                                const base::Orientation2D& orientation) const
+                                const base::Orientation2D& orientationRad) const
 {
-    if(node->getUserData().slope <= 0.1) //FIXME constant
+    if(node->getUserData().slope < travConf.inclineLimittingMinSlope) 
         return true;
     
-    const Eigen::Vector3d& steepestSlopeDir = node->getUserData().slopeDirection;
-    const double steepestSlopeAngle = node->getUserData().slopeDirectionAtan2;
-    //FIXME constant
-    const double min1 = std::min(steepestSlopeAngle - 0.2, steepestSlopeAngle + 0.2);
-    const double max1 = std::max(steepestSlopeAngle - 0.2, steepestSlopeAngle + 0.2);
+    const double limitRad = interpolate(node->getUserData().slope, travConf.inclineLimittingMinSlope,
+                                     M_PI_2, travConf.maxSlope, travConf.inclineLimittingLimit);
+    const double startRad = node->getUserData().slopeDirectionAtan2 - limitRad;
+    const double width = 2 * limitRad;
+    assert(width >= 0);//this happens if the travmap was generated with a different maxSlope than travConf.maxSlope
     
-    const double min2 = std::min((steepestSlopeAngle + M_PI) - 0.2, (steepestSlopeAngle + M_PI) + 0.2);
-    const double max2 = std::max((steepestSlopeAngle + M_PI) - 0.2, (steepestSlopeAngle + M_PI) + 0.2);    
-    
-    bool isInside = false;
-    if((orientation >= min1 && orientation <= max1) ||
-       (orientation >= min2 && orientation <= max2))
-    {
-        isInside = true;
-    }
+    const base::AngleSegment segment(base::Angle::fromRad(startRad), width);
+    const base::AngleSegment segmentMirrored(base::Angle::fromRad(startRad - M_PI), width);
+    const base::Angle orientation = base::Angle::fromRad(orientationRad);
+    const bool isInside = segment.isInside(orientation) || segmentMirrored.isInside(orientation);
+
     
     UGV_DEBUG(
-        debugData.orientationCheck(node, min1, max1, min2, max2, orientation, isInside);
+        debugData.orientationCheck(node, segment, segmentMirrored, orientation, isInside);
     )
-    
     return isInside;
+}
+
+double EnvironmentXYZTheta::interpolate(double x, double x0, double y0, double x1, double y1) const
+{
+    //linear interpolation
+    return y0 + (x - x0) * (y1 - y0)/(x1-x0);
 }
 
 bool EnvironmentXYZTheta::checkCollisions(const std::vector<TravGenNode*>& path,

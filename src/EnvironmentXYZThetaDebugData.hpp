@@ -78,26 +78,25 @@ public:
     successors.push_back(mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * succ);
     }
     
-    void orientationCheck(const ugv_nav4d::TravGenNode* node, double min1, double max1,
-                          double min2, double max2, const base::Orientation2D& orientation, bool candidateInside)
+    void orientationCheck(const ugv_nav4d::TravGenNode* node, const base::AngleSegment& seg1, const base::AngleSegment& seg2, const base::Angle& orientation, bool candidateInside)
     {
-    
         DebugSlopeData d;
         d.start << (node->getIndex().x() + 0.5) * travConf.gridResolution, (node->getIndex().y() + 0.5) * travConf.gridResolution, node->getHeight();
         d.i = node->getIndex();
-            
+        
         const Eigen::Vector3d one(0.05, 0, 0);
-        d.end1 = d.start + Eigen::AngleAxisd(min1, Eigen::Vector3d(0,0,1)) * one;
-        d.end2 = d.start + Eigen::AngleAxisd(min2, Eigen::Vector3d(0,0,1)) * one;
-        d.end3 = d.start + Eigen::AngleAxisd(max1, Eigen::Vector3d(0,0,1)) * one;
-        d.end4 = d.start + Eigen::AngleAxisd(max2, Eigen::Vector3d(0,0,1)) * one;
+        d.end1 = d.start + Eigen::AngleAxisd(seg1.getStart().rad, Eigen::Vector3d(0,0,1)) * one;
+        d.end2 = d.start + Eigen::AngleAxisd(seg1.getEnd().rad, Eigen::Vector3d(0,0,1)) * one;
+        d.end3 = d.start + Eigen::AngleAxisd(seg2.getStart().rad, Eigen::Vector3d(0,0,1)) * one;
+        d.end4 = d.start + Eigen::AngleAxisd(seg2.getEnd().rad, Eigen::Vector3d(0,0,1)) * one;
         
         DebugSlopeCandidate candidate;
         candidate.start = d.start;
-        candidate.end = candidate.start + Eigen::AngleAxisd(orientation, Eigen::Vector3d(0,0,1)) * one;
+        candidate.end = candidate.start + Eigen::AngleAxisd(orientation.rad, Eigen::Vector3d(0,0,1)) * one;
         candidate.i = node->getIndex();
-        candidate.orientation = orientation;
+        candidate.orientation = orientation.rad;
         
+        //convert to local map frame
         candidate.end = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * candidate.end;
         candidate.start = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * candidate.start;
         d.start = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * d.start;
