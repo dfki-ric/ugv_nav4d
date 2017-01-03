@@ -35,6 +35,8 @@ signals:
     
 private slots:
     void maxSlopeEditingFinished();
+    void inclineLimittingLimitSpinBoxEditingFinished();
+    void inclineLimittingMinSlopeSpinBoxEditingFinished();
     void timeEditingFinished();
     void replanButtonReleased();
     void expandPressed();
@@ -49,6 +51,8 @@ private:
     vizkit3d::Vizkit3DWidget widget;
     QDoubleSpinBox* maxSlopeSpinBox;
     QDoubleSpinBox* time;
+    QDoubleSpinBox* inclineLimittingMinSlopeSpinBox;
+    QDoubleSpinBox* inclineLimittingLimitSpinBox;
     QPushButton* expandButton;
     QProgressBar* bar;
     QWidget window;

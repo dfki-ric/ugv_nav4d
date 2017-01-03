@@ -47,7 +47,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     connect(maxSlopeSpinBox, SIGNAL(editingFinished()), this, SLOT(maxSlopeEditingFinished()));
     QHBoxLayout* slopeLayout = new QHBoxLayout();
     QLabel* lab = new QLabel();
-    lab->setText("max slope:");
+    lab->setText("max slope (deg):");
     slopeLayout->addWidget(lab);
     slopeLayout->addWidget(maxSlopeSpinBox);
     slopeLayout->addWidget(expandButton);
@@ -69,8 +69,31 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     bar = new QProgressBar();
     bar->setMinimum(0);
     bar->setMaximum(1);
-//     bar->hide();
+
+    inclineLimittingMinSlopeSpinBox = new QDoubleSpinBox();
+    inclineLimittingMinSlopeSpinBox->setMinimum(0.0);
+    inclineLimittingMinSlopeSpinBox->setMaximum(180.0);
+    connect(inclineLimittingMinSlopeSpinBox, SIGNAL(editingFinished()), this, SLOT(inclineLimittingMinSlopeSpinBoxEditingFinished()));
     
+    inclineLimittingLimitSpinBox = new QDoubleSpinBox();
+    inclineLimittingLimitSpinBox->setMinimum(0.00001);
+    inclineLimittingLimitSpinBox->setMaximum(90);
+    connect(inclineLimittingLimitSpinBox, SIGNAL(editingFinished()), this, SLOT(inclineLimittingLimitSpinBoxEditingFinished()));
+    
+    QLabel* inclineLimittingMinSlopeLabel = new QLabel();
+    inclineLimittingMinSlopeLabel->setText("incline limit min slope (deg)");
+    QLabel* inclineLimittingLimitSpinBoxLabel = new QLabel();
+    inclineLimittingLimitSpinBoxLabel->setText("incline limit at max slope (deg)");
+    
+    QHBoxLayout* slopeLimitLayout = new QHBoxLayout();
+    slopeLimitLayout->addWidget(inclineLimittingMinSlopeLabel);
+    slopeLimitLayout->addWidget(inclineLimittingMinSlopeSpinBox);
+    QHBoxLayout* slopeLimitLayout2 = new QHBoxLayout();
+    slopeLimitLayout2->addWidget(inclineLimittingLimitSpinBoxLabel);
+    slopeLimitLayout2->addWidget(inclineLimittingLimitSpinBox);
+    
+    layout->addLayout(slopeLimitLayout);
+    layout->addLayout(slopeLimitLayout2);
     
     QPushButton* replanButton = new QPushButton("Replan");
     timeLayout->addWidget(replanButton);
@@ -87,7 +110,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     qRegisterMetaType<std::vector<base::Trajectory>>("std::vector<base::Trajectory>");
     qRegisterMetaType<maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>>("maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>");
 
-     connect(&mlsViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
+    connect(&mlsViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
     connect(&trav3dViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
     connect(this, SIGNAL(plannerDone()), this, SLOT(plannerIsDone()));
     
@@ -124,6 +147,9 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     conf.slopeMetricScale = 0.0;
     conf.inclineLimittingMinSlope = 10.0 * M_PI/180.0;
     conf.inclineLimittingLimit = 5.0 * M_PI/180.0;
+    
+    inclineLimittingMinSlopeSpinBox->setValue(10);
+    inclineLimittingLimitSpinBox->setValue(6);
     
     planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
     
@@ -231,6 +257,16 @@ void PlannerGui::maxSlopeEditingFinished()
     conf.maxSlope = maxSlopeSpinBox->value()/180.0 * M_PI;
 }
 
+void PlannerGui::inclineLimittingLimitSpinBoxEditingFinished()
+{
+    conf.inclineLimittingLimit = inclineLimittingLimitSpinBox->value()/180.0 * M_PI;
+}
+
+void PlannerGui::inclineLimittingMinSlopeSpinBoxEditingFinished()
+{
+    conf.inclineLimittingMinSlope = inclineLimittingMinSlopeSpinBox->value()/180.0 * M_PI;
+}
+
 void PlannerGui::timeEditingFinished()
 {
     
@@ -292,6 +328,8 @@ void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal)
     UGV_DEBUG(
         planner->getEnv()->debugData.getSuccs().clear();
         planner->getEnv()->debugData.getCollisions().clear();
+        planner->getEnv()->debugData.getSlopeData().clear();
+        planner->getEnv()->debugData.getSlopeCandidates().clear();
     )
     
     base::samples::RigidBodyState startState;

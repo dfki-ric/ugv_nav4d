@@ -165,12 +165,12 @@ public:
         return collisions;
     }
     
-    const std::unordered_set<DebugSlopeData, DebugSlopeDataHash>& getSlopeData()
+    std::unordered_set<DebugSlopeData, DebugSlopeDataHash>& getSlopeData()
     {
         return slopeData;
     }
     
-    const std::unordered_set<DebugSlopeCandidate, DebugSlopeCandidateHash>& getSlopeCandidates()
+    std::unordered_set<DebugSlopeCandidate, DebugSlopeCandidateHash>& getSlopeCandidates()
     {
         return slopeCandidates;
     }
