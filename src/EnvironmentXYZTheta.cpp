@@ -56,14 +56,6 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<MLGrid> mlsGrid,
         debugData.setTravGen(&travGen);
         debugData.setMlsGrid(mlsGrid);
     )
-    
-    for(double slope = travConf.inclineLimittingMinSlope; slope < travConf.maxSlope; slope += 0.017)
-    {
-        const double limit = interpolate(slope, travConf.inclineLimittingMinSlope,
-                                         M_PI, travConf.maxSlope, travConf.inclineLimittingLimit);
-        std::cout << slope << " -> " << limit << std::endl;
-    }    
-    
 }
 
 void EnvironmentXYZTheta::clear()
