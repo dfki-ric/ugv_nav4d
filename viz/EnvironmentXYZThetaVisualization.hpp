@@ -54,6 +54,8 @@ namespace vizkit3d
       
       bool getshowAllowedSlopes();
       void setshowAllowedSlopes(bool val);
+      
+      
 
     protected:
         virtual osg::ref_ptr<osg::Node> createMainNode();

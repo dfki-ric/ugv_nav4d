@@ -7,6 +7,7 @@
 #include <vizkit3d/EnvironmentXYZThetaVisualization.hpp>
 #include <vizkit3d/MotionPlanningLibrariesSbplMprimsVisualization.hpp>
 #include <vizkit3d/MotionPlanningLibrariesSbplSplineVisualization.hpp>
+#include <vizkit3d/RigidBodyStateVisualization.hpp>
 #include <maps/grid/MLSMap.hpp>
 #include <base/Eigen.hpp>
 #include "Planner.hpp"
@@ -27,7 +28,7 @@ public slots:
     void plannerIsDone();
     
     /**plan from @p staro to @p goal */
-    void plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal);
+    void plan(const base::Pose& start, const base::Pose& goal);
     
 signals:
     //is emitted if the planner thread is done
@@ -37,6 +38,8 @@ private slots:
     void maxSlopeEditingFinished();
     void inclineLimittingLimitSpinBoxEditingFinished();
     void inclineLimittingMinSlopeSpinBoxEditingFinished();
+    void startOrientationChanged(int newValue);
+    void goalOrientationChanged(int newValue);
     void timeEditingFinished();
     void replanButtonReleased();
     void expandPressed();
@@ -53,6 +56,8 @@ private:
     QDoubleSpinBox* time;
     QDoubleSpinBox* inclineLimittingMinSlopeSpinBox;
     QDoubleSpinBox* inclineLimittingLimitSpinBox;
+    QSlider* startOrientatationSlider;
+    QSlider* goalOrientationSlider;
     QPushButton* expandButton;
     QProgressBar* bar;
     QWidget window;
@@ -61,9 +66,11 @@ private:
     vizkit3d::MLSMapVisualization mlsViz;
     vizkit3d::TraversabilityMap3dVisualization trav3dViz;
     vizkit3d::EnvironmentXYZThetaVisualization envViz;
+    vizkit3d::RigidBodyStateVisualization startViz;
+    vizkit3d::RigidBodyStateVisualization goalViz;
     maps::grid::MLSMapPrecalculated mlsMap;
-    Eigen::Vector3f start; //is inf if not set
-    Eigen::Vector3f goal; //is inf if not set
+    base::Pose start;
+    base::Pose goal;
     bool pickStart = true;
     bool threadRunning = false;
     motion_planning_libraries::SplinePrimitivesConfig config;

@@ -159,6 +159,9 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     
     goalXYZNode->getUserData().travNode->setNotExpanded();
     
+    if(!checkOrientationAllowed(goalXYZNode->getUserData().travNode, theta))
+        throw std::runtime_error("Goal orientation not allowed due to slope");
+    
     travGen.expandAll(startXYZNode->getUserData().travNode);
     std::cout << "All expanded " << std::endl;
     precomputeCost();
@@ -169,6 +172,10 @@ void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
 {
     startThetaNode = createNewStateFromPose(startPos, theta, &startXYZNode);
     startXYZNode->getUserData().travNode->setNotExpanded();
+    
+    if(!checkOrientationAllowed(startXYZNode->getUserData().travNode, theta))
+        throw std::runtime_error("Start orientation not allowed due to slope");
+    
 }
 
 void EnvironmentXYZTheta::SetAllPreds(CMDPSTATE* state)

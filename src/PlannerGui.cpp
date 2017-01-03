@@ -13,10 +13,8 @@
 
 PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
 {
-    
-    
-    start.setConstant(std::numeric_limits<float>::infinity());
-    goal.setConstant(std::numeric_limits<float>::infinity());
+    start.orientation.setIdentity();
+    goal.orientation.setIdentity();
     
     widget.setCameraManipulator(vizkit3d::ORBIT_MANIPULATOR);
     widget.addPlugin(&splineViz);
@@ -24,6 +22,8 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     widget.addPlugin(&mlsViz);
     widget.addPlugin(&trav3dViz);
     widget.addPlugin(&envViz);
+    widget.addPlugin(&startViz);
+    widget.addPlugin(&goalViz);
     
     splineViz.setPluginEnabled(false);
     
@@ -94,6 +94,36 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     
     layout->addLayout(slopeLimitLayout);
     layout->addLayout(slopeLimitLayout2);
+    
+    startOrientatationSlider = new QSlider(Qt::Horizontal);
+    startOrientatationSlider->setMinimum(0);
+    startOrientatationSlider->setMaximum(359);
+    startOrientatationSlider->setValue(0);
+    goalOrientationSlider = new QSlider(Qt::Horizontal);
+    goalOrientationSlider->setMinimum(0);
+    goalOrientationSlider->setMaximum(359);
+    goalOrientationSlider->setValue(0);
+
+    
+    connect(startOrientatationSlider, SIGNAL(sliderMoved(int)), this, SLOT(startOrientationChanged(int)));
+    connect(goalOrientationSlider, SIGNAL(sliderMoved(int)), this, SLOT(goalOrientationChanged(int)));
+    
+    QLabel* startOrientationLaebel = new QLabel();
+    startOrientationLaebel->setText("start orientation (deg)");
+    QLabel* goalOrientationLaebel = new QLabel();
+    goalOrientationLaebel->setText("goal orientation (deg)");
+     
+    QHBoxLayout* startOrientationLayout = new QHBoxLayout();
+    startOrientationLayout->addWidget(startOrientationLaebel);
+    startOrientationLayout->addWidget(startOrientatationSlider);
+    
+    QHBoxLayout* goalOrientationLayout = new QHBoxLayout();
+    goalOrientationLayout->addWidget(goalOrientationLaebel);
+    goalOrientationLayout->addWidget(goalOrientationSlider);
+    
+    layout->addLayout(startOrientationLayout);
+    layout->addLayout(goalOrientationLayout);
+    
     
     QPushButton* replanButton = new QPushButton("Replan");
     timeLayout->addWidget(replanButton);
@@ -237,14 +267,18 @@ void PlannerGui::picked(float x, float y, float z)
     expandButton->setEnabled(true);
     if(pickStart)
     {
-        start << x, y, z;
-        std::cout << "Start: " << start.transpose() << std::endl;
+        start.position << x, y, z;
+        QVector3D pos(start.position.x(), start.position.y(), start.position.z());
+        startViz.setTranslation(pos);
+        std::cout << "Start: " << start.position.transpose() << std::endl;
         pickStart = false;
     }
     else
     {
-        goal << x, y, z;
-        std::cout << "goal: " << goal.transpose() << std::endl;
+        goal.position << x, y, z;
+        QVector3D pos(goal.position.x(), goal.position.y(), goal.position.z());
+        goalViz.setTranslation(pos);
+        std::cout << "goal: " << goal.position.transpose() << std::endl;
         planner->setTravConfig(conf);
         startPlanThread();
         pickStart = true;
@@ -266,6 +300,24 @@ void PlannerGui::inclineLimittingMinSlopeSpinBoxEditingFinished()
 {
     conf.inclineLimittingMinSlope = inclineLimittingMinSlopeSpinBox->value()/180.0 * M_PI;
 }
+
+void PlannerGui::goalOrientationChanged(int newValue)
+{
+    const double rad = newValue/180.0 * M_PI;
+    goal.orientation = Eigen::AngleAxisd(rad, Eigen::Vector3d::UnitZ());
+    goalViz.setRotation(QQuaternion(goal.orientation.w(), goal.orientation.x(), goal.orientation.y(), goal.orientation.z()));
+}
+
+void PlannerGui::startOrientationChanged(int newValue)
+{
+    const double rad = newValue/180.0 * M_PI;
+    start.orientation = Eigen::AngleAxisd(rad, Eigen::Vector3d::UnitZ());
+    startViz.setRotation(QQuaternion(start.orientation.w(), start.orientation.x(), start.orientation.y(), start.orientation.z()));
+}
+
+
+    
+
 
 void PlannerGui::timeEditingFinished()
 {
@@ -312,7 +364,7 @@ void PlannerGui::expandPressed()
 {
     planner->getEnv()->getTravGen().clearTrMap();
     planner->getEnv()->getTravGen().setConfig(conf);
-    planner->getEnv()->getTravGen().expandAll(start.cast<double>());
+    planner->getEnv()->getTravGen().expandAll(start.position.cast<double>());
     trav3dViz.updateData((planner->getEnv()->getTraversabilityBaseMap()));
     mlsViz.setPluginEnabled(false);
 }
@@ -323,7 +375,7 @@ Start:  5.99972 0.399847 -1.31341d
 goal: -0.455198   7.99133   2.08586
 */
 
-void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal)
+void PlannerGui::plan(const base::Pose& start, const base::Pose& goal)
 {
     UGV_DEBUG(
         planner->getEnv()->debugData.getSuccs().clear();
@@ -333,14 +385,14 @@ void PlannerGui::plan(const Eigen::Vector3f& start, const Eigen::Vector3f& goal)
     )
     
     base::samples::RigidBodyState startState;
-    startState.position = start.cast<double>();
-    startState.orientation.setIdentity();
+    startState.position = start.position;
+    startState.orientation = start.orientation;
     base::samples::RigidBodyState endState;
-    endState.position << goal.cast<double>();
-    endState.orientation.setIdentity();
+    endState.position << goal.position;
+    endState.orientation = goal.orientation;
     
     std::cout << std::endl << std::endl;
-    std::cout << "Planning: " << start.transpose() << " -> " << goal.transpose() << std::endl;
+    std::cout << "Planning: " << start << " -> " << goal << std::endl;
     const bool result = planner->plan(base::Time::fromSeconds(time->value()), startState, endState);
     if(result)
     {
