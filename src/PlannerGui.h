@@ -38,11 +38,13 @@ private slots:
     void maxSlopeEditingFinished();
     void inclineLimittingLimitSpinBoxEditingFinished();
     void inclineLimittingMinSlopeSpinBoxEditingFinished();
+    void slopeMetricScaleSpinBoxEditingFinished();
     void startOrientationChanged(int newValue);
     void goalOrientationChanged(int newValue);
     void timeEditingFinished();
     void replanButtonReleased();
     void expandPressed();
+    void slopeMetricComboBoxIndexChanged(int index);
     
 private:
     void loadMls();
@@ -53,12 +55,14 @@ private:
     QApplication app;
     vizkit3d::Vizkit3DWidget widget;
     QDoubleSpinBox* maxSlopeSpinBox;
+    QDoubleSpinBox* slopeMetricScaleSpinBox;
     QDoubleSpinBox* time;
     QDoubleSpinBox* inclineLimittingMinSlopeSpinBox;
     QDoubleSpinBox* inclineLimittingLimitSpinBox;
     QSlider* startOrientatationSlider;
     QSlider* goalOrientationSlider;
     QPushButton* expandButton;
+    QComboBox* slopeMetricComboBox;
     QProgressBar* bar;
     QWidget window;
     vizkit3d::MotionPlanningLibrariesSbplSplineVisualization splineViz;

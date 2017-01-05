@@ -95,6 +95,37 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     layout->addLayout(slopeLimitLayout);
     layout->addLayout(slopeLimitLayout2);
     
+    
+    slopeMetricScaleSpinBox = new QDoubleSpinBox();
+    slopeMetricScaleSpinBox->setMinimum(0.0);
+    slopeMetricScaleSpinBox->setMaximum(999999.0);
+    slopeMetricScaleSpinBox->setValue(0.0);
+    connect(slopeMetricScaleSpinBox, SIGNAL(editingFinished()), this, SLOT(slopeMetricScaleSpinBoxEditingFinished()));
+    
+    QLabel* slopeMetricLabel = new QLabel();
+    slopeMetricLabel->setText("slope metric scale");
+    
+    QHBoxLayout* slopeMetricLayout = new QHBoxLayout();
+    slopeMetricLayout->addWidget(slopeMetricLabel);
+    slopeMetricLayout->addWidget(slopeMetricScaleSpinBox);
+    layout->addLayout(slopeMetricLayout);
+    
+    slopeMetricComboBox = new QComboBox();
+    slopeMetricComboBox->addItem("NONE");
+    slopeMetricComboBox->addItem("AVG_SLOPE");
+    slopeMetricComboBox->addItem("MAX_SLOPE");
+    connect(slopeMetricComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slopeMetricComboBoxIndexChanged(int)));
+    QLabel* slopeMetricComboLabel = new QLabel();
+    slopeMetricComboLabel->setText("Slope Metric Type");
+    QHBoxLayout* slopeMetricTypeLayout = new QHBoxLayout();
+    slopeMetricTypeLayout->addWidget(slopeMetricComboLabel);
+    slopeMetricTypeLayout->addWidget(slopeMetricComboBox);
+    layout->addLayout(slopeMetricTypeLayout);
+    
+    
+    
+    
+    
     startOrientatationSlider = new QSlider(Qt::Horizontal);
     startOrientatationSlider->setMinimum(0);
     startOrientatationSlider->setMaximum(359);
@@ -175,6 +206,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     conf.robotSizeY =  0.7;
     conf.robotHeight = 0.9; //incl space below body
     conf.slopeMetricScale = 0.0;
+    conf.slopeMetric = SlopeMetric::NONE;
     conf.inclineLimittingMinSlope = 10.0 * M_PI/180.0;
     conf.inclineLimittingLimit = 5.0 * M_PI/180.0;
     
@@ -301,6 +333,24 @@ void PlannerGui::inclineLimittingMinSlopeSpinBoxEditingFinished()
     conf.inclineLimittingMinSlope = inclineLimittingMinSlopeSpinBox->value()/180.0 * M_PI;
 }
 
+void PlannerGui::slopeMetricScaleSpinBoxEditingFinished()
+{
+    conf.slopeMetricScale = slopeMetricScaleSpinBox->value();
+}
+
+void PlannerGui::slopeMetricComboBoxIndexChanged(int index)
+{
+    std::vector<SlopeMetric> metrics = {SlopeMetric::NONE, SlopeMetric::AVG_SLOPE, SlopeMetric::MAX_SLOPE};
+    if(index < metrics.size())
+    {
+        conf.slopeMetric = metrics[index];
+    }
+    else
+    {
+        throw std::runtime_error("unknown slope index");
+    }
+}
+
 void PlannerGui::goalOrientationChanged(int newValue)
 {
     const double rad = newValue/180.0 * M_PI;
@@ -405,4 +455,7 @@ void PlannerGui::plan(const base::Pose& start, const base::Pose& goal)
 
     emit plannerDone();
 }
+
+
+
 

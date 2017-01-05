@@ -3,9 +3,19 @@
 namespace ugv_nav4d
 {
 
+/**Different metrics can be used to factor in the slope of a motion  */
+enum class SlopeMetric
+{
+    
+    AVG_SLOPE,
+    MAX_SLOPE,
+    NONE
+};
+    
 class TraversabilityConfig
 {
 public:
+    
     TraversabilityConfig(): maxStepHeight(0), maxSlope(0), robotHeight(0), robotSizeX(0),    gridResolution(0.0) {};
     
     double maxStepHeight;
@@ -24,6 +34,7 @@ public:
     double robotSizeX;
     double robotSizeY;
     double slopeMetricScale;
+    SlopeMetric slopeMetric;//which metric to use to factor in the slope of a motion
     double gridResolution;
 };
 

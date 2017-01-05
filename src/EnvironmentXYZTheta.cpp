@@ -468,14 +468,28 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             successthetaNode = createNewState(motion.endTheta, successXYNode);
         }
                
-        const double avgSlope = getAvgSlope(nodesOnPath) * travConf.slopeMetricScale;
+        double slopeFactor = 0;
+        switch(travConf.slopeMetric)
+        {
+            case SlopeMetric::AVG_SLOPE:
+                slopeFactor = getAvgSlope(nodesOnPath) * travConf.slopeMetricScale;
+                break;
+            case SlopeMetric::MAX_SLOPE:
+                slopeFactor = getMaxSlope(nodesOnPath) * travConf.slopeMetricScale;
+                break;
+            case SlopeMetric::NONE:
+                slopeFactor = 0;
+                break;
+            default:
+                throw std::runtime_error("unknown slope metric selected");
+        }
         
         SuccIDV->push_back(successthetaNode->id);
         
-        oassert(int(motion.baseCost + motion.baseCost * avgSlope) >= motion.baseCost);
+        oassert(int(motion.baseCost + motion.baseCost * slopeFactor) >= motion.baseCost);
         oassert(motion.baseCost > 0);
         
-        CostV->push_back(int(motion.baseCost + motion.baseCost * avgSlope));
+        CostV->push_back(int(motion.baseCost + motion.baseCost * slopeFactor));
         motionIdV.push_back(motion.id);
     } 
 }
@@ -737,6 +751,16 @@ double EnvironmentXYZTheta::getAvgSlope(std::vector<TravGenNode*> path) const
     }
     const double avgSlope = slopeSum / path.size();
     return avgSlope;
+}
+
+double EnvironmentXYZTheta::getMaxSlope(std::vector<TravGenNode*> path) const
+{
+    const TravGenNode* maxElem =  *std::max_element(path.begin(), path.end(),
+                                  [] (TravGenNode* lhs, TravGenNode* rhs) 
+                                  {
+                                    return lhs->getUserData().slope < rhs->getUserData().slope;
+                                  });
+    return maxElem->getUserData().slope;
 }
 
 void EnvironmentXYZTheta::precomputeCost()

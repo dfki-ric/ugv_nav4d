@@ -195,6 +195,9 @@ private:
     /**Return the avg slope of all patches on the given @p path */
     double getAvgSlope(std::vector<TravGenNode*> path) const;
     
+    /**Returns the max slope of all patches on the given @p path */
+    double getMaxSlope(std::vector<TravGenNode*> path) const;
+    
     TravGenNode* movementPossible(TravGenNode* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& to);
     TraversabilityConfig travConf;
     
