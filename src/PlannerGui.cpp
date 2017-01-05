@@ -419,6 +419,15 @@ void PlannerGui::plannerIsDone()
 {
     std::vector<base::Trajectory> path;
     planner->getTrajectory(path);    
+    
+    double pathLen = 0;
+    for(const base::Trajectory& traj : path)
+    {
+        pathLen += traj.spline.length(traj.spline.getStartParam(), traj.spline.getEndParam(), traj.spline.getGeometricResolution());
+    }
+    
+    std::cout << "path length:  " << pathLen << std::endl;
+    
     trajViz.updateTr(path);
     trajViz.setLineWidth(8);
     
