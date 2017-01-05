@@ -9,7 +9,14 @@ enum class SlopeMetric
     
     AVG_SLOPE,
     MAX_SLOPE,
+    TRIANGLE_SLOPE,
     NONE
+};
+
+enum class HeuristicType
+{
+    HEURISTIC_2D,
+    HEURISTIC_3D
 };
     
 class TraversabilityConfig
@@ -35,6 +42,7 @@ public:
     double robotSizeY;
     double slopeMetricScale;
     SlopeMetric slopeMetric;//which metric to use to factor in the slope of a motion
+    HeuristicType heuristicType;
     double gridResolution;
 };
 

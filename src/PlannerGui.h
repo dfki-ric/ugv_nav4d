@@ -45,6 +45,7 @@ private slots:
     void replanButtonReleased();
     void expandPressed();
     void slopeMetricComboBoxIndexChanged(int index);
+    void heuristicComboBoxIndexChanged(int index);
     
 private:
     void loadMls();
@@ -63,6 +64,7 @@ private:
     QSlider* goalOrientationSlider;
     QPushButton* expandButton;
     QComboBox* slopeMetricComboBox;
+    QComboBox* heuristicComboBox;
     QProgressBar* bar;
     QWidget window;
     vizkit3d::MotionPlanningLibrariesSbplSplineVisualization splineViz;

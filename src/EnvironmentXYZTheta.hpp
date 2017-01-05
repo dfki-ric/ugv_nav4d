@@ -198,6 +198,9 @@ private:
     /**Returns the max slope of all patches on the given @p path */
     double getMaxSlope(std::vector<TravGenNode*> path) const;
     
+    /**Determines the distance between @p a and @p b depending on travConf.heuristicType */
+    double getHeuristicDistance(const Eigen::Vector3d& a, const Eigen::Vector3d& b) const;
+    
     TravGenNode* movementPossible(TravGenNode* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& to);
     TraversabilityConfig travConf;
     

@@ -468,17 +468,36 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             successthetaNode = createNewState(motion.endTheta, successXYNode);
         }
                
-        double slopeFactor = 0;
+        double cost = 0;
         switch(travConf.slopeMetric)
         {
             case SlopeMetric::AVG_SLOPE:
-                slopeFactor = getAvgSlope(nodesOnPath) * travConf.slopeMetricScale;
+            {
+                const double slopeFactor = getAvgSlope(nodesOnPath) * travConf.slopeMetricScale;
+                cost = motion.baseCost + motion.baseCost * slopeFactor;
                 break;
+            }
             case SlopeMetric::MAX_SLOPE:
-                slopeFactor = getMaxSlope(nodesOnPath) * travConf.slopeMetricScale;
+            {
+                const double slopeFactor = getMaxSlope(nodesOnPath) * travConf.slopeMetricScale;
+                cost = motion.baseCost + motion.baseCost * slopeFactor;
                 break;
+            }
+            case SlopeMetric::TRIANGLE_SLOPE:
+            {
+                //assume that the motion is a straight line, extrapolate into third dimension
+                //by projecting onto a plane that connects start and end cell.
+                const double heightDiff = std::abs(sourceNode->getHeight() - successXYNode->getHeight());
+                //not perfect but probably more exact than the slope factors above
+                const double approxMotionLen3D = std::sqrt(std::pow(motion.translationlDist, 2) + std::pow(heightDiff, 2));
+                assert(approxMotionLen3D >= motion.translationlDist);//due to triangle inequality
+                const double translationalVelocity = std::min(mobilityConfig.mSpeed, motion.speed);
+                cost = Motion::calculateCost(approxMotionLen3D, motion.angularDist, translationalVelocity,
+                                             mobilityConfig.mTurningSpeed, motion.costMultiplier);
+                break;
+            }
             case SlopeMetric::NONE:
-                slopeFactor = 0;
+                cost = motion.baseCost;
                 break;
             default:
                 throw std::runtime_error("unknown slope metric selected");
@@ -486,10 +505,10 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         
         SuccIDV->push_back(successthetaNode->id);
         
-        oassert(int(motion.baseCost + motion.baseCost * slopeFactor) >= motion.baseCost);
+        oassert(int(cost) >= motion.baseCost);
         oassert(motion.baseCost > 0);
         
-        CostV->push_back(int(motion.baseCost + motion.baseCost * slopeFactor));
+        CostV->push_back(int(cost));
         motionIdV.push_back(motion.id);
     } 
 }
@@ -818,8 +837,9 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TravGenNode* source,
         
         vertexQ.erase(vertexQ.begin());
         
-        const Eigen::Vector2d uPos(u->getIndex().x() * travConf.gridResolution,
-                                   u->getIndex().y() * travConf.gridResolution);
+        const Eigen::Vector3d uPos(u->getIndex().x() * travConf.gridResolution,
+                                   u->getIndex().y() * travConf.gridResolution,
+                                   u->getHeight());
         
         // Visit each edge exiting u
         for(TraversabilityNodeBase *v : u->getConnections())
@@ -829,10 +849,11 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TravGenNode* source,
                 continue;
             
             TravGenNode* vCasted = static_cast<TravGenNode*>(v);
-            const Eigen::Vector2d vPos(vCasted->getIndex().x() * travConf.gridResolution,
-                                       vCasted->getIndex().y() * travConf.gridResolution);
+            const Eigen::Vector3d vPos(vCasted->getIndex().x() * travConf.gridResolution,
+                                       vCasted->getIndex().y() * travConf.gridResolution,
+                                       vCasted->getHeight());
 
-            const double distance = (vPos - uPos).norm();
+            const double distance = getHeuristicDistance(vPos, uPos);
             double distance_through_u = dist + distance;
             const int vId = vCasted->getUserData().id;
             
@@ -846,6 +867,19 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TravGenNode* source,
                 )
             }
         }
+    }
+}
+
+double EnvironmentXYZTheta::getHeuristicDistance(const Eigen::Vector3d& a, const Eigen::Vector3d& b) const
+{
+    switch(travConf.heuristicType)
+    {
+        case HeuristicType::HEURISTIC_2D:
+            return (a.topRows(2) - b.topRows(2)).norm();
+        case HeuristicType::HEURISTIC_3D:
+            return (a - b).norm();
+        default:
+            throw std::runtime_error("unknown heuristic type");
     }
 }
 
