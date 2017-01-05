@@ -24,8 +24,13 @@ struct PoseWithCell
     maps::grid::Index cell;
 };
 
-struct Motion
+class Motion
 {
+    /**used to scale the costs because costs
+     * are int but real costs are most likely small doubles*/
+    static double costScaleFactor;
+    
+public:
     enum class Type {
         MOV_FORWARD,
         MOV_BACKWARD,
@@ -35,21 +40,25 @@ struct Motion
 
     Motion(unsigned int numAngles) : endTheta(0, numAngles),startTheta(0, numAngles), baseCost(0), id(std::numeric_limits<size_t>::max()) {};
     
+    static int calculateCost(double translationalDist, double angularDist, double translationVelocity, double angularVelocity, double costMultiplier);
+    
     int xDiff;
     int yDiff;
     DiscreteTheta endTheta;
     DiscreteTheta startTheta;
     
-    double speed;
+    double speed; //FIXME is this used?
     
     Type type;
     
     /**the intermediate poses are not discrete.
-        * They are relative to the starting cell*/
+     * They are relative to the starting cell*/
     std::vector<PoseWithCell> intermediateSteps;
     
     int baseCost; //time the robot needs to follow the primivite scaled by some factors
     int costMultiplier;//is used to scale the baseCost
+    double translationlDist; //translational length of the motion
+    double angularDist; //angular length of the motion
     
     size_t id;
     
@@ -61,11 +70,7 @@ class PreComputedMotions
     std::vector<std::vector<Motion> > thetaToMotion;
     std::vector<Motion> idToMotion;
     motion_planning_libraries::SbplMotionPrimitives primitives;
-    
-    /**used to scale the costs because costs
-     * are int but real costs are most likely small doubles*/
-    const double costScaleFactor = 1000;
-     
+         
 public:
     /**Initialize using spline based primitives.
      * @param mobilityConfig Will be used to configure and filter the splines.

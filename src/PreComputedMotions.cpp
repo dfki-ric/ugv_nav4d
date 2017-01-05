@@ -176,22 +176,29 @@ void PreComputedMotions::computeSplinePrimCost(const SplinePrimitive& prim,
     }
         
     const double translationalVelocity = std::min(mobilityConfig.mSpeed, outMotion.speed);
+    outMotion.baseCost = Motion::calculateCost(linearDist, angularDist, translationalVelocity,
+                                               mobilityConfig.mTurningSpeed, outMotion.costMultiplier);
+    assert(outMotion.baseCost >= 0);
+    outMotion.translationlDist = linearDist;
+    outMotion.angularDist = angularDist;
+}
 
-    const double linearTime = linearDist / translationalVelocity;
-    const double angularTime = angularDist / mobilityConfig.mTurningSpeed;
+int Motion::calculateCost(double translationalDist, double angularDist, double translationVelocity,
+                          double angularVelocity, double costMultiplier)
+{
+    const double translationTime = translationalDist / translationVelocity;
+    const double angularTime = angularDist / angularVelocity;
     
     //use ulonglong to catch overflows caused by large cost multipliers
-    unsigned long long cost = ceil(std::max(angularTime, linearTime) * costScaleFactor * outMotion.costMultiplier);
+    unsigned long long cost = ceil(std::max(angularTime, translationTime) * costScaleFactor * costMultiplier);
     
     if(cost > std::numeric_limits<int>::max())
     {
         std::cerr << "WARNING: primitive cost too large for int. Clipping to int_max." << std::endl;
-        outMotion.baseCost = std::numeric_limits<int>::max();
+        return std::numeric_limits<int>::max();
     }
     else
-        outMotion.baseCost = cost;
-    
-    assert(outMotion.baseCost >= 0);
+        return cost;    
 }
 
 const Motion& PreComputedMotions::getMotion(std::size_t id) const
@@ -233,5 +240,6 @@ double PreComputedMotions::calculateCurvatureFromRadius(const double r)
     return c;
 }
 
+double Motion::costScaleFactor = 1000.0;
 
 }
