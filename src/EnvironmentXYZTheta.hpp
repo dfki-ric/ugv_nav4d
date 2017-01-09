@@ -8,7 +8,7 @@
 #include "PreComputedMotions.hpp"
 #include <base/Trajectory.hpp>
 
-#define GENERATE_DEBUG_DATA
+//#define GENERATE_DEBUG_DATA
 #include "UgvDebug.hpp"
 #include "EnvironmentXYZThetaDebugData.hpp"
 
@@ -202,6 +202,11 @@ private:
     double getHeuristicDistance(const Eigen::Vector3d& a, const Eigen::Vector3d& b) const;
     
     TravGenNode* movementPossible(TravGenNode* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& to);
+    
+    /** Expands @p node if it needs expansion.
+     *  Thread-safe. */
+    bool checkExpandTreadSafe(TravGenNode * node);
+    
     TraversabilityConfig travConf;
     
     unsigned int numAngles;

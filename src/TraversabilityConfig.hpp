@@ -43,6 +43,7 @@ public:
     double slopeMetricScale;
     SlopeMetric slopeMetric;//which metric to use to factor in the slope of a motion
     HeuristicType heuristicType;
+    bool parallelismEnabled; //if true openMP will be used to parallelize the planning
     double gridResolution;
 };
 

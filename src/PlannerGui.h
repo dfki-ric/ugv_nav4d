@@ -46,6 +46,7 @@ private slots:
     void expandPressed();
     void slopeMetricComboBoxIndexChanged(int index);
     void heuristicComboBoxIndexChanged(int index);
+    void parallelismCheckBoxStateChanged(int);
     
 private:
     void loadMls();
@@ -65,6 +66,7 @@ private:
     QPushButton* expandButton;
     QComboBox* slopeMetricComboBox;
     QComboBox* heuristicComboBox;
+    QCheckBox* parallelismCheckBox;
     QProgressBar* bar;
     QWidget window;
     vizkit3d::MotionPlanningLibrariesSbplSplineVisualization splineViz;

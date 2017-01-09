@@ -332,24 +332,40 @@ TravGenNode *EnvironmentXYZTheta::movementPossible(TravGenNode *fromTravNode, co
 //         throw std::runtime_error("should not happen");
     }
     
-    if(!targetNode->isExpanded())
-    {
-        //current node is not drivable
-        if(!travGen.expandNode(targetNode))
-        {
-            return nullptr;
-        }
-    }
-    
     if(targetNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
     {
         return nullptr;
+    }  
+    
+    if(!checkExpandTreadSafe(targetNode))
+    {
+        return nullptr;
     }
-    
+        
     //TODO add additionalCosts if something is near this node etc
-    
     return targetNode;
 }
+
+bool EnvironmentXYZTheta::checkExpandTreadSafe(TravGenNode * node)
+{
+    if(node->isExpanded())
+    {
+        return true;
+    }
+    
+    bool result = true;
+    #pragma omp critical(checkExpandTreadSafe) 
+    {
+        if(!node->isExpanded())
+        {
+            //FIXME if expandNode throws an exeception we may never unlock
+            //directly returning from insde omp critical is forbidden
+            result = travGen.expandNode(node);
+        }
+    }    
+    return result;
+}
+
 
 void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, vector< int >* CostV)
 {
@@ -364,30 +380,34 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     CostV->clear();
     motionIdV.clear();
     const Hash &sourceHash(idToHash[SourceStateID]);
-    XYZNode *sourceNode = sourceHash.node;
+    const XYZNode *const sourceNode = sourceHash.node;
     
     UGV_DEBUG
     (
         debugData.addSucc(sourceNode->getUserData().travNode);
     )
     
-    ThetaNode *thetaNode = sourceHash.thetaNode;
-    maps::grid::Index sourceIndex = sourceNode->getIndex();
-    XYZNode *curNode = sourceNode;
+    const ThetaNode *const thetaNode = sourceHash.thetaNode;
+    const maps::grid::Index sourceIndex = sourceNode->getIndex();
+    const XYZNode *const curNode = sourceNode;
 
-    TravGenNode *travNode = curNode->getUserData().travNode;
-    if(!travNode->isExpanded())
+    
+    TravGenNode *curTravNode = curNode->getUserData().travNode;
+    if(!curTravNode->isExpanded())
     {
         //current node is not drivable
-        if(!travGen.expandNode(travNode))
+        if(!travGen.expandNode(curTravNode))
         {
             return;
         }
     }
 
-    for(const Motion &motion : availableMotions.getMotionForStartTheta(thetaNode->theta))
+    const auto& motions = availableMotions.getMotionForStartTheta(thetaNode->theta);
+    #pragma omp parallel for schedule(dynamic, 5) if(travConf.parallelismEnabled)
+    for(int i = 0; i < motions.size(); ++i)
     {
-        travNode = curNode->getUserData().travNode;
+        const Motion &motion = motions[i];
+        TravGenNode *travNode = curNode->getUserData().travNode;
         maps::grid::Index curIndex = curNode->getIndex();
         std::vector<TravGenNode*> nodesOnPath;
         bool intermediateStepsOk = true;
@@ -429,43 +449,51 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             continue;
         }
         
-        curIndex = finalPos;
-        
         //goal from source to the end of the motion was valid
         XYZNode *successXYNode = nullptr;
         ThetaNode *successthetaNode = nullptr;
         
-        //check if we can connect to the existing graph
-        const auto &candidateMap = searchGrid.at(curIndex);
-
-        if(travNode->getIndex() != curIndex)
-            throw std::runtime_error("Internal error, indexes do not match");
         
-        XYZNode searchTmp(travNode->getHeight(), travNode->getIndex());
+        //WARNING This becomes a critical section if several motion primitives
+        //        share the same finalPos.
+        //        As long as this is not the case this section should be save.
         
-        //note, this works, as the equals check is on the height, not the node itself
-        auto it = candidateMap.find(&searchTmp);
+        //#pragma omp critical(searchGridAccess) 
+        //{
+            const auto &candidateMap = searchGrid.at(finalPos);
 
-        if(it != candidateMap.end())
-        {
-            //found a node with a matching height
-            successXYNode = *it;
-        }
-        else
-        {
-            successXYNode = createNewXYZState(travNode);
-        }
+            if(travNode->getIndex() != finalPos)
+                throw std::runtime_error("Internal error, indexes do not match");
+            
+            XYZNode searchTmp(travNode->getHeight(), travNode->getIndex());
+            
+            //note, this works, as the equals check is on the height, not the node itself
+            auto it = candidateMap.find(&searchTmp);
 
-        const auto &thetaMap(successXYNode->getUserData().thetaToNodes);
-        
-        auto thetaCandidate = thetaMap.find(motion.endTheta);
-        if(thetaCandidate != thetaMap.end())
+            if(it != candidateMap.end())
+            {
+                //found a node with a matching height
+                successXYNode = *it;
+            }
+            else
+            {
+                successXYNode = createNewXYZState(travNode); //modifies searchGrid at travNode->getIndex()
+            }
+        //}
+
+        #pragma omp critical(thetaToNodesAccess) //TODO reduce size of critical section
         {
-            successthetaNode = thetaCandidate->second;
-        }
-        else
-        {
-            successthetaNode = createNewState(motion.endTheta, successXYNode);
+            const auto &thetaMap(successXYNode->getUserData().thetaToNodes);
+            
+            auto thetaCandidate = thetaMap.find(motion.endTheta);
+            if(thetaCandidate != thetaMap.end())
+            {
+                successthetaNode = thetaCandidate->second;
+            }
+            else
+            {
+                successthetaNode = createNewState(motion.endTheta, successXYNode);
+            }
         }
                
         double cost = 0;
@@ -503,13 +531,16 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 throw std::runtime_error("unknown slope metric selected");
         }
         
-        SuccIDV->push_back(successthetaNode->id);
-        
         oassert(int(cost) >= motion.baseCost);
         oassert(motion.baseCost > 0);
         
-        CostV->push_back(int(cost));
-        motionIdV.push_back(motion.id);
+        const int iCost = (int)cost;
+        #pragma omp critical(updateData)
+        {
+            SuccIDV->push_back(successthetaNode->id);
+            CostV->push_back(iCost);
+            motionIdV.push_back(motion.id);
+        }
     } 
 }
 

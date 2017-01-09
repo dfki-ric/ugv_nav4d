@@ -5,7 +5,7 @@
 #include "TraversabilityConfig.hpp"
 #include "TravGenNode.hpp"
 
-#define GENERATE_DEBUG_DATA
+//#define GENERATE_DEBUG_DATA
 #include "UgvDebug.hpp"
 #include "TravGenDebugData.hpp"
 

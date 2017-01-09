@@ -59,7 +59,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     time->setMaximum(999);
     time->setValue(14);
     QLabel* lab2 = new QLabel();
-    lab2->setText("Max planning time:");
+    lab2->setText("Max processor time:");
     timeLayout->addWidget(lab2);
     timeLayout->addWidget(time);
     timeLayout->addWidget(time);
@@ -165,6 +165,18 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     layout->addLayout(startOrientationLayout);
     layout->addLayout(goalOrientationLayout);
     
+    parallelismCheckBox = new QCheckBox();
+    parallelismCheckBox->setChecked(false);
+    QLabel* parallelismLabel = new QLabel();
+    parallelismLabel->setText("Parallel getSuccs()");
+    
+    QHBoxLayout* parallelismLayout = new QHBoxLayout();
+    parallelismLayout->addWidget(parallelismLabel);
+    parallelismLayout->addWidget(parallelismCheckBox);
+    
+    layout->addLayout(parallelismLayout);
+    connect(parallelismCheckBox, SIGNAL(stateChanged(int)), this, SLOT(parallelismCheckBoxStateChanged(int)));
+    
     
     QPushButton* replanButton = new QPushButton("Replan");
     timeLayout->addWidget(replanButton);
@@ -220,6 +232,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     conf.heuristicType = HeuristicType::HEURISTIC_2D;
     conf.inclineLimittingMinSlope = 10.0 * M_PI/180.0;
     conf.inclineLimittingLimit = 5.0 * M_PI/180.0;
+    conf.parallelismEnabled = false;
     
     inclineLimittingMinSlopeSpinBox->setValue(10);
     inclineLimittingLimitSpinBox->setValue(6);
@@ -374,6 +387,11 @@ void PlannerGui::heuristicComboBoxIndexChanged(int index)
     {
         throw std::runtime_error("unknown heuristic index");
     }
+}
+
+void PlannerGui::parallelismCheckBoxStateChanged(int)
+{
+    conf.parallelismEnabled = parallelismCheckBox->isChecked();
 }
 
 void PlannerGui::goalOrientationChanged(int newValue)
