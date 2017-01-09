@@ -33,6 +33,7 @@ public:
     
     void updateMap(const maps::grid::MLSMapPrecalculated& mlsSloped);
     
+    /** @p maxTime Maximum processor time to use. */
     bool plan(const base::Time& maxTime, base::samples::RigidBodyState& start, base::samples::RigidBodyState& end);
     
     void getTrajectory(std::vector<base::Trajectory> &trajectory);
