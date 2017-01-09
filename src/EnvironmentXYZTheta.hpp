@@ -124,6 +124,7 @@ public:
      */
     virtual int GetStartHeuristic(int stateID);
     /**
+     * 
      * \brief heuristic estimate from state with stateID to goal state
      */
     virtual int GetGoalHeuristic(int stateID);

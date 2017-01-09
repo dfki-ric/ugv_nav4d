@@ -162,6 +162,8 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     if(!checkOrientationAllowed(goalXYZNode->getUserData().travNode, theta))
         throw std::runtime_error("Goal orientation not allowed due to slope");
     
+    //NOTE If we want to precompute the heuristic (precomputeCost()) we need to expand 
+    //     the whole travmap beforehand.
     travGen.expandAll(startXYZNode->getUserData().travNode);
     std::cout << "All expanded " << std::endl;
     precomputeCost();
@@ -329,18 +331,21 @@ TravGenNode *EnvironmentXYZTheta::movementPossible(TravGenNode *fromTravNode, co
     {
         return nullptr;
         //FIXME this should never happen but it does on the garage map with 0.5 resolution
-//         throw std::runtime_error("should not happen");
+        throw std::runtime_error("should not happen");
     }
-    
-    if(targetNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
-    {
-        return nullptr;
-    }  
     
     if(!checkExpandTreadSafe(targetNode))
     {
         return nullptr;
     }
+    
+    //NOTE this check cannot be done before checkExpandTreadSafe because the type will be determined
+    //     during the expansion. Beforehand the type is undefined
+    if(targetNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+    {
+        return nullptr;
+    }  
+    
         
     //TODO add additionalCosts if something is near this node etc
     return targetNode;
@@ -389,10 +394,9 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     
     const ThetaNode *const thetaNode = sourceHash.thetaNode;
     const maps::grid::Index sourceIndex = sourceNode->getIndex();
-    const XYZNode *const curNode = sourceNode;
 
     
-    TravGenNode *curTravNode = curNode->getUserData().travNode;
+    TravGenNode *curTravNode = sourceNode->getUserData().travNode;
     if(!curTravNode->isExpanded())
     {
         //current node is not drivable
@@ -407,8 +411,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     for(int i = 0; i < motions.size(); ++i)
     {
         const Motion &motion = motions[i];
-        TravGenNode *travNode = curNode->getUserData().travNode;
-        maps::grid::Index curIndex = curNode->getIndex();
+        TravGenNode *travNode = sourceNode->getUserData().travNode;
+        maps::grid::Index curIndex = sourceNode->getIndex();
         std::vector<TravGenNode*> nodesOnPath;
         bool intermediateStepsOk = true;
         for(const PoseWithCell &diff : motion.intermediateSteps)
@@ -458,8 +462,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         //        share the same finalPos.
         //        As long as this is not the case this section should be save.
         
-        //#pragma omp critical(searchGridAccess) 
-        //{
+        #pragma omp critical(searchGridAccess) 
+        {
             const auto &candidateMap = searchGrid.at(finalPos);
 
             if(travNode->getIndex() != finalPos)
@@ -479,7 +483,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             {
                 successXYNode = createNewXYZState(travNode); //modifies searchGrid at travNode->getIndex()
             }
-        //}
+        }
 
         #pragma omp critical(thetaToNodesAccess) //TODO reduce size of critical section
         {
