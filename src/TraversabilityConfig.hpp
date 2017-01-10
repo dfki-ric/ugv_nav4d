@@ -23,7 +23,14 @@ class TraversabilityConfig
 {
 public:
     
-    TraversabilityConfig(): maxStepHeight(0), maxSlope(0), robotHeight(0), robotSizeX(0),    gridResolution(0.0) {};
+    TraversabilityConfig()
+        : maxStepHeight(0), 
+        maxSlope(0), 
+        robotHeight(0), 
+        robotSizeX(0), 
+        gridResolution(0.0),
+        slopeMetric(NONE),
+        heuristicType(HEURISTIC_2D) {};
     
     double maxStepHeight;
     double maxSlope; /**[rad] maximum traversable slope. Above this slope no travmap entries will be generated*/
