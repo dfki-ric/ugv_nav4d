@@ -4,7 +4,7 @@ namespace ugv_nav4d
 {
 
 /**Different metrics can be used to factor in the slope of a motion  */
-enum class SlopeMetric
+enum SlopeMetric
 {
     
     AVG_SLOPE,
@@ -13,7 +13,7 @@ enum class SlopeMetric
     NONE
 };
 
-enum class HeuristicType
+enum HeuristicType
 {
     HEURISTIC_2D,
     HEURISTIC_3D
