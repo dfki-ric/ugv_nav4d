@@ -408,7 +408,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
     const auto& motions = availableMotions.getMotionForStartTheta(thetaNode->theta);
     #pragma omp parallel for schedule(dynamic, 5) if(travConf.parallelismEnabled)
-    for(int i = 0; i < motions.size(); ++i)
+    for(size_t i = 0; i < motions.size(); ++i)
     {
         const Motion &motion = motions[i];
         TravGenNode *travNode = sourceNode->getUserData().travNode;
