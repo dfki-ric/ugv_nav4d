@@ -285,6 +285,8 @@ bool EnvironmentXYZThetaVisualization::getshowAllowedSlopes()
 void EnvironmentXYZThetaVisualization::setshowAllowedSlopes(bool val)
 {
     showAllowedSlopes = val;
+    emit propertyChanged("showAllowedSlopes");
+    setDirty();
 }
 
 void EnvironmentXYZThetaVisualization::setShowSlopes(bool val)
@@ -297,6 +299,7 @@ void EnvironmentXYZThetaVisualization::setShowSlopes(bool val)
 void EnvironmentXYZThetaVisualization::setEnvDebugData(const ugv_nav4d_debug::EnvironmentXYZThetaDebugData& data)
 {
     p->envDebug = data;
+    setDirty();
 }
 
 void EnvironmentXYZThetaVisualization::setTravGenDebugData(const ugv_nav4d_debug::TravGenDebugData& data)
