@@ -7,23 +7,25 @@
 #include <motion_planning_libraries/Config.hpp>
 #include "Planner.hpp"
 #include "PreComputedMotions.hpp"
-
+#include <vizkit3dDebugDrawings/DrawingManager.h>
 #include "UgvDebug.hpp"
 
 
-PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
+PlannerGui::PlannerGui(int argc, char** argv): QObject()
 {
     start.orientation.setIdentity();
     goal.orientation.setIdentity();
     
-    widget.setCameraManipulator(vizkit3d::ORBIT_MANIPULATOR);
-    widget.addPlugin(&splineViz);
-    widget.addPlugin(&trajViz);
-    widget.addPlugin(&mlsViz);
-    widget.addPlugin(&trav3dViz);
-    widget.addPlugin(&envViz);
-    widget.addPlugin(&startViz);
-    widget.addPlugin(&goalViz);
+    widget = vizkit3dDebugDrawings::DrawingManager::instance()->getVizkit3DWidget();
+    
+    widget->setCameraManipulator(vizkit3d::ORBIT_MANIPULATOR);
+    widget->addPlugin(&splineViz);
+    widget->addPlugin(&trajViz);
+    widget->addPlugin(&mlsViz);
+    widget->addPlugin(&trav3dViz);
+    widget->addPlugin(&envViz);
+    widget->addPlugin(&startViz);
+    widget->addPlugin(&goalViz);
     
     splineViz.setPluginEnabled(false);
     
@@ -37,7 +39,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     QVBoxLayout* layout = new QVBoxLayout();
     
        
-    layout->addWidget(&widget);
+    layout->addWidget(widget);
     
     expandButton = new QPushButton("Create travMap");
     expandButton->setEnabled(false);
@@ -243,6 +245,8 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     
     motion_planning_libraries::SbplSplineMotionPrimitives primitives(config);
     splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.mMinTurningRadius));
+    
+    
     splineViz.updateData(primitives);
     
     if(argc > 1)
@@ -254,16 +258,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     {
         loadMls();
     }
-    
-
 }
-
-void PlannerGui::exec()
-{
-    window.show();
-    app.exec();
-}
-
 
 void PlannerGui::loadMls()
 {
@@ -343,6 +338,10 @@ void PlannerGui::picked(float x, float y, float z)
     }
 }
 
+void PlannerGui::show()
+{
+    window.show();
+}
 
 void PlannerGui::maxSlopeEditingFinished()
 {

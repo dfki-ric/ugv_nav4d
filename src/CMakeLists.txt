@@ -39,4 +39,5 @@ rock_library(ugv_nav4d
         maps
         envire_core
         pcl_segmentation-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
+        vizkit3dDebugDrawings
 )

@@ -13,6 +13,7 @@
 #include <base/geometry/Spline.hpp>
 #include <iostream>
 #include <fstream>
+#include <vizkit3dDebugDrawings/DrawingManager.h>
 
 // backward::SignalHandling sh;
 
@@ -21,7 +22,11 @@ using namespace base::geometry;
 
 int main(int argc, char** argv)
 {
+    QApplication app(argc, argv);
+    vizkit3dDebugDrawings::DrawingManager::disableStandaloneMode();
     PlannerGui gui(argc, argv);
-    gui.exec();
+    gui.show();
+    app.exec(); 
     return 0;
 }
+  

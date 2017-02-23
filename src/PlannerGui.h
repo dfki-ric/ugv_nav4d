@@ -19,7 +19,7 @@ class PlannerGui : public QObject
 public:
     PlannerGui(int argc, char** argv);
     
-    void exec();
+    void show();
 public slots:
     /** Called when the user clicks a patch on the mls */
     void picked(float x, float y, float z);
@@ -54,8 +54,7 @@ private:
     void startPlanThread();
     
 private:
-    QApplication app;
-    vizkit3d::Vizkit3DWidget widget;
+    vizkit3d::Vizkit3DWidget* widget;
     QDoubleSpinBox* maxSlopeSpinBox;
     QDoubleSpinBox* slopeMetricScaleSpinBox;
     QDoubleSpinBox* time;
