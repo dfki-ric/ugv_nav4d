@@ -1,6 +1,6 @@
 find_package(PCL 1.7 REQUIRED COMPONENTS segmentation)
 
-add_definitions(-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
+#add_definitions(-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
 
 
 find_package(OpenMP REQUIRED)
