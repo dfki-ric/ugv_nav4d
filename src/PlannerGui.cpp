@@ -199,19 +199,21 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject(), app(argc, argv)
     
     double res = 0.1;
      if(argc > 2)
-         res =atof(argv[2]);
+         res = atof(argv[2]);
     
     std::cout << "RES = " << res << std::endl;
     config.gridSize = res;
-    config.destinationCircleRadius = 12;
-    config.numAngles = 16;
-    config.numEndAngles = 7;
-    config.cellSkipFactor = 0.1;
+    config.destinationCircleRadius = 5;
+    config.numAngles = 24;
+    config.numEndAngles = 12;
+    config.cellSkipFactor = 1.0;
     config.generatePointTurnMotions = false;
+    config.generateLateralMotions = false;
+    config.splineOrder = 4;
     
     mobility.mSpeed = 1.3;
     mobility.mTurningSpeed = 5.4;
-    mobility.mMinTurningRadius = 0.1;
+    mobility.mMinTurningRadius = 0.2;
     
     mobility.mMultiplierForward = 1;
     mobility.mMultiplierBackward = 1;
