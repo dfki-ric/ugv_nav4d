@@ -714,8 +714,8 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         return;
     
     result.clear();
-    
-    size_t lastMotion = getMotion(stateIDPath[0], stateIDPath[1]).id;
+    const Motion& lastMotion = getMotion(stateIDPath[0], stateIDPath[1]);
+    const Motion* curMotion = &lastMotion;
     
     base::Trajectory curPart;
     
@@ -723,12 +723,13 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
 
     for(size_t i = 0; i < stateIDPath.size() - 1; ++i)
     {
-        const Motion &curMotion(getMotion(stateIDPath[i], stateIDPath[i+1]));
+        curMotion = &getMotion(stateIDPath[i], stateIDPath[i+1]);
         
-        if(lastMotion != curMotion.id)
+        if(lastMotion.id != curMotion->id)
         {
             curPart.spline.interpolate(positions);
-            curPart.speed = curMotion.speed;
+            curPart.speed = curMotion->type == Motion::Type::MOV_BACKWARD? -curMotion->speed : curMotion->speed;
+            
             positions.clear();
             result.push_back(curPart);
         }
@@ -739,7 +740,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         maps::grid::Index lastIndex = startIndex;
         TravGenNode *curNode = startHash.node->getUserData().travNode;
         
-        for(const PoseWithCell &pwc : curMotion.intermediateSteps)
+        for(const PoseWithCell &pwc : curMotion->intermediateSteps)
         {
             base::Vector3d pos(pwc.pose.position.x() + start.x(), pwc.pose.position.y() + start.y(), start.z());
             maps::grid::Index curIndex = startIndex + pwc.cell;
@@ -772,7 +773,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
 
 
     curPart.spline.interpolate(positions);
-    curPart.speed = 0;
+    curPart.speed = curMotion->type == Motion::Type::MOV_BACKWARD? -curMotion->speed : curMotion->speed;
     result.push_back(curPart);
 }
 
