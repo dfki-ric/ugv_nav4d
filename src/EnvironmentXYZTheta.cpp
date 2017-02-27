@@ -714,33 +714,20 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         return;
     
     result.clear();
-    const Motion& lastMotion = getMotion(stateIDPath[0], stateIDPath[1]);
-    const Motion* curMotion = &lastMotion;
-    
+
     base::Trajectory curPart;
-    
-    std::vector<base::Vector3d> positions;
 
     for(size_t i = 0; i < stateIDPath.size() - 1; ++i)
     {
-        curMotion = &getMotion(stateIDPath[i], stateIDPath[i+1]);
-        
-        if(lastMotion.id != curMotion->id)
-        {
-            curPart.spline.interpolate(positions);
-            curPart.speed = curMotion->type == Motion::Type::MOV_BACKWARD? -curMotion->speed : curMotion->speed;
-            
-            positions.clear();
-            result.push_back(curPart);
-        }
-
+        const Motion& curMotion = getMotion(stateIDPath[i], stateIDPath[i+1]);
         const maps::grid::Vector3d start = getStatePosition(stateIDPath[i]);
         const Hash &startHash(idToHash[stateIDPath[i]]);
         const maps::grid::Index startIndex(startHash.node->getIndex());
         maps::grid::Index lastIndex = startIndex;
         TravGenNode *curNode = startHash.node->getUserData().travNode;
-        
-        for(const PoseWithCell &pwc : curMotion->intermediateSteps)
+
+        std::vector<base::Vector3d> positions;
+        for(const PoseWithCell &pwc : curMotion.intermediateSteps)
         {
             base::Vector3d pos(pwc.pose.position.x() + start.x(), pwc.pose.position.y() + start.y(), start.z());
             maps::grid::Index curIndex = startIndex + pwc.cell;
@@ -767,14 +754,12 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
                 //need to offset by start because the poses are relative to (0/0)
                 positions.emplace_back(pos);
             }
-            
         }
+        
+        curPart.spline.interpolate(positions);
+        curPart.speed = curMotion.type == Motion::Type::MOV_BACKWARD? -curMotion.speed : curMotion.speed;
+        result.push_back(curPart);
     }
-
-
-    curPart.spline.interpolate(positions);
-    curPart.speed = curMotion->type == Motion::Type::MOV_BACKWARD? -curMotion->speed : curMotion->speed;
-    result.push_back(curPart);
 }
 
 maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > EnvironmentXYZTheta::getTraversabilityBaseMap() const
