@@ -819,52 +819,37 @@ double EnvironmentXYZTheta::calcObstacleCost(std::vector<TravGenNode*> path) con
         //vector is not the the most efficient when using std::find but for small vectors it should be ok.
         //linear serach on a cached vector is as fast as unordered_set lookup for vector sizes < 100
         // (yes, I benchmarked)
-        std::vector<maps::grid::TraversabilityNodeBase*> nodes;
+        std::deque<maps::grid::TraversabilityNodeBase*> nodes;
+        std::unordered_set<maps::grid::TraversabilityNodeBase*> visited;
         nodes.push_back(node);
-        int currentNodeIndex = 0;
         const maps::grid::Vector2d nodePos = node->getIndex().cast<double>().cwiseProduct(travGen.getTraversabilityMap().getResolution());
         do
         {
-            maps::grid::TraversabilityNodeBase* currentNode = nodes[currentNodeIndex];
+            maps::grid::TraversabilityNodeBase* currentNode = nodes.front();
+            nodes.pop_front();
             neighbors.insert(currentNode);
-            ++currentNodeIndex;
+            
             for(auto neighbor : currentNode->getConnections())
             {
                 //check if we have already visited this node (happens because double connected graph)
-                if(std::find(nodes.begin(), nodes.end(), neighbor) != nodes.end())
-                {
+                if(visited.find(neighbor) != visited.end())
                     continue;
-                }
-        
+
+                visited.insert(neighbor);
+                    
                 //check if node is within corridor
                 const maps::grid::Vector2d neighborPos = neighbor->getIndex().cast<double>().cwiseProduct(travGen.getTraversabilityMap().getResolution());
                 if((neighborPos - nodePos).squaredNorm() > neighborSquareDist)
-                {
                     continue;
-                }
+                
                 nodes.push_back(neighbor);
             }
-        }while(currentNodeIndex < nodes.size());
+        }while(!nodes.empty());
     }
     
     int obstacleCount = 0;
-    CLEAR_DRAWING("neighbors");
     for(maps::grid::TraversabilityNodeBase* n : neighbors)
     {
-        COMPLEX_DRAWING(
-            base::Vector3d pos;
-            pos << (n->getIndex().cast<double>() + Eigen::Vector2d(0.5, 0.5)).cwiseProduct(travGen.getTraversabilityMap().getResolution()),
-            n->getHeight();
-            pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
-            DRAW_SPHERE("neighbors", pos, 0.05, vizkit3dDebugDrawings::Color::black);
-            if(n->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
-            {
-                const std::string name = "obs_" + std::to_string(n->getIndex().x()) + std::to_string(n->getIndex().y());
-                CLEAR_DRAWING(name); //to avoid double draws
-                DRAW_SPHERE(name, pos, 0.1, vizkit3dDebugDrawings::Color::red);
-            }
-        );
-            
         if(n->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
         {
             ++obstacleCount;
