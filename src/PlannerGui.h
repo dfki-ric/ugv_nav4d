@@ -47,6 +47,8 @@ private slots:
     void slopeMetricComboBoxIndexChanged(int index);
     void heuristicComboBoxIndexChanged(int index);
     void parallelismCheckBoxStateChanged(int);
+    void obstacleDistanceSpinBoxEditingFinished();
+    void obstacleFactorSpinBoxEditingFinished();
     
 private:
     void loadMls();
@@ -62,6 +64,8 @@ private:
     QDoubleSpinBox* inclineLimittingLimitSpinBox;
     QSlider* startOrientatationSlider;
     QSlider* goalOrientationSlider;
+    QDoubleSpinBox* obstacleDistanceSpinBox;
+    QDoubleSpinBox* obstacleFactorSpinBox;
     QPushButton* expandButton;
     QComboBox* slopeMetricComboBox;
     QComboBox* heuristicComboBox;

@@ -26,6 +26,8 @@ public:
     TraversabilityConfig()
         : maxStepHeight(0)
         , maxSlope(0)
+        , costFunctionObstacleDist(0.4)
+        , costFunctionObstacleMultiplier(1.0)
         , robotHeight(0)
         , robotSizeX(0)
         , slopeMetric(NONE)
@@ -44,6 +46,13 @@ public:
     /** [rad] At maxSlope the robot's movement direction may only deviate by +-inclineLimittingLimit
      * from the direction of the steepest slope */
     double inclineLimittingLimit;
+    
+    /**Obstacles within a corridor of width costFunctionObstacleDist around a trajectory
+     * will influence the cost function. */
+    double costFunctionObstacleDist;
+    /** How much should obstacles within the corridor influence the cost function */
+    double costFunctionObstacleMultiplier;
+    
     
     double robotHeight;
     double robotSizeX;

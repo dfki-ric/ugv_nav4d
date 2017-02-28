@@ -147,6 +147,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     goalOrientationSlider->setMaximum(359);
     goalOrientationSlider->setValue(0);
 
+
     
     connect(startOrientatationSlider, SIGNAL(sliderMoved(int)), this, SLOT(startOrientationChanged(int)));
     connect(goalOrientationSlider, SIGNAL(sliderMoved(int)), this, SLOT(goalOrientationChanged(int)));
@@ -166,6 +167,36 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     
     layout->addLayout(startOrientationLayout);
     layout->addLayout(goalOrientationLayout);
+    
+    obstacleDistanceSpinBox = new QDoubleSpinBox();
+    obstacleDistanceSpinBox->setMaximum(99999);
+    obstacleDistanceSpinBox->setMinimum(0);
+    obstacleDistanceSpinBox->setValue(0.4);
+    
+    obstacleFactorSpinBox = new QDoubleSpinBox();
+    obstacleFactorSpinBox->setMinimum(0);
+    obstacleFactorSpinBox->setMaximum(9999999);
+    obstacleFactorSpinBox->setValue(1.0);
+
+    QLabel* obstacleDistanceLable = new QLabel();
+    obstacleDistanceLable->setText("Obstacle Distance");
+    QHBoxLayout* obstacleDistLayout = new QHBoxLayout();
+    obstacleDistLayout->addWidget(obstacleDistanceLable);
+    obstacleDistLayout->addWidget(obstacleDistanceSpinBox);
+    
+    QLabel* obstacleFactorLabel = new QLabel();
+    obstacleFactorLabel->setText("Obstacle cost factor");
+    QHBoxLayout* obstacleFactorLayout = new QHBoxLayout();
+    obstacleFactorLayout->addWidget(obstacleFactorLabel);
+    obstacleFactorLayout->addWidget(obstacleFactorSpinBox);
+    
+    layout->addLayout(obstacleDistLayout);
+    layout->addLayout(obstacleFactorLayout);
+    
+    connect(obstacleDistanceSpinBox, SIGNAL(editingFinished()), this, SLOT(obstacleDistanceSpinBoxEditingFinished()));
+    connect(obstacleFactorSpinBox, SIGNAL(editingFinished()), this, SLOT(obstacleFactorSpinBoxEditingFinished()));
+    
+    
     
     parallelismCheckBox = new QCheckBox();
     parallelismCheckBox->setChecked(false);
@@ -205,16 +236,18 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     
     std::cout << "RES = " << res << std::endl;
     config.gridSize = res;
-    config.destinationCircleRadius = 5;
     config.numAngles = 24;
     config.numEndAngles = 12;
+    config.destinationCircleRadius = 5;
     config.cellSkipFactor = 1.0;
     config.generatePointTurnMotions = false;
     config.generateLateralMotions = false;
+//     config.generateBackwardMotions = false;
     config.splineOrder = 4;
+    config.splineGeometricResolution = 0.1;
     
-    mobility.mSpeed = 1.3;
-    mobility.mTurningSpeed = 5.4;
+    mobility.mSpeed = 0.2;
+    mobility.mTurningSpeed = 0.6;
     mobility.mMinTurningRadius = 0.2;
     
     mobility.mMultiplierForward = 1;
@@ -225,21 +258,23 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     mobility.mMultiplierPointTurn = 8;
      
     conf.gridResolution = res;
-    conf.maxSlope = 40.0/180.0 * M_PI;
-    maxSlopeSpinBox->setValue(40);
+    conf.maxSlope = 0.58; //40.0/180.0 * M_PI;
     conf.maxStepHeight = 0.5; //space below robot
-    conf.robotSizeX = 0.5;
+    conf.robotSizeX = 1.0;
     conf.robotSizeY =  0.7;
-    conf.robotHeight = 0.9; //incl space below body
+    conf.robotHeight = 0.5; //incl space below body
     conf.slopeMetricScale = 0.0;
     conf.slopeMetric = SlopeMetric::NONE;
     conf.heuristicType = HeuristicType::HEURISTIC_2D;
-    conf.inclineLimittingMinSlope = 10.0 * M_PI/180.0;
-    conf.inclineLimittingLimit = 5.0 * M_PI/180.0;
+    conf.inclineLimittingMinSlope = 0.35; // 10.0 * M_PI/180.0;
+    conf.inclineLimittingLimit = 0.44;// 5.0 * M_PI/180.0;
     conf.parallelismEnabled = false;
+    conf.costFunctionObstacleDist = 0.4;
+    conf.costFunctionObstacleMultiplier = 1.0;
     
-    inclineLimittingMinSlopeSpinBox->setValue(10);
-    inclineLimittingLimitSpinBox->setValue(6);
+    maxSlopeSpinBox->setValue(33.23);
+    inclineLimittingMinSlopeSpinBox->setValue(20);
+    inclineLimittingLimitSpinBox->setValue(25.21);
     
     planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
     
@@ -408,6 +443,17 @@ void PlannerGui::startOrientationChanged(int newValue)
     start.orientation = Eigen::AngleAxisd(rad, Eigen::Vector3d::UnitZ());
     startViz.setRotation(QQuaternion(start.orientation.w(), start.orientation.x(), start.orientation.y(), start.orientation.z()));
 }
+
+void PlannerGui::obstacleDistanceSpinBoxEditingFinished()
+{
+    conf.costFunctionObstacleDist = obstacleDistanceSpinBox->value();
+}
+
+void PlannerGui::obstacleFactorSpinBoxEditingFinished()
+{
+    conf.costFunctionObstacleMultiplier = obstacleFactorSpinBox->value();
+}
+
 
 
     
