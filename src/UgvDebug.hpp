@@ -2,7 +2,7 @@
 
 #ifndef GENERATE_DEBUG_DATA
 
-#define UGV_DEBUG(code)
+#define UGV_DEBUG(code) code
 
 #else
 

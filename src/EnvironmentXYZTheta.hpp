@@ -199,6 +199,10 @@ private:
     /**Returns the max slope of all patches on the given @p path */
     double getMaxSlope(std::vector<TravGenNode*> path) const;
     
+    /**Returns a value indicating how may obstacles are close to path.
+     * The more obstacles there are and the closer they are, the higher the value*/
+    double calcObstacleCost(std::vector<TravGenNode*> path) const;
+    
     /**Determines the distance between @p a and @p b depending on travConf.heuristicType */
     double getHeuristicDistance(const Eigen::Vector3d& a, const Eigen::Vector3d& b) const;
     

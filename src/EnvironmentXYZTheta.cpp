@@ -7,6 +7,8 @@
 #include <fstream>
 #include <dwa/SubTrajectory.hpp>
 #include <backward/backward.hpp>
+#include <vizkit3dDebugDrawings/DebugDrawing.h>
+#include <vizkit3dDebugDrawings/DebugDrawingColors.h>
 
 
 backward::SignalHandling crashHandler;
@@ -535,6 +537,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 throw std::runtime_error("unknown slope metric selected");
         }
         
+        cost += travConf.costFunctionObstacleMultiplier * calcObstacleCost(nodesOnPath);
+        
         oassert(int(cost) >= motion.baseCost);
         oassert(motion.baseCost > 0);
         
@@ -717,6 +721,10 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
 
     base::Trajectory curPart;
 
+    UGV_DEBUG(
+        std::vector<TravGenNode*> debugNodes;
+    )
+    
     for(size_t i = 0; i < stateIDPath.size() - 1; ++i)
     {
         const Motion& curMotion = getMotion(stateIDPath[i], stateIDPath[i+1]);
@@ -726,6 +734,8 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         maps::grid::Index lastIndex = startIndex;
         TravGenNode *curNode = startHash.node->getUserData().travNode;
 
+        
+        
         std::vector<base::Vector3d> positions;
         for(const PoseWithCell &pwc : curMotion.intermediateSteps)
         {
@@ -742,6 +752,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
                     throw std::runtime_error("Internal error, trajectory is not continous on tr grid");
                 }
                 
+                UGV_DEBUG(debugNodes.push_back(curNode););
                 curNode = nextNode;
 
                 lastIndex = curIndex;
@@ -760,6 +771,9 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         curPart.speed = curMotion.type == Motion::Type::MOV_BACKWARD? -curMotion.speed : curMotion.speed;
         result.push_back(curPart);
     }
+    
+    //just to visualize the obstacle neighbors on the final trajectory
+    UGV_DEBUG(calcObstacleCost(debugNodes););
 }
 
 maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > EnvironmentXYZTheta::getTraversabilityBaseMap() const
@@ -791,6 +805,73 @@ double EnvironmentXYZTheta::getAvgSlope(std::vector<TravGenNode*> path) const
     }
     const double avgSlope = slopeSum / path.size();
     return avgSlope;
+}
+
+double EnvironmentXYZTheta::calcObstacleCost(std::vector<TravGenNode*> path) const
+{
+    //dist is in real world 
+    const double neighborSquareDist = travConf.costFunctionObstacleDist * travConf.costFunctionObstacleDist;
+    std::unordered_set<maps::grid::TraversabilityNodeBase*> neighbors; //all neighbors that are closer than neighborSquareDist
+    
+    //find all neighbors within corridor around path
+    for(TravGenNode* node : path)
+    {
+        //vector is not the the most efficient when using std::find but for small vectors it should be ok.
+        //linear serach on a cached vector is as fast as unordered_set lookup for vector sizes < 100
+        // (yes, I benchmarked)
+        std::vector<maps::grid::TraversabilityNodeBase*> nodes;
+        nodes.push_back(node);
+        int currentNodeIndex = 0;
+        const maps::grid::Vector2d nodePos = node->getIndex().cast<double>().cwiseProduct(travGen.getTraversabilityMap().getResolution());
+        do
+        {
+            maps::grid::TraversabilityNodeBase* currentNode = nodes[currentNodeIndex];
+            neighbors.insert(currentNode);
+            ++currentNodeIndex;
+            for(auto neighbor : currentNode->getConnections())
+            {
+                //check if we have already visited this node (happens because double connected graph)
+                if(std::find(nodes.begin(), nodes.end(), neighbor) != nodes.end())
+                {
+                    continue;
+                }
+        
+                //check if node is within corridor
+                const maps::grid::Vector2d neighborPos = neighbor->getIndex().cast<double>().cwiseProduct(travGen.getTraversabilityMap().getResolution());
+                if((neighborPos - nodePos).squaredNorm() > neighborSquareDist)
+                {
+                    continue;
+                }
+                nodes.push_back(neighbor);
+            }
+        }while(currentNodeIndex < nodes.size());
+    }
+    
+    int obstacleCount = 0;
+    CLEAR_DRAWING("neighbors");
+    for(maps::grid::TraversabilityNodeBase* n : neighbors)
+    {
+        COMPLEX_DRAWING(
+            base::Vector3d pos;
+            pos << (n->getIndex().cast<double>() + Eigen::Vector2d(0.5, 0.5)).cwiseProduct(travGen.getTraversabilityMap().getResolution()),
+            n->getHeight();
+            pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
+            DRAW_SPHERE("neighbors", pos, 0.05, vizkit3dDebugDrawings::Color::black);
+            if(n->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+            {
+                const std::string name = "obs_" + std::to_string(n->getIndex().x()) + std::to_string(n->getIndex().y());
+                CLEAR_DRAWING(name); //to avoid double draws
+                DRAW_SPHERE(name, pos, 0.1, vizkit3dDebugDrawings::Color::red);
+            }
+        );
+            
+        if(n->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+        {
+            ++obstacleCount;
+        }
+    }
+    
+    return obstacleCount;
 }
 
 double EnvironmentXYZTheta::getMaxSlope(std::vector<TravGenNode*> path) const
