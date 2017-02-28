@@ -27,7 +27,7 @@ public:
         : maxStepHeight(0)
         , maxSlope(0)
         , costFunctionObstacleDist(0.4)
-        , costFunctionObstacleMultiplier(1.0)
+        , costFunctionObstacleMultiplier(100.0)
         , robotHeight(0)
         , robotSizeX(0)
         , slopeMetric(NONE)
