@@ -13,7 +13,7 @@
 #include <base/geometry/Spline.hpp>
 #include <iostream>
 #include <fstream>
-#include <vizkit3dDebugDrawings/DrawingManager.h>
+#include <vizkit3d_debug_drawings/DrawingManager.h>
 
 // backward::SignalHandling sh;
 

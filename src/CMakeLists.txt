@@ -1,7 +1,7 @@
 find_package(PCL 1.7 REQUIRED COMPONENTS segmentation)
 
-#add_definitions(-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
-
+# add_definitions(-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
+# add_definitions(-DENABLE_DEBUG_DRAWINGS)
 
 find_package(OpenMP REQUIRED)
 if(OPENMP_FOUND)
@@ -39,5 +39,5 @@ rock_library(ugv_nav4d
         maps
         envire_core
         pcl_segmentation-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
-        vizkit3dDebugDrawings
+        vizkit3d_debug_drawings
 )

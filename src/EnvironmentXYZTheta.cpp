@@ -7,8 +7,8 @@
 #include <fstream>
 #include <dwa/SubTrajectory.hpp>
 #include <backward/backward.hpp>
-#include <vizkit3dDebugDrawings/DebugDrawing.h>
-#include <vizkit3dDebugDrawings/DebugDrawingColors.h>
+#include <vizkit3d_debug_drawings/DebugDrawing.h>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.h>
 
 
 backward::SignalHandling crashHandler;

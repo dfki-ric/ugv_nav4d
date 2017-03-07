@@ -7,7 +7,7 @@
 #include <motion_planning_libraries/Config.hpp>
 #include "Planner.hpp"
 #include "PreComputedMotions.hpp"
-#include <vizkit3dDebugDrawings/DrawingManager.h>
+#include <vizkit3d_debug_drawings/DrawingManager.h>
 #include "UgvDebug.hpp"
 
 
