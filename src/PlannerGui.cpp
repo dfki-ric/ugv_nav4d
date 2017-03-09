@@ -316,9 +316,8 @@ void PlannerGui::loadMls(const std::string& path)
         {
             envire::core::EnvireGraph g;
             g.loadFromFile(path);
-            maps::grid::MLSMapKalman mlsInput = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
-            mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
-            mlsViz.updateMLSPrecalculated(mlsMap);
+            mlsMap = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
+            mlsViz.updateMLSKalman(mlsMap);
             planner->updateMap(mlsMap);
             return;
         }
@@ -329,10 +328,8 @@ void PlannerGui::loadMls(const std::string& path)
         try
         {
             boost::archive::binary_iarchive mlsIn(fileIn);
-            maps::grid::MLSMapSloped mlsInput;
-            mlsIn >> mlsInput;
-            mlsMap = maps::grid::MLSMapPrecalculated(mlsInput);
-            mlsViz.updateMLSPrecalculated(mlsMap);
+            mlsIn >> mlsMap;
+            mlsViz.updateMLSKalman(mlsMap);
             planner->updateMap(mlsMap);
             return;
         }

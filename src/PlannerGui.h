@@ -79,7 +79,7 @@ private:
     vizkit3d::EnvironmentXYZThetaVisualization envViz;
     vizkit3d::RigidBodyStateVisualization startViz;
     vizkit3d::RigidBodyStateVisualization goalViz;
-    maps::grid::MLSMapPrecalculated mlsMap;
+    maps::grid::MLSMapKalman mlsMap;
     base::Pose start;
     base::Pose goal;
     bool pickStart = true;

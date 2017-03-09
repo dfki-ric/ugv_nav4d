@@ -1,5 +1,4 @@
 #include "Planner.hpp"
-#include "EnvironmentXYZTheta.hpp"
 #include <sbpl/planners/araplanner.h>
 #include <sbpl/utils/mdpconfig.h>
 #include <maps/grid/MultiLevelGridMap.hpp>
@@ -91,33 +90,6 @@ bool Planner::plan(const base::Time &maxTime, base::samples::RigidBodyState& sta
     }
     
     return true;
-}
-
-template <class mapType>
-boost::shared_ptr<MultiLevelGridMap<SurfacePatchBase>> getMLSBase(const mapType &map)
-{
-    std::cout << "Grid has size " << map.getSize().transpose() << std::endl;
-
-    MultiLevelGridMap<SurfacePatchBase> *mlsBase = new MultiLevelGridMap<SurfacePatchBase>(map);
-
-
-    boost::shared_ptr<MultiLevelGridMap<SurfacePatchBase>> mlsPtr(mlsBase);
-    
-    return mlsPtr;
-}
-
-
-void Planner::updateMap(const maps::grid::MLSMapPrecalculated &mlsSloped)
-{
-    boost::shared_ptr<MultiLevelGridMap<SurfacePatchBase>> mlsPtr(getMLSBase(mlsSloped));
-
-    if(!env) {
-        env.reset(new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, splinePrimitiveConfig, mobility));
-    }
-    else
-    {
-        env->updateMap(mlsPtr);
-    }
 }
 
 void Planner::getTrajectory(std::vector< base::Trajectory >& trajectory)
