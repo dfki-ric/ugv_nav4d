@@ -100,7 +100,7 @@ EnvironmentXYZTheta::~EnvironmentXYZTheta()
     clear();
 }
 
-void EnvironmentXYZTheta::updateMap(boost::shared_ptr< maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > > mlsGrid)
+void EnvironmentXYZTheta::updateMap(boost::shared_ptr< EnvironmentXYZTheta::MLGrid > mlsGrid)
 {
     if(this->mlsGrid && this->mlsGrid->getResolution() != mlsGrid->getResolution())
         throw std::runtime_error("EnvironmentXYZTheta::updateMap : Error got MLSMap with different resolution");
@@ -786,9 +786,9 @@ const maps::grid::TraversabilityMap3d<TravGenNode*>& EnvironmentXYZTheta::getTra
     return travGen.getTraversabilityMap();
 }
 
-const maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase >& EnvironmentXYZTheta::getMlsMap() const
+const EnvironmentXYZTheta::MLGrid& EnvironmentXYZTheta::getMlsMap() const
 {
-    return *(mlsGrid.get());
+    return *mlsGrid;
 }
 
 const PreComputedMotions& EnvironmentXYZTheta::getAvailableMotions() const

@@ -22,7 +22,7 @@ namespace ugv_nav4d
 class EnvironmentXYZTheta : public DiscreteSpaceInformation
 {
 public:
-    typedef maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > MLGrid;
+    typedef TraversabilityGenerator3d::MLGrid MLGrid;
 protected:
     TraversabilityGenerator3d travGen;
     boost::shared_ptr<MLGrid > mlsGrid;

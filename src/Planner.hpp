@@ -16,6 +16,7 @@ namespace ugv_nav4d
 
 class Planner
 {
+    typedef EnvironmentXYZTheta::MLGrid MLSBase;
     boost::shared_ptr<EnvironmentXYZTheta> env;
     boost::shared_ptr<ARAPlanner> planner;
     
@@ -32,7 +33,7 @@ public:
     template <maps::grid::MLSConfig::update_model SurfacePatch>
     void updateMap(const maps::grid::MLSMap<SurfacePatch>& mls)
     {
-        boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase>> mlsPtr(getMLSBase(mls));
+        boost::shared_ptr<MLSBase> mlsPtr(getMLSBase(mls));
 
         if(!env)
         {
@@ -59,13 +60,11 @@ public:
 
 private:
     template <class mapType>
-    boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase>> getMLSBase(const mapType &map)
+    boost::shared_ptr<MLSBase> getMLSBase(const mapType &map)
     {
         std::cout << "Grid has size " << map.getSize().transpose() << std::endl;
 
-        maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase> *mlsBase = new maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase>(map);
-
-        boost::shared_ptr<maps::grid::MultiLevelGridMap<maps::grid::SurfacePatchBase>> mlsPtr(mlsBase);
+        boost::shared_ptr<MLSBase> mlsPtr(new MLSBase(map));
 
         return mlsPtr;
     }

@@ -20,10 +20,10 @@ public:
     UGV_DEBUG(
         ugv_nav4d_debug::TravGenDebugData debugData;
     )
+    typedef maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > MLGrid;
     
 private:
     
-    typedef maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > MLGrid;
     typedef MLGrid::CellType Cell;
     typedef MLGrid::View View;
     typedef View::CellType ViewCell;
