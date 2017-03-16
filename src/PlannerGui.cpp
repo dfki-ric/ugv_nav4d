@@ -399,7 +399,7 @@ void PlannerGui::slopeMetricComboBoxIndexChanged(int index)
 {
     std::vector<SlopeMetric> metrics = {SlopeMetric::NONE, SlopeMetric::AVG_SLOPE, SlopeMetric::MAX_SLOPE,
                                         SlopeMetric::TRIANGLE_SLOPE};
-    if(index < metrics.size())
+    if(size_t(index) < metrics.size())
     {
         conf.slopeMetric = metrics[index];
     }
@@ -412,7 +412,7 @@ void PlannerGui::slopeMetricComboBoxIndexChanged(int index)
 void PlannerGui::heuristicComboBoxIndexChanged(int index)
 {
     std::vector<HeuristicType> heuristics = {HeuristicType::HEURISTIC_2D, HeuristicType::HEURISTIC_3D};
-    if(index < heuristics.size())
+    if(size_t(index) < heuristics.size())
     {
         conf.heuristicType = heuristics[index];
     }
