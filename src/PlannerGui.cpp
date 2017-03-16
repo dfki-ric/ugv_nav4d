@@ -7,8 +7,8 @@
 #include <motion_planning_libraries/Config.hpp>
 #include "Planner.hpp"
 #include "PreComputedMotions.hpp"
-#include <vizkit3d_debug_drawings/DrawingManager.h>
 #include "UgvDebug.hpp"
+#include <vizkit3d_debug_drawings/DebugDrawing.h>
 
 
 PlannerGui::PlannerGui(int argc, char** argv): QObject()
@@ -16,7 +16,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     start.orientation.setIdentity();
     goal.orientation.setIdentity();
     
-    widget = vizkit3dDebugDrawings::DrawingManager::instance()->getVizkit3DWidget();
+    widget = GET_DEBUG_DRAWING_WIDGET();
     
     widget->setCameraManipulator(vizkit3d::ORBIT_MANIPULATOR);
     widget->addPlugin(&splineViz);

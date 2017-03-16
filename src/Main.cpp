@@ -7,7 +7,8 @@ using namespace base::geometry;
 int main(int argc, char** argv)
 {
     QApplication app(argc, argv);
-    vizkit3dDebugDrawings::DrawingManager::disableStandaloneMode();
+    // FIXME Is this line obsolete, or must it be replaced by something:
+    // vizkit3dDebugDrawings::DrawingManager::disableStandaloneMode();
     PlannerGui gui(argc, argv);
     gui.show();
     app.exec(); 
