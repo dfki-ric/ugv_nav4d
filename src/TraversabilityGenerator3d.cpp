@@ -3,6 +3,8 @@
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/filters/extract_indices.h>
+#include <vizkit3d_debug_drawings/DebugDrawing.h>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.h>
 
 #include <deque>
 using namespace maps::grid;
@@ -69,7 +71,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node, const View
         }
     }
 
-    //if less than 3 planes -> hole
+    //if less than 5 planes -> hole
     //TODO where to implement ? here or in check obstacles ?
     if(patchCnt < 5)
     {
@@ -130,11 +132,16 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node, const View
     node.getUserData().slopeDirection = slopeDir;
     node.getUserData().slopeDirectionAtan2 = std::atan2(slopeDir.y(), slopeDir.x());
     
-    Eigen::Vector3d pos(node.getIndex().x() * config.gridResolution, node.getIndex().y() * config.gridResolution, node.getHeight());
-    pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+    COMPLEX_DRAWING(
+        Eigen::Vector3d pos(node.getIndex().x() * config.gridResolution, node.getIndex().y() * config.gridResolution, node.getHeight());
+        pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+        pos.z() += 0.06;
+        DRAW_TEXT("slope", pos, std::to_string(node.getUserData().slope), 0.01, vizkit3dDebugDrawings::Color::red);
+    );
+    
     UGV_DEBUG(
         debugData.planeComputed(node);
-    )
+    ) 
 
     
     return true;
@@ -161,18 +168,30 @@ Eigen::Vector3d TraversabilityGenerator3d::computeSlopeDirection(const Eigen::Hy
 }
 
 
-bool TraversabilityGenerator3d::checkForObstacles(const View& area, TravGenNode *node)
+bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
 {
     const Eigen::Hyperplane<double, 3> &plane(node->getUserData().plane);
     const Eigen::Vector3d planeNormal(plane.normal().normalized());
-    double slope = acos(planeNormal.dot(Eigen::Vector3d::UnitZ()));
+    double slope = node->getUserData().slope;
     
     if(slope > config.maxSlope)
     {
         return false;
     }
     
+    //filter out steps that are too steep for the robot
+    Eigen::Vector3d nodePos;
+    if(!trMap.fromGrid(node->getIndex(), nodePos))
+        throw std::runtime_error("TraversabilityGenerator3d: Internal error node out of grid");
     
+    nodePos.z() += node->getHeight();
+    Eigen::Vector3d min(-config.gridResolution, -config.gridResolution, -config.maxStepHeight);
+    Eigen::Vector3d max(-min);
+    min += nodePos;
+    max += nodePos;
+    View area = mlsGrid->intersectCuboid(Eigen::AlignedBox3d(min, max));
+    
+    bool first = true;
     for(size_t y = 0; y < area.getNumCells().y(); y++)
     {
         for(size_t x = 0; x < area.getNumCells().x(); x++)
@@ -187,12 +206,9 @@ bool TraversabilityGenerator3d::checkForObstacles(const View& area, TravGenNode 
             for(const SurfacePatchBase *p : area.at(x, y))
             {
                 pos.z() = p->getTop();
-                
-                float dist = plane.signedDistance(pos);
-                
-                //TODO find out, of positive means above the plane....
-                
-                if(dist < config.robotHeight  && dist > config.maxStepHeight)
+                float dist = plane.absDistance(pos);
+
+                if( dist > config.maxStepHeight)
                 {
                     return false;
                 }
@@ -346,7 +362,7 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
         return false;
     }
 
-    if(!checkForObstacles(intersections, node))
+    if(!checkForObstacles(node))
     {
         node->setType(TraversabilityNodeBase::OBSTACLE);
         return false;

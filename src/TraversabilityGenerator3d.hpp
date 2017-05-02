@@ -41,7 +41,7 @@ private:
     double computeSlope(const Eigen::Hyperplane< double, int(3) >& plane) const;
     Eigen::Vector3d computeSlopeDirection(const Eigen::Hyperplane< double, int(3) >& plane) const;
     
-    bool checkForObstacles(const View& area, TravGenNode* node);
+    bool checkForObstacles(TravGenNode* node);
     
     
     void addConnectedPatches(TravGenNode* node);
