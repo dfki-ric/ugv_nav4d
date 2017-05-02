@@ -1,7 +1,7 @@
 find_package(PCL 1.7 REQUIRED COMPONENTS segmentation)
 
 # add_definitions(-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
-# add_definitions(-DENABLE_DEBUG_DRAWINGS)
+add_definitions(-DENABLE_DEBUG_DRAWINGS)
 
 find_package(OpenMP REQUIRED)
 if(OPENMP_FOUND)

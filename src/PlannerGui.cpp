@@ -16,7 +16,8 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     start.orientation.setIdentity();
     goal.orientation.setIdentity();
     
-    widget = GET_DEBUG_DRAWING_WIDGET();
+    widget = new vizkit3d::Vizkit3DWidget();
+    CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(widget);
     
     widget->setCameraManipulator(vizkit3d::ORBIT_MANIPULATOR);
     widget->addPlugin(&splineViz);
@@ -30,7 +31,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     splineViz.setPluginEnabled(false);
     
     mlsViz.setCycleHeightColor(true);
-    mlsViz.setShowPatchExtents(false);
+    mlsViz.setShowPatchExtents(false); 
     mlsViz.setShowNormals(false);
     
     trajViz.setLineWidth(5);
