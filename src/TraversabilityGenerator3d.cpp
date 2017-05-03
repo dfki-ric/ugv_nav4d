@@ -183,12 +183,15 @@ bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
     Eigen::Vector3d nodePos;
     if(!trMap.fromGrid(node->getIndex(), nodePos))
         throw std::runtime_error("TraversabilityGenerator3d: Internal error node out of grid");
-    
     nodePos.z() += node->getHeight();
-    Eigen::Vector3d min(-config.gridResolution, -config.gridResolution, -config.maxStepHeight);
+    
+    Eigen::Vector3d min(-config.robotSizeX / 2.0, -config.robotSizeX / 2.0, 0);
     Eigen::Vector3d max(-min);
+    max.z() = config.robotHeight;
+    
     min += nodePos;
     max += nodePos;
+    
     View area = mlsGrid->intersectCuboid(Eigen::AlignedBox3d(min, max));
     
     bool first = true;
@@ -202,12 +205,11 @@ bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
                 throw std::runtime_error("WTF");
             }
 
-            //TODO the patches are ordered... Use this
             for(const SurfacePatchBase *p : area.at(x, y))
             {
                 pos.z() = p->getTop();
                 float dist = plane.absDistance(pos);
-
+                //bounding box already checks height of robot
                 if( dist > config.maxStepHeight)
                 {
                     return false;
