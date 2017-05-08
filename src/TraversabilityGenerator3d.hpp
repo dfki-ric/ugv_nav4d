@@ -43,6 +43,7 @@ private:
     
     bool checkForObstacles(TravGenNode* node);
     
+    bool checkForUnknown(TravGenNode* node);
     
     void addConnectedPatches(TravGenNode* node);
 

@@ -168,6 +168,56 @@ Eigen::Vector3d TraversabilityGenerator3d::computeSlopeDirection(const Eigen::Hy
 }
 
 
+bool TraversabilityGenerator3d::checkForUnknown(TravGenNode* node)
+{
+    //check direct neighborhood for missing connected patches. If 
+    //patches are missing, this patch is unknown
+    size_t missingNeighbors = 0;
+    using maps::grid::Index;
+    const Index& index = node->getIndex();
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            const Index neighborIndex(index.x() + x, index.y() + y);
+            const TravGenNode* neighbor = node->getConnectedNode(neighborIndex);
+            if(neighbor == nullptr)
+            {
+                ++missingNeighbors;
+            }
+            else
+            {
+                //Draw connection to found neighbor
+                COMPLEX_DRAWING(
+                    Eigen::Vector3d neighborPos(neighbor->getIndex().x() * config.gridResolution, neighbor->getIndex().y() * config.gridResolution, neighbor->getHeight());
+                    neighborPos.x() += config.gridResolution / 2.0;
+                    neighborPos.y() += config.gridResolution / 2.0;
+                    neighborPos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * neighborPos;
+                    neighborPos.z() += 0.06;
+                    Eigen::Vector3d pos(node->getIndex().x() * config.gridResolution, node->getIndex().y() * config.gridResolution, node->getHeight());
+                    pos.x() += config.gridResolution / 2.0;
+                    pos.y() += config.gridResolution / 2.0;
+                    pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+                    pos.z() += 0.06;
+                    DRAW_LINE("neighbor connections", pos, neighborPos, vizkit3dDebugDrawings::Color::magenta);
+                );
+            }
+        }
+    }
+    
+    COMPLEX_DRAWING(
+        Eigen::Vector3d pos(node->getIndex().x() * config.gridResolution, node->getIndex().y() * config.gridResolution, node->getHeight());
+        pos.x() += config.gridResolution / 2.0;
+        pos.y() += config.gridResolution / 2.0;
+        pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+        pos.z() += 0.06;
+        DRAW_TEXT("missingNeighboursCount", pos, std::to_string(missingNeighbors), 0.02, vizkit3dDebugDrawings::Color::magenta);
+    );
+    
+    // >1 because the loop iterates over node as well, which is obviously unknown
+    return missingNeighbors > 1;
+}
+
 bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
 {
     const Eigen::Hyperplane<double, 3> &plane(node->getUserData().plane);
@@ -194,7 +244,6 @@ bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
     
     View area = mlsGrid->intersectCuboid(Eigen::AlignedBox3d(min, max));
     
-    bool first = true;
     for(size_t y = 0; y < area.getNumCells().y(); y++)
     {
         for(size_t x = 0; x < area.getNumCells().x(); x++)
@@ -210,7 +259,7 @@ bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
                 pos.z() = p->getTop();
                 float dist = plane.absDistance(pos);
                 //bounding box already checks height of robot
-                if( dist > config.maxStepHeight)
+                if(dist > config.maxStepHeight)
                 {
                     return false;
                 }
@@ -357,7 +406,7 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
     
     node->setExpanded();
     
-    //note, computePlane must be done before checkForObstacles !
+    //NOTE computePlane must be done before checkForObstacles !
     if(!computePlaneRansac(*node, intersections))
     {
         node->setType(TraversabilityNodeBase::UNKNOWN);
@@ -369,11 +418,19 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
         node->setType(TraversabilityNodeBase::OBSTACLE);
         return false;
     }
-    
-    node->setType(TraversabilityNodeBase::TRAVERSABLE);
-    
+
     //add sourounding 
     addConnectedPatches(node);
+
+    //FIXME rename to checkForFrontier
+    if(checkForUnknown(node))
+    {
+        node->setType(TraversabilityNodeBase::FRONTIER);
+    }
+    else
+    {
+        node->setType(TraversabilityNodeBase::TRAVERSABLE);
+    }
     
     return true;
 }
@@ -438,15 +495,40 @@ void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
                 break;
         }
         
+        //no existing node exists at that location.
+        //create a new one if a corresponding node in the mls exists
         if(!toAdd)
         {
-            toAdd = new TravGenNode(curHeight, idx);
-            toAdd->getUserData().id = currentNodeId++;
-            trMap.at(idx).insert(toAdd);
+            //FIXME improve performance?!
+            //check if there is a corresponding patch in the mls
+            Eigen::Vector3d min(-mlsGrid->getResolution().x() / 2.0, -mlsGrid->getResolution().y() / 2.0, -config.maxStepHeight);
+            Eigen::Vector3d max(-min);
+            
+            Eigen::Vector3d nodePos;
+            if(!trMap.fromGrid(idx, nodePos))
+                throw std::runtime_error("TraversabilityGenerator3d: Internal error node out of grid");
+            nodePos.z() += newPos.z();
+            
+            min += nodePos;
+            max += nodePos;
+            
+            size_t numIntersections = 0;
+            const Eigen::AlignedBox3d boundingBox(min, max);
+            DRAW_AABB("neighbor check bounds", boundingBox, vizkit3dDebugDrawings::Color::magenta);
+            View intersections = mlsGrid->intersectCuboid(boundingBox, numIntersections);
+            if(numIntersections > 0)
+            {
+                toAdd = new TravGenNode(curHeight, idx);
+                toAdd->getUserData().id = currentNodeId++;
+                trMap.at(idx).insert(toAdd);
+            }
         }
 
-        toAdd->addConnection(node);
-        node->addConnection(toAdd);
+        if(toAdd)
+        {
+            toAdd->addConnection(node);
+            node->addConnection(toAdd);
+        }
     }
 }
 
