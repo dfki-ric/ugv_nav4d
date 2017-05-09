@@ -2,6 +2,8 @@
 #include <sbpl/planners/araplanner.h>
 #include <sbpl/utils/mdpconfig.h>
 #include <maps/grid/MultiLevelGridMap.hpp>
+#include <vizkit3d_debug_drawings/DebugDrawing.h>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.h>
 
 using namespace maps::grid;
 
@@ -120,6 +122,71 @@ void Planner::setTravConfig(const TraversabilityConfig& config)
     traversabilityConfig = config;
     if(env)
         env->setTravConfig(config);
+}
+
+void Planner::planShortestExplorationPath(const base::Vector3d& start) const
+{
+    std::cout << "started shortestpathPlanning" << std::endl;
+    //FIXME very naive implementation, can probably be improved
+    std::vector<const TravGenNode*> path;
+    std::unordered_set<const TravGenNode*> frontier;
+    for(const maps::grid::LevelList<TravGenNode*>& list : env->getTraversabilityMap())
+    {
+        for(const TravGenNode* node : list)
+        {
+            if(node->getType() == TraversabilityNodeBase::FRONTIER)
+            {
+                frontier.insert(node);
+            }
+        }
+    }
+    
+    //FIXME assert that start node is not a frontier node
+    
+    const TravGenNode* currentNode = env->getTravGen().generateStartNode(start);
+    path.push_back(currentNode);
+    while(frontier.size() > 0)
+    {
+        std::cout << "frontier size "<< frontier.size() << std::endl;
+        //find closest frontier node
+        std::vector<double> distances;
+        env->dijkstraComputeCost(currentNode, distances, 999999);//FIXME 99999999
+        
+        double closestDist = 99999999;//FIXME 99999999
+        const TravGenNode* closestNode = nullptr;
+        for(const TravGenNode* frontierNode : frontier)
+        {
+            const int id = frontierNode->getUserData().id;
+            const double dist = distances[id];
+            if(dist < closestDist)
+            {
+                closestDist = dist;
+                closestNode = frontierNode;
+            }
+        }
+        
+        assert(nullptr != closestNode);
+        frontier.erase(closestNode);
+        path.push_back(closestNode);
+        
+        COMPLEX_DRAWING(
+            Eigen::Vector3d start(currentNode->getIndex().x() * traversabilityConfig.gridResolution, currentNode->getIndex().y() * traversabilityConfig.gridResolution, currentNode->getHeight());
+            start = env->getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * start;
+            start.z() += 0.1;
+            
+            Eigen::Vector3d end(closestNode->getIndex().x() * traversabilityConfig.gridResolution, closestNode->getIndex().y() * traversabilityConfig.gridResolution, closestNode->getHeight());
+            end = env->getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * end;
+            end.z() += 0.1;
+            
+            DRAW_TEXT("shortest dist", start + (end - start)/2.0, std::to_string(distances[closestNode->getUserData().id]), 0.1, vizkit3dDebugDrawings::Color::magenta);
+            
+            DRAW_LINE("shortest exploration path", start, end, vizkit3dDebugDrawings::Color::magenta);
+        );
+        
+        currentNode = closestNode;
+    }
+    std::cout << "done shortestpathPlanning" << std::endl;
+    
 }
 
 

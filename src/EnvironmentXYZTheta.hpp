@@ -171,6 +171,12 @@ public:
     
     void setTravConfig(const TraversabilityConfig& cfg);
     
+    /** @param maxDist The value that should be used as maximum distance. This value is used for
+     *                 non-traversable nodes and for initialization.*/ 
+    void dijkstraComputeCost(const TravGenNode* source, std::vector<double> &outDistances,
+                             const double maxDist) const;
+
+    
 private:
   
     double interpolate(double x, double x0, double y0, double x1, double y1) const;
@@ -188,10 +194,6 @@ private:
     Eigen::AlignedBox3d getRobotBoundingBox() const;
     
     void precomputeCost();
-    /** @param maxDist The value that should be used as maximum distance. This value is used for
-     *                 non-traversable nodes and for initialization.*/ 
-    void dijkstraComputeCost(TravGenNode* source, std::vector<double> &outDistances,
-                             const double maxDist);
     
     /**Return the avg slope of all patches on the given @p path */
     double getAvgSlope(std::vector<TravGenNode*> path) const;

@@ -57,6 +57,9 @@ public:
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* >getTraversabilityMap() const;
     
     boost::shared_ptr<EnvironmentXYZTheta> getEnv() const;
+    
+    void planShortestExplorationPath(const base::Vector3d& start) const;
+    
 
 private:
     template <class mapType>

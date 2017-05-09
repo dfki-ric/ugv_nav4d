@@ -898,9 +898,10 @@ void EnvironmentXYZTheta::precomputeCost()
     }
 }
 
+
 //Adapted from: https://rosettacode.org/wiki/Dijkstra%27s_algorithm#C.2B.2B
-void EnvironmentXYZTheta::dijkstraComputeCost(TravGenNode* source,
-                          std::vector<double> &outDistances, const double maxDist)
+void EnvironmentXYZTheta::dijkstraComputeCost(const TravGenNode* source,
+                          std::vector<double> &outDistances, const double maxDist) const 
 {
     using namespace maps::grid;
     
@@ -910,7 +911,7 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TravGenNode* source,
     const int sourceId = source->getUserData().id;
     outDistances[sourceId] = 0;
     
-    std::set<std::pair<double, TravGenNode*>> vertexQ;
+    std::set<std::pair<double, const TravGenNode*>> vertexQ;
     vertexQ.insert(std::make_pair(outDistances[sourceId], source));
     
     UGV_DEBUG(
@@ -920,7 +921,7 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TravGenNode* source,
     while (!vertexQ.empty()) 
     {
         double dist = vertexQ.begin()->first;
-        TravGenNode* u = vertexQ.begin()->second;
+        const TravGenNode* u = vertexQ.begin()->second;
         
         vertexQ.erase(vertexQ.begin());
         
@@ -932,7 +933,8 @@ void EnvironmentXYZTheta::dijkstraComputeCost(TravGenNode* source,
         for(TraversabilityNodeBase *v : u->getConnections())
         {   
             //skip all non traversable nodes. They will retain the maximum cost.
-            if(v->getType() != TraversabilityNodeBase::TRAVERSABLE)
+            if(v->getType() != TraversabilityNodeBase::TRAVERSABLE && 
+               v->getType() != TraversabilityNodeBase::FRONTIER)
                 continue;
             
             TravGenNode* vCasted = static_cast<TravGenNode*>(v);
