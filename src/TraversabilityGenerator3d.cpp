@@ -501,7 +501,8 @@ void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
         {
             //FIXME improve performance?!
             //check if there is a corresponding patch in the mls
-            Eigen::Vector3d min(-mlsGrid->getResolution().x() / 2.0, -mlsGrid->getResolution().y() / 2.0, -config.maxStepHeight);
+            //divide by 2.01 to make it a tiny little bit smaller than a trMap cell to avoid intersecting with the current cell
+            Eigen::Vector3d min(-trMap.getResolution().x() / 2.01, -trMap.getResolution().y() / 2.01, -config.maxStepHeight);
             Eigen::Vector3d max(-min);
             
             Eigen::Vector3d nodePos;
