@@ -294,6 +294,17 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     {
         loadMls();
     }
+    
+    if(argc > 3)
+    {
+        start.position << 9.08776,  5.8535, 0.06052;
+        QVector3D pos(start.position.x(), start.position.y(), start.position.z());
+        startViz.setTranslation(pos);
+        std::cout << "Start: " << start.position.transpose() << std::endl;
+        pickStart = false;
+        expandButton->setEnabled(true);
+    }
+    
 }
 
 void PlannerGui::loadMls()
@@ -480,9 +491,6 @@ void PlannerGui::startPlanThread()
 
 void PlannerGui::plannerIsDone()
 {
-    std::vector<base::Trajectory> path;
-    planner->getTrajectory(path);    
-    
     double pathLen = 0;
     for(const base::Trajectory& traj : path)
     {
@@ -514,6 +522,7 @@ void PlannerGui::expandPressed()
     planner->getEnv()->getTravGen().expandAll(start.position.cast<double>());
     trav3dViz.updateData((planner->getEnv()->getTraversabilityBaseMap()));
     mlsViz.setPluginEnabled(false);
+    planner->planShortestExplorationPath(start.position);
 }
 
 
@@ -540,7 +549,8 @@ void PlannerGui::plan(const base::Pose& start, const base::Pose& goal)
     
     std::cout << std::endl << std::endl;
     std::cout << "Planning: " << start << " -> " << goal << std::endl;
-    const bool result = planner->plan(base::Time::fromSeconds(time->value()), startState, endState);
+    const bool result = planner->plan(base::Time::fromSeconds(time->value()),
+                                      startState, endState, path);
     if(result)
     {
         std::cout << "DONE" << std::endl;

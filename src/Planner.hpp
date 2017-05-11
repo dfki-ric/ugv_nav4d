@@ -24,8 +24,6 @@ class Planner
     const motion_planning_libraries::Mobility mobility;
     TraversabilityConfig traversabilityConfig;
     
-    std::vector<int> solution;
-    
 public:
     Planner(const motion_planning_libraries::SplinePrimitivesConfig &primitiveConfig, const TraversabilityConfig &traversabilityConfig,
             const motion_planning_libraries::Mobility& mobility);
@@ -45,12 +43,11 @@ public:
         }
     }
     
-    /** @p maxTime Maximum processor time to use. */
-    bool plan(const base::Time& maxTime, base::samples::RigidBodyState& start, base::samples::RigidBodyState& end);
-    
-    void getTrajectory(std::vector<base::Trajectory> &trajectory);
-    
-    std::vector<Motion> getMotions() const;
+    /** Plan a path from @p start to @p end.
+     * @param maxTime Maximum processor time to use.
+     * */
+    bool plan(const base::Time& maxTime, const base::samples::RigidBodyState& start,
+              const base::samples::RigidBodyState& end, std::vector<base::Trajectory>& resultTrajectory);
     
     void setTravConfig(const TraversabilityConfig& config);
     
@@ -60,7 +57,6 @@ public:
     
     void planShortestExplorationPath(const base::Vector3d& start) const;
     
-
 private:
     template <class mapType>
     boost::shared_ptr<MLSBase> getMLSBase(const mapType &map)

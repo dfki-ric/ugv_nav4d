@@ -22,13 +22,13 @@ Planner::Planner(const motion_planning_libraries::SplinePrimitivesConfig& primit
 
 
 
-bool Planner::plan(const base::Time &maxTime, base::samples::RigidBodyState& start, base::samples::RigidBodyState& end)
+bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& start,
+              const base::samples::RigidBodyState& end, std::vector<base::Trajectory>& resultTrajectory)
 {
-    solution.clear();
-    
     if(!env)
         throw std::runtime_error("Planner::plan : Error : No map was set");
     
+    resultTrajectory.clear();
     env->clear();
     
     try {
@@ -72,7 +72,8 @@ bool Planner::plan(const base::Time &maxTime, base::samples::RigidBodyState& sta
 
     planner->set_eps_step(0.5);
     
-    if(!planner->replan(maxTime.toSeconds(), &solution))
+    std::vector<int> solutionIds;
+    if(!planner->replan(maxTime.toSeconds(), &solutionIds))
     {
         std::cout << "num expands: " << planner->get_n_expands() << std::endl;
         return false;
@@ -91,13 +92,10 @@ bool Planner::plan(const base::Time &maxTime, base::samples::RigidBodyState& sta
         std::cout << "cost " << s.cost << " time " << s.time << "num childs " << s.expands << std::endl;
     }
     
+    env->getTrajectory(solutionIds, resultTrajectory);
     return true;
 }
 
-void Planner::getTrajectory(std::vector< base::Trajectory >& trajectory)
-{
-    return env->getTrajectory(solution, trajectory);
-}
 
 maps::grid::TraversabilityMap3d< TraversabilityNodeBase* > Planner::getTraversabilityMap() const
 {
@@ -107,11 +105,6 @@ maps::grid::TraversabilityMap3d< TraversabilityNodeBase* > Planner::getTraversab
 boost::shared_ptr< EnvironmentXYZTheta > Planner::getEnv() const
 {
     return env;
-}
-
-std::vector<Motion> Planner::getMotions() const
-{
-    return env->getMotions(solution);
 }
 
 void Planner::setTravConfig(const TraversabilityConfig& config)
@@ -150,9 +143,9 @@ void Planner::planShortestExplorationPath(const base::Vector3d& start) const
         std::cout << "frontier size "<< frontier.size() << std::endl;
         //find closest frontier node
         std::vector<double> distances;
-        env->dijkstraComputeCost(currentNode, distances, 999999);//FIXME 99999999
+        env->dijkstraComputeCost(currentNode, distances, std::numeric_limits<double>::max());
         
-        double closestDist = 99999999;//FIXME 99999999
+        double closestDist = std::numeric_limits<double>::max();
         const TravGenNode* closestNode = nullptr;
         for(const TravGenNode* frontierNode : frontier)
         {

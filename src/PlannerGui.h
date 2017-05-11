@@ -88,5 +88,6 @@ private:
     motion_planning_libraries::Mobility mobility;
     ugv_nav4d::TraversabilityConfig conf;
     std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
+    std::vector<base::Trajectory> path;
     
 };
