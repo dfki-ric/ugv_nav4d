@@ -164,6 +164,9 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     if(!checkOrientationAllowed(goalXYZNode->getUserData().travNode, theta))
         throw std::runtime_error("Goal orientation not allowed due to slope");
     
+    if(!checkCollision(goalXYZNode->getUserData().travNode, theta))
+        throw std::runtime_error("Goal inside obstacle");
+    
     //NOTE If we want to precompute the heuristic (precomputeCost()) we need to expand 
     //     the whole travmap beforehand.
     travGen.expandAll(startXYZNode->getUserData().travNode);
