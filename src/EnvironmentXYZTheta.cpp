@@ -595,6 +595,69 @@ double EnvironmentXYZTheta::interpolate(double x, double x0, double y0, double x
     return y0 + (x - x0) * (y1 - y0)/(x1-x0);
 }
 
+
+bool EnvironmentXYZTheta::checkCollision(const TravGenNode* node, double zRot) const
+{
+    // calculate robot position in local grid coordinates
+    // TODO make this a member method of GridMap
+    maps::grid::Vector3d robotPosition;
+    robotPosition <<
+            (node->getIndex().cast<double>() + Eigen::Vector2d(0.5, 0.5)).cwiseProduct(travGen.getTraversabilityMap().getResolution()),
+            node->getHeight() +  travConf.robotHeight * 0.5;
+    
+    const Eigen::Vector3d planeNormal = node->getUserData().plane.normal();
+    oassert(planeNormal.allFinite()); 
+
+    //FIXME names
+    const Eigen::Quaterniond zRotAA( Eigen::AngleAxisd(zRot, Eigen::Vector3d::UnitZ()) ); // TODO these could be precalculated
+    const Eigen::Quaterniond rotAA = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), planeNormal);
+    const Eigen::Quaterniond rotQ = rotAA * zRotAA;
+
+    // further calculations are more efficient with rotation matrix:
+    const Eigen::Matrix3d rot = rotQ.toRotationMatrix();
+    
+    //find min/max for bounding box
+    const Eigen::Vector3d extends = rot.cwiseAbs() * robotHalfSize;
+    const Eigen::Vector3d min = robotPosition - extends;
+    const Eigen::Vector3d max = robotPosition + extends;
+    
+    const Eigen::AlignedBox3d aabb(min, max); //aabb around the rotated robot bounding box    
+
+    
+    const Eigen::Matrix3d rotInv = rot.transpose();
+    bool intersects = false;
+    mlsGrid->intersectAABB_callback(aabb,
+        [&rotInv, &intersects, this, &robotPosition, &rotQ, &rot, &node]
+        (const maps::grid::Index& idx, const maps::grid::SurfacePatchBase& p)
+        {
+            //FIXME this actually only tests if the top of the patch intersects with the robot
+            maps::grid::Vector3d pos;
+            double z = p.getMax();
+            pos << (idx.cast<double>() + Eigen::Vector2d(0.5, 0.5)).cwiseProduct(this->mlsGrid->getResolution()), z;
+            //transform pos into coordinate system of oriented bounding box
+            pos -= robotPosition;
+            pos = rotInv * pos;
+            
+            if((abs(pos.array()) <= this->robotHalfSize.array()).all())
+            {
+                //found at least one patch that is inside the oriented boundingbox
+                COMPLEX_DRAWING(
+                    maps::grid::Vector3d pos;
+                    travGen.getTraversabilityMap().fromGrid(node->getIndex(), pos);
+                    DRAW_WIREFRAME_BOX("collisions", pos, rotQ,
+                                       base::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight),
+                                       vizkit3dDebugDrawings::Color::yellow);
+                );
+//                 std::cout << "COL: " << robotPosition.transpose() << std::endl;
+                intersects = true;
+                return true;//abort intersection check
+            }
+            return false; //continue intersection check
+        });
+    
+    return !intersects;
+}
+
 bool EnvironmentXYZTheta::checkCollisions(const std::vector<TravGenNode*>& path,
                                           const Motion& motion) const
 {
@@ -602,7 +665,6 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector<TravGenNode*>& path,
     //Thus the size should always differ by one.
     oassert(motion.intermediateSteps.size() + 1 == path.size());
     
-    const double robotHeight = travConf.robotHeight;
 
     for(size_t i = 0; i < path.size(); ++i)
     {
@@ -611,62 +673,9 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector<TravGenNode*>& path,
         const double zRot = i < motion.intermediateSteps.size() ?
                             motion.intermediateSteps[i].pose.orientation :
                             motion.endTheta.getRadian();
-
-        // calculate robot position in local grid coordinates
-        // TODO make this a member method of GridMap
-        maps::grid::Vector3d robotPosition;
-        robotPosition <<
-                (node->getIndex().cast<double>() + Eigen::Vector2d(0.5, 0.5)).cwiseProduct(travGen.getTraversabilityMap().getResolution()),
-                node->getHeight() + robotHeight * 0.5;
-        
-        const Eigen::Vector3d planeNormal = node->getUserData().plane.normal();
-        oassert(planeNormal.allFinite()); 
-
-        //FIXME names
-        const Eigen::Quaterniond zRotAA( Eigen::AngleAxisd(zRot, Eigen::Vector3d::UnitZ()) ); // TODO these could be precalculated
-        const Eigen::Quaterniond rotAA = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), planeNormal);
-        const Eigen::Quaterniond rotQ = rotAA * zRotAA;
-
-        // further calculations are more efficient with rotation matrix:
-        const Eigen::Matrix3d rot = rotQ.toRotationMatrix();
-        
-        //find min/max for bounding box
-        const Eigen::Vector3d extends = rot.cwiseAbs() * robotHalfSize;
-        const Eigen::Vector3d min = robotPosition - extends;
-        const Eigen::Vector3d max = robotPosition + extends;
-        
-        const Eigen::AlignedBox3d aabb(min, max); //aabb around the rotated robot bounding box    
-
-        
-        const Eigen::Matrix3d rotInv = rot.transpose();
-        bool intersects = false;
-        mlsGrid->intersectAABB_callback(aabb,
-            [&rotInv, &intersects, this, &robotPosition, &rotQ, &rot]
-            (const maps::grid::Index& idx, const maps::grid::SurfacePatchBase& p)
-            {
-                //FIXME this actually only tests if the top of the patch intersects with the robot
-                maps::grid::Vector3d pos;
-                double z = p.getMax();
-                pos << (idx.cast<double>() + Eigen::Vector2d(0.5, 0.5)).cwiseProduct(this->mlsGrid->getResolution()), z;
-                //transform pos into coordinate system of oriented bounding box
-                pos -= robotPosition;
-                pos = rotInv * pos;
-                
-                if((abs(pos.array()) <= this->robotHalfSize.array()).all())
-                {
-                    //found at least one patch that is inside the oriented boundingbox
-                    UGV_DEBUG(
-                        debugData.addCollision(robotPosition, rotQ);
-                    )
-                    intersects = true;
-                    return true;//abort intersection check
-                }
-                return false; //continue intersection check
-            });
-        
-        //abort if one of the path elements intersects the map
-        if(intersects)
+        if(!checkCollision(node, zRot))
             return false;
+
     }
     
     return true;
