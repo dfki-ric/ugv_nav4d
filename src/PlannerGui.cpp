@@ -463,11 +463,6 @@ void PlannerGui::obstacleFactorSpinBoxEditingFinished()
     conf.costFunctionObstacleMultiplier = obstacleFactorSpinBox->value();
 }
 
-
-
-    
-
-
 void PlannerGui::timeEditingFinished()
 {
     
@@ -483,6 +478,7 @@ void PlannerGui::startPlanThread()
 {
     bar->setMaximum(0);
     std::thread t([this](){
+        CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET_NO_THROW(this->widget);
         this->plan(this->start, this->goal);
     });
     t.detach(); //needed to avoid destruction of thread at end of method
