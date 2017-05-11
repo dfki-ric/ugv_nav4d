@@ -4,6 +4,7 @@
 #include <maps/grid/MultiLevelGridMap.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.h>
+#include <base/Eigen.hpp>
 
 using namespace maps::grid;
 
@@ -115,6 +116,59 @@ void Planner::setTravConfig(const TraversabilityConfig& config)
     traversabilityConfig = config;
     if(env)
         env->setTravConfig(config);
+}
+
+bool Planner::planToNextFrontier(const base::Time& maxTime, const base::samples::RigidBodyState& start,
+                                 const base::Vector3d& closeTo, std::vector<base::Trajectory>& resultTrajectory)
+{
+    std::vector<const TravGenNode*> frontier;
+    for(const maps::grid::LevelList<TravGenNode*>& list : env->getTraversabilityMap())
+    {
+        for(const TravGenNode* node : list)
+        {
+            if(node->getType() == TraversabilityNodeBase::FRONTIER)
+            {
+                frontier.emplace_back(node);
+            }
+        }
+    }    
+    
+    if(frontier.size() <= 0)
+    {
+        std::cout << "No frontier patches found\n";
+        return false;
+    }
+
+    const TravGenNode* nextFrontierNode = nullptr;
+    base::Vector3d nextFrontierPos;
+    double distToNextFrontierNode = std::numeric_limits<double>::max();
+        
+    for(const TravGenNode* frontierNode : frontier)
+    {
+        base::Vector3d pos(frontierNode->getIndex().x() * traversabilityConfig.gridResolution, 
+                           frontierNode->getIndex().y() * traversabilityConfig.gridResolution,
+                           frontierNode->getHeight());
+        pos = env->getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+        
+        const double distToFrontierNode = (pos - closeTo).norm();
+        if(distToFrontierNode < distToNextFrontierNode)
+        {
+            nextFrontierNode = frontierNode;
+            distToNextFrontierNode = distToFrontierNode;
+            nextFrontierPos = pos;
+        }
+    }
+    
+    assert(nextFrontierNode != nullptr);
+    
+    base::samples::RigidBodyState goal;
+    goal.position = nextFrontierPos;
+    goal.orientation = start.orientation;
+    
+    DRAW_CYLINDER("frontier target", nextFrontierPos, base::Vector3d(0.2, 0.2, 1), vizkit3dDebugDrawings::Color::cyan);
+    
+    return plan(maxTime, start, goal, resultTrajectory);
+    
 }
 
 void Planner::planShortestExplorationPath(const base::Vector3d& start) const

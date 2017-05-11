@@ -149,6 +149,33 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     goalOrientationSlider->setValue(0);
 
 
+    frontierX = new QDoubleSpinBox();
+    frontierY = new QDoubleSpinBox();
+    frontierZ = new QDoubleSpinBox();
+    
+    frontierX->setMinimum(-1000);
+    frontierX->setMaximum(1000);
+    frontierX->setSingleStep(0.5);
+    frontierY->setMinimum(-1000);
+    frontierY->setMaximum(1000);
+    frontierY->setSingleStep(0.5);
+    frontierZ->setMinimum(-1000);
+    frontierZ->setMaximum(1000);
+    frontierZ->setSingleStep(0.5);
+    
+    connect(frontierX, SIGNAL(valueChanged(double)), this, SLOT(frontierXEditFinished(double)));
+    connect(frontierY, SIGNAL(valueChanged(double)), this, SLOT(frontierYEditFinished(double)));
+    connect(frontierZ, SIGNAL(valueChanged(double)), this, SLOT(frontierZEditFinished(double)));
+    QHBoxLayout* frontierLayout = new QHBoxLayout();
+    QLabel* frontierLabel = new QLabel();
+    frontierLabel->setText("Frontier coordinates");
+    frontierLayout->addWidget(frontierLabel);
+    frontierLayout->addWidget(frontierX);
+    frontierLayout->addWidget(frontierY);
+    frontierLayout->addWidget(frontierZ);
+    
+    layout->addLayout(frontierLayout);
+    
     
     connect(startOrientatationSlider, SIGNAL(sliderMoved(int)), this, SLOT(startOrientationChanged(int)));
     connect(goalOrientationSlider, SIGNAL(sliderMoved(int)), this, SLOT(goalOrientationChanged(int)));
@@ -215,7 +242,11 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     QPushButton* replanButton = new QPushButton("Replan");
     timeLayout->addWidget(replanButton);
     
+    QPushButton* planFrontierButton = new QPushButton("Plan to Frontier");
+    timeLayout->addWidget(planFrontierButton);
+    
     connect(replanButton, SIGNAL(released()), this, SLOT(replanButtonReleased()));
+    connect(planFrontierButton, SIGNAL(released()), this, SLOT(planFrontierButtonReleased()));
     connect(expandButton, SIGNAL(released()), this, SLOT(expandPressed()));
     
     layout->addWidget(bar);
@@ -468,10 +499,61 @@ void PlannerGui::timeEditingFinished()
     
 }
 
+void PlannerGui::frontierXEditFinished(double value)
+{
+    frontier.x() = value;
+    CLEAR_DRAWING("Frontier Target");
+    DRAW_SPHERE("Frontier Target", frontier, 0.3, vizkit3dDebugDrawings::Color::magenta);
+}
+
+void PlannerGui::frontierYEditFinished(double value)
+{
+    frontier.y() = value;
+    CLEAR_DRAWING("Frontier Target");
+    DRAW_SPHERE("Frontier Target", frontier, 0.3, vizkit3dDebugDrawings::Color::magenta);
+}
+
+void PlannerGui::frontierZEditFinished(double value)
+{
+    frontier.z() = value;
+    CLEAR_DRAWING("Frontier Target");
+    DRAW_SPHERE("Frontier Target", frontier, 0.3, vizkit3dDebugDrawings::Color::magenta);
+}
+
 void PlannerGui::replanButtonReleased()
 {
     planner->setTravConfig(conf);
     startPlanThread();       
+}
+
+void PlannerGui::planFrontierButtonReleased()
+{
+    planner->setTravConfig(conf);
+    bar->setMaximum(0);
+    std::thread t([this](){
+        CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET_NO_THROW(this->widget);
+        
+        base::samples::RigidBodyState startState;
+        startState.position = start.position;
+        startState.orientation = start.orientation;
+    
+        std::cout << std::endl << std::endl;
+        std::cout << "Planning to frontier: " << start << " -> " << frontier.transpose() << std::endl;
+        const bool result = planner->planToNextFrontier(base::Time::fromSeconds(time->value()),
+                                                        startState, frontier, path);
+
+        if(result)
+        {
+            std::cout << "DONE" << std::endl;
+        }
+        else
+        {
+            std::cout << "FAIL" << std::endl;
+        }
+
+        emit plannerDone();
+    });
+    t.detach();
 }
 
 void PlannerGui::startPlanThread()
@@ -518,7 +600,6 @@ void PlannerGui::expandPressed()
     planner->getEnv()->getTravGen().expandAll(start.position.cast<double>());
     trav3dViz.updateData((planner->getEnv()->getTraversabilityBaseMap()));
     mlsViz.setPluginEnabled(false);
-    planner->planShortestExplorationPath(start.position);
 }
 
 

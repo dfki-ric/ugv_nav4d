@@ -49,6 +49,12 @@ public:
     bool plan(const base::Time& maxTime, const base::samples::RigidBodyState& start,
               const base::samples::RigidBodyState& end, std::vector<base::Trajectory>& resultTrajectory);
     
+    /** Plan from @p start to the frontier patch closest to @p closeTo
+     *  @param maxTime Maximum processor time to use.
+     *  @param closeTo The closer a frontier patch is to this point the more likely it will be choosen*/
+    bool planToNextFrontier(const base::Time& maxTime, const base::samples::RigidBodyState& start,
+                            const base::Vector3d& closeTo, std::vector<base::Trajectory>& resultTrajectory);
+    
     void setTravConfig(const TraversabilityConfig& config);
     
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* >getTraversabilityMap() const;

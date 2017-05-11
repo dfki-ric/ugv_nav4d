@@ -43,12 +43,16 @@ private slots:
     void goalOrientationChanged(int newValue);
     void timeEditingFinished();
     void replanButtonReleased();
+    void planFrontierButtonReleased();
     void expandPressed();
     void slopeMetricComboBoxIndexChanged(int index);
     void heuristicComboBoxIndexChanged(int index);
     void parallelismCheckBoxStateChanged(int);
     void obstacleDistanceSpinBoxEditingFinished();
     void obstacleFactorSpinBoxEditingFinished();
+    void frontierXEditFinished(double value);
+    void frontierYEditFinished(double value);
+    void frontierZEditFinished(double value);
     
 private:
     void loadMls();
@@ -71,6 +75,9 @@ private:
     QComboBox* heuristicComboBox;
     QCheckBox* parallelismCheckBox;
     QProgressBar* bar;
+    QDoubleSpinBox* frontierX;
+    QDoubleSpinBox* frontierY;
+    QDoubleSpinBox* frontierZ;
     QWidget window;
     vizkit3d::MotionPlanningLibrariesSbplSplineVisualization splineViz;
     vizkit3d::TrajectoryVisualization trajViz;
@@ -82,6 +89,7 @@ private:
     maps::grid::MLSMapKalman mlsMap;
     base::Pose start;
     base::Pose goal;
+    base::Vector3d frontier;
     bool pickStart = true;
     bool threadRunning = false;
     motion_planning_libraries::SplinePrimitivesConfig config;

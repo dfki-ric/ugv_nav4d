@@ -343,7 +343,8 @@ TravGenNode *EnvironmentXYZTheta::movementPossible(TravGenNode *fromTravNode, co
     
     //NOTE this check cannot be done before checkExpandTreadSafe because the type will be determined
     //     during the expansion. Beforehand the type is undefined
-    if(targetNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+    if(targetNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE &&
+       targetNode->getType() != maps::grid::TraversabilityNodeBase::FRONTIER)
     {
         return nullptr;
     }  
@@ -393,6 +394,18 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     (
         debugData.addSucc(sourceNode->getUserData().travNode);
     )
+    
+    COMPLEX_DRAWING(
+        const TravGenNode* node = sourceNode->getUserData().travNode;
+        Eigen::Vector3d pos((node->getIndex().x() + 0.5) * travConf.gridResolution,
+                            (node->getIndex().y() + 0.5) * travConf.gridResolution,
+                            node->getHeight());
+        pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
+        DRAW_SPHERE("env succs", pos, travConf.gridResolution / 2.0, base::Vector4d(1, 0, 0, 0.4));
+        
+    );
+    
+    
     
     const ThetaNode *const thetaNode = sourceHash.thetaNode;
     const maps::grid::Index sourceIndex = sourceNode->getIndex();
@@ -850,11 +863,12 @@ double EnvironmentXYZTheta::calcObstacleCost(std::vector<TravGenNode*> path) con
     int obstacleCount = 0;
     for(maps::grid::TraversabilityNodeBase* n : neighbors)
     {
-        if(n->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+        if(n->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE &&
+           n->getType() != maps::grid::TraversabilityNodeBase::FRONTIER)
         {
             ++obstacleCount;
         }
-    }
+    }   
     
     return obstacleCount;
 }
