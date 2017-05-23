@@ -176,6 +176,9 @@ public:
     void dijkstraComputeCost(const TravGenNode* source, std::vector<double> &outDistances,
                              const double maxDist) const;
 
+    /** Check if the robot can stand on @p node with rotation @p zRot
+     *  @return true if no collision*/
+    bool checkCollision(const TravGenNode* node, double zRot) const;
     
 private:
   
@@ -184,10 +187,6 @@ private:
     //Return true if there is no collision on the given path.
     bool checkCollisions(const std::vector<TravGenNode*>& path,
                          const Motion& motion) const;
-                         
-    /** Check if the robot can stand on @p node with rotation @p zRot
-     *  @return true if no collision*/
-    bool checkCollision(const TravGenNode* node, double zRot) const;
                          
     /** Some movement directions are not allowed depending on the slope of the patch.
      *  @return true if the movement direction is allowed on that patch

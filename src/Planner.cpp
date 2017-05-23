@@ -1,4 +1,5 @@
 #include "Planner.hpp"
+#include "TravMapBfsVisitor.hpp"
 #include <sbpl/planners/araplanner.h>
 #include <sbpl/utils/mdpconfig.h>
 #include <maps/grid/MultiLevelGridMap.hpp>
@@ -119,7 +120,8 @@ void Planner::setTravConfig(const TraversabilityConfig& config)
 }
 
 bool Planner::planToNextFrontier(const base::Time& maxTime, const base::samples::RigidBodyState& start,
-                                 const base::Vector3d& closeTo, std::vector<base::Trajectory>& resultTrajectory)
+                                 const base::Vector3d& closeTo, double goalOrientationZ,
+                                 std::vector<base::Trajectory>& resultTrajectory)
 {
     std::vector<const TravGenNode*> frontier;
     for(const maps::grid::LevelList<TravGenNode*>& list : env->getTraversabilityMap())
@@ -161,81 +163,57 @@ bool Planner::planToNextFrontier(const base::Time& maxTime, const base::samples:
     
     assert(nextFrontierNode != nullptr);
     
+    DRAW_CYLINDER("frontier target", nextFrontierPos, base::Vector3d(0.2, 0.2, 1), vizkit3dDebugDrawings::Color::cyan);
+       
+    //search for a neighbor that passes the obstacle check. I.e. that we can acutally reach
+    const TravGenNode* traversableNeighbor = nullptr;
+    base::Vector3d traversableNeighborPos(0, 0, 0);
+    TravMapBfsVisitor::visit(nextFrontierNode, 
+        [&traversableNeighbor, &nextFrontierNode, &nextFrontierPos, this, &start, goalOrientationZ, &traversableNeighborPos]
+        (const TravGenNode* currentNode, bool& visitChildren, bool& abort)
+        {
+            if((currentNode->getType() == maps::grid::TraversabilityNodeBase::TRAVERSABLE ||
+               currentNode->getType() == TraversabilityNodeBase::FRONTIER) &&
+               env->checkCollision(currentNode, goalOrientationZ))
+            {
+                traversableNeighbor = currentNode;
+                
+                base::Vector3d pos(currentNode->getIndex().x() * this->traversabilityConfig.gridResolution, 
+                                   currentNode->getIndex().y() * this->traversabilityConfig.gridResolution,
+                                   currentNode->getHeight());
+                pos = this->env->getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+                traversableNeighborPos = pos;
+                DRAW_CYLINDER("obstacleCheck", pos + base::Vector3d(traversabilityConfig.gridResolution / 2.0, traversabilityConfig.gridResolution / 2.0, traversabilityConfig.gridResolution / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::green);
+                //found a nearby node that we can stand on, abort
+                abort = true;
+                
+            }
+            else
+            {
+                abort = false;
+                base::Vector3d pos(currentNode->getIndex().x() * this->traversabilityConfig.gridResolution, 
+                                   currentNode->getIndex().y() * this->traversabilityConfig.gridResolution,
+                                   currentNode->getHeight());
+                pos = this->env->getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+                
+                DRAW_CYLINDER("obstacleCheck", pos + base::Vector3d(traversabilityConfig.gridResolution / 2.0, traversabilityConfig.gridResolution / 2.0, traversabilityConfig.gridResolution / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::red);
+                
+                const double dist = (nextFrontierPos - pos).norm();
+                if(dist < 1)
+                    visitChildren = true;
+                else
+                    visitChildren = false;
+            }
+        });
+    
     base::samples::RigidBodyState goal;
-    goal.position = nextFrontierPos;
+    goal.position = traversableNeighborPos;
+    //FIXME use goal orientation
     goal.orientation = start.orientation;
     
-    DRAW_CYLINDER("frontier target", nextFrontierPos, base::Vector3d(0.2, 0.2, 1), vizkit3dDebugDrawings::Color::cyan);
     
     return plan(maxTime, start, goal, resultTrajectory);
     
 }
-
-void Planner::planShortestExplorationPath(const base::Vector3d& start) const
-{
-    std::cout << "started shortestpathPlanning" << std::endl;
-    //FIXME very naive implementation, can probably be improved
-    std::vector<const TravGenNode*> path;
-    std::unordered_set<const TravGenNode*> frontier;
-    for(const maps::grid::LevelList<TravGenNode*>& list : env->getTraversabilityMap())
-    {
-        for(const TravGenNode* node : list)
-        {
-            if(node->getType() == TraversabilityNodeBase::FRONTIER)
-            {
-                frontier.insert(node);
-            }
-        }
-    }
-    
-    //FIXME assert that start node is not a frontier node
-    
-    const TravGenNode* currentNode = env->getTravGen().generateStartNode(start);
-    path.push_back(currentNode);
-    while(frontier.size() > 0)
-    {
-        std::cout << "frontier size "<< frontier.size() << std::endl;
-        //find closest frontier node
-        std::vector<double> distances;
-        env->dijkstraComputeCost(currentNode, distances, std::numeric_limits<double>::max());
-        
-        double closestDist = std::numeric_limits<double>::max();
-        const TravGenNode* closestNode = nullptr;
-        for(const TravGenNode* frontierNode : frontier)
-        {
-            const int id = frontierNode->getUserData().id;
-            const double dist = distances[id];
-            if(dist < closestDist)
-            {
-                closestDist = dist;
-                closestNode = frontierNode;
-            }
-        }
-        
-        assert(nullptr != closestNode);
-        frontier.erase(closestNode);
-        path.push_back(closestNode);
-        
-        COMPLEX_DRAWING(
-            Eigen::Vector3d start(currentNode->getIndex().x() * traversabilityConfig.gridResolution, currentNode->getIndex().y() * traversabilityConfig.gridResolution, currentNode->getHeight());
-            start = env->getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * start;
-            start.z() += 0.1;
-            
-            Eigen::Vector3d end(closestNode->getIndex().x() * traversabilityConfig.gridResolution, closestNode->getIndex().y() * traversabilityConfig.gridResolution, closestNode->getHeight());
-            end = env->getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * end;
-            end.z() += 0.1;
-            
-            DRAW_TEXT("shortest dist", start + (end - start)/2.0, std::to_string(distances[closestNode->getUserData().id]), 0.1, vizkit3dDebugDrawings::Color::magenta);
-            
-            DRAW_LINE("shortest exploration path", start, end, vizkit3dDebugDrawings::Color::magenta);
-        );
-        
-        currentNode = closestNode;
-    }
-    std::cout << "done shortestpathPlanning" << std::endl;
-    
-}
-
-
 
 }

@@ -536,11 +536,11 @@ void PlannerGui::planFrontierButtonReleased()
         base::samples::RigidBodyState startState;
         startState.position = start.position;
         startState.orientation = start.orientation;
-    
+        const double goalRotZ = goalOrientationSlider->value() / 180.0 * M_PI;
         std::cout << std::endl << std::endl;
         std::cout << "Planning to frontier: " << start << " -> " << frontier.transpose() << std::endl;
         const bool result = planner->planToNextFrontier(base::Time::fromSeconds(time->value()),
-                                                        startState, frontier, path);
+                                                        startState, frontier, goalRotZ, path);
 
         if(result)
         {

@@ -30,6 +30,7 @@ rock_library(ugv_nav4d
         TravGenDebugData.hpp
         UgvDebug.hpp
         EnvironmentXYZThetaDebugData.hpp
+        TravMapBfsVisitor.hpp
     DEPS_PKGCONFIG 
         base-types 
         sbpl

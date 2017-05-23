@@ -647,6 +647,8 @@ bool EnvironmentXYZTheta::checkCollision(const TravGenNode* node, double zRot) c
                 COMPLEX_DRAWING(
                     maps::grid::Vector3d pos;
                     travGen.getTraversabilityMap().fromGrid(node->getIndex(), pos);
+                    pos.z() = node->getHeight();
+                    pos.z() += travConf.robotHeight * 0.5;
                     DRAW_WIREFRAME_BOX("collisions", pos, rotQ,
                                        base::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight),
                                        vizkit3dDebugDrawings::Color::yellow);
