@@ -398,15 +398,15 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         debugData.addSucc(sourceNode->getUserData().travNode);
     )
     
-    COMPLEX_DRAWING(
-        const TravGenNode* node = sourceNode->getUserData().travNode;
-        Eigen::Vector3d pos((node->getIndex().x() + 0.5) * travConf.gridResolution,
-                            (node->getIndex().y() + 0.5) * travConf.gridResolution,
-                            node->getHeight());
-        pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
-        DRAW_SPHERE("env succs", pos, travConf.gridResolution / 2.0, base::Vector4d(1, 0, 0, 0.4));
-        
-    );
+//     COMPLEX_DRAWING(
+//         const TravGenNode* node = sourceNode->getUserData().travNode;
+//         Eigen::Vector3d pos((node->getIndex().x() + 0.5) * travConf.gridResolution,
+//                             (node->getIndex().y() + 0.5) * travConf.gridResolution,
+//                             node->getHeight());
+//         pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
+//         DRAW_SPHERE("env succs", pos, travConf.gridResolution / 2.0, base::Vector4d(1, 0, 0, 0.4));
+//         
+//     );
     
     
     
@@ -644,15 +644,15 @@ bool EnvironmentXYZTheta::checkCollision(const TravGenNode* node, double zRot) c
             if((abs(pos.array()) <= this->robotHalfSize.array()).all())
             {
                 //found at least one patch that is inside the oriented boundingbox
-                COMPLEX_DRAWING(
-                    maps::grid::Vector3d pos;
-                    travGen.getTraversabilityMap().fromGrid(node->getIndex(), pos);
-                    pos.z() = node->getHeight();
-                    pos.z() += travConf.robotHeight * 0.5;
-                    DRAW_WIREFRAME_BOX("collisions", pos, rotQ,
-                                       base::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight),
-                                       vizkit3dDebugDrawings::Color::yellow);
-                );
+//                 COMPLEX_DRAWING(
+//                     maps::grid::Vector3d pos;
+//                     travGen.getTraversabilityMap().fromGrid(node->getIndex(), pos);
+//                     pos.z() = node->getHeight();
+//                     pos.z() += travConf.robotHeight * 0.5;
+//                     DRAW_WIREFRAME_BOX("collisions", pos, rotQ,
+//                                        base::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight),
+//                                        vizkit3dDebugDrawings::Color::yellow);
+//                 );
 //                 std::cout << "COL: " << robotPosition.transpose() << std::endl;
                 intersects = true;
                 return true;//abort intersection check
