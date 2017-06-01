@@ -132,12 +132,12 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node, const View
     node.getUserData().slopeDirection = slopeDir;
     node.getUserData().slopeDirectionAtan2 = std::atan2(slopeDir.y(), slopeDir.x());
     
-    COMPLEX_DRAWING(
-        Eigen::Vector3d pos(node.getIndex().x() * config.gridResolution, node.getIndex().y() * config.gridResolution, node.getHeight());
-        pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-        pos.z() += 0.06;
-        DRAW_TEXT("slope", pos, std::to_string(node.getUserData().slope), 0.01, vizkit3dDebugDrawings::Color::red);
-    );
+//     COMPLEX_DRAWING(
+//         Eigen::Vector3d pos(node.getIndex().x() * config.gridResolution, node.getIndex().y() * config.gridResolution, node.getHeight());
+//         pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+//         pos.z() += 0.06;
+//         DRAW_TEXT("slope", pos, std::to_string(node.getUserData().slope), 0.01, vizkit3dDebugDrawings::Color::red);
+//     );
     
     UGV_DEBUG(
         debugData.planeComputed(node);
@@ -188,31 +188,31 @@ bool TraversabilityGenerator3d::checkForUnknown(TravGenNode* node)
             else
             {
                 //Draw connection to found neighbor
-                COMPLEX_DRAWING(
-                    Eigen::Vector3d neighborPos(neighbor->getIndex().x() * config.gridResolution, neighbor->getIndex().y() * config.gridResolution, neighbor->getHeight());
-                    neighborPos.x() += config.gridResolution / 2.0;
-                    neighborPos.y() += config.gridResolution / 2.0;
-                    neighborPos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * neighborPos;
-                    neighborPos.z() += 0.06;
-                    Eigen::Vector3d pos(node->getIndex().x() * config.gridResolution, node->getIndex().y() * config.gridResolution, node->getHeight());
-                    pos.x() += config.gridResolution / 2.0;
-                    pos.y() += config.gridResolution / 2.0;
-                    pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-                    pos.z() += 0.06;
-                    DRAW_LINE("neighbor connections", pos, neighborPos, vizkit3dDebugDrawings::Color::magenta);
-                );
+//                 COMPLEX_DRAWING(
+//                     Eigen::Vector3d neighborPos(neighbor->getIndex().x() * config.gridResolution, neighbor->getIndex().y() * config.gridResolution, neighbor->getHeight());
+//                     neighborPos.x() += config.gridResolution / 2.0;
+//                     neighborPos.y() += config.gridResolution / 2.0;
+//                     neighborPos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * neighborPos;
+//                     neighborPos.z() += 0.06;
+//                     Eigen::Vector3d pos(node->getIndex().x() * config.gridResolution, node->getIndex().y() * config.gridResolution, node->getHeight());
+//                     pos.x() += config.gridResolution / 2.0;
+//                     pos.y() += config.gridResolution / 2.0;
+//                     pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+//                     pos.z() += 0.06;
+//                     DRAW_LINE("neighbor connections", pos, neighborPos, vizkit3dDebugDrawings::Color::magenta);
+//                 );
             }
         }
     }
     
-    COMPLEX_DRAWING(
-        Eigen::Vector3d pos(node->getIndex().x() * config.gridResolution, node->getIndex().y() * config.gridResolution, node->getHeight());
-        pos.x() += config.gridResolution / 2.0;
-        pos.y() += config.gridResolution / 2.0;
-        pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-        pos.z() += 0.06;
-        DRAW_TEXT("missingNeighboursCount", pos, std::to_string(missingNeighbors), 0.02, vizkit3dDebugDrawings::Color::magenta);
-    );
+//     COMPLEX_DRAWING(
+//         Eigen::Vector3d pos(node->getIndex().x() * config.gridResolution, node->getIndex().y() * config.gridResolution, node->getHeight());
+//         pos.x() += config.gridResolution / 2.0;
+//         pos.y() += config.gridResolution / 2.0;
+//         pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+//         pos.z() += 0.06;
+//         DRAW_TEXT("missingNeighboursCount", pos, std::to_string(missingNeighbors), 0.02, vizkit3dDebugDrawings::Color::magenta);
+//     );
     
     // >1 because the loop iterates over node as well, which is obviously unknown
     return missingNeighbors > 1;
@@ -484,7 +484,7 @@ void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
         for(TravGenNode *snode : trMap.at(idx))
         {
             const double searchHeight = snode->getHeight();
-            if((searchHeight - config.maxStepHeight) < curHeight && (searchHeight + config.maxStepHeight) > curHeight)
+            if((searchHeight - config.maxStepHeight) <= curHeight && (searchHeight + config.maxStepHeight) >= curHeight)
             {
                 //found a connectable node
                 toAdd = snode;                
@@ -499,29 +499,32 @@ void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
         //create a new one if a corresponding node in the mls exists
         if(!toAdd)
         {
-            //FIXME improve performance?!
-            //check if there is a corresponding patch in the mls
-            //divide by 2.01 to make it a tiny little bit smaller than a trMap cell to avoid intersecting with the current cell
-            Eigen::Vector3d min(-trMap.getResolution().x() / 2.01, -trMap.getResolution().y() / 2.01, -config.maxStepHeight);
-            Eigen::Vector3d max(-min);
-            
-            Eigen::Vector3d nodePos;
-            if(!trMap.fromGrid(idx, nodePos))
-                throw std::runtime_error("TraversabilityGenerator3d: Internal error node out of grid");
-            nodePos.z() += newPos.z();
-            
-            min += nodePos;
-            max += nodePos;
-            
-            size_t numIntersections = 0;
-            const Eigen::AlignedBox3d boundingBox(min, max);
-            DRAW_AABB("neighbor check bounds", boundingBox, vizkit3dDebugDrawings::Color::magenta);
-            View intersections = mlsGrid->intersectCuboid(boundingBox, numIntersections);
-            if(numIntersections > 0)
+            maps::grid::Vector3d globalPos;
+            trMap.fromGrid(idx, globalPos);
+            Index mlsIdx;
+            if(mlsGrid->toGrid(globalPos, mlsIdx))
             {
-                toAdd = new TravGenNode(curHeight, idx);
-                toAdd->getUserData().id = currentNodeId++;
-                trMap.at(idx).insert(toAdd);
+                const auto& patches = mlsGrid->at(mlsIdx);
+                for(const SurfacePatchBase& patch : patches)
+                {
+                    const double height = patch.getTop();//FIXME is getTop correct?
+                    if((height - config.maxStepHeight) <= curHeight && (height + config.maxStepHeight) >= curHeight)
+                    {
+                        //there is a neighboring patch in the mls that has a reachable hight
+                        toAdd = new TravGenNode(height, idx);
+                        toAdd->getUserData().id = currentNodeId++;
+                        trMap.at(idx).insert(toAdd);
+//                         COMPLEX_DRAWING(
+//                             maps::grid::Vector3d pos(globalPos);
+//                             trMap.fromGrid(idx, globalPos);
+//                             pos.z() = height;
+//                             DRAW_RING("neighbor patches", pos, mlsGrid->getResolution().x() / 2.0, 0.4, 0.01, vizkit3dDebugDrawings::Color::blue);
+//                         );
+                        break;
+                    }
+                    if(height > curHeight)
+                        break;
+                }
             }
         }
 
