@@ -34,6 +34,7 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vect
     const std::vector<NodeWithOrientation> frontierWithOrientation(getFrontierOrientation(frontier));
     const std::vector<NodeWithOrientation> nodesWithoutCollisions(getCollisionFreeNeighbor(frontierWithOrientation));
     const std::vector<NodeWithOrientation> sortedNodes(sortNodes(nodesWithoutCollisions, closeTo));
+    result = getPositions(sortedNodes);
     
     COMPLEX_DRAWING(
         for(const NodeWithOrientation& node : frontierWithOrientation)
@@ -208,6 +209,16 @@ std::vector<NodeWithOrientation> FrontierGenerator::sortNodes(const std::vector<
             return aDist < bDist;
         });
     return std::move(result);
+}
+
+std::vector<RigidBodyState> FrontierGenerator::getPositions(const std::vector<NodeWithOrientation>& nodes)
+{
+    std::vector<RigidBodyState> result;
+    for(cosnt NodeWithOrientation& node : nodes)
+    {
+        RigidBodyState rbs;
+    }
+
 }
 
 

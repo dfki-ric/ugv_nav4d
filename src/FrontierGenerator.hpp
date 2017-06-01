@@ -55,6 +55,9 @@ private:
     /**Sort nodes according to TODO */
     std::vector<NodeWithOrientation> sortNodes(const std::vector<NodeWithOrientation>& nodes, const base::Vector3d& closeTo) const;
     
+    /**convert to rbs */
+    std::vector<base::samples::RigidBodyState> getPositions(const std::vector<NodeWithOrientation>& nodes);
+    
     const maps::grid::TraversabilityMap3d<TravGenNode*>& travMap;
     const EnvironmentXYZTheta& env;
     
