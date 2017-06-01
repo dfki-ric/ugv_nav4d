@@ -311,9 +311,8 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
     
     motion_planning_libraries::SbplSplineMotionPrimitives primitives(config);
+    
     splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.mMinTurningRadius));
-    
-    
     splineViz.updateData(primitives);
     
     if(argc > 1)
@@ -528,32 +527,36 @@ void PlannerGui::replanButtonReleased()
 
 void PlannerGui::planFrontierButtonReleased()
 {
-    planner->setTravConfig(conf);
-    bar->setMaximum(0);
-    std::thread t([this](){
-        CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET_NO_THROW(this->widget);
-        
-        base::samples::RigidBodyState startState;
-        startState.position = start.position;
-        startState.orientation = start.orientation;
-        const double goalRotZ = goalOrientationSlider->value() / 180.0 * M_PI;
-        std::cout << std::endl << std::endl;
-        std::cout << "Planning to frontier: " << start << " -> " << frontier.transpose() << std::endl;
-        const bool result = planner->planToNextFrontier(base::Time::fromSeconds(time->value()),
-                                                        startState, frontier, goalRotZ, path);
-
-        if(result)
-        {
-            std::cout << "DONE" << std::endl;
-        }
-        else
-        {
-            std::cout << "FAIL" << std::endl;
-        }
-
-        emit plannerDone();
-    });
-    t.detach();
+    std::cout << "Testing FrontierGenerator\n";
+    frontierGenerator.reset(new ugv_nav4d::FrontierGenerator(planner->getEnv()->getTraversabilityMap(), *planner->getEnv().get()));
+    auto frontierNodes = frontierGenerator->getNextFrontiers(frontier);
+    
+//     planner->setTravConfig(conf);
+//     bar->setMaximum(0);
+//     std::thread t([this](){
+//         CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET_NO_THROW(this->widget);
+//         
+//         base::samples::RigidBodyState startState;
+//         startState.position = start.position;
+//         startState.orientation = start.orientation;
+//         const double goalRotZ = goalOrientationSlider->value() / 180.0 * M_PI;
+//         std::cout << std::endl << std::endl;
+//         std::cout << "Planning to frontier: " << start << " -> " << frontier.transpose() << std::endl;
+//         const bool result = planner->planToNextFrontier(base::Time::fromSeconds(time->value()),
+//                                                         startState, frontier, goalRotZ, path);
+// 
+//         if(result)
+//         {
+//             std::cout << "DONE" << std::endl;
+//         }
+//         else
+//         {
+//             std::cout << "FAIL" << std::endl;
+//         }
+// 
+//         emit plannerDone();
+//     });
+//     t.detach();
 }
 
 void PlannerGui::startPlanThread()

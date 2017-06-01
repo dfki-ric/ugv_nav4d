@@ -19,6 +19,7 @@ rock_library(ugv_nav4d
         PreComputedMotions.cpp
         TraversabilityGenerator3d.cpp
         TravGenDebugData.cpp
+        FrontierGenerator.cpp
     HEADERS 
         DiscreteTheta.hpp
         EnvironmentXYZTheta.hpp
@@ -31,6 +32,7 @@ rock_library(ugv_nav4d
         UgvDebug.hpp
         EnvironmentXYZThetaDebugData.hpp
         TravMapBfsVisitor.hpp
+        FrontierGenerator.hpp
     DEPS_PKGCONFIG 
         base-types 
         sbpl

@@ -11,6 +11,7 @@
 #include <maps/grid/MLSMap.hpp>
 #include <base/Eigen.hpp>
 #include "Planner.hpp"
+#include "FrontierGenerator.hpp"
 
 class PlannerGui : public QObject
 {
@@ -97,5 +98,6 @@ private:
     ugv_nav4d::TraversabilityConfig conf;
     std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
     std::vector<base::Trajectory> path;
+    std::shared_ptr<FrontierGenerator> frontierGenerator;
     
 };
