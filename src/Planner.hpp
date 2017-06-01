@@ -16,6 +16,7 @@ namespace ugv_nav4d
 
 class Planner
 {
+protected:
     typedef EnvironmentXYZTheta::MLGrid MLSBase;
     boost::shared_ptr<EnvironmentXYZTheta> env;
     boost::shared_ptr<ARAPlanner> planner;
@@ -49,15 +50,6 @@ public:
     bool plan(const base::Time& maxTime, const base::samples::RigidBodyState& start,
               const base::samples::RigidBodyState& end, std::vector<base::Trajectory>& resultTrajectory);
     
-    
-    //FIXME goalOrientationZ shouldnt be here?
-    //FIXME move to env?
-    /** Plan from @p start to the frontier patch closest to @p closeTo
-     *  @param maxTime Maximum processor time to use.
-     *  @param closeTo The closer a frontier patch is to this point the more likely it will be choosen*/
-    bool planToNextFrontier(const base::Time& maxTime, const base::samples::RigidBodyState& start,
-                            const base::Vector3d& closeTo, double goalOrientationZ,
-                            std::vector<base::Trajectory>& resultTrajectory);
     
     void setTravConfig(const TraversabilityConfig& config);
     
