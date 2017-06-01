@@ -56,11 +56,15 @@ private:
     std::vector<NodeWithOrientation> sortNodes(const std::vector<NodeWithOrientation>& nodes, const base::Vector3d& closeTo) const;
     
     /**convert to rbs */
-    std::vector<base::samples::RigidBodyState> getPositions(const std::vector<NodeWithOrientation>& nodes);
+    std::vector<base::samples::RigidBodyState> getPositions(const std::vector<NodeWithOrientation>& nodes) const;
     
     const maps::grid::TraversabilityMap3d<TravGenNode*>& travMap;
     const EnvironmentXYZTheta& env;
     
+    /** Calculate the number of patches that can still be explored in the vicinity
+     * of @p node.
+     * The number is normalized to [0..1]*/
+    double calcExplorablePatches(const TravGenNode* node) const;
     
 };
 

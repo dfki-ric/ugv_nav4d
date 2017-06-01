@@ -36,6 +36,14 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vect
     const std::vector<NodeWithOrientation> sortedNodes(sortNodes(nodesWithoutCollisions, closeTo));
     result = getPositions(sortedNodes);
     
+    
+    //test code:
+    for(const auto& node : sortedNodes)
+    {
+        std::cout << calcExplorablePatches(node.node) << std::endl;
+    }
+    
+    
     COMPLEX_DRAWING(
         for(const NodeWithOrientation& node : frontierWithOrientation)
         {
@@ -71,7 +79,7 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vect
      );
     
     COMPLEX_DRAWING(
-        for(int i = 0; i < sortedNodes.size(); ++i)
+        for(size_t i = 0; i < sortedNodes.size(); ++i)
         {
             const NodeWithOrientation& node = sortedNodes[i];
             Eigen::Vector3d pos(node.node->getIndex().x() * travMap.getResolution().x() + travMap.getResolution().x() / 2.0, node.node->getIndex().y() * travMap.getResolution().y() + travMap.getResolution().y() / 2.0, node.node->getHeight());
@@ -143,7 +151,7 @@ std::vector<NodeWithOrientation> FrontierGenerator::getCollisionFreeNeighbor(con
 
         TravMapBfsVisitor::visit(node.node, 
             [&traversableNeighbor, &nextFrontierNode, &nextFrontierPos, this, orientation, &traversableNeighborPos]
-            (const TravGenNode* currentNode, bool& visitChildren, bool& abort)
+            (const TravGenNode* currentNode, bool& visitChildren, bool& abort, std::size_t distToRoot)
             {
                 if((currentNode->getType() == maps::grid::TraversabilityNodeBase::TRAVERSABLE ||
                    currentNode->getType() == TraversabilityNodeBase::FRONTIER) &&
@@ -211,14 +219,43 @@ std::vector<NodeWithOrientation> FrontierGenerator::sortNodes(const std::vector<
     return std::move(result);
 }
 
-std::vector<RigidBodyState> FrontierGenerator::getPositions(const std::vector<NodeWithOrientation>& nodes)
+std::vector<RigidBodyState> FrontierGenerator::getPositions(const std::vector<NodeWithOrientation>& nodes) const
 {
     std::vector<RigidBodyState> result;
-    for(cosnt NodeWithOrientation& node : nodes)
+    const auto transform = travMap.getLocalFrame().inverse(Eigen::Isometry);
+    for(const NodeWithOrientation& node : nodes)
     {
         RigidBodyState rbs;
+        rbs.position << node.node->getIndex().x() * travMap.getResolution().x(), 
+                        node.node->getIndex().y() * travMap.getResolution().y(),
+                        node.node->getHeight();
+        rbs.position = transform * rbs.position;
+        rbs.orientation = Eigen::AngleAxisd(node.orientationZ, Eigen::Vector3d::UnitZ());
+        result.push_back(rbs);
     }
+    return std::move(result);
+}
 
+double FrontierGenerator::calcExplorablePatches(const TravGenNode* node) const
+{
+    std::size_t visited = 0;
+    const size_t visitRadius = 3; //FIXME should be parameter
+    /* Since the grid is a square we can calculate the number of visitable nodes using odd square*/
+    const std::size_t maxVisitable = std::pow(2 * visitRadius + 1, 2);
+    TravMapBfsVisitor::visit(node, 
+        [&visited] (const TravGenNode* currentNode, bool& visitChildren, bool& abort, std::size_t distToRoot)
+        {
+            ++visited;
+            abort = false;
+            //FIXME hard coded value, replace with real distance
+            if(distToRoot >= visitRadius)
+                visitChildren = false;
+            else
+                visitChildren = true;
+        });
+    
+    assert(visited <= maxVisitable);
+    return 1 - (visited / maxVisitable);
 }
 
 
