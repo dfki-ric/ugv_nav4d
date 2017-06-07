@@ -38,7 +38,7 @@ bool CollisionCheck::checkCollision(const TravGenNode* node, double zRot,
     const Eigen::Matrix3d rotInv = rot.transpose();
     bool intersects = false;
     mls->intersectAABB_callback(aabb,
-        [&rotInv, &intersects, &robotPosition, &rotQ, &rot, mls]
+        [&rotInv, &intersects, &robotPosition, &rotQ, &rot, mls, &robotHalfSize]
         (const maps::grid::Index& idx, const maps::grid::SurfacePatchBase& p)
         {
             //FIXME this actually only tests if the top of the patch intersects with the robot
