@@ -1,6 +1,8 @@
 #include "FrontierGenerator.hpp"
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.h>
 #include "TravMapBfsVisitor.hpp"
+#include "CollisionCheck.hpp"
 
 using base::samples::RigidBodyState;
 using maps::grid::TraversabilityNodeBase;
@@ -15,17 +17,26 @@ struct NodeWithOrientation
 
     
     
-FrontierGenerator::FrontierGenerator(const maps::grid::TraversabilityMap3d< TravGenNode* >& travMap,
-                                     const EnvironmentXYZTheta& env) :
-    travMap(travMap), env(env)
+FrontierGenerator::FrontierGenerator(const TraversabilityConfig& travConf) :
+    travConf(travConf), travGen(travConf)
 {
+}
 
+void FrontierGenerator::updateRobotPos(const base::Vector3d& _robotPos)
+{
+    robotPos = _robotPos;
+    CLEAR_DRAWING("RobotPos");
+    DRAW_ARROW("RobotPos", _robotPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
+               base::Vector3d(1,1,1), vizkit3dDebugDrawings::Color::blue);
 }
 
     
-std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vector3d& closeTo) const
+std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vector3d& closeTo)
 {
     std::vector<RigidBodyState> result;
+    
+    expandTravMap(robotPos);
+    
     const std::vector<const TravGenNode*> frontier(getFrontierPatches());
 
     if(frontier.size() == 0)
@@ -47,13 +58,13 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vect
     COMPLEX_DRAWING(
         for(const NodeWithOrientation& node : frontierWithOrientation)
         {
-            Eigen::Vector3d pos(node.node->getIndex().x() * travMap.getResolution().x() + travMap.getResolution().x() / 2.0, node.node->getIndex().y() * travMap.getResolution().y() + travMap.getResolution().y() / 2.0, node.node->getHeight());
-            pos = travMap.getLocalFrame().inverse(Eigen::Isometry) * pos;
+            Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
+            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
             pos.z() += 0.02;
-            const double radius = travMap.getResolution().x() / 2.0;
+            const double radius = travGen.getTraversabilityMap().getResolution().x() / 2.0;
             DRAW_RING("frontierWithOrientation", pos, radius, 0.01, 0.01, vizkit3dDebugDrawings::Color::blue);
             const Eigen::Rotation2Dd rot(node.orientationZ);
-            Eigen::Vector2d rotVec(travMap.getResolution().x() / 2.0, 0);
+            Eigen::Vector2d rotVec(travGen.getTraversabilityMap().getResolution().x() / 2.0, 0);
             rotVec = rot * rotVec;
             Eigen::Vector3d to(pos);
             to.topRows(2) += rotVec;
@@ -64,13 +75,13 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vect
     COMPLEX_DRAWING(
         for(const NodeWithOrientation& node : nodesWithoutCollisions)
         {
-            Eigen::Vector3d pos(node.node->getIndex().x() * travMap.getResolution().x() + travMap.getResolution().x() / 2.0, node.node->getIndex().y() * travMap.getResolution().y() + travMap.getResolution().y() / 2.0, node.node->getHeight());
-            pos = travMap.getLocalFrame().inverse(Eigen::Isometry) * pos;
+            Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
+            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
             pos.z() += 0.02;
-            const double radius = travMap.getResolution().x() / 2.0;
+            const double radius = travGen.getTraversabilityMap().getResolution().x() / 2.0;
             DRAW_RING("nodesWithoutCollisions", pos, radius, 0.01, 0.01, vizkit3dDebugDrawings::Color::green);
             const Eigen::Rotation2Dd rot(node.orientationZ);
-            Eigen::Vector2d rotVec(travMap.getResolution().x() / 2.0, 0);
+            Eigen::Vector2d rotVec(travGen.getTraversabilityMap().getResolution().x() / 2.0, 0);
             rotVec = rot * rotVec;
             Eigen::Vector3d to(pos);
             to.topRows(2) += rotVec;
@@ -82,8 +93,8 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vect
         for(size_t i = 0; i < sortedNodes.size(); ++i)
         {
             const NodeWithOrientation& node = sortedNodes[i];
-            Eigen::Vector3d pos(node.node->getIndex().x() * travMap.getResolution().x() + travMap.getResolution().x() / 2.0, node.node->getIndex().y() * travMap.getResolution().y() + travMap.getResolution().y() / 2.0, node.node->getHeight());
-            pos = travMap.getLocalFrame().inverse(Eigen::Isometry) * pos;
+            Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
+            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
             pos.z() += 0.02;
             
             DRAW_TEXT("sortedNodes", pos, std::to_string(i), 0.1, vizkit3dDebugDrawings::Color::magenta);
@@ -106,11 +117,19 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vect
     return std::move(result);
 }
 
+
+void FrontierGenerator::expandTravMap(const base::Vector3d& startPos)
+{
+    TravGenNode* travNode = travGen.generateStartNode(startPos);
+    travGen.expandAll(travNode);
+}
+
+
  
 std::vector<const TravGenNode*> FrontierGenerator::getFrontierPatches() const
 {
     std::vector<const TravGenNode*> frontier;
-    for(const maps::grid::LevelList<TravGenNode*>& list : travMap)
+    for(const maps::grid::LevelList<TravGenNode*>& list : travGen.getTraversabilityMap())
     {
         for(const TravGenNode* node : list)
         {
@@ -138,33 +157,35 @@ std::vector<NodeWithOrientation> FrontierGenerator::getCollisionFreeNeighbor(con
 {
     std::vector<NodeWithOrientation> result;
     
+    const base::Vector3d robotHalfSize(travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight / 2);
+    
     for(const NodeWithOrientation& node : nodes)
     {
         const TravGenNode* traversableNeighbor = nullptr;
         base::Vector3d traversableNeighborPos(0, 0, 0);
         const TravGenNode* nextFrontierNode = node.node;
-        base::Vector3d nextFrontierPos(nextFrontierNode->getIndex().x() * travMap.getResolution().x(), 
-                                       nextFrontierNode->getIndex().y() * travMap.getResolution().y(),
+        base::Vector3d nextFrontierPos(nextFrontierNode->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
+                                       nextFrontierNode->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
                                        nextFrontierNode->getHeight());
-        nextFrontierPos = travMap.getLocalFrame().inverse(Eigen::Isometry) * nextFrontierPos;
+        nextFrontierPos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * nextFrontierPos;
         const double orientation = node.orientationZ;
 
         TravMapBfsVisitor::visit(node.node, 
-            [&traversableNeighbor, &nextFrontierNode, &nextFrontierPos, this, orientation, &traversableNeighborPos]
+            [&traversableNeighbor, &nextFrontierNode, &nextFrontierPos, this, orientation, &traversableNeighborPos, &robotHalfSize]
             (const TravGenNode* currentNode, bool& visitChildren, bool& abort, std::size_t distToRoot)
             {
                 if((currentNode->getType() == maps::grid::TraversabilityNodeBase::TRAVERSABLE ||
                    currentNode->getType() == TraversabilityNodeBase::FRONTIER) &&
-                   env.checkCollision(currentNode, orientation))
+                   CollisionCheck::checkCollision(currentNode, orientation, mlsMap, robotHalfSize, travGen))
                 {
                     traversableNeighbor = currentNode;
                     
-                    base::Vector3d pos(currentNode->getIndex().x() * travMap.getResolution().x(), 
-                                       currentNode->getIndex().y() * travMap.getResolution().y(),
+                    base::Vector3d pos(currentNode->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
+                                       currentNode->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
                                        currentNode->getHeight());
-                    pos = travMap.getLocalFrame().inverse(Eigen::Isometry) * pos;
+                    pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
                     traversableNeighborPos = pos;
-                    DRAW_CYLINDER("neighBorobstacleCheck", pos + base::Vector3d(travMap.getResolution().x() / 2.0, travMap.getResolution().y() / 2.0, travMap.getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::green);
+                    DRAW_CYLINDER("neighBorobstacleCheck", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::green);
                     //found a nearby node that we can stand on, abort
                     abort = true;
                     
@@ -172,12 +193,12 @@ std::vector<NodeWithOrientation> FrontierGenerator::getCollisionFreeNeighbor(con
                 else
                 {
                     abort = false;
-                    base::Vector3d pos(currentNode->getIndex().x() * travMap.getResolution().x(), 
-                                       currentNode->getIndex().y() * travMap.getResolution().y(),
+                    base::Vector3d pos(currentNode->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
+                                       currentNode->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
                                        currentNode->getHeight());
-                    pos = travMap.getLocalFrame().inverse(Eigen::Isometry) * pos;
+                    pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
                     
-                    DRAW_CYLINDER("neighBorobstacleCheck", pos + base::Vector3d(travMap.getResolution().x() / 2.0, travMap.getResolution().y() / 2.0, travMap.getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::red);
+                    DRAW_CYLINDER("neighBorobstacleCheck", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::red);
                     
                     const double dist = (nextFrontierPos - pos).norm();
                     if(dist < 1) //FIXME 1 = 1 meter? should be parameter?!
@@ -197,9 +218,9 @@ std::vector<NodeWithOrientation> FrontierGenerator::sortNodes(const std::vector<
                                                                 const base::Vector3d& closeTo) const
 {
     std::vector<NodeWithOrientation> result(nodes);
-    const double resX = travMap.getResolution().x();
-    const double resY = travMap.getResolution().y();
-    const auto transform = travMap.getLocalFrame().inverse(Eigen::Isometry);
+    const double resX = travGen.getTraversabilityMap().getResolution().x();
+    const double resY = travGen.getTraversabilityMap().getResolution().y();
+    const auto transform = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry);
     std::sort(result.begin(), result.end(), 
         [resX, resY, &transform, &closeTo](const NodeWithOrientation& a, const NodeWithOrientation& b)
         {
@@ -222,12 +243,12 @@ std::vector<NodeWithOrientation> FrontierGenerator::sortNodes(const std::vector<
 std::vector<RigidBodyState> FrontierGenerator::getPositions(const std::vector<NodeWithOrientation>& nodes) const
 {
     std::vector<RigidBodyState> result;
-    const auto transform = travMap.getLocalFrame().inverse(Eigen::Isometry);
+    const auto transform = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry);
     for(const NodeWithOrientation& node : nodes)
     {
         RigidBodyState rbs;
-        rbs.position << node.node->getIndex().x() * travMap.getResolution().x(), 
-                        node.node->getIndex().y() * travMap.getResolution().y(),
+        rbs.position << node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
+                        node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
                         node.node->getHeight();
         rbs.position = transform * rbs.position;
         rbs.orientation = Eigen::AngleAxisd(node.orientationZ, Eigen::Vector3d::UnitZ());
@@ -247,7 +268,6 @@ double FrontierGenerator::calcExplorablePatches(const TravGenNode* node) const
         {
             ++visited;
             abort = false;
-            //FIXME hard coded value, replace with real distance
             if(distToRoot >= visitRadius)
                 visitChildren = false;
             else
@@ -257,8 +277,6 @@ double FrontierGenerator::calcExplorablePatches(const TravGenNode* node) const
     assert(visited <= maxVisitable);
     return 1 - (visited / maxVisitable);
 }
-
-
 
 
 }

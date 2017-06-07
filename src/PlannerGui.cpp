@@ -147,35 +147,6 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     goalOrientationSlider->setMinimum(0);
     goalOrientationSlider->setMaximum(359);
     goalOrientationSlider->setValue(0);
-
-
-    frontierX = new QDoubleSpinBox();
-    frontierY = new QDoubleSpinBox();
-    frontierZ = new QDoubleSpinBox();
-    
-    frontierX->setMinimum(-1000);
-    frontierX->setMaximum(1000);
-    frontierX->setSingleStep(0.5);
-    frontierY->setMinimum(-1000);
-    frontierY->setMaximum(1000);
-    frontierY->setSingleStep(0.5);
-    frontierZ->setMinimum(-1000);
-    frontierZ->setMaximum(1000);
-    frontierZ->setSingleStep(0.5);
-    
-    connect(frontierX, SIGNAL(valueChanged(double)), this, SLOT(frontierXEditFinished(double)));
-    connect(frontierY, SIGNAL(valueChanged(double)), this, SLOT(frontierYEditFinished(double)));
-    connect(frontierZ, SIGNAL(valueChanged(double)), this, SLOT(frontierZEditFinished(double)));
-    QHBoxLayout* frontierLayout = new QHBoxLayout();
-    QLabel* frontierLabel = new QLabel();
-    frontierLabel->setText("Frontier coordinates");
-    frontierLayout->addWidget(frontierLabel);
-    frontierLayout->addWidget(frontierX);
-    frontierLayout->addWidget(frontierY);
-    frontierLayout->addWidget(frontierZ);
-    
-    layout->addLayout(frontierLayout);
-    
     
     connect(startOrientatationSlider, SIGNAL(sliderMoved(int)), this, SLOT(startOrientationChanged(int)));
     connect(goalOrientationSlider, SIGNAL(sliderMoved(int)), this, SLOT(goalOrientationChanged(int)));
@@ -242,11 +213,9 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     QPushButton* replanButton = new QPushButton("Replan");
     timeLayout->addWidget(replanButton);
     
-    QPushButton* planFrontierButton = new QPushButton("Plan to Frontier");
-    timeLayout->addWidget(planFrontierButton);
+
     
     connect(replanButton, SIGNAL(released()), this, SLOT(replanButtonReleased()));
-    connect(planFrontierButton, SIGNAL(released()), this, SLOT(planFrontierButtonReleased()));
     connect(expandButton, SIGNAL(released()), this, SLOT(expandPressed()));
     
     layout->addWidget(bar);
@@ -266,7 +235,6 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
      if(argc > 2)
          res = atof(argv[2]);
     
-    std::cout << "RES = " << res << std::endl;
     config.gridSize = res;
     config.numAngles = 24;
     config.numEndAngles = 12;
@@ -378,9 +346,7 @@ void PlannerGui::loadMls(const std::string& path)
         catch(...) {}
     }
     
-    
 
-    
     std::cerr << "Unabled to load mls. Unknown format" << std::endl;
     
 }
@@ -498,38 +464,10 @@ void PlannerGui::timeEditingFinished()
     
 }
 
-void PlannerGui::frontierXEditFinished(double value)
-{
-    frontier.x() = value;
-    CLEAR_DRAWING("Frontier Target");
-    DRAW_SPHERE("Frontier Target", frontier, 0.3, vizkit3dDebugDrawings::Color::magenta);
-}
-
-void PlannerGui::frontierYEditFinished(double value)
-{
-    frontier.y() = value;
-    CLEAR_DRAWING("Frontier Target");
-    DRAW_SPHERE("Frontier Target", frontier, 0.3, vizkit3dDebugDrawings::Color::magenta);
-}
-
-void PlannerGui::frontierZEditFinished(double value)
-{
-    frontier.z() = value;
-    CLEAR_DRAWING("Frontier Target");
-    DRAW_SPHERE("Frontier Target", frontier, 0.3, vizkit3dDebugDrawings::Color::magenta);
-}
-
 void PlannerGui::replanButtonReleased()
 {
     planner->setTravConfig(conf);
     startPlanThread();       
-}
-
-void PlannerGui::planFrontierButtonReleased()
-{
-    std::cout << "Testing FrontierGenerator\n";
-    frontierGenerator.reset(new ugv_nav4d::FrontierGenerator(planner->getEnv()->getTraversabilityMap(), *planner->getEnv().get()));
-    auto frontierNodes = frontierGenerator->getNextFrontiers(frontier);
 }
 
 void PlannerGui::startPlanThread()

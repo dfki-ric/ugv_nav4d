@@ -7,6 +7,7 @@ rock_init(ugv_nav4d 0.1)
 rock_standard_layout()
 
 add_definitions(-DENABLE_DEBUG_DRAWINGS)
+
 rock_executable(ugv_nav4d_bin
     SOURCES
         src/Main.cpp
@@ -15,5 +16,16 @@ rock_executable(ugv_nav4d_bin
         src/PlannerGui.h
     MOC
         src/PlannerGui.h        
+   DEPS ugv_nav4d ugv_nav4d-viz
+   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz motion_planning_libraries-viz base-types)
+
+rock_executable(frontier_test_bin
+    SOURCES
+        src/FrontierTest.cpp
+        src/FrontierTestGui.cpp
+    HEADERS
+        src/FrontierTestGui.hpp
+    MOC
+        src/FrontierTestGui.hpp      
    DEPS ugv_nav4d ugv_nav4d-viz
    DEPS_PKGCONFIG vizkit3d  maps-viz base-viz motion_planning_libraries-viz base-types)

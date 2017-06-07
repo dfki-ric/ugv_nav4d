@@ -176,9 +176,6 @@ public:
     void dijkstraComputeCost(const TravGenNode* source, std::vector<double> &outDistances,
                              const double maxDist) const;
 
-    /** Check if the robot can stand on @p node with rotation @p zRot
-     *  @return true if no collision*/
-    bool checkCollision(const TravGenNode* node, double zRot) const;
     
 private:
   

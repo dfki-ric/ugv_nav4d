@@ -30,19 +30,33 @@ class EnvironmentXYZTheta;
 
 class FrontierGenerator
 {
+    
 public:
     
-    FrontierGenerator(const maps::grid::TraversabilityMap3d<TravGenNode*>& travMap,
-                      const EnvironmentXYZTheta& env);
+    FrontierGenerator(const TraversabilityConfig& travConf);
+    
+    template <maps::grid::MLSConfig::update_model SurfacePatch>
+    void updateMap(const maps::grid::MLSMap<SurfacePatch>& mls)
+    {
+        mlsMap.reset(new TraversabilityGenerator3d::MLGrid(mls));
+        travGen.setMLSGrid(mlsMap);
+    }
+    
+    void updateRobotPos(const base::Vector3d& robotPos);
+    
+    void updateGoalPos(const base::Vector3d& goalPos);
     
     
     /** Calculate a list of all frontiers that can be visited.
      * @param closeTo used to sort the list. The closer a node is to this position, the closer it is to the begining of the list
      *  List is sorted by TODO*/
-    std::vector<base::samples::RigidBodyState> getNextFrontiers(const base::Vector3d& closeTo) const;
+    std::vector<base::samples::RigidBodyState> getNextFrontiers(const base::Vector3d& closeTo);
     
     
 private:
+    
+    void expandTravMap(const base::Vector3d& startPos);
+    
     /** find all frontier nodes*/
     std::vector<const TravGenNode*> getFrontierPatches() const;
     
@@ -57,9 +71,10 @@ private:
     
     /**convert to rbs */
     std::vector<base::samples::RigidBodyState> getPositions(const std::vector<NodeWithOrientation>& nodes) const;
-    
-    const maps::grid::TraversabilityMap3d<TravGenNode*>& travMap;
-    const EnvironmentXYZTheta& env;
+    TraversabilityConfig travConf;
+    TraversabilityGenerator3d travGen;
+    boost::shared_ptr<TraversabilityGenerator3d::MLGrid> mlsMap;
+    base::Vector3d robotPos;
     
     /** Calculate the number of patches that can still be explored in the vicinity
      * of @p node.

@@ -9,6 +9,7 @@
 #include <backward/backward.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.h>
+#include "CollisionCheck.hpp"
 
 
 backward::SignalHandling crashHandler;
@@ -50,8 +51,7 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<MLGrid> mlsGrid,
     travGen.setMLSGrid(mlsGrid);
     searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
     searchGrid.extend(travGen.getTraversabilityMap().getNumCells());
-    // FIXME z2 is divided by 2.0 to avoid intersecting the floor
-    robotHalfSize << travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight/2/2;
+    robotHalfSize << travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight/2;
     
     UGV_DEBUG(
         debugData.setTravConf(travConf);
@@ -164,7 +164,8 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     if(!checkOrientationAllowed(goalXYZNode->getUserData().travNode, theta))
         throw std::runtime_error("Goal orientation not allowed due to slope");
     
-    if(!checkCollision(goalXYZNode->getUserData().travNode, theta))
+    if(!CollisionCheck::checkCollision(goalXYZNode->getUserData().travNode, theta,
+                                       mlsGrid, robotHalfSize, travGen))
         throw std::runtime_error("Goal inside obstacle");
     
     //NOTE If we want to precompute the heuristic (precomputeCost()) we need to expand 
@@ -599,69 +600,6 @@ double EnvironmentXYZTheta::interpolate(double x, double x0, double y0, double x
 }
 
 
-bool EnvironmentXYZTheta::checkCollision(const TravGenNode* node, double zRot) const
-{
-    // calculate robot position in local grid coordinates
-    // TODO make this a member method of GridMap
-    maps::grid::Vector3d robotPosition;
-    robotPosition <<
-            (node->getIndex().cast<double>() + Eigen::Vector2d(0.5, 0.5)).cwiseProduct(travGen.getTraversabilityMap().getResolution()),
-            node->getHeight() +  travConf.robotHeight * 0.5;
-    
-    const Eigen::Vector3d planeNormal = node->getUserData().plane.normal();
-    oassert(planeNormal.allFinite()); 
-
-    //FIXME names
-    const Eigen::Quaterniond zRotAA( Eigen::AngleAxisd(zRot, Eigen::Vector3d::UnitZ()) ); // TODO these could be precalculated
-    const Eigen::Quaterniond rotAA = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), planeNormal);
-    const Eigen::Quaterniond rotQ = rotAA * zRotAA;
-
-    // further calculations are more efficient with rotation matrix:
-    const Eigen::Matrix3d rot = rotQ.toRotationMatrix();
-    
-    //find min/max for bounding box
-    const Eigen::Vector3d extends = rot.cwiseAbs() * robotHalfSize;
-    const Eigen::Vector3d min = robotPosition - extends;
-    const Eigen::Vector3d max = robotPosition + extends;
-    
-    const Eigen::AlignedBox3d aabb(min, max); //aabb around the rotated robot bounding box    
-
-    
-    const Eigen::Matrix3d rotInv = rot.transpose();
-    bool intersects = false;
-    mlsGrid->intersectAABB_callback(aabb,
-        [&rotInv, &intersects, this, &robotPosition, &rotQ, &rot, &node]
-        (const maps::grid::Index& idx, const maps::grid::SurfacePatchBase& p)
-        {
-            //FIXME this actually only tests if the top of the patch intersects with the robot
-            maps::grid::Vector3d pos;
-            double z = p.getMax();
-            pos << (idx.cast<double>() + Eigen::Vector2d(0.5, 0.5)).cwiseProduct(this->mlsGrid->getResolution()), z;
-            //transform pos into coordinate system of oriented bounding box
-            pos -= robotPosition;
-            pos = rotInv * pos;
-            
-            if((abs(pos.array()) <= this->robotHalfSize.array()).all())
-            {
-                //found at least one patch that is inside the oriented boundingbox
-//                 COMPLEX_DRAWING(
-//                     maps::grid::Vector3d pos;
-//                     travGen.getTraversabilityMap().fromGrid(node->getIndex(), pos);
-//                     pos.z() = node->getHeight();
-//                     pos.z() += travConf.robotHeight * 0.5;
-//                     DRAW_WIREFRAME_BOX("collisions", pos, rotQ,
-//                                        base::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight),
-//                                        vizkit3dDebugDrawings::Color::yellow);
-//                 );
-//                 std::cout << "COL: " << robotPosition.transpose() << std::endl;
-                intersects = true;
-                return true;//abort intersection check
-            }
-            return false; //continue intersection check
-        });
-    
-    return !intersects;
-}
 
 bool EnvironmentXYZTheta::checkCollisions(const std::vector<TravGenNode*>& path,
                                           const Motion& motion) const
@@ -678,7 +616,8 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector<TravGenNode*>& path,
         const double zRot = i < motion.intermediateSteps.size() ?
                             motion.intermediateSteps[i].pose.orientation :
                             motion.endTheta.getRadian();
-        if(!checkCollision(node, zRot))
+                            
+        if(!CollisionCheck::checkCollision(node, zRot, mlsGrid, robotHalfSize, travGen))
             return false;
 
     }
