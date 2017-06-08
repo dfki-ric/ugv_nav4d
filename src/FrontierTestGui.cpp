@@ -27,7 +27,7 @@ FrontierTestGui::FrontierTestGui(int argc, char** argv)
     conf.parallelismEnabled = false;
     conf.costFunctionObstacleDist = 0.4;
     conf.costFunctionObstacleMultiplier = 1.0;
-    frontGen.reset(new FrontierGenerator(conf));
+    frontGen.reset(new FrontierGenerator(conf, costParams));
     
     widget = new vizkit3d::Vizkit3DWidget();
     CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(widget);
@@ -44,6 +44,30 @@ FrontierTestGui::FrontierTestGui(int argc, char** argv)
     
     buttonWidget = new QWidget(); 
 
+    
+    QHBoxLayout* sortparamLayout = new QHBoxLayout();
+    QLabel* distToGoalFactorLabel = new QLabel();
+    distToGoalFactorLabel->setText("distToGoalFactor");
+    sortparamLayout->addWidget(distToGoalFactorLabel);
+    distToGoalFactorSpinBox = new QDoubleSpinBox();
+    distToGoalFactorSpinBox->setMinimum(0);
+    distToGoalFactorSpinBox->setMaximum(9999);
+    distToGoalFactorSpinBox->setValue(1);
+    sortparamLayout->addWidget(distToGoalFactorSpinBox);
+    QLabel* distFromStartFactorLabel = new QLabel();
+    distFromStartFactorLabel->setText("distFromStartFactor");
+    sortparamLayout->addWidget(distFromStartFactorLabel);
+    distFromStartFactorSpinBox = new QDoubleSpinBox();
+    distFromStartFactorSpinBox->setMinimum(0);
+    distFromStartFactorSpinBox->setMaximum(9999);
+    distFromStartFactorSpinBox->setValue(1);
+    sortparamLayout->addWidget(distFromStartFactorSpinBox);
+    connect(distToGoalFactorSpinBox, SIGNAL(editingFinished()), this, SLOT(distToGoalFactorEditFinished()));
+    connect(distFromStartFactorSpinBox, SIGNAL(editingFinished()), this, SLOT(distFromStartFactorEditFinished()));
+    
+    layout->addLayout(sortparamLayout);
+    
+    
     QPushButton* getFrontiersButton = new QPushButton();
     getFrontiersButton->setText("getNextFrontiers");
     layout->addWidget(getFrontiersButton);
@@ -99,12 +123,12 @@ void FrontierTestGui::show()
 void FrontierTestGui::getFrontiersButtonReleased()
 {
     bar->setMaximum(0);
-    std::thread t([this](){
-        CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET_NO_THROW(this->widget);
+//     std::thread t([this](){
+//         CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET_NO_THROW(this->widget);
         frontGen->getNextFrontiers(goalPos);
         emit this->frontierCalcIsDone();
-    });
-    t.detach(); //needed to avoid destruction of thread at end of method
+//     });
+//     t.detach(); //needed to avoid destruction of thread at end of method
     
 }
 
@@ -159,6 +183,19 @@ void FrontierTestGui::loadMls(const std::string& path)
     std::cerr << "Unabled to load mls. Unknown format" << std::endl;
     
 }
+
+void FrontierTestGui::distFromStartFactorEditFinished()
+{
+    costParams.distFromStartFactor = distFromStartFactorSpinBox->value();
+    frontGen->updateCostParameters(costParams);
+}
+
+void FrontierTestGui::distToGoalFactorEditFinished()
+{
+    costParams.distToGoalFactor = distToGoalFactorSpinBox->value();
+    frontGen->updateCostParameters(costParams);
+}
+
 
 
 }

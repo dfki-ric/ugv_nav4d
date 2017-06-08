@@ -28,8 +28,10 @@ struct NodeWithOrientationAndCost
 
     
     
-FrontierGenerator::FrontierGenerator(const TraversabilityConfig& travConf) :
-    travConf(travConf), travGen(travConf), robotPos(0, 0, 0), goalPos(0, 0, 0)
+FrontierGenerator::FrontierGenerator(const TraversabilityConfig& travConf,
+                                     const CostFunctionParameters& costParams) :
+    costParams(costParams), travConf(travConf), travGen(travConf),
+    robotPos(0, 0, 0), goalPos(0, 0, 0)
 {
 }
 
@@ -85,16 +87,23 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vect
 
     const std::vector<NodeWithOrientation> frontierWithOrientation(getFrontierOrientation(frontier));
     const std::vector<NodeWithOrientation> nodesWithoutCollisions(getCollisionFreeNeighbor(frontierWithOrientation));
-    
-    const std::vector<NodeWithOrientation> sortedNodes(sortNodes(nodesWithoutCollisions, closeTo));
-    result = getPositions(sortedNodes);
+    const std::vector<NodeWithOrientationAndCost> nodesWithCost = calculateCost(startNode, goalPos, nodesWithoutCollisions);
+//     const std::vector<NodeWithOrientation> sortedNodes(sortNodes(nodesWithoutCollisions, closeTo));
+//     result = getPositions(sortedNodes);
     
     
     //test code:
       COMPLEX_DRAWING(
-        for(const auto& node : sortedNodes)
+        double maxCost = 0;
+        CLEAR_DRAWING("explorable");  
+        for(const auto& node : nodesWithCost)
         {
-            const double value = calcPatchValue(node.node, startNode, nodeCenterPos(startNode), goalPos);
+            if(node.cost > maxCost) 
+                maxCost = node.cost;
+        }
+        for(const auto& node : nodesWithCost)
+        {
+            const double value = (node.cost);// / maxCost) * 2;
             base::Vector3d pos(nodeCenterPos(node.node));
             pos.z() += value / 2.0;
             
@@ -137,17 +146,17 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vect
         }
      );
     
-    COMPLEX_DRAWING(
-        for(size_t i = 0; i < sortedNodes.size(); ++i)
-        {
-            const NodeWithOrientation& node = sortedNodes[i];
-            Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
-            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-            pos.z() += 0.02;
-            
-            DRAW_TEXT("sortedNodes", pos, std::to_string(i), 0.1, vizkit3dDebugDrawings::Color::magenta);
-        }
-    );
+//     COMPLEX_DRAWING(
+//         for(size_t i = 0; i < sortedNodes.size(); ++i)
+//         {
+//             const NodeWithOrientation& node = sortedNodes[i];
+//             Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
+//             pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+//             pos.z() += 0.02;
+//             
+//             DRAW_TEXT("sortedNodes", pos, std::to_string(i), 0.1, vizkit3dDebugDrawings::Color::magenta);
+//         }
+//     );
      
     
     
@@ -311,15 +320,15 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
     travGen.dijkstraComputeCost(startNode, distancesOnMap, maxDist);
     
     //calc cost
-    const double goalFactor = 1.0; //FIXME should be parameter
-    const double travelFactor = 0.5; //FIXME should be parameter
-    const base::Vector3d startPos = nodeCenterPos(startNode);
+//     const base::Vector3d startPos = nodeCenterPos(startNode);
     for(const NodeWithOrientation& node : nodes)
     {
-        const double rayGoalDist = distToRay(node.node, startPos, goalPos);
+//         const double rayGoalDist = distToRay(node.node, startPos, goalPos);
+        const double distToGoal = distToPoint(node.node, goalPos);
         const double explorableFactor = calcExplorablePatches(node.node);
         const double travelDist = distancesOnMap[node.node->getUserData().id];
-        const double cost = (rayGoalDist * goalFactor + travelDist * travelFactor) * explorableFactor;
+//         const double cost = (rayGoalDist * goalFactor + travelDist * travelFactor) * explorableFactor;
+        const double cost = (distToGoal * costParams.distToGoalFactor + travelDist * costParams.distFromStartFactor) * explorableFactor;
         result.push_back({node.node, node.orientationZ, cost});
     }
     return result;
@@ -327,14 +336,22 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
 
 double FrontierGenerator::distToRay(const TravGenNode* node, const base::Vector3d& rayOrigin, const base::Vector3d& rayThrough) const
 {
-    const base::Vector3d nodePos(nodeCenterPos(node)); //FIXME is always zero?
-    const base::Vector3d rayDirection((rayThrough - rayOrigin).normalized()); //FIXME rayThrough is nan
+    const base::Vector3d nodePos(nodeCenterPos(node));
+    const base::Vector3d rayDirection((rayThrough - rayOrigin).normalized());
     double p = rayDirection.dot(nodePos - rayOrigin);
     p = std::max(0.0, p); //limit to >= 0 because this is a ray not a line
     const base::Vector3d projectionOnRay = rayOrigin + p * rayDirection;
     
     return (projectionOnRay - nodePos).norm();
 }
+
+double FrontierGenerator::distToPoint(const TravGenNode* node, const base::Vector3d& p) const
+{
+    const base::Vector3d nodePos(nodeCenterPos(node));
+    return (nodePos - p).norm();
+}
+
+
 
 double FrontierGenerator::calcExplorablePatches(const TravGenNode* node) const
 {
@@ -358,6 +375,11 @@ double FrontierGenerator::calcExplorablePatches(const TravGenNode* node) const
     const double explorablePatches = (visited / (double)maxVisitable);
     
     return explorablePatches;
+}
+
+void FrontierGenerator::updateCostParameters(const FrontierGenerator::CostFunctionParameters& params)
+{
+    costParams = params;
 }
 
 

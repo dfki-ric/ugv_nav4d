@@ -33,8 +33,17 @@ class FrontierGenerator
 {
     
 public:
+
+struct CostFunctionParameters
+{
+    /** How important is the distance from the node to the goal position  */
+    double distToGoalFactor = 1.0;
+    /** How important is the distance from the start node */
+    double distFromStartFactor = 1.0;
+};
     
-    FrontierGenerator(const TraversabilityConfig& travConf);
+    FrontierGenerator(const TraversabilityConfig& travConf,
+                      const CostFunctionParameters& costParams);
     
     template <maps::grid::MLSConfig::update_model SurfacePatch>
     void updateMap(const maps::grid::MLSMap<SurfacePatch>& mls)
@@ -46,6 +55,8 @@ public:
     void updateRobotPos(const base::Vector3d& robotPos);
     
     void updateGoalPos(const base::Vector3d& goalPos);
+    
+    void updateCostParameters(const CostFunctionParameters& params);
     
     
     /** Calculate a list of all frontiers that can be visited.
@@ -85,10 +96,13 @@ private:
     /**Returns the distance from @p node to the ray starting from @p rayOrigin going through @p rayThrough */
     double distToRay(const TravGenNode* node, const base::Vector3d& rayOrigin, const base::Vector3d& rayThrough) const;
     
+    /**Distance between @p node and point @p p */
+    double distToPoint(const TravGenNode* node, const base::Vector3d& p) const;
+    
     base::Vector3d nodeCenterPos(const TravGenNode* node) const;
 
 private:
-    
+    CostFunctionParameters costParams;
     TraversabilityConfig travConf;
     TraversabilityGenerator3d travGen;
     boost::shared_ptr<TraversabilityGenerator3d::MLGrid> mlsMap;

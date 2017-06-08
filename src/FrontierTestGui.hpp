@@ -3,6 +3,7 @@
 #include <memory>
 #include <base/Eigen.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
+#include "FrontierGenerator.hpp"
 
 namespace vizkit3d 
 {
@@ -12,7 +13,6 @@ class QProgressBar;
 
 namespace ugv_nav4d
 {
-class FrontierGenerator;
 
 class FrontierTestGui : public QObject
 {
@@ -32,6 +32,8 @@ public slots:
 private slots:
     void getFrontiersButtonReleased();
     void frontierCalcIsDone();
+    void distToGoalFactorEditFinished();
+    void distFromStartFactorEditFinished();
     
 signals:
     void frontierCalcDone();
@@ -46,5 +48,8 @@ private:
     std::shared_ptr<FrontierGenerator> frontGen;
     base::Vector3d robotPos;
     base::Vector3d goalPos;
+    FrontierGenerator::CostFunctionParameters costParams;
+    QDoubleSpinBox* distToGoalFactorSpinBox;
+    QDoubleSpinBox* distFromStartFactorSpinBox;
 };
 }
