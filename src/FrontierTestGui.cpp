@@ -2,6 +2,7 @@
 #include "FrontierGenerator.hpp"
 #include <vizkit3d/Vizkit3DWidget.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.h>
 #include <envire_core/graph/EnvireGraph.hpp>
 #include <envire_core/items/Item.hpp>
 #include <thread>
@@ -74,7 +75,6 @@ FrontierTestGui::FrontierTestGui(int argc, char** argv)
     connect(getFrontiersButton, SIGNAL(released()), this, SLOT(getFrontiersButtonReleased()));
     
     
-    
     bar = new QProgressBar();
     bar->setMinimum(0);
     bar->setMaximum(1);
@@ -125,7 +125,18 @@ void FrontierTestGui::getFrontiersButtonReleased()
     bar->setMaximum(0);
 //     std::thread t([this](){
 //         CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET_NO_THROW(this->widget);
-        frontGen->getNextFrontiers(goalPos);
+        const auto result = frontGen->getNextFrontiers(goalPos);
+        COMPLEX_DRAWING(
+            CLEAR_DRAWING("result");
+            std::vector<base::Vector3d> resultPoints;
+            resultPoints.push_back(robotPos);
+            for(const base::samples::RigidBodyState& pos : result)
+            {
+                resultPoints.push_back(pos.position);
+            }
+            DRAW_POLYLINE("result", resultPoints, vizkit3dDebugDrawings::Color::magenta);
+        );
+        
         emit this->frontierCalcIsDone();
 //     });
 //     t.detach(); //needed to avoid destruction of thread at end of method

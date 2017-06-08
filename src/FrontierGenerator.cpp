@@ -87,9 +87,10 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vect
 
     const std::vector<NodeWithOrientation> frontierWithOrientation(getFrontierOrientation(frontier));
     const std::vector<NodeWithOrientation> nodesWithoutCollisions(getCollisionFreeNeighbor(frontierWithOrientation));
-    const std::vector<NodeWithOrientationAndCost> nodesWithCost = calculateCost(startNode, goalPos, nodesWithoutCollisions);
-//     const std::vector<NodeWithOrientation> sortedNodes(sortNodes(nodesWithoutCollisions, closeTo));
-//     result = getPositions(sortedNodes);
+    const std::vector<NodeWithOrientation> nodesWithoutDuplicates(removeDuplicates(nodesWithoutCollisions));
+    const std::vector<NodeWithOrientationAndCost> nodesWithCost = calculateCost(startNode, goalPos, nodesWithoutDuplicates);
+    const std::vector<NodeWithOrientationAndCost> sortedNodes(sortNodes(nodesWithCost));
+    result = getPositions(sortedNodes);
     
     
     //test code:
@@ -146,17 +147,17 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vect
         }
      );
     
-//     COMPLEX_DRAWING(
-//         for(size_t i = 0; i < sortedNodes.size(); ++i)
-//         {
-//             const NodeWithOrientation& node = sortedNodes[i];
-//             Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
-//             pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-//             pos.z() += 0.02;
-//             
-//             DRAW_TEXT("sortedNodes", pos, std::to_string(i), 0.1, vizkit3dDebugDrawings::Color::magenta);
-//         }
-//     );
+    COMPLEX_DRAWING(
+        for(size_t i = 0; i < sortedNodes.size(); ++i)
+        {
+            const NodeWithOrientationAndCost& node = sortedNodes[i];
+            Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
+            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+            pos.z() += 0.02;
+            
+            DRAW_TEXT("sortedNodes", pos, std::to_string(i), 0.3, vizkit3dDebugDrawings::Color::magenta);
+        }
+    );
      
     
     
@@ -266,37 +267,40 @@ std::vector<NodeWithOrientation> FrontierGenerator::getCollisionFreeNeighbor(con
     return std::move(result);
 }
 
-std::vector<NodeWithOrientation> FrontierGenerator::sortNodes(const std::vector<NodeWithOrientation>& nodes,
-                                                                const base::Vector3d& closeTo) const
+
+std::vector<NodeWithOrientation> FrontierGenerator::removeDuplicates(const std::vector<NodeWithOrientation>& nodes) const
 {
-    std::vector<NodeWithOrientation> result(nodes);
-    const double resX = travGen.getTraversabilityMap().getResolution().x();
-    const double resY = travGen.getTraversabilityMap().getResolution().y();
-    const auto transform = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry);
-    std::sort(result.begin(), result.end(), 
-        [resX, resY, &transform, &closeTo](const NodeWithOrientation& a, const NodeWithOrientation& b)
+    //FIXME probably performance could be improved a lot
+    std::vector<NodeWithOrientation> result;
+    std::unordered_set<const TravGenNode*> set;
+    for(const NodeWithOrientation& node : nodes)
+    {
+        if(set.find(node.node) == set.end())
         {
-            base::Vector3d aPos(a.node->getIndex().x() * resX, 
-                                a.node->getIndex().y() * resY,
-                                a.node->getHeight());
-            aPos = transform * aPos;
-            base::Vector3d bPos(b.node->getIndex().x() * resX, 
-                                b.node->getIndex().y() * resY,
-                                b.node->getHeight());
-            bPos = transform * bPos;
-            
-            const double aDist = (closeTo - aPos).squaredNorm();
-            const double bDist = (closeTo - bPos).squaredNorm();
-            return aDist < bDist;
+            set.insert(node.node);
+            result.push_back(node);
+        }
+    }
+    return result;
+}
+
+
+std::vector<NodeWithOrientationAndCost> FrontierGenerator::sortNodes(const std::vector<NodeWithOrientationAndCost>& nodes) const
+{
+    std::vector<NodeWithOrientationAndCost> result(nodes);
+    std::sort(result.begin(), result.end(), 
+        [](const NodeWithOrientationAndCost& a, const NodeWithOrientationAndCost& b)
+        {
+            return a.cost < b.cost;
         });
     return std::move(result);
 }
 
-std::vector<RigidBodyState> FrontierGenerator::getPositions(const std::vector<NodeWithOrientation>& nodes) const
+std::vector<RigidBodyState> FrontierGenerator::getPositions(const std::vector<NodeWithOrientationAndCost>& nodes) const
 {
     std::vector<RigidBodyState> result;
     const auto transform = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry);
-    for(const NodeWithOrientation& node : nodes)
+    for(const NodeWithOrientationAndCost& node : nodes)
     {
         RigidBodyState rbs;
         rbs.position << node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 

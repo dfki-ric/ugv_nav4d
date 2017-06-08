@@ -73,19 +73,21 @@ private:
     /**Figure out goal orientation for each node in @p frontier */
     std::vector<NodeWithOrientation> getFrontierOrientation(const std::vector<const TravGenNode*>& frontier) const;
     
-    /**Figure out a node that we can stand on without collisions for each node in @p nodes */
+    /**Figure out a node that we can stand on without collisions for each node in @p nodes. */
     std::vector<NodeWithOrientation> getCollisionFreeNeighbor(const std::vector<NodeWithOrientation>& nodes) const;
+    
+    std::vector<NodeWithOrientation> removeDuplicates(const std::vector<NodeWithOrientation>& nodes) const;
     
     /** TODO describe what cost contains and what is a good/bad value */
     std::vector<NodeWithOrientationAndCost> calculateCost(const TravGenNode* startNode,
                                                           const base::Vector3d& goalPos,
                                                           const std::vector<NodeWithOrientation>& nodes) const;
     
-    /**Sort nodes according to TODO */
-    std::vector<NodeWithOrientation> sortNodes(const std::vector<NodeWithOrientation>& nodes, const base::Vector3d& closeTo) const;
+    /**Sort nodes according to node.cost */
+    std::vector<NodeWithOrientationAndCost> sortNodes(const std::vector<NodeWithOrientationAndCost>& nodes) const;
     
     /**convert to rbs */
-    std::vector<base::samples::RigidBodyState> getPositions(const std::vector<NodeWithOrientation>& nodes) const;
+    std::vector<base::samples::RigidBodyState> getPositions(const std::vector<NodeWithOrientationAndCost>& nodes) const;
     
     /** Calculate the number of patches that can still be explored in the vicinity
      * of @p node.
