@@ -24,7 +24,7 @@ public:
     void show();
 public slots:
     /** Called when the user clicks a patch on the mls */
-    void picked(float x, float y, float z);
+    void picked(float x, float y,float z, int buttonMask, int modifierMask);
 
     void loadMls();
     void loadMls(const std::string& path);

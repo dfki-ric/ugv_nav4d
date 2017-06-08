@@ -26,6 +26,7 @@
 namespace ugv_nav4d 
 {
 struct NodeWithOrientation;
+struct NodeWithOrientationAndCost;
 class EnvironmentXYZTheta;
 
 class FrontierGenerator
@@ -54,9 +55,7 @@ public:
     
     
 private:
-    
-    void expandTravMap(const base::Vector3d& startPos);
-    
+
     /** find all frontier nodes*/
     std::vector<const TravGenNode*> getFrontierPatches() const;
     
@@ -66,21 +65,36 @@ private:
     /**Figure out a node that we can stand on without collisions for each node in @p nodes */
     std::vector<NodeWithOrientation> getCollisionFreeNeighbor(const std::vector<NodeWithOrientation>& nodes) const;
     
+    /** TODO describe what cost contains and what is a good/bad value */
+    std::vector<NodeWithOrientationAndCost> calculateCost(const TravGenNode* startNode,
+                                                          const base::Vector3d& goalPos,
+                                                          const std::vector<NodeWithOrientation>& nodes) const;
+    
     /**Sort nodes according to TODO */
     std::vector<NodeWithOrientation> sortNodes(const std::vector<NodeWithOrientation>& nodes, const base::Vector3d& closeTo) const;
     
     /**convert to rbs */
     std::vector<base::samples::RigidBodyState> getPositions(const std::vector<NodeWithOrientation>& nodes) const;
+    
+    /** Calculate the number of patches that can still be explored in the vicinity
+     * of @p node.
+     * The number is normalized to [0..1]
+     * 1 means fully explored, 0 means not explored at all*/
+    double calcExplorablePatches(const TravGenNode* node) const;
+    
+    /**Returns the distance from @p node to the ray starting from @p rayOrigin going through @p rayThrough */
+    double distToRay(const TravGenNode* node, const base::Vector3d& rayOrigin, const base::Vector3d& rayThrough) const;
+    
+    base::Vector3d nodeCenterPos(const TravGenNode* node) const;
+
+private:
+    
     TraversabilityConfig travConf;
     TraversabilityGenerator3d travGen;
     boost::shared_ptr<TraversabilityGenerator3d::MLGrid> mlsMap;
     base::Vector3d robotPos;
-    
-    /** Calculate the number of patches that can still be explored in the vicinity
-     * of @p node.
-     * The number is normalized to [0..1]*/
-    double calcExplorablePatches(const TravGenNode* node) const;
-    
+    base::Vector3d goalPos;//FIXME bad name, this is the point somewhere in the distance that indicates the direction of exploration
 };
+
 
 }

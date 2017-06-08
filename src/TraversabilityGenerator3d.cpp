@@ -554,4 +554,80 @@ TraversabilityMap3d< TraversabilityNodeBase *> TraversabilityGenerator3d::getTra
     
     return trBaseMap;
 }
+
+
+//Adapted from: https://rosettacode.org/wiki/Dijkstra%27s_algorithm#C.2B.2B
+void TraversabilityGenerator3d::dijkstraComputeCost(const TravGenNode* source,
+                          std::vector<double> &outDistances, const double maxDist) const 
+{
+    using namespace maps::grid;
+    
+    outDistances.clear();
+    outDistances.resize(getNumNodes(), maxDist);
+    
+    const int sourceId = source->getUserData().id;
+    outDistances[sourceId] = 0;
+    
+    std::set<std::pair<double, const TravGenNode*>> vertexQ;
+    vertexQ.insert(std::make_pair(outDistances[sourceId], source));
+    
+    UGV_DEBUG(
+        debugData.clearHeuristic();
+    )
+    
+    while (!vertexQ.empty()) 
+    {
+        double dist = vertexQ.begin()->first;
+        const TravGenNode* u = vertexQ.begin()->second;
+        
+        vertexQ.erase(vertexQ.begin());
+        
+        const Eigen::Vector3d uPos(u->getIndex().x() * config.gridResolution,
+                                   u->getIndex().y() * config.gridResolution,
+                                   u->getHeight());
+        
+        // Visit each edge exiting u
+        for(TraversabilityNodeBase *v : u->getConnections())
+        {   
+            //skip all non traversable nodes. They will retain the maximum cost.
+            if(v->getType() != TraversabilityNodeBase::TRAVERSABLE && 
+               v->getType() != TraversabilityNodeBase::FRONTIER)
+                continue;
+            
+            TravGenNode* vCasted = static_cast<TravGenNode*>(v);
+            const Eigen::Vector3d vPos(vCasted->getIndex().x() * config.gridResolution,
+                                       vCasted->getIndex().y() * config.gridResolution,
+                                       vCasted->getHeight());
+
+            const double distance = getHeuristicDistance(vPos, uPos);
+            double distance_through_u = dist + distance;
+            const int vId = vCasted->getUserData().id;
+            
+            if (distance_through_u < outDistances[vId])
+            {
+                vertexQ.erase(std::make_pair(outDistances[vId], vCasted));
+                outDistances[vId] = distance_through_u;
+                vertexQ.insert(std::make_pair(outDistances[vId], vCasted));
+                UGV_DEBUG(
+                    debugData.addHeuristicCost(vCasted, outDistances[vId]); 
+                )
+            }
+        }
+    }
+}
+
+double TraversabilityGenerator3d::getHeuristicDistance(const Eigen::Vector3d& a, const Eigen::Vector3d& b) const
+{
+    switch(config.heuristicType)
+    {
+        case HeuristicType::HEURISTIC_2D:
+            return (a.topRows(2) - b.topRows(2)).norm();
+        case HeuristicType::HEURISTIC_3D:
+            return (a - b).norm();
+        default:
+            throw std::runtime_error("unknown heuristic type");
+    }
+}
+
+
 }

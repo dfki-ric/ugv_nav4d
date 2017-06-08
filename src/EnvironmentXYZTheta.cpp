@@ -842,10 +842,10 @@ void EnvironmentXYZTheta::precomputeCost()
     std::vector<double> costToEnd;
     
     //FIXME test if using double max causes problems, if not, use it.
-    const double maxDist = 99999; //big enough to never occur in reality. Small enough to not cause overflows when used by accident.
+    const double maxDist = 99999999; //big enough to never occur in reality. Small enough to not cause overflows when used by accident.
     
-    dijkstraComputeCost(startXYZNode->getUserData().travNode, costToStart, maxDist);
-    dijkstraComputeCost(goalXYZNode->getUserData().travNode, costToEnd, maxDist);
+    travGen.dijkstraComputeCost(startXYZNode->getUserData().travNode, costToStart, maxDist);
+    travGen.dijkstraComputeCost(goalXYZNode->getUserData().travNode, costToEnd, maxDist);
     
     assert(costToStart.size() == costToEnd.size());
     
@@ -865,79 +865,6 @@ void EnvironmentXYZTheta::precomputeCost()
     }
 }
 
-
-//Adapted from: https://rosettacode.org/wiki/Dijkstra%27s_algorithm#C.2B.2B
-void EnvironmentXYZTheta::dijkstraComputeCost(const TravGenNode* source,
-                          std::vector<double> &outDistances, const double maxDist) const 
-{
-    using namespace maps::grid;
-    
-    outDistances.clear();
-    outDistances.resize(travGen.getNumNodes(), maxDist);
-    
-    const int sourceId = source->getUserData().id;
-    outDistances[sourceId] = 0;
-    
-    std::set<std::pair<double, const TravGenNode*>> vertexQ;
-    vertexQ.insert(std::make_pair(outDistances[sourceId], source));
-    
-    UGV_DEBUG(
-        debugData.clearHeuristic();
-    )
-    
-    while (!vertexQ.empty()) 
-    {
-        double dist = vertexQ.begin()->first;
-        const TravGenNode* u = vertexQ.begin()->second;
-        
-        vertexQ.erase(vertexQ.begin());
-        
-        const Eigen::Vector3d uPos(u->getIndex().x() * travConf.gridResolution,
-                                   u->getIndex().y() * travConf.gridResolution,
-                                   u->getHeight());
-        
-        // Visit each edge exiting u
-        for(TraversabilityNodeBase *v : u->getConnections())
-        {   
-            //skip all non traversable nodes. They will retain the maximum cost.
-            if(v->getType() != TraversabilityNodeBase::TRAVERSABLE && 
-               v->getType() != TraversabilityNodeBase::FRONTIER)
-                continue;
-            
-            TravGenNode* vCasted = static_cast<TravGenNode*>(v);
-            const Eigen::Vector3d vPos(vCasted->getIndex().x() * travConf.gridResolution,
-                                       vCasted->getIndex().y() * travConf.gridResolution,
-                                       vCasted->getHeight());
-
-            const double distance = getHeuristicDistance(vPos, uPos);
-            double distance_through_u = dist + distance;
-            const int vId = vCasted->getUserData().id;
-            
-            if (distance_through_u < outDistances[vId])
-            {
-                vertexQ.erase(std::make_pair(outDistances[vId], vCasted));
-                outDistances[vId] = distance_through_u;
-                vertexQ.insert(std::make_pair(outDistances[vId], vCasted));
-                UGV_DEBUG(
-                    debugData.addHeuristicCost(vCasted, outDistances[vId]); 
-                )
-            }
-        }
-    }
-}
-
-double EnvironmentXYZTheta::getHeuristicDistance(const Eigen::Vector3d& a, const Eigen::Vector3d& b) const
-{
-    switch(travConf.heuristicType)
-    {
-        case HeuristicType::HEURISTIC_2D:
-            return (a.topRows(2) - b.topRows(2)).norm();
-        case HeuristicType::HEURISTIC_3D:
-            return (a - b).norm();
-        default:
-            throw std::runtime_error("unknown heuristic type");
-    }
-}
 
 TraversabilityGenerator3d& EnvironmentXYZTheta::getTravGen()
 {

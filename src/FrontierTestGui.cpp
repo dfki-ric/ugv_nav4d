@@ -60,7 +60,7 @@ FrontierTestGui::FrontierTestGui(int argc, char** argv)
     dock->setWidget(buttonWidget);
     widget->addDockWidget(Qt::BottomDockWidgetArea, dock);
     
-    connect(&mlsViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
+    connect(&mlsViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float, float, float, int, int)));
     connect(this, SIGNAL(frontierCalcDone()), this, SLOT(frontierCalcIsDone()));
     
     if(argc > 1)
@@ -76,10 +76,18 @@ FrontierTestGui::FrontierTestGui(int argc, char** argv)
 }
 
 
-void FrontierTestGui::picked(float x, float y, float z)
+void FrontierTestGui::picked(float x, float y,float z, int buttonMask, int modifierMask)
 {
-    robotPos << x, y, z;
-    frontGen->updateRobotPos(robotPos);
+    if(buttonMask == 1) //left click
+    {
+        robotPos << x, y, z;
+        frontGen->updateRobotPos(robotPos);
+    }
+    else if(buttonMask == 4) //right click
+    {
+        goalPos << x, y, z;
+        frontGen->updateGoalPos(goalPos);
+    }
 }
 
 void FrontierTestGui::show()

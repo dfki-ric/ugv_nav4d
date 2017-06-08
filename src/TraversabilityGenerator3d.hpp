@@ -13,7 +13,7 @@
 namespace ugv_nav4d
 {
 
-    class TraversabilityGenerator3d
+class TraversabilityGenerator3d
 {
 public:
 
@@ -75,6 +75,13 @@ public:
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;
         
     void setConfig(const TraversabilityConfig &config);
+    
+    /**Compute heuristic cost from @p source to all reachable nodes.
+     * @param outDistances mapping from node id to cost*/
+    void dijkstraComputeCost(const TravGenNode* source, std::vector<double> &outDistances, const double maxDist) const;
+    
+    /** Returns distance from @p a to @p b based on config.heuristicType */
+    double getHeuristicDistance(const Eigen::Vector3d& a, const Eigen::Vector3d& b) const;
     
 protected:
     int intersections();
