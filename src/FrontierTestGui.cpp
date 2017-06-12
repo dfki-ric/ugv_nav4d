@@ -126,16 +126,16 @@ void FrontierTestGui::getFrontiersButtonReleased()
 //     std::thread t([this](){
 //         CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET_NO_THROW(this->widget);
         const auto result = frontGen->getNextFrontiers(goalPos);
-        COMPLEX_DRAWING(
-            CLEAR_DRAWING("result");
-            std::vector<base::Vector3d> resultPoints;
-            resultPoints.push_back(robotPos);
-            for(const base::samples::RigidBodyState& pos : result)
-            {
-                resultPoints.push_back(pos.position);
-            }
-            DRAW_POLYLINE("result", resultPoints, vizkit3dDebugDrawings::Color::magenta);
-        );
+//         COMPLEX_DRAWING(
+//             CLEAR_DRAWING("result");
+//             std::vector<base::Vector3d> resultPoints;
+//             resultPoints.push_back(robotPos);
+//             for(const base::samples::RigidBodyState& pos : result)
+//             {
+//                 resultPoints.push_back(pos.position);
+//             }
+//             DRAW_POLYLINE("result", resultPoints, vizkit3dDebugDrawings::Color::magenta);
+//         );
         
         emit this->frontierCalcIsDone();
 //     });
