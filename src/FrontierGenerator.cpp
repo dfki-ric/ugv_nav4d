@@ -97,12 +97,12 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vect
       COMPLEX_DRAWING(
         double maxCost = 0;
         CLEAR_DRAWING("explorable");  
-        for(const auto& node : nodesWithCost)
+        for(const auto& node : sortedNodes)
         {
             if(node.cost > maxCost) 
                 maxCost = node.cost;
         }
-        for(const auto& node : nodesWithCost)
+        for(const auto& node : sortedNodes)
         {
             const double value = (node.cost);// / maxCost) * 2;
             base::Vector3d pos(nodeCenterPos(node.node));
@@ -323,31 +323,51 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
     const double maxDist = 99999999;//FIXME constant in code? should be numeric_limits::max
     travGen.dijkstraComputeCost(startNode, distancesOnMap, maxDist);
     
+    
+    //find max distances for normalization
+    double maxDistFromStart = 0;
+    double maxDistToGoal = 0;
+    for(const NodeWithOrientation& node : nodes)
+    {
+        const double distToGoal = distToPoint(node.node, goalPos);
+        const double distFromStart = distancesOnMap[node.node->getUserData().id];
+        maxDistToGoal = std::max(maxDistToGoal, distToGoal);
+        maxDistFromStart = std::max(maxDistFromStart, distFromStart);
+    }
+
     //calc cost
-//     const base::Vector3d startPos = nodeCenterPos(startNode);
     for(const NodeWithOrientation& node : nodes)
     {
 //         const double rayGoalDist = distToRay(node.node, startPos, goalPos);
-        const double distToGoal = distToPoint(node.node, goalPos);
-        const double explorableFactor = calcExplorablePatches(node.node);
-        const double travelDist = distancesOnMap[node.node->getUserData().id];
-//         const double cost = (rayGoalDist * goalFactor + travelDist * travelFactor) * explorableFactor;
-        const double cost = (distToGoal * costParams.distToGoalFactor + travelDist * costParams.distFromStartFactor) * explorableFactor;
+        const double distToGoal = distToPoint(node.node, goalPos) / maxDistToGoal; //range 0..1
+        const double explorableFactor = calcExplorablePatches(node.node); //range: 0.. 1
+        const double travelDist = distancesOnMap[node.node->getUserData().id] / maxDistFromStart; //range: 0..1
+        
+        assert(distToGoal >= 0 && distToGoal <= 1);
+        assert(explorableFactor >= 0 && explorableFactor <= 1);
+        assert(travelDist >= 0 && travelDist <= 1);
+        
+        const double cost = (distToGoal + explorableFactor + travelDist) / 3.0;
+        std::cout << cost << ": " << distToGoal << ", " << travelDist << ", " << explorableFactor << std::endl;
+        
         result.push_back({node.node, node.orientationZ, cost});
+        
+//         const double cost = (rayGoalDist * goalFactor + travelDist * travelFactor) * explorableFactor;
+//         const double cost = (distToGoal * costParams.distToGoalFactor + travelDist * costParams.distFromStartFactor) * explorableFactor;
     }
     return result;
 }
 
-double FrontierGenerator::distToRay(const TravGenNode* node, const base::Vector3d& rayOrigin, const base::Vector3d& rayThrough) const
-{
-    const base::Vector3d nodePos(nodeCenterPos(node));
-    const base::Vector3d rayDirection((rayThrough - rayOrigin).normalized());
-    double p = rayDirection.dot(nodePos - rayOrigin);
-    p = std::max(0.0, p); //limit to >= 0 because this is a ray not a line
-    const base::Vector3d projectionOnRay = rayOrigin + p * rayDirection;
-    
-    return (projectionOnRay - nodePos).norm();
-}
+// double FrontierGenerator::distToRay(const TravGenNode* node, const base::Vector3d& rayOrigin, const base::Vector3d& rayThrough) const
+// {
+//     const base::Vector3d nodePos(nodeCenterPos(node));
+//     const base::Vector3d rayDirection((rayThrough - rayOrigin).normalized());
+//     double p = rayDirection.dot(nodePos - rayOrigin);
+//     p = std::max(0.0, p); //limit to >= 0 because this is a ray not a line
+//     const base::Vector3d projectionOnRay = rayOrigin + p * rayDirection;
+//     
+//     return (projectionOnRay - nodePos).norm();
+// }
 
 double FrontierGenerator::distToPoint(const TravGenNode* node, const base::Vector3d& p) const
 {
