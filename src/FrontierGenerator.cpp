@@ -75,6 +75,8 @@ base::Vector3d FrontierGenerator::nodeCenterPos(const TravGenNode* node) const
     
 std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vector3d& closeTo)
 {
+    CLEAR_DRAWING("visitable");
+    
     std::vector<RigidBodyState> result;
     
     TravGenNode* startNode = travGen.generateStartNode(robotPos);
@@ -96,9 +98,11 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vect
     //test code:
       COMPLEX_DRAWING(
         double maxCost = 0;
+        double costSum = 0;
         CLEAR_DRAWING("explorable");  
         for(const auto& node : sortedNodes)
         {
+            costSum += node.cost;
             if(node.cost > maxCost) 
                 maxCost = node.cost;
         }
@@ -110,6 +114,7 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vect
             
             DRAW_CYLINDER("explorable", pos,  base::Vector3d(0.03, 0.03, value), vizkit3dDebugDrawings::Color::green);
         }
+        std::cout << "COST SUM: " << costSum << std::endl;
       );
     
     
@@ -147,17 +152,18 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vect
         }
      );
     
-    COMPLEX_DRAWING(
-        for(size_t i = 0; i < sortedNodes.size(); ++i)
-        {
-            const NodeWithOrientationAndCost& node = sortedNodes[i];
-            Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
-            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-            pos.z() += 0.02;
-            
-            DRAW_TEXT("sortedNodes", pos, std::to_string(i), 0.3, vizkit3dDebugDrawings::Color::magenta);
-        }
-    );
+//     COMPLEX_DRAWING(
+//         CLEAR_DRAWING("sortedNodes");
+//         for(size_t i = 0; i < sortedNodes.size(); ++i)
+//         {
+//             const NodeWithOrientationAndCost& node = sortedNodes[i];
+//             Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
+//             pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+//             pos.z() += 0.02;
+//             
+//             DRAW_TEXT("sortedNodes", pos, std::to_string(i), 0.3, vizkit3dDebugDrawings::Color::magenta);
+//         }
+//     );
      
     
     
@@ -347,8 +353,11 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
         assert(explorableFactor >= 0 && explorableFactor <= 1);
         assert(travelDist >= 0 && travelDist <= 1);
         
-        const double cost = (distToGoal + explorableFactor + travelDist) / 3.0;
-        std::cout << cost << ": " << distToGoal << ", " << travelDist << ", " << explorableFactor << std::endl;
+        //multiplication ensures that the sum of all cost equals 1. That could be imporatant for later clustering stages
+        const double cost = costParams.distToGoalFactor * distToGoal +
+                            costParams.explorableFactor * explorableFactor +
+                            costParams.distFromStartFactor * travelDist;
+//         std::cout << cost << ": " << distToGoal << ", " << travelDist << ", " << explorableFactor << std::endl;
         
         result.push_back({node.node, node.orientationZ, cost});
         
@@ -398,6 +407,15 @@ double FrontierGenerator::calcExplorablePatches(const TravGenNode* node) const
     
     const double explorablePatches = (visited / (double)maxVisitable);
     
+    COMPLEX_DRAWING(
+        Eigen::Vector3d pos(node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node->getHeight());
+        pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+        pos.z() += 0.02;
+        
+        DRAW_TEXT("visitable", pos, std::to_string(maxVisitable - visited), 0.3, vizkit3dDebugDrawings::Color::magenta);
+    );
+    
+    
     return explorablePatches;
 }
 
@@ -405,6 +423,12 @@ void FrontierGenerator::updateCostParameters(const FrontierGenerator::CostFuncti
 {
     costParams = params;
 }
+
+maps::grid::TraversabilityMap3d< TraversabilityNodeBase* > FrontierGenerator::getTraversabilityBaseMap() const
+{
+    return travGen.getTraversabilityBaseMap();
+}
+
 
 
 }

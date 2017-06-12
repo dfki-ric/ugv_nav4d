@@ -34,6 +34,7 @@ FrontierTestGui::FrontierTestGui(int argc, char** argv)
     CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(widget);
     widget->setCameraManipulator(vizkit3d::ORBIT_MANIPULATOR);
     widget->addPlugin(&mlsViz);
+    widget->addPlugin(&travViz);
     
     
     mlsViz.setCycleHeightColor(true);
@@ -53,6 +54,7 @@ FrontierTestGui::FrontierTestGui(int argc, char** argv)
     distToGoalFactorSpinBox = new QDoubleSpinBox();
     distToGoalFactorSpinBox->setMinimum(0);
     distToGoalFactorSpinBox->setMaximum(9999);
+    distToGoalFactorSpinBox->setSingleStep(0.05);
     distToGoalFactorSpinBox->setValue(1);
     sortparamLayout->addWidget(distToGoalFactorSpinBox);
     QLabel* distFromStartFactorLabel = new QLabel();
@@ -61,10 +63,25 @@ FrontierTestGui::FrontierTestGui(int argc, char** argv)
     distFromStartFactorSpinBox = new QDoubleSpinBox();
     distFromStartFactorSpinBox->setMinimum(0);
     distFromStartFactorSpinBox->setMaximum(9999);
+    distToGoalFactorSpinBox->setSingleStep(0.05);
     distFromStartFactorSpinBox->setValue(1);
     sortparamLayout->addWidget(distFromStartFactorSpinBox);
+    QLabel* explorableFactorLabel = new QLabel();
+    explorableFactorLabel->setText("explorableFactor");
+    sortparamLayout->addWidget(explorableFactorLabel);
+    explorableFactorSpinBox = new QDoubleSpinBox();
+    explorableFactorSpinBox->setMinimum(0);
+    explorableFactorSpinBox->setMaximum(9999);
+    distToGoalFactorSpinBox->setSingleStep(0.05);
+    explorableFactorSpinBox->setValue(1);
+    sortparamLayout->addWidget(explorableFactorSpinBox);
+    
+    
+    
+    
     connect(distToGoalFactorSpinBox, SIGNAL(editingFinished()), this, SLOT(distToGoalFactorEditFinished()));
     connect(distFromStartFactorSpinBox, SIGNAL(editingFinished()), this, SLOT(distFromStartFactorEditFinished()));
+    connect(explorableFactorSpinBox, SIGNAL(editingFinished()), this, SLOT(explorableFactorSpinBoxEditFinished()));
     
     layout->addLayout(sortparamLayout);
     
@@ -75,11 +92,6 @@ FrontierTestGui::FrontierTestGui(int argc, char** argv)
     connect(getFrontiersButton, SIGNAL(released()), this, SLOT(getFrontiersButtonReleased()));
     
     
-    bar = new QProgressBar();
-    bar->setMinimum(0);
-    bar->setMaximum(1);
-    layout->addWidget(bar);
-     
     buttonWidget->setLayout(layout);
     dock->setWidget(buttonWidget);
     widget->addDockWidget(Qt::BottomDockWidgetArea, dock);
@@ -122,31 +134,15 @@ void FrontierTestGui::show()
 
 void FrontierTestGui::getFrontiersButtonReleased()
 {
-    bar->setMaximum(0);
-//     std::thread t([this](){
-//         CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET_NO_THROW(this->widget);
-        const auto result = frontGen->getNextFrontiers(goalPos);
-//         COMPLEX_DRAWING(
-//             CLEAR_DRAWING("result");
-//             std::vector<base::Vector3d> resultPoints;
-//             resultPoints.push_back(robotPos);
-//             for(const base::samples::RigidBodyState& pos : result)
-//             {
-//                 resultPoints.push_back(pos.position);
-//             }
-//             DRAW_POLYLINE("result", resultPoints, vizkit3dDebugDrawings::Color::magenta);
-//         );
-        
-        emit this->frontierCalcIsDone();
-//     });
-//     t.detach(); //needed to avoid destruction of thread at end of method
-    
+    generateFrontier();
 }
 
-void FrontierTestGui::frontierCalcIsDone()
+void FrontierTestGui::generateFrontier()
 {
-    bar->setMaximum(1);
+    const auto result = frontGen->getNextFrontiers(goalPos);
+    travViz.updateData(frontGen->getTraversabilityBaseMap());
 }
+
 
 
 void FrontierTestGui::loadMls()
@@ -199,12 +195,21 @@ void FrontierTestGui::distFromStartFactorEditFinished()
 {
     costParams.distFromStartFactor = distFromStartFactorSpinBox->value();
     frontGen->updateCostParameters(costParams);
+    generateFrontier();
 }
 
 void FrontierTestGui::distToGoalFactorEditFinished()
 {
     costParams.distToGoalFactor = distToGoalFactorSpinBox->value();
     frontGen->updateCostParameters(costParams);
+    generateFrontier();
+}
+
+void FrontierTestGui::explorableFactorSpinBoxEditFinished()
+{
+    costParams.explorableFactor = explorableFactorSpinBox->value();
+    frontGen->updateCostParameters(costParams);
+    generateFrontier();
 }
 
 

@@ -3,6 +3,7 @@
 #include <memory>
 #include <base/Eigen.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
+#include <vizkit3d/TraversabilityMap3dVisualization.hpp>
 #include "FrontierGenerator.hpp"
 
 namespace vizkit3d 
@@ -31,19 +32,18 @@ public slots:
     
 private slots:
     void getFrontiersButtonReleased();
-    void frontierCalcIsDone();
     void distToGoalFactorEditFinished();
     void distFromStartFactorEditFinished();
+    void explorableFactorSpinBoxEditFinished();
+    void generateFrontier();
     
-signals:
-    void frontierCalcDone();
 
     
 private:
     vizkit3d::Vizkit3DWidget* widget;
     QWidget* buttonWidget;
-    QProgressBar* bar;
     vizkit3d::MLSMapVisualization mlsViz;
+    vizkit3d::TraversabilityMap3dVisualization travViz;
     
     std::shared_ptr<FrontierGenerator> frontGen;
     base::Vector3d robotPos;
@@ -51,5 +51,6 @@ private:
     FrontierGenerator::CostFunctionParameters costParams;
     QDoubleSpinBox* distToGoalFactorSpinBox;
     QDoubleSpinBox* distFromStartFactorSpinBox;
+    QDoubleSpinBox* explorableFactorSpinBox;
 };
 }

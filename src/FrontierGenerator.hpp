@@ -40,6 +40,8 @@ struct CostFunctionParameters
     double distToGoalFactor = 1.0;
     /** How important is the distance from the start node */
     double distFromStartFactor = 1.0;
+    /**How important is the size of the explorable area around the frontier node */
+    double explorableFactor = 1.0;
 };
     
     FrontierGenerator(const TraversabilityConfig& travConf,
@@ -64,6 +66,8 @@ struct CostFunctionParameters
      *  List is sorted by TODO*/
     std::vector<base::samples::RigidBodyState> getNextFrontiers(const base::Vector3d& closeTo);
     
+    //just for debugging
+    maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;
     
 private:
 
@@ -94,9 +98,7 @@ private:
      * The number is normalized to [0..1]
      * 1 means fully explored, 0 means not explored at all*/
     double calcExplorablePatches(const TravGenNode* node) const;
-    
-    /**Returns the distance from @p node to the ray starting from @p rayOrigin going through @p rayThrough */
-    double distToRay(const TravGenNode* node, const base::Vector3d& rayOrigin, const base::Vector3d& rayThrough) const;
+
     
     /**Distance between @p node and point @p p */
     double distToPoint(const TravGenNode* node, const base::Vector3d& p) const;
