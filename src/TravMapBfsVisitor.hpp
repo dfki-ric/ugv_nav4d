@@ -2,6 +2,7 @@
 #include "TravGenNode.hpp"
 #include <functional>
 #include <unordered_set>
+#include <unordered_map>
 #include <deque>
 
 namespace ugv_nav4d
