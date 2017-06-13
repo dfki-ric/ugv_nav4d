@@ -530,8 +530,13 @@ void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
 
         if(toAdd)
         {
-            toAdd->addConnection(node);
-            node->addConnection(toAdd);
+            auto& connections = toAdd->getConnections();
+            if(std::find(connections.begin(), connections.end(), node) == connections.end())
+                toAdd->addConnection(node);
+            
+            auto& connections2 = node->getConnections();
+            if(std::find(connections2.begin(), connections2.end(), toAdd) == connections2.end())
+                node->addConnection(toAdd);
         }
     }
 }
