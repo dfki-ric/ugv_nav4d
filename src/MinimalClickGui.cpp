@@ -2,12 +2,13 @@
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
 #include <QFileDialog>
 #include <iostream>
-#include <envire_core/graph/EnvireGraph.hpp>
+#include <maps/grid/MLSConfig.hpp>
 #include <maps/grid/MLSMap.hpp>
 #include <base/samples/Pointcloud.hpp>
 #include <pcl/pcl_config.h>
 #include <pcl/common/transforms.h>
 #include <pcl/common/io.h>
+#include <pcl/common/common.h>
 #include <pcl/io/ply_io.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/filters/voxel_grid.h>
@@ -30,6 +31,7 @@ MinimalClickGui::MinimalClickGui(int argc, char** argv): QObject()
         loadPly(file.toStdString());
     }
     
+    
 }
 
 void MinimalClickGui::picked(float x, float y, float z, int buttonMask, int modifierMask)
@@ -42,18 +44,19 @@ void MinimalClickGui::loadPly(const std::string& path)
 {
     if(!path.empty())
     {
-        pcl::PointCloud<pcl::PointXYZ> cloud;
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
         pcl::PLYReader plyReader;
-        if(plyReader.read(path, cloud) >= 0)
+        if(plyReader.read(path, *cloud) >= 0)
         {
-            //FIXME choose params and tf
-            maps::grid::MLSMapKalman map;
-            map.setResolution(maps::grid::Vector2d(0.01, 0.01));
-            map.resize(maps::grid::Vector2ui(5000, 5000));
-            base::TransformWithCovariance tf;
-            tf.translation << 0, 0, 0;
-            tf.orientation = base::Quaterniond::Identity();
-            map.mergePointCloud(cloud, tf);
+            pcl::PointXYZ mi, ma; 
+            pcl::getMinMax3D (*cloud, mi, ma); 
+            std::cout << "MIN: " << mi << ", MAX: " << ma << std::endl;
+            maps::grid::MLSConfig cfg;
+            maps::grid::MLSMapKalman map(maps::grid::Vector2ui(2000, 2000), maps::grid::Vector2d(0.1, 0.1), cfg);
+            map.translate(base::Vector3d(-100, -100, 0));
+            base::TransformWithCovariance tf = base::TransformWithCovariance::Identity();
+            map.mergePointCloud(*cloud, tf);
+            
             mlsViz.updateMLSKalman(map);
         }
     }
