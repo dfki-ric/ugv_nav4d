@@ -50,12 +50,18 @@ void MinimalClickGui::loadPly(const std::string& path)
         {
             pcl::PointXYZ mi, ma; 
             pcl::getMinMax3D (*cloud, mi, ma); 
+            
+            double mls_res = 0.2;
+            double size_x = std::max(ma.x, -std::min<float>(mi.x, 0.0)) * 2.0;
+            double size_y = std::max(ma.y, -std::min<float>(mi.y, 0.0)) * 2.0;
+            
             std::cout << "MIN: " << mi << ", MAX: " << ma << std::endl;
             maps::grid::MLSConfig cfg;
-            maps::grid::MLSMapKalman map(maps::grid::Vector2ui(2000, 2000), maps::grid::Vector2d(0.1, 0.1), cfg);
-            map.translate(base::Vector3d(-100, -100, 0));
+            maps::grid::MLSMapKalman map(maps::grid::Vector2ui(size_x / mls_res, size_y / mls_res), maps::grid::Vector2d(mls_res, mls_res), cfg);
+            map.translate(base::Vector3d(- size_x / 2.0, - size_y / 2.0, 0));
             base::TransformWithCovariance tf = base::TransformWithCovariance::Identity();
-            map.mergePointCloud(*cloud, tf);
+            tf.cov.setZero();
+            map.mergePointCloud(*cloud, tf, 0.01);
             
             mlsViz.updateMLSKalman(map);
         }
