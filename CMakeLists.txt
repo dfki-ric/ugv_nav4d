@@ -29,3 +29,13 @@ rock_executable(frontier_test_bin
         src/FrontierTestGui.hpp      
    DEPS ugv_nav4d ugv_nav4d-viz
    DEPS_PKGCONFIG vizkit3d  maps-viz base-viz motion_planning_libraries-viz base-types)
+   
+rock_executable(mls_clicker
+    SOURCES
+        src/MinimalClickGui.cpp
+        src/MinimalClickMain.cpp
+    HEADERS
+        src/MinimalClickGui.hpp
+    MOC
+        src/MinimalClickGui.hpp
+   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz motion_planning_libraries-viz base-types vizkit3d_debug_drawings)
