@@ -723,13 +723,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
                     throw std::runtime_error("Internal error, trajectory is not continous on tr grid");
                 }
 
-                COMPLEX_DRAWING(
-                    Eigen::Vector3d pos((curNode->getIndex().x() + 0.5) * travConf.gridResolution,
-                                         (curNode->getIndex().y() + 0.5) * travConf.gridResolution,
-                                          curNode->getHeight());
-                    pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
-                    DRAW_CYLINDER("trajectory", pos,  base::Vector3d(0.01, 0.01, 0.2), vizkit3dDebugDrawings::Color::cyan);
-                );
                 curNode = nextNode;
 
                 lastIndex = curIndex;
@@ -745,6 +738,16 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         }
         
         curPart.spline.interpolate(positions);
+        
+        COMPLEX_DRAWING(
+            for(base::Vector3d pos : positions)
+            {
+//                 pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
+                DRAW_CYLINDER("trajectory", pos,  base::Vector3d(0.02, 0.02, 0.2), vizkit3dDebugDrawings::Color::cyan);
+            }
+        );
+        
+        
         curPart.speed = curMotion.type == Motion::Type::MOV_BACKWARD? -curMotion.speed : curMotion.speed;
         result.push_back(curPart);
     }
