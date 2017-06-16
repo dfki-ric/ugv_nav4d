@@ -692,10 +692,9 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
     result.clear();
 
     base::Trajectory curPart;
-
-    UGV_DEBUG(
-        std::vector<TravGenNode*> debugNodes;
-    )
+    
+    CLEAR_DRAWING("trajectory");
+    
     
     for(size_t i = 0; i < stateIDPath.size() - 1; ++i)
     {
@@ -723,8 +722,14 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
                         std::cout << "Con Node " << n->getIndex().transpose() << std::endl;;
                     throw std::runtime_error("Internal error, trajectory is not continous on tr grid");
                 }
-                
-                UGV_DEBUG(debugNodes.push_back(curNode););
+
+                COMPLEX_DRAWING(
+                    Eigen::Vector3d pos((curNode->getIndex().x() + 0.5) * travConf.gridResolution,
+                                         (curNode->getIndex().y() + 0.5) * travConf.gridResolution,
+                                          curNode->getHeight());
+                    pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
+                    DRAW_CYLINDER("trajectory", pos,  base::Vector3d(0.01, 0.01, 0.2), vizkit3dDebugDrawings::Color::cyan);
+                );
                 curNode = nextNode;
 
                 lastIndex = curIndex;
@@ -744,8 +749,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         result.push_back(curPart);
     }
     
-    //just to visualize the obstacle neighbors on the final trajectory
-    UGV_DEBUG(calcObstacleCost(debugNodes););
 }
 
 maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > EnvironmentXYZTheta::getTraversabilityBaseMap() const
