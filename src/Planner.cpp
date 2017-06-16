@@ -27,6 +27,10 @@ Planner::Planner(const motion_planning_libraries::SplinePrimitivesConfig& primit
 bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& start,
               const base::samples::RigidBodyState& end, std::vector<base::Trajectory>& resultTrajectory)
 {
+    
+    CLEAR_DRAWING("collisions");
+    CLEAR_DRAWING("successors");
+    
     if(!env)
         throw std::runtime_error("Planner::plan : Error : No map was set");
     

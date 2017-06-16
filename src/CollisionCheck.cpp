@@ -1,5 +1,6 @@
 #include "CollisionCheck.hpp"
 #include <base/Eigen.hpp>
+#include <vizkit3d_debug_drawings/DebugDrawing.h>
 namespace ugv_nav4d 
 {
 bool CollisionCheck::checkCollision(const TravGenNode* node, double zRot,
@@ -52,16 +53,12 @@ bool CollisionCheck::checkCollision(const TravGenNode* node, double zRot,
             if((abs(pos.array()) <= robotHalfSize.array()).all())
             {
                 //found at least one patch that is inside the oriented boundingbox
-//                 COMPLEX_DRAWING(
-//                     maps::grid::Vector3d pos;
-//                     travGen.getTraversabilityMap().fromGrid(node->getIndex(), pos);
-//                     pos.z() = node->getHeight();
-//                     pos.z() += travConf.robotHeight * 0.5;
-//                     DRAW_WIREFRAME_BOX("collisions", pos, rotQ,
-//                                        base::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight),
-//                                        vizkit3dDebugDrawings::Color::yellow);
-//                 );
-//                 std::cout << "COL: " << robotPosition.transpose() << std::endl;
+                 COMPLEX_DRAWING(
+                    maps::grid::Vector3d drawPos;
+                    mls->fromGrid(idx, drawPos);
+                    drawPos.z() = p.getMax();
+                    DRAW_CYLINDER("collisions", drawPos, base::Vector3d(0.02, 0.02, 0.4), vizkit3dDebugDrawings::Color::red);
+                 );
                 intersects = true;
                 return true;//abort intersection check
             }

@@ -154,6 +154,7 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
 
 void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
 {
+    
     if(!startXYZNode)
         throw std::runtime_error("Error, start needs to be set before goal");
     
@@ -403,18 +404,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         DRAW_WIREFRAME_BOX("successors", pos, base::Vector3d(mlsGrid->getResolution().x() / 2.0, mlsGrid->getResolution().y() / 2.0,
                            0.05), vizkit3dDebugDrawings::Color::blue);
     );
-    
-    
-//     COMPLEX_DRAWING(
-//         const TravGenNode* node = sourceNode->getUserData().travNode;
-//         Eigen::Vector3d pos((node->getIndex().x() + 0.5) * travConf.gridResolution,
-//                             (node->getIndex().y() + 0.5) * travConf.gridResolution,
-//                             node->getHeight());
-//         pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
-//         DRAW_SPHERE("env succs", pos, travConf.gridResolution / 2.0, base::Vector4d(1, 0, 0, 0.4));
-//         
-//     );
-    
+
     
     
     const ThetaNode *const thetaNode = sourceHash.thetaNode;
