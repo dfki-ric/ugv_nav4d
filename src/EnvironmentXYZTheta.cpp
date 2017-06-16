@@ -404,10 +404,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                            0.05), vizkit3dDebugDrawings::Color::blue);
     );
     
-    UGV_DEBUG
-    (
-        debugData.addSucc(sourceNode->getUserData().travNode);
-    )
     
 //     COMPLEX_DRAWING(
 //         const TravGenNode* node = sourceNode->getUserData().travNode;
