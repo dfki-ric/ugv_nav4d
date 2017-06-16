@@ -394,6 +394,16 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     const Hash &sourceHash(idToHash[SourceStateID]);
     const XYZNode *const sourceNode = sourceHash.node;
     
+    COMPLEX_DRAWING(
+        const TravGenNode* node = sourceNode->getUserData().travNode;
+        Eigen::Vector3d pos((node->getIndex().x() + 0.5) * travConf.gridResolution,
+                             (node->getIndex().y() + 0.5) * travConf.gridResolution,
+                              node->getHeight());
+        pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
+        DRAW_WIREFRAME_BOX("successors", pos, base::Vector3d(mlsGrid->getResolution().x() / 2.0, mlsGrid->getResolution().y() / 2.0,
+                           0.05), vizkit3dDebugDrawings::Color::blue);
+    );
+    
     UGV_DEBUG
     (
         debugData.addSucc(sourceNode->getUserData().travNode);
