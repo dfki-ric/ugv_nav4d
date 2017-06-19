@@ -73,7 +73,7 @@ base::Vector3d FrontierGenerator::nodeCenterPos(const TravGenNode* node) const
 }
 
     
-std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers(const base::Vector3d& closeTo)
+std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
 {
     CLEAR_DRAWING("visitable");
     

@@ -61,10 +61,8 @@ struct CostFunctionParameters
     void updateCostParameters(const CostFunctionParameters& params);
     
     
-    /** Calculate a list of all frontiers that can be visited.
-     * @param closeTo used to sort the list. The closer a node is to this position, the closer it is to the begining of the list
-     *  List is sorted by TODO*/
-    std::vector<base::samples::RigidBodyState> getNextFrontiers(const base::Vector3d& closeTo);
+    /** Calculate a list of all frontiers that can be visited. Sorted by calculateCost() */
+    std::vector<base::samples::RigidBodyState> getNextFrontiers();
     
     //just for debugging
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;

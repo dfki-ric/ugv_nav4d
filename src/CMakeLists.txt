@@ -21,6 +21,7 @@ rock_library(ugv_nav4d
         TravGenDebugData.cpp
         FrontierGenerator.cpp
         CollisionCheck.cpp
+        AreaExplorer.cpp
     HEADERS 
         DiscreteTheta.hpp
         EnvironmentXYZTheta.hpp
@@ -35,6 +36,7 @@ rock_library(ugv_nav4d
         TravMapBfsVisitor.hpp
         FrontierGenerator.hpp
         CollisionCheck.hpp
+        AreaExplorer.hpp
     DEPS_PKGCONFIG 
         base-types 
         sbpl

@@ -139,7 +139,7 @@ void FrontierTestGui::getFrontiersButtonReleased()
 
 void FrontierTestGui::generateFrontier()
 {
-    const auto result = frontGen->getNextFrontiers(goalPos);
+    const auto result = frontGen->getNextFrontiers();
     travViz.updateData(frontGen->getTraversabilityBaseMap());
 }
 
