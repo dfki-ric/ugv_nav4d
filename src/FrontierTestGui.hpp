@@ -48,7 +48,7 @@ private:
     std::shared_ptr<FrontierGenerator> frontGen;
     base::Vector3d robotPos;
     base::Vector3d goalPos;
-    FrontierGenerator::CostFunctionParameters costParams;
+    CostFunctionParameters costParams;
     QDoubleSpinBox* distToGoalFactorSpinBox;
     QDoubleSpinBox* distFromStartFactorSpinBox;
     QDoubleSpinBox* explorableFactorSpinBox;

@@ -3,6 +3,7 @@
 #include <base/samples/RigidBodyState.hpp>
 #include <maps/grid/TraversabilityMap3d.hpp>
 #include "TravGenNode.hpp"
+#include "Config.hpp"
 
 
 namespace ugv_nav4d 
@@ -15,17 +16,6 @@ class FrontierGenerator
 {
     
 public:
-
-struct CostFunctionParameters
-{
-    /** How important is the distance from the node to the goal position  */
-    double distToGoalFactor = 1.0;
-    /** How important is the distance from the start node */
-    double distFromStartFactor = 1.0;
-    /**How important is the size of the explorable area around the frontier node */
-    double explorableFactor = 1.0;
-};
-    
     FrontierGenerator(const TraversabilityConfig& travConf,
                       const CostFunctionParameters& costParams);
     

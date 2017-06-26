@@ -23,6 +23,7 @@ rock_library(ugv_nav4d
         CollisionCheck.cpp
         AreaExplorer.cpp
     HEADERS 
+        Config.hpp
         DiscreteTheta.hpp
         EnvironmentXYZTheta.hpp
         Planner.hpp

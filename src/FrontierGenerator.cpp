@@ -404,7 +404,7 @@ double FrontierGenerator::calcExplorablePatches(const TravGenNode* node) const
     return explorablePatches;
 }
 
-void FrontierGenerator::updateCostParameters(const FrontierGenerator::CostFunctionParameters& params)
+void FrontierGenerator::updateCostParameters(const CostFunctionParameters& params)
 {
     costParams = params;
 }
