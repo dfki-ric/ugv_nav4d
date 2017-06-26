@@ -9,6 +9,9 @@
 #include "PreComputedMotions.hpp"
 #include "UgvDebug.hpp"
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
+#include <boost/filesystem.hpp>
+#include <pcl/io/ply_io.h>
+#include <pcl/common/common.h>
 
 
 PlannerGui::PlannerGui(int argc, char** argv): QObject()
@@ -322,6 +325,7 @@ void PlannerGui::loadMls(const std::string& path)
     
     if(path.find("graph_mls_kalman") != std::string::npos)
     {
+        std::cout << "Loading Graph " << std::endl;
         try
         {
             envire::core::EnvireGraph g;
@@ -331,20 +335,48 @@ void PlannerGui::loadMls(const std::string& path)
             planner->updateMap(mlsMap);
             return;
         }
-        catch(...) {}   
-    }
-    else
-    {
-        try
-        {
-            boost::archive::binary_iarchive mlsIn(fileIn);
-            mlsIn >> mlsMap;
-            mlsViz.updateMLSKalman(mlsMap);
-            planner->updateMap(mlsMap);
-            return;
-        }
         catch(...) {}
     }
+
+    if(path.find(".ply") != std::string::npos)
+    {
+        std::cout << "Loading PLY" << std::endl;
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
+        pcl::PLYReader plyReader;
+        if(plyReader.read(path, *cloud) >= 0)
+        {
+            pcl::PointXYZ mi, ma; 
+            pcl::getMinMax3D (*cloud, mi, ma); 
+            
+            double mls_res = 0.1;
+            double size_x = std::max(ma.x, -std::min<float>(mi.x, 0.0)) * 2.0;
+            double size_y = std::max(ma.y, -std::min<float>(mi.y, 0.0)) * 2.0;
+            
+            std::cout << "MIN: " << mi << ", MAX: " << ma << std::endl;
+            maps::grid::MLSConfig cfg;
+            mlsMap = maps::grid::MLSMapKalman(maps::grid::Vector2ui(size_x / mls_res, size_y / mls_res), maps::grid::Vector2d(mls_res, mls_res), cfg);
+            mlsMap.translate(base::Vector3d(- size_x / 2.0, - size_y / 2.0, 0));
+            base::TransformWithCovariance tf = base::TransformWithCovariance::Identity();
+            tf.cov.setZero();
+            mlsMap.mergePointCloud(*cloud, tf);
+            mlsViz.updateMLSKalman(mlsMap);
+            planner->updateMap(mlsMap);
+        }
+        return;
+    }
+
+    
+    
+    try
+    {
+        std::cout << "Loading MLS" << std::endl;
+        boost::archive::binary_iarchive mlsIn(fileIn);
+        mlsIn >> mlsMap;
+        mlsViz.updateMLSKalman(mlsMap);
+        planner->updateMap(mlsMap);
+        return;
+    }
+    catch(...) {}
     
 
     std::cerr << "Unabled to load mls. Unknown format" << std::endl;
