@@ -4,24 +4,6 @@
 #include <maps/grid/TraversabilityMap3d.hpp>
 #include "TravGenNode.hpp"
 
-/* Konzept
- * - Eine Liste mit bewerteten frontiers rausgeben.
- * - sortiert nach einer bewertungsfunktion
- * - nicht die frontiers selber rausgeben sondern jeweils den nächsten erreichbaren patch auf dem der roboter stehen kann
- * - TODO wie behandlet man die ziel orientierung?
- *    - Man gibt nur patches raus wo der bot in jeder orientierung stehen kann? Das geht schief bei hängen
- *    - Man gibt für den patch eine liste von erlaubten orientierungen mit raus
- *    - Der User muss die zielorientierung mit angeben und hat dann halt pech wenns nicht klappt?
- * 
- * 
- * - Karte vom Bunker mal laden zum testen
- * 
- *  Stefan Hase
- * Altes exploration modul: https://git.hb.dfki.de/dfki-planning/exploration
- *                          + orogen_exploration
- * 
- * */
-
 
 namespace ugv_nav4d 
 {
