@@ -8,12 +8,10 @@ namespace ugv_nav4d
 class FrontierGenerator;
     
 
-class Area
+struct Box
 {
-public:
-    virtual Eigen::Vector3d getCenter() const = 0;
-    virtual bool isInside(const Eigen::Vector3d& point) const = 0;
-    virtual ~Area() {}
+    base::Vector3d center;
+    base::Vector3d halfLengths;
 };
 
 class AreaExplorer
@@ -28,7 +26,7 @@ public:
      * @return False if there are no more frontiers inside the specified area. True otherwise
      */
     bool getFrontiers(const Eigen::Vector3d& currentRobotPosition,
-                      const std::shared_ptr<Area> areaToExplore,
+                      const Box& areaToExplore,
                       std::vector<base::samples::RigidBodyState>& outFrontiers);
     
 private:

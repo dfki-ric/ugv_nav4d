@@ -9,7 +9,7 @@ AreaExplorer::AreaExplorer(std::shared_ptr< ugv_nav4d::FrontierGenerator > front
 {}
 
 bool AreaExplorer::getFrontiers(const Eigen::Vector3d& currentRobotPosition,
-                                const std::shared_ptr< ugv_nav4d::Area > areaToExplore,
+                                const Box& areaToExplore,
                                 std::vector<base::samples::RigidBodyState>& outFrontiers)
 {
 //     frontGen->updateRobotPos(currentRobotPosition);
