@@ -8,10 +8,18 @@ namespace ugv_nav4d
 class FrontierGenerator;
     
 
-struct Box
+class Box
 {
+public:
+    Box(const base::Vector3d& center, double size);
+    Box(const base::Vector3d& center, const base::Vector3d& dimensions);
+    
+    bool isInside(const base::Vector3d& point) const;
+    
     base::Vector3d center;
-    base::Vector3d halfLengths;
+    base::Vector3d min;
+    base::Vector3d max;
+    
 };
 
 class AreaExplorer
