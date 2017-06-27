@@ -11,14 +11,15 @@ class FrontierGenerator;
 class Box
 {
 public:
-    Box(const base::Vector3d& center, double size);
-    Box(const base::Vector3d& center, const base::Vector3d& dimensions);
+    Box(const base::Vector3d& center, double size, const base::Quaterniond& orientation);
+    Box(const base::Vector3d& center, const base::Vector3d& dimensions, const base::Quaterniond& orientation);
     
-    bool isInside(const base::Vector3d& point) const;
+    bool isInside(base::Vector3d point) const;
     
     base::Vector3d center;
     base::Vector3d min;
     base::Vector3d max;
+    base::Quaterniond orientation;
     
 };
 

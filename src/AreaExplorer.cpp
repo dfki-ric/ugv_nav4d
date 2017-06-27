@@ -18,32 +18,37 @@ bool AreaExplorer::getFrontiers(const Eigen::Vector3d& currentRobotPosition,
 
     for(const base::samples::RigidBodyState& frontier : outFrontiers)
     {
-        if(!areaToExplore.isInside(frontier.position))
+        if(areaToExplore.isInside(frontier.position))
         {
-            return false;
+            return true;
         }
     }
-    return true;
+    return false;
 }
 
-Box::Box(const base::Vector3d& center, const base::Vector3d& dimensions)
+Box::Box(const base::Vector3d& center, const base::Vector3d& dimensions, const base::Quaterniond& orientation) : 
+    center(center), orientation(orientation)
 {
     const base::Vector3d halfSize = dimensions / 2.0;
-    min = center - halfSize;
-    max = center + halfSize;
+    min = -halfSize;
+    max = halfSize;
 }
 
-Box::Box(const base::Vector3d& center, double size) : center(center)
+Box::Box(const base::Vector3d& center, double size, const base::Quaterniond& orientation) :
+    center(center), orientation(orientation)
 {
     const double halfSize = size / 2.0;
-    min = center.array() - halfSize;
-    max = center.array() + halfSize;
+    min.array() = -halfSize;
+    max.array() = halfSize;
 }
 
 
-
-bool Box::isInside(const base::Vector3d& p) const
+bool Box::isInside(base::Vector3d p) const
 {
+    //move p to box coorindate system 
+    p = p - center;
+    p = orientation.inverse() * p;
+    
     return p.x() >= min.x() && p.x() <= max.x() &&
            p.y() >= min.y() && p.y() <= max.y() &&
            p.z() >= min.z() && p.z() <= max.z();
