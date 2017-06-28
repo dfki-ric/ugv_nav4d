@@ -13,32 +13,33 @@ endif()
 
 rock_library(ugv_nav4d
     SOURCES 
+        AreaExplorer.cpp
+        CollisionCheck.cpp
         DiscreteTheta.cpp
         EnvironmentXYZTheta.cpp
+        FrontierGenerator.cpp
+        OrientedBox.cpp
         Planner.cpp
         PreComputedMotions.cpp
         TraversabilityGenerator3d.cpp
         TravGenDebugData.cpp
-        FrontierGenerator.cpp
-        CollisionCheck.cpp
-        AreaExplorer.cpp
     HEADERS 
-        Box.hpp
+        AreaExplorer.hpp
         Config.hpp
+        CollisionCheck.hpp
         DiscreteTheta.hpp
+        FrontierGenerator.hpp
         EnvironmentXYZTheta.hpp
+        EnvironmentXYZThetaDebugData.hpp
+        OrientedBox.hpp
         Planner.hpp
         PreComputedMotions.hpp
         TraversabilityGenerator3d.hpp
         TravGenNode.hpp
         TraversabilityConfig.hpp
         TravGenDebugData.hpp
-        UgvDebug.hpp
-        EnvironmentXYZThetaDebugData.hpp
         TravMapBfsVisitor.hpp
-        FrontierGenerator.hpp
-        CollisionCheck.hpp
-        AreaExplorer.hpp
+        UgvDebug.hpp
     DEPS_PKGCONFIG 
         base-types 
         sbpl

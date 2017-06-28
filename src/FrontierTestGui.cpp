@@ -214,7 +214,7 @@ void FrontierTestGui::getFrontiersButtonReleased()
 
 void FrontierTestGui::generateFrontier()
 {
-    Box areaToExplore(goalPos, getBoxSize(), getBoxOrientation());
+    OrientedBox areaToExplore(goalPos, getBoxSize(), getBoxOrientation());
     std::vector<base::samples::RigidBodyState> frontiers;
     const bool result = areaExplorer->getFrontiers(robotPos, areaToExplore, frontiers);
     

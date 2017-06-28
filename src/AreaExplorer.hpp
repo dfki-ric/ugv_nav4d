@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <base/samples/RigidBodyState.hpp>
-#include "Box.hpp"
+#include "OrientedBox.hpp"
 
 namespace ugv_nav4d 
 {
@@ -20,7 +20,7 @@ public:
      * @return False if there are no more frontiers inside the specified area. True otherwise
      */
     bool getFrontiers(const Eigen::Vector3d& currentRobotPosition,
-                      const Box& areaToExplore,
+                      const OrientedBox& areaToExplore,
                       std::vector<base::samples::RigidBodyState>& outFrontiers);
     
 private:
