@@ -17,13 +17,17 @@ public:
     OrientedBox(const OrientedBoxConfig &config);
     OrientedBox(const base::Vector3d& center, double size, const base::Quaterniond& orientation);
     OrientedBox(const base::Vector3d& center, const base::Vector3d& dimensions, const base::Quaterniond& orientation);
-    
+
+    const Eigen::Vector3d &getCenter() const
+    {
+        return center;
+    }
+
     bool isInside(base::Vector3d point) const;
-    
-    base::Vector3d center;
-    base::Vector3d min;
-    base::Vector3d max;
-    base::Quaterniond orientation;
-    
+
+private:    
+    Eigen::AlignedBox3d box;
+    Eigen::Vector3d center;
+    Eigen::Quaterniond orientation;
 };
 }

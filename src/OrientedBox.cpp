@@ -6,16 +6,21 @@ OrientedBox::OrientedBox(const base::Vector3d& center, const base::Vector3d& dim
     center(center), orientation(orientation)
 {
     const base::Vector3d halfSize = dimensions / 2.0;
-    min = -halfSize;
-    max = halfSize;
+    Eigen::Vector3d min = -halfSize;
+    Eigen::Vector3d max = halfSize;
+    
+    box = Eigen::AlignedBox3d(min, max);
 }
 
 OrientedBox::OrientedBox(const base::Vector3d& center, double size, const base::Quaterniond& orientation) :
-    center(center), orientation(orientation)
+    OrientedBox(center, base::Vector3d(size, size, size), orientation)
 {
-    const double halfSize = size / 2.0;
-    min.array() = -halfSize;
-    max.array() = halfSize;
+}
+
+OrientedBox::OrientedBox(const OrientedBoxConfig& config) :
+    OrientedBox(config.center, config.dimensions, config.orientation)
+{
+
 }
 
 
@@ -25,9 +30,7 @@ bool OrientedBox::isInside(base::Vector3d p) const
     p = p - center;
     p = orientation.inverse() * p;
     
-    return p.x() >= min.x() && p.x() <= max.x() &&
-           p.y() >= min.y() && p.y() <= max.y() &&
-           p.z() >= min.z() && p.z() <= max.z();
+    return box.contains(p);
 }
 
 

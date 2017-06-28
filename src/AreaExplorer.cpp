@@ -13,7 +13,7 @@ bool AreaExplorer::getFrontiers(const Eigen::Vector3d& currentRobotPosition,
                                 std::vector<base::samples::RigidBodyState>& outFrontiers)
 {
     frontGen->updateRobotPos(currentRobotPosition);
-    frontGen->updateGoalPos(areaToExplore.center);
+    frontGen->updateGoalPos(areaToExplore.getCenter());
     outFrontiers = frontGen->getNextFrontiers();
 
     for(const base::samples::RigidBodyState& frontier : outFrontiers)
