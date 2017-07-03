@@ -22,6 +22,11 @@ public:
     {
         return center;
     }
+    
+    const Eigen::Quaterniond& getOrientation() const
+    {
+        return orientation;
+    }
 
     bool isInside(base::Vector3d point) const;
 
