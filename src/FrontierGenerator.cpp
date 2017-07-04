@@ -83,9 +83,11 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
     travGen.expandAll(startNode);
     
     const std::vector<const TravGenNode*> frontier(getFrontierPatches());
-
     if(frontier.size() == 0)
+    {
+        std::cout << "No frontiers found" << std::endl;
         return result;
+    }
 
     const std::vector<NodeWithOrientation> frontierWithOrientation(getFrontierOrientation(frontier));
     const std::vector<NodeWithOrientation> nodesWithoutCollisions(getCollisionFreeNeighbor(frontierWithOrientation));
@@ -203,11 +205,49 @@ std::vector<const TravGenNode*> FrontierGenerator::getFrontierPatches() const
 
 std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const std::vector<const TravGenNode*>& frontier) const
 {
-    //FIXME determine orientation somehow
+    //sobel filter is used to get an estimate of the edge direction
+    const int yOp[3][3] = {{1,0,-1},
+                           {2,0,-2},
+                           {1,0,-1}};
+    const int xOp[3][3] = {{1,2,1},
+                           {0,0,0},
+                           {-1,-2,-1}};
+    
+
     std::vector<NodeWithOrientation> frontierWithOrientation;
     for(const TravGenNode* frontierPatch : frontier)
     {
-        frontierWithOrientation.push_back(NodeWithOrientation{frontierPatch, 1.5708});
+        int xSum = 0;
+        int ySum = 0;
+        const maps::grid::Index i = frontierPatch->getIndex();
+        
+        for(int x = -1; x < 2; ++x)
+        {
+            for(int y = -1; y < 2; ++y)
+            {
+                const maps::grid::Index neighborIndex(x + i.x(), y + i.y());
+                if(travGen.getTraversabilityMap().inGrid(neighborIndex))
+                {
+                    const TravGenNode* neighbor = frontierPatch->getConnectedNode(neighborIndex);
+                    if(neighbor != nullptr)
+                    {
+                        xSum += xOp[x + 1][y + 1];
+                        ySum += yOp[x + 1][y + 1];
+                    }
+                }
+            }
+        } 
+        const double orientation = atan2(ySum, xSum);
+        frontierWithOrientation.push_back(NodeWithOrientation{frontierPatch, orientation});
+        
+         COMPLEX_DRAWING(
+        
+            Eigen::Vector3d start(i.x() * travConf.gridResolution + travConf.gridResolution / 2.0, i.y() * travConf.gridResolution + travConf.gridResolution / 2.0, frontierPatch->getHeight());
+            start = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * start;
+            Eigen::Vector3d end((i.x() + xSum) * travConf.gridResolution + travConf.gridResolution / 2.0, (i.y() + ySum) * travConf.gridResolution + travConf.gridResolution / 2.0, frontierPatch->getHeight());
+            end = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * end;
+            DRAW_LINE("edge direction", start, end, vizkit3dDebugDrawings::Color::cyan);
+        );
     }
     return std::move(frontierWithOrientation);
 }
