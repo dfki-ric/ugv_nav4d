@@ -12,7 +12,7 @@ using namespace maps::grid;
 namespace ugv_nav4d
 {
 
-TraversabilityGenerator3d::TraversabilityGenerator3d(const TraversabilityConfig& config) : config(config)
+TraversabilityGenerator3d::TraversabilityGenerator3d(const TraversabilityConfig& config) : addInitialPatch(false), config(config)
 {
     trMap.setResolution(Eigen::Vector2d(config.gridResolution, config.gridResolution));
     UGV_DEBUG(
@@ -24,6 +24,19 @@ TraversabilityGenerator3d::TraversabilityGenerator3d(const TraversabilityConfig&
 TraversabilityGenerator3d::~TraversabilityGenerator3d()
 {
     clearTrMap();
+}
+
+void TraversabilityGenerator3d::setInitialPatch(const Eigen::Affine3d& body2Mls, double distToGround, double patchRadius)
+{
+    Eigen::Affine3d body2Ground(Eigen::Affine3d::Identity());
+    body2Ground.translation() = Eigen::Vector3d(0, 0, distToGround);
+    initialPatch2Mls = body2Mls * body2Ground.inverse();
+    addInitialPatch = true;
+    
+    this->patchRadius = patchRadius;
+    
+    if(mlsGrid)
+        addInitialPatchToMLS();    
 }
 
 const maps::grid::TraversabilityMap3d<TravGenNode *> & TraversabilityGenerator3d::getTraversabilityMap() const
@@ -364,10 +377,68 @@ void TraversabilityGenerator3d::expandAll(TravGenNode* startNode)
     std::cout << "Expanded " << cnd << " nodes" << std::endl;
 }
 
+void TraversabilityGenerator3d::addInitialPatchToMLS()
+{
+    std::cout << "Adding Initial Patch" << std::endl;
+    const Vector2d res = mlsGrid->getResolution();
+    
+//         const double sizeHalfX = config.robotSizeX / 2.0;
+//         const double sizeHalfY = config.robotSizeY / 2.0;
+
+    const double sizeHalfX = patchRadius;
+    const double sizeHalfY = patchRadius;
+    
+    //we oversample by factor 2 to account for aliasing
+    for(double x = -sizeHalfX; x <= sizeHalfX; x += res.x() / 2.0)
+    {
+        for(double y = -sizeHalfY; y <= sizeHalfY; y += res.y() / 2.0)
+        {
+            if(Vector2d(x,y).norm() > patchRadius)
+                continue;
+            
+            Vector3d pos(x, y, 0);
+            Vector3d posMLS = initialPatch2Mls * pos;
+            
+            Index idx;
+            if(!mlsGrid->toGrid(posMLS, idx))
+            {
+                std::cout << "Something is wrong, inital position is outside of MLS !" << std::endl;
+                continue;
+            }
+            
+            auto &ll = mlsGrid->at(idx);
+            
+            bool hasPatch = false;
+            for(const SurfacePatchBase &p: ll)
+            {
+                if(p.isCovered(posMLS.z(), 0.05))
+                {
+                    hasPatch = true;
+                    std::cout << "Found Patch at " << posMLS.transpose() << std::endl;
+                    break;
+                }
+            }
+            
+            if(hasPatch)
+                continue;
+            
+            SurfacePatchBase newPatch(posMLS.z());
+            std::cout << "Adding Patch at " << posMLS.transpose() << std::endl;
+            
+            ll.insert(newPatch);
+        }
+    }
+
+}
 
 void TraversabilityGenerator3d::setMLSGrid(boost::shared_ptr< MLGrid >& grid)
 {
     mlsGrid = grid;
+    
+    if(addInitialPatch)
+    {
+        addInitialPatchToMLS();
+    }
     
     std::cout << "Grid has size " << grid->getSize().transpose() << " resolution " << grid->getResolution().transpose() << std::endl;
     std::cout << "Internal resolution is " << trMap.getResolution().transpose() << std::endl;

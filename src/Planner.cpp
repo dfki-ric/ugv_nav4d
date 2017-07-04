@@ -21,8 +21,10 @@ Planner::Planner(const motion_planning_libraries::SplinePrimitivesConfig& primit
     setTravConfig(traversabilityConfig);
 }
 
-
-
+void Planner::setInitialPatch(const Eigen::Affine3d& body2Mls, double distToGround, double patchRadius)
+{
+    env->setInitialPatch(body2Mls, distToGround, patchRadius);
+}
 
 bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& start,
               const base::samples::RigidBodyState& end, std::vector<base::Trajectory>& resultTrajectory)

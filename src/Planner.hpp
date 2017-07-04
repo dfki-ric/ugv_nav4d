@@ -44,6 +44,8 @@ public:
         }
     }
     
+    void setInitialPatch(const Eigen::Affine3d &body2Mls, double distToGround, double patchRadius);
+    
     /** Plan a path from @p start to @p end.
      * @param maxTime Maximum processor time to use.
      * */

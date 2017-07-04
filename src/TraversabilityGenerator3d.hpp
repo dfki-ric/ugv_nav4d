@@ -31,6 +31,10 @@ private:
     
     
     boost::shared_ptr<MLGrid > mlsGrid;
+    bool addInitialPatch;
+    Eigen::Affine3d initialPatch2Mls;
+    double patchRadius;
+    
     maps::grid::TraversabilityMap3d<TravGenNode*> trMap;
     int currentNodeId = 0; //used while expanding
     
@@ -55,12 +59,17 @@ private:
     double interpolate(double x, double x0, double y0, double x1, double y1) const;
     
     TraversabilityConfig config;
+    
+    void addInitialPatchToMLS();
+    
 public:
     TraversabilityGenerator3d(const TraversabilityConfig &config);
 
     ~TraversabilityGenerator3d();
 
     void clearTrMap();
+    
+    void setInitialPatch(const Eigen::Affine3d &body2Mls, double distToGround, double patchRadius);
     
     TravGenNode *generateStartNode(const Eigen::Vector3d &startPosWorld);
     void expandAll(const Eigen::Vector3d &startPosWorld);

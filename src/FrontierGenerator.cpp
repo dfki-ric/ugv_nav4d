@@ -35,6 +35,11 @@ FrontierGenerator::FrontierGenerator(const TraversabilityConfig& travConf,
 {
 }
 
+void FrontierGenerator::setInitialPatch(const Eigen::Affine3d& body2Mls, double distToGround, double patchRadius)
+{
+    travGen.setInitialPatch(body2Mls, distToGround, patchRadius);
+}
+
 void FrontierGenerator::updateGoalPos(const base::Vector3d& _goalPos)
 {
     goalPos = _goalPos;

@@ -111,7 +111,8 @@ public:
     virtual ~EnvironmentXYZTheta();
     
     void updateMap(boost::shared_ptr<MLGrid > mlsGrid);
-    
+    void setInitialPatch(const Eigen::Affine3d &body2Mls, double distToGround, double patchRadius);
+
     virtual bool InitializeEnv(const char* sEnvFile);
     virtual bool InitializeMDPCfg(MDPConfig* MDPCfg);
     

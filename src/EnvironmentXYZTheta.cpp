@@ -100,6 +100,11 @@ EnvironmentXYZTheta::~EnvironmentXYZTheta()
     clear();
 }
 
+void EnvironmentXYZTheta::setInitialPatch(const Eigen::Affine3d& body2Mls, double distToGround, double patchRadius)
+{
+    travGen.setInitialPatch(body2Mls, distToGround, patchRadius);
+}
+
 void EnvironmentXYZTheta::updateMap(boost::shared_ptr< EnvironmentXYZTheta::MLGrid > mlsGrid)
 {
     if(this->mlsGrid && this->mlsGrid->getResolution() != mlsGrid->getResolution())
