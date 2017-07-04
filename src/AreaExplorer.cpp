@@ -1,5 +1,6 @@
 #include "AreaExplorer.hpp"
 #include "FrontierGenerator.hpp"
+#include <vizkit3d_debug_drawings/DebugDrawing.h>
 
 namespace ugv_nav4d 
 {
@@ -12,6 +13,18 @@ bool AreaExplorer::getFrontiers(const Eigen::Vector3d& currentRobotPosition,
                                 const OrientedBox& areaToExplore,
                                 std::vector<base::samples::RigidBodyState>& outFrontiers)
 {
+
+     COMPLEX_DRAWING(
+        
+        base::Vector3d size;
+        size.x() = std::abs(areaToExplore.getBox().max().x() - areaToExplore.getBox().min().x());
+        size.y() = std::abs(areaToExplore.getBox().max().y() - areaToExplore.getBox().min().y());
+        size.z() = std::abs(areaToExplore.getBox().max().z() - areaToExplore.getBox().min().z());
+        CLEAR_DRAWING("Exploration_Area");
+        DRAW_WIREFRAME_BOX("Exploration_Area", areaToExplore.getCenter(), areaToExplore.getOrientation(), size,vizkit3dDebugDrawings::Color::amber);
+     );
+    
+    
     frontGen->updateRobotPos(currentRobotPosition);
     frontGen->updateGoalPos(areaToExplore.getCenter());
     outFrontiers = frontGen->getNextFrontiers();
