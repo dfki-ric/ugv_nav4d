@@ -54,7 +54,7 @@ bool CollisionCheck::checkCollision(const TravGenNode* node, double zRot,
             {
                 //found at least one patch that is inside the oriented boundingbox
                  COMPLEX_DRAWING(
-                    maps::grid::Vector3d drawPos;
+                    maps::grid::Vector3d drawPos(0, 0, 0);
                     mls->fromGrid(idx, drawPos);
                     drawPos.z() = p.getMax();
                     DRAW_CYLINDER("collisions", drawPos, base::Vector3d(0.02, 0.02, 0.4), vizkit3dDebugDrawings::Color::red);
