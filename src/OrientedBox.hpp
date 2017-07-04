@@ -27,6 +27,11 @@ public:
     {
         return orientation;
     }
+    
+    const Eigen::AlignedBox3d& getBox() const
+    {
+        return box;
+    }
 
     bool isInside(base::Vector3d point) const;
 
