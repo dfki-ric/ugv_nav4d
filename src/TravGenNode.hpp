@@ -2,6 +2,7 @@
 #include <base/Eigen.hpp>
 #include <maps/grid/TraversabilityMap3d.hpp>
 #include <boost/serialization/serialization.hpp>
+#include <base/Angle.hpp>
 
 namespace ugv_nav4d
 {
@@ -14,6 +15,9 @@ struct TravGenTrackingData
     Eigen::Vector3d slopeDirection; //normalized direction of the maximum slope. Only valid if slope > 0
     double slopeDirectionAtan2; // = atan2(slopeDirection.y(), slopeDirection.x()), i.e. angle of slopeDirection projected on the xy plane.
     size_t id; //continuous unique id  that can be used as index for additional metadata
+    /**Some orientations might be forbidden on this patch (e.g. due to slope). This vector
+     * contains all orientations that are allowed*/
+    std::vector<base::AngleSegment> allowedOrientations;
     
     /** Serializes the members of this class*/
     template<class Archive>
@@ -29,6 +33,7 @@ struct TravGenTrackingData
         ar & slopeDirection.z();
         ar & slopeDirectionAtan2;
         ar & id;
+        ar & allowedOrientations;
     }
 };
 

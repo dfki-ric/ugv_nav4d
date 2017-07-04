@@ -43,12 +43,16 @@ private:
     
     bool checkForObstacles(TravGenNode* node);
     
+    /** @return false if no allowed orientation was found (e.g. due to extreme slope)*/
+    bool computeAllowedOrientations(TravGenNode* node);
+    
     bool checkForUnknown(TravGenNode* node);
     
     void addConnectedPatches(TravGenNode* node);
 
     bool getConnectedPatch(const maps::grid::Index& idx, double height, const Patch*& patch);
     
+    double interpolate(double x, double x0, double y0, double x1, double y1) const;
     
     TraversabilityConfig config;
 public:

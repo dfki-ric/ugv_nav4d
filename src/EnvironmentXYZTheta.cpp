@@ -567,34 +567,22 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
 bool EnvironmentXYZTheta::checkOrientationAllowed(const TravGenNode* node,
                                 const base::Orientation2D& orientationRad) const
-{
-    if(node->getUserData().slope < travConf.inclineLimittingMinSlope) 
-        return true;
+{   
+    //otherwise something whent wrong when generating the map
+    assert(node->getUserData().allowedOrientations.size() > 0);
     
-    const double limitRad = interpolate(node->getUserData().slope, travConf.inclineLimittingMinSlope,
-                                     M_PI_2, travConf.maxSlope, travConf.inclineLimittingLimit);
-    const double startRad = node->getUserData().slopeDirectionAtan2 - limitRad;
-    const double width = 2 * limitRad;
-    assert(width >= 0);//this happens if the travmap was generated with a different maxSlope than travConf.maxSlope
-    
-    const base::AngleSegment segment(base::Angle::fromRad(startRad), width);
-    const base::AngleSegment segmentMirrored(base::Angle::fromRad(startRad - M_PI), width);
     const base::Angle orientation = base::Angle::fromRad(orientationRad);
-    const bool isInside = segment.isInside(orientation) || segmentMirrored.isInside(orientation);
-
-    
-    UGV_DEBUG(
-        debugData.orientationCheck(node, segment, segmentMirrored, orientation, isInside);
-    )
+    bool isInside = false;
+    for(const base::AngleSegment& segment : node->getUserData().allowedOrientations)
+    {
+        if(segment.isInside(orientation))
+        {
+            isInside = true;
+            break;
+        }
+    }
     return isInside;
 }
-
-double EnvironmentXYZTheta::interpolate(double x, double x0, double y0, double x1, double y1) const
-{
-    //linear interpolation
-    return y0 + (x - x0) * (y1 - y0)/(x1-x0);
-}
-
 
 
 bool EnvironmentXYZTheta::checkCollisions(const std::vector<TravGenNode*>& path,

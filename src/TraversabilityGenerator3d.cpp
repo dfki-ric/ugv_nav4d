@@ -147,6 +147,44 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node, const View
     return true;
 }
 
+bool TraversabilityGenerator3d::computeAllowedOrientations(TravGenNode* node)
+{
+
+    if(node->getUserData().slope >= config.maxSlope)
+        return false;
+    
+        
+    if(node->getUserData().slope < config.inclineLimittingMinSlope) 
+    {
+        //all orientations allowed below the slope limit
+        node->getUserData().allowedOrientations.emplace_back(base::Angle::fromRad(0), 2 * M_PI);
+    }
+    else
+    {
+        //only allow orientations 
+        const double limitRad = interpolate(node->getUserData().slope, config.inclineLimittingMinSlope,
+                                         M_PI_2, config.maxSlope, config.inclineLimittingLimit);
+        const double startRad = node->getUserData().slopeDirectionAtan2 - limitRad;
+        const double width = 2 * limitRad;
+        assert(width >= 0);//this happens if the travmap was generated with a different maxSlope than config.maxSlope
+        const base::AngleSegment segment(base::Angle::fromRad(startRad), width);
+        const base::AngleSegment segmentMirrored(base::Angle::fromRad(startRad - M_PI), width);
+        node->getUserData().allowedOrientations.emplace_back(base::Angle::fromRad(startRad), width);
+        node->getUserData().allowedOrientations.emplace_back(base::Angle::fromRad(startRad - M_PI), width);
+    }
+    
+    return true;
+}
+
+
+
+double TraversabilityGenerator3d::interpolate(double x, double x0, double y0, double x1, double y1) const
+{
+    //linear interpolation
+    return y0 + (x - x0) * (y1 - y0)/(x1-x0);
+}
+
+
 double TraversabilityGenerator3d::computeSlope(const Eigen::Hyperplane< double, int(3) >& plane) const
 {
     const Eigen::Vector3d zNormal(Eigen::Vector3d::UnitZ());
@@ -414,6 +452,12 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
     }
 
     if(!checkForObstacles(node))
+    {
+        node->setType(TraversabilityNodeBase::OBSTACLE);
+        return false;
+    }
+    
+    if(!computeAllowedOrientations(node))
     {
         node->setType(TraversabilityNodeBase::OBSTACLE);
         return false;
