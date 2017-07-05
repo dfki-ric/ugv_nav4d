@@ -80,7 +80,7 @@ bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyStat
 
     planner->set_eps_step(0.5);
     
-    std::vector<int> solutionIds;
+    solutionIds.clear();
     if(!planner->replan(maxTime.toSeconds(), &solutionIds))
     {
         std::cout << "num expands: " << planner->get_n_expands() << std::endl;
@@ -102,6 +102,11 @@ bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyStat
     
     env->getTrajectory(solutionIds, resultTrajectory);
     return true;
+}
+
+std::vector< Motion > Planner::getMotions() const
+{
+    return env->getMotions(solutionIds);
 }
 
 

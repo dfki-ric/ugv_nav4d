@@ -24,6 +24,7 @@ protected:
     const motion_planning_libraries::SplinePrimitivesConfig splinePrimitiveConfig; 
     const motion_planning_libraries::Mobility mobility;
     TraversabilityConfig traversabilityConfig;
+    std::vector<int> solutionIds;
     
 public:
     Planner(const motion_planning_libraries::SplinePrimitivesConfig &primitiveConfig, const TraversabilityConfig &traversabilityConfig,
@@ -45,6 +46,8 @@ public:
     }
     
     void setInitialPatch(const Eigen::Affine3d &body2Mls, double distToGround, double patchRadius);
+    
+    std::vector<Motion> getMotions() const;
     
     /** Plan a path from @p start to @p end.
      * @param maxTime Maximum processor time to use.
