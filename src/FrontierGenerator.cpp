@@ -242,8 +242,26 @@ std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const
                 }
             }
         } 
-        const double orientation = atan2(ySum, xSum);
-        frontierWithOrientation.push_back(NodeWithOrientation{frontierPatch, orientation});
+        
+        base::Angle orientation = base::Angle::fromRad(atan2(ySum, xSum));
+        //check if frontier is allowed, if not use the closest allowed frontier
+        bool orientationAllowed = false;
+        for(const base::AngleSegment& allowedOrientation : frontierPatch->getUserData().allowedOrientations)
+        {
+            if(allowedOrientation.isInside(orientation))
+            {
+                orientationAllowed = true;
+                break;
+            }
+        }
+        if(!orientationAllowed)
+        {
+            const base::AngleSegment& firstSegment = frontierPatch->getUserData().allowedOrientations[0];
+            orientation = firstSegment.getStart();
+            orientation += base::Angle::fromRad(firstSegment.getWidth() / 2.0);
+        }
+        
+        frontierWithOrientation.push_back(NodeWithOrientation{frontierPatch, orientation.getRad()});
         
          COMPLEX_DRAWING(
         
