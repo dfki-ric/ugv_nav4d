@@ -160,6 +160,10 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
 void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
 {
     
+    CLEAR_DRAWING("env_goalPos");
+    DRAW_ARROW("env_goalPos", goalPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
+               base::Vector3d(1,1,1), vizkit3dDebugDrawings::Color::red);
+    
     if(!startXYZNode)
         throw std::runtime_error("Error, start needs to be set before goal");
     
@@ -172,10 +176,22 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     
     if(!CollisionCheck::checkCollision(goalXYZNode->getUserData().travNode, theta,
                                        mlsGrid, robotHalfSize, travGen))
-        throw std::runtime_error("Goal inside obstacle");
+    {
+        if(travConf.ignoreCollisions)
+        {
+            std::cout << "WARNING: Goal inside obstacle\n";
+        }
+        else
+        {
+            throw std::runtime_error("Goal inside obstacle");
+        }
+    }
     
     //NOTE If we want to precompute the heuristic (precomputeCost()) we need to expand 
     //     the whole travmap beforehand.
+    
+    std::cout << "GOAL IS: " << goalPos.transpose() << std::endl;
+    
     travGen.expandAll(startXYZNode->getUserData().travNode);
     std::cout << "All expanded " << std::endl;
     precomputeCost();
@@ -184,11 +200,17 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
 
 void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta)
 {
+    CLEAR_DRAWING("env_startPos");
+    DRAW_ARROW("env_startPos", startPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
+               base::Vector3d(1,1,1), vizkit3dDebugDrawings::Color::blue);
+    
     startThetaNode = createNewStateFromPose(startPos, theta, &startXYZNode);
     startXYZNode->getUserData().travNode->setNotExpanded();
     
     if(!checkOrientationAllowed(startXYZNode->getUserData().travNode, theta))
         throw std::runtime_error("Start orientation not allowed due to slope");
+    
+    std::cout << "START IS: " << startPos.transpose() << std::endl;
     
 }
 
@@ -468,7 +490,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         if(!travNode)
             continue;
         
-        if(!checkCollisions(nodesOnPath, motion))
+        if(!travConf.ignoreCollisions && !checkCollisions(nodesOnPath, motion))
         {
             continue;
         }

@@ -33,6 +33,7 @@ public:
         , slopeMetric(NONE)
         , heuristicType(HEURISTIC_2D)
         , gridResolution(0.0)
+        , ignoreCollisions(false)
     {};
     
     double maxStepHeight;
@@ -62,6 +63,7 @@ public:
     HeuristicType heuristicType;
     bool parallelismEnabled; //if true openMP will be used to parallelize the planning
     double gridResolution;
+    bool ignoreCollisions; //Disable all obstacle checks
 };
 
 }
