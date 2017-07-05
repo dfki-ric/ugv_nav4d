@@ -700,6 +700,9 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
     
     CLEAR_DRAWING("trajectory");
     
+    UGV_DEBUG(
+        std::vector<TravGenNode*> debugNodes;
+    )
     
     for(size_t i = 0; i < stateIDPath.size() - 1; ++i)
     {
@@ -708,10 +711,12 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         const Hash &startHash(idToHash[stateIDPath[i]]);
         const maps::grid::Index startIndex(startHash.node->getIndex());
         maps::grid::Index lastIndex = startIndex;
-        TravGenNode *curNode = startHash.node->getUserData().travNode;
-
+        TravGenNode *curNode = startHash.node->getUserData().travNode;     
         
+        curPart.attributes.names.push_back("start_" + std::to_string(i));
+        curPart.attributes.elements.push_back(std::to_string(start.x()) + "_" + std::to_string(start.y()) + "_" + std::to_string(start.z()));
         
+        size_t pwcIdx = 0;
         std::vector<base::Vector3d> positions;
         for(const PoseWithCell &pwc : curMotion.intermediateSteps)
         {
@@ -734,11 +739,13 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
             }
             
             pos.z() = curNode->getHeight();
-            
+
             if(positions.empty() || !(positions.back().isApprox(pos)))
             {
                 //need to offset by start because the poses are relative to (0/0)
                 positions.emplace_back(pos);
+                curPart.attributes.names.push_back("motion_" + std::to_string(i) + "_" + std::to_string(pwcIdx++));
+                curPart.attributes.elements.push_back(std::to_string(pos.x()) + "_" + std::to_string(pos.y()) + "_" + std::to_string(pos.z()));
             }
         }
         
