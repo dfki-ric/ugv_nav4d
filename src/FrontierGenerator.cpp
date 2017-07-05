@@ -281,6 +281,10 @@ std::vector<NodeWithOrientation> FrontierGenerator::getCollisionFreeNeighbor(con
     
     const base::Vector3d robotHalfSize(travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight / 2);
     
+    //FIXME the collisions are drawn inside CollisionCheck::checkCollision().
+    //      If they are not cleared we will run out of memory after some time.
+    CLEAR_DRAWING("collisions");
+    
     for(const NodeWithOrientation& node : nodes)
     {
         const TravGenNode* traversableNeighbor = nullptr;
