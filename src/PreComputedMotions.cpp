@@ -240,6 +240,16 @@ double PreComputedMotions::calculateCurvatureFromRadius(const double r)
     return c;
 }
 
+const std::vector< Motion >& PreComputedMotions::getMotionForStartTheta(const DiscreteTheta& theta) const
+{
+    if(theta.getTheta() >= (int)thetaToMotion.size())
+    {
+        throw std::runtime_error("Internal error, motion for requested theta ist not available. Input  theta:" + std::to_string(theta.getTheta()));
+    }
+    return thetaToMotion.at(theta.getTheta());
+}
+
+
 double Motion::costScaleFactor = 1000.0;
 
 }

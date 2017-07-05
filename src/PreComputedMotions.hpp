@@ -9,6 +9,9 @@
 #include <maps/grid/Index.hpp>
 #include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
 #include <motion_planning_libraries/sbpl/SbplSplineMotionPrimitives.hpp>
+#include <base/Trajectory.hpp>
+
+
 
 namespace motion_planning_libraries
 {
@@ -31,14 +34,14 @@ class Motion
     static double costScaleFactor;
     
 public:
-    enum class Type {
+    enum Type {
         MOV_FORWARD,
         MOV_BACKWARD,
         MOV_POINTTURN,
         MOV_LATERAL,
     };
 
-    Motion(unsigned int numAngles) : endTheta(0, numAngles),startTheta(0, numAngles), baseCost(0), id(std::numeric_limits<size_t>::max()) {};
+    Motion(unsigned int numAngles = 0) : endTheta(0, numAngles),startTheta(0, numAngles), baseCost(0), id(std::numeric_limits<size_t>::max()) {};
     
     static int calculateCost(double translationalDist, double angularDist, double translationVelocity, double angularVelocity, double costMultiplier);
     
@@ -86,14 +89,7 @@ public:
     
     void preComputeCost(Motion &motion);
     
-    const std::vector<Motion> &getMotionForStartTheta(const DiscreteTheta &theta) const
-    {
-        if(theta.getTheta() >= (int)thetaToMotion.size())
-        {
-            throw std::runtime_error("Internal error, motion for requested theta ist not available. Input  theta:" + std::to_string(theta.getTheta()));
-        }
-        return thetaToMotion.at(theta.getTheta());
-    };
+    const std::vector<Motion> &getMotionForStartTheta(const DiscreteTheta &theta) const;
     
     const Motion &getMotion(std::size_t id) const; 
     
@@ -107,5 +103,6 @@ private:
                                const motion_planning_libraries::Mobility& mobilityConfig, Motion& outMotion) const;
     
 };
+
 
 }
