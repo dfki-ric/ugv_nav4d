@@ -283,7 +283,7 @@ std::vector<NodeWithOrientation> FrontierGenerator::getCollisionFreeNeighbor(con
     
     //FIXME the collisions are drawn inside CollisionCheck::checkCollision().
     //      If they are not cleared we will run out of memory after some time.
-    CLEAR_DRAWING("collisions");
+
     
     for(const NodeWithOrientation& node : nodes)
     {
@@ -296,6 +296,7 @@ std::vector<NodeWithOrientation> FrontierGenerator::getCollisionFreeNeighbor(con
         nextFrontierPos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * nextFrontierPos;
         const double orientation = node.orientationZ;
 
+//         CLEAR_DRAWING("collisions");
         TravMapBfsVisitor::visit(node.node, 
             [&traversableNeighbor, &nextFrontierNode, &nextFrontierPos, this, orientation, &traversableNeighborPos, &robotHalfSize]
             (const TravGenNode* currentNode, bool& visitChildren, bool& abort, std::size_t distToRoot)
