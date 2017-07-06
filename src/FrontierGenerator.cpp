@@ -280,7 +280,7 @@ std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const
 }
 
 
-std::vector<NodeWithOrientation> getNodesWithoutCollision(const std::vector<NodeWithOrientation>& nodes) const
+std::vector<NodeWithOrientation> FrontierGenerator::getNodesWithoutCollision(const std::vector<NodeWithOrientation>& nodes) const
 {
     std::vector<NodeWithOrientation> result;
     const base::Vector3d robotHalfSize(travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight / 2);
@@ -299,12 +299,12 @@ std::vector<NodeWithOrientation> getNodesWithoutCollision(const std::vector<Node
 std::vector<NodeWithOrientation> FrontierGenerator::getCollisionFreeNeighbor(const std::vector<NodeWithOrientation>& nodes) const
 {
     std::vector<NodeWithOrientation> result;
-    }
     
     //FIXME the collisions are drawn inside CollisionCheck::checkCollision().
     //      If they are not cleared we will run out of memory after some time.
 
-    CLEAR_DRAWING("neighBorobstacleCheck");
+    const base::Vector3d robotHalfSize(travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight / 2);
+//     CLEAR_DRAWING("neighBorobstacleCheck");
     for(const NodeWithOrientation& node : nodes)
     {
         const TravGenNode* traversableNeighbor = nullptr;
@@ -332,7 +332,7 @@ std::vector<NodeWithOrientation> FrontierGenerator::getCollisionFreeNeighbor(con
                                        currentNode->getHeight());
                     pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
                     traversableNeighborPos = pos;
-                    DRAW_CYLINDER("neighBorobstacleCheck", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::green);
+//                     DRAW_CYLINDER("neighBorobstacleCheck", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::green);
 //                     found a nearby node that we can stand on, abort
                     abort = true;
                     
@@ -358,8 +358,7 @@ std::vector<NodeWithOrientation> FrontierGenerator::getCollisionFreeNeighbor(con
         if(traversableNeighbor != nullptr)
             result.push_back({traversableNeighbor, node.orientationZ});
     }
-    
-    
+
     return std::move(result);
 }
 
