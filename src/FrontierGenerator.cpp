@@ -94,28 +94,37 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
         return result;
     }
 
+    std::cout << "find frontiers" << std::endl;
     const std::vector<NodeWithOrientation> frontierWithOrientation(getFrontierOrientation(frontier));
+    std::cout << "found frontiers: " << frontierWithOrientation.size() << std::endl;
+    std::cout << "Removing frontiers with collisions" << std::endl;
     const std::vector<NodeWithOrientation> nodesWithoutCollisions(getNodesWithoutCollision(frontierWithOrientation));
+    std::cout << "frontiers without collision: " << nodesWithoutCollisions.size() << std::endl;
+    std::cout << "Removing duplicates" << std::endl;
     const std::vector<NodeWithOrientation> nodesWithoutDuplicates(removeDuplicates(nodesWithoutCollisions));
+    std::cout << "frontiers without duplicates: " << nodesWithoutDuplicates.size() << std::endl;
+    std::cout << "calculating costs" << std::endl;
     const std::vector<NodeWithOrientationAndCost> nodesWithCost = calculateCost(startNode, goalPos, nodesWithoutDuplicates);
+    std::cout << "sorting ndoes" << std::endl;
     const std::vector<NodeWithOrientationAndCost> sortedNodes(sortNodes(nodesWithCost));
+    std::cout << "Converting to poses" << std::endl;
     result = getPositions(sortedNodes);
-    
+    std::cout << "Done. position count: " << result.size() << std::endl;
     
     //test code:
     
     
-    COMPLEX_DRAWING(
-        CLEAR_DRAWING("nodesWithoutCollision");
-        for(const auto& node : nodesWithoutCollisions)
-        {
-            base::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
-                               node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
-                               node.node->getHeight());
-            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-            DRAW_CYLINDER("nodesWithoutCollision", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::red);
-        }
-    );
+//     COMPLEX_DRAWING(
+//         CLEAR_DRAWING("nodesWithoutCollision");
+//         for(const auto& node : nodesWithoutCollisions)
+//         {
+//             base::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
+//                                node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
+//                                node.node->getHeight());
+//             pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+//             DRAW_CYLINDER("nodesWithoutCollision", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::red);
+//         }
+//     );
     
       COMPLEX_DRAWING(
         double maxCost = 0;
@@ -138,23 +147,23 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
       );
     
     
-    COMPLEX_DRAWING(
-        CLEAR_DRAWING("frontierWithOrientation");
-        for(const NodeWithOrientation& node : frontierWithOrientation)
-        {
-            Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
-            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-            pos.z() += 0.02;
-            const double radius = travGen.getTraversabilityMap().getResolution().x() / 2.0;
-            DRAW_RING("frontierWithOrientation", pos, radius, 0.01, 0.01, vizkit3dDebugDrawings::Color::blue);
-            const Eigen::Rotation2Dd rot(node.orientationZ);
-            Eigen::Vector2d rotVec(travGen.getTraversabilityMap().getResolution().x() / 2.0, 0);
-            rotVec = rot * rotVec;
-            Eigen::Vector3d to(pos);
-            to.topRows(2) += rotVec;
-            DRAW_LINE("frontierWithOrientation", pos, to, vizkit3dDebugDrawings::Color::cyan);
-        }
-     );
+//     COMPLEX_DRAWING(
+//         CLEAR_DRAWING("frontierWithOrientation");
+//         for(const NodeWithOrientation& node : frontierWithOrientation)
+//         {
+//             Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
+//             pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+//             pos.z() += 0.02;
+//             const double radius = travGen.getTraversabilityMap().getResolution().x() / 2.0;
+//             DRAW_RING("frontierWithOrientation", pos, radius, 0.01, 0.01, vizkit3dDebugDrawings::Color::blue);
+//             const Eigen::Rotation2Dd rot(node.orientationZ);
+//             Eigen::Vector2d rotVec(travGen.getTraversabilityMap().getResolution().x() / 2.0, 0);
+//             rotVec = rot * rotVec;
+//             Eigen::Vector3d to(pos);
+//             to.topRows(2) += rotVec;
+//             DRAW_LINE("frontierWithOrientation", pos, to, vizkit3dDebugDrawings::Color::cyan);
+//         }
+//      );
      
 //     COMPLEX_DRAWING(
 //         CLEAR_DRAWING("nodesWithoutCollisions");

@@ -23,11 +23,14 @@ bool AreaExplorer::getFrontiers(const Eigen::Vector3d& currentRobotPosition,
         CLEAR_DRAWING("Exploration_Area");
         DRAW_WIREFRAME_BOX("Exploration_Area", areaToExplore.getCenter(), areaToExplore.getOrientation(), size,vizkit3dDebugDrawings::Color::amber);
      );
+    std::cout << "AREA CENTER: " << areaToExplore.getCenter().transpose() << std::endl;
     
     
     frontGen->updateRobotPos(currentRobotPosition);
     frontGen->updateGoalPos(areaToExplore.getCenter());
+    std::cout << "generating frontiers" << std::endl;
     outFrontiers = frontGen->getNextFrontiers();
+    std::cout << "generated frontiers, count: " << outFrontiers.size() << std::endl;
 
     for(const base::samples::RigidBodyState& frontier : outFrontiers)
     {
