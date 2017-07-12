@@ -78,7 +78,8 @@ bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyStat
         return false;
     }
 
-    planner->set_eps_step(0.5);
+    planner->set_eps_step(1.0);
+    planner->set_initialsolution_eps(10.0);
     
     solutionIds.clear();
     if(!planner->replan(maxTime.toSeconds(), &solutionIds))
