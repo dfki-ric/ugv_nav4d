@@ -43,7 +43,6 @@ void FrontierGenerator::setInitialPatch(const Eigen::Affine3d& body2Mls, double 
 void FrontierGenerator::updateGoalPos(const base::Vector3d& _goalPos)
 {
     goalPos = _goalPos;
-    
     CLEAR_DRAWING("goalPos");
     DRAW_ARROW("goalPos", _goalPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
                base::Vector3d(1,1,1), vizkit3dDebugDrawings::Color::yellow);
@@ -231,6 +230,7 @@ std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const
                            {0,0,0},
                            {-1,-2,-1}};
     
+    CLEAR_DRAWING("edge direction");
 
     std::vector<NodeWithOrientation> frontierWithOrientation;
     for(const TravGenNode* frontierPatch : frontier)
@@ -273,10 +273,9 @@ std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const
             orientation = firstSegment.getStart();
             orientation += base::Angle::fromRad(firstSegment.getWidth() / 2.0);
         }
-        
         frontierWithOrientation.push_back(NodeWithOrientation{frontierPatch, orientation.getRad()});
-        
-         COMPLEX_DRAWING(
+
+        COMPLEX_DRAWING(
         
             Eigen::Vector3d start(i.x() * travConf.gridResolution + travConf.gridResolution / 2.0, i.y() * travConf.gridResolution + travConf.gridResolution / 2.0, frontierPatch->getHeight());
             start = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * start;
@@ -325,7 +324,7 @@ std::vector<NodeWithOrientation> FrontierGenerator::getCollisionFreeNeighbor(con
         nextFrontierPos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * nextFrontierPos;
         const double orientation = node.orientationZ;
 
-//         CLEAR_DRAWING("collisions");
+        CLEAR_DRAWING("collisions");
         TravMapBfsVisitor::visit(node.node, 
             [&traversableNeighbor, &nextFrontierNode, &nextFrontierPos, this, orientation, &traversableNeighborPos, &robotHalfSize]
             (const TravGenNode* currentNode, bool& visitChildren, bool& abort, std::size_t distToRoot)
@@ -450,7 +449,6 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
         assert(explorableFactor >= 0 && explorableFactor <= 1);
         assert(travelDist >= 0 && travelDist <= 1);
         
-        //multiplication ensures that the sum of all cost equals 1. That could be imporatant for later clustering stages
         const double cost = costParams.distToGoalFactor * distToGoal +
                             costParams.explorableFactor * explorableFactor +
                             costParams.distFromStartFactor * travelDist;
