@@ -414,7 +414,7 @@ void TraversabilityGenerator3d::addInitialPatchToMLS()
                 if(p.isCovered(posMLS.z(), 0.05))
                 {
                     hasPatch = true;
-                    std::cout << "Found Patch at " << posMLS.transpose() << std::endl;
+//                     std::cout << "Found Patch at " << posMLS.transpose() << std::endl;
                     break;
                 }
             }
@@ -423,7 +423,7 @@ void TraversabilityGenerator3d::addInitialPatchToMLS()
                 continue;
             
             SurfacePatchBase newPatch(posMLS.z());
-            std::cout << "Adding Patch at " << posMLS.transpose() << std::endl;
+//             std::cout << "Adding Patch at " << posMLS.transpose() << std::endl;
             
             ll.insert(newPatch);
         }
@@ -691,10 +691,7 @@ void TraversabilityGenerator3d::dijkstraComputeCost(const TravGenNode* source,
     std::set<std::pair<double, const TravGenNode*>> vertexQ;
     vertexQ.insert(std::make_pair(outDistances[sourceId], source));
     
-    UGV_DEBUG(
-        debugData.clearHeuristic();
-    )
-    
+   
     while (!vertexQ.empty()) 
     {
         double dist = vertexQ.begin()->first;
@@ -728,9 +725,6 @@ void TraversabilityGenerator3d::dijkstraComputeCost(const TravGenNode* source,
                 vertexQ.erase(std::make_pair(outDistances[vId], vCasted));
                 outDistances[vId] = distance_through_u;
                 vertexQ.insert(std::make_pair(outDistances[vId], vCasted));
-                UGV_DEBUG(
-                    debugData.addHeuristicCost(vCasted, outDistances[vId]); 
-                )
             }
         }
     }
