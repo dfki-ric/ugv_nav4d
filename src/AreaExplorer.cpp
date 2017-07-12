@@ -23,7 +23,6 @@ bool AreaExplorer::getFrontiers(const Eigen::Vector3d& currentRobotPosition,
         CLEAR_DRAWING("Exploration_Area");
         DRAW_WIREFRAME_BOX("Exploration_Area", areaToExplore.getCenter(), areaToExplore.getOrientation(), size,vizkit3dDebugDrawings::Color::amber);
      );
-    std::cout << "AREA CENTER: " << areaToExplore.getCenter().transpose() << std::endl;
     
     
     frontGen->updateRobotPos(currentRobotPosition);
