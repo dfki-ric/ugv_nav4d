@@ -424,7 +424,7 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
     std::vector<NodeWithOrientationAndCost> result;
     std::vector<double> distancesOnMap;
     const double maxDist = 99999999;//FIXME constant in code? should be numeric_limits::max
-    travGen.dijkstraComputeCost(startNode, distancesOnMap, maxDist);
+    travGen.dijkstraComputeCostNoDoubleFrontierts(startNode, distancesOnMap, maxDist);
     
     
     //find max distances for normalization
@@ -434,6 +434,8 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
     {
         const double distToGoal = distToPoint(node.node, goalPos);
         const double distFromStart = distancesOnMap[node.node->getUserData().id];
+        if(distFromStart == maxDist)
+            continue;
         maxDistToGoal = std::max(maxDistToGoal, distToGoal);
         maxDistFromStart = std::max(maxDistFromStart, distFromStart);
     }
@@ -441,9 +443,13 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
     //calc cost
     for(const NodeWithOrientation& node : nodes)
     {
+        const double distFromStart = distancesOnMap[node.node->getUserData().id];
+        if(distFromStart == maxDist)
+            continue;
+
         const double distToGoal = distToPoint(node.node, goalPos) / maxDistToGoal; //range 0..1
         const double explorableFactor = calcExplorablePatches(node.node); //range: 0.. 1
-        const double travelDist = distancesOnMap[node.node->getUserData().id] / maxDistFromStart; //range: 0..1
+        const double travelDist = distFromStart / maxDistFromStart; //range: 0..1
         
         assert(distToGoal >= 0 && distToGoal <= 1);
         assert(explorableFactor >= 0 && explorableFactor <= 1);

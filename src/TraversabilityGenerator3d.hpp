@@ -92,6 +92,13 @@ public:
     /**Compute heuristic cost from @p source to all reachable nodes.
      * @param outDistances mapping from node id to cost*/
     void dijkstraComputeCost(const TravGenNode* source, std::vector<double> &outDistances, const double maxDist) const;
+
+    /**Compute heuristic cost from @p source to all reachable nodes.
+     * @param outDistances mapping from node id to cost
+     * This version skips any node, that is only reachable over
+     * a frontier patch
+     */
+    void dijkstraComputeCostNoDoubleFrontierts(const TravGenNode* source, std::vector<double> &outDistances, const double maxDist) const;
     
     /** Returns distance from @p a to @p b based on config.heuristicType */
     double getHeuristicDistance(const Eigen::Vector3d& a, const Eigen::Vector3d& b) const;
