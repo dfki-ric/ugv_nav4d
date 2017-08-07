@@ -402,14 +402,13 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::sortNodes(const std::
 std::vector<RigidBodyState> FrontierGenerator::getPositions(const std::vector<NodeWithOrientationAndCost>& nodes) const
 {
     std::vector<RigidBodyState> result;
-    const auto transform = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry);
+    const maps::grid::TraversabilityMap3d<TravGenNode *> &map(travGen.getTraversabilityMap());
     for(const NodeWithOrientationAndCost& node : nodes)
     {
         RigidBodyState rbs;
-        rbs.position << node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
-                        node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
-                        node.node->getHeight();
-        rbs.position = transform * rbs.position;
+        Eigen::Vector3d pos;
+        map.fromGrid(node.node->getIndex(), pos, node.node->getHeight());
+        rbs.position = pos;
         rbs.orientation = Eigen::AngleAxisd(node.orientationZ, Eigen::Vector3d::UnitZ());
         result.push_back(rbs);
     }
