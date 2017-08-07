@@ -50,8 +50,25 @@ int TraversabilityGenerator3d::getNumNodes() const
 }
 
 
-bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node, const View &area)
+bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
 {
+    Eigen::Vector3d nodePos;
+    if(!trMap.fromGrid(node.getIndex(), nodePos))
+        throw std::runtime_error("TraversabilityGenerator3d: Internal error node out of grid");
+    
+    nodePos.z() += node.getHeight();
+    
+
+    //get all surfaces in a cube of robotwidth and stepheight
+    Eigen::Vector3d min(-config.robotSizeX / 2.0, -config.robotSizeX / 2.0, -config.maxStepHeight);
+    Eigen::Vector3d max(-min);
+    
+    min += nodePos;
+    max += nodePos;
+    
+    View area = mlsGrid->intersectCuboid(Eigen::AlignedBox3d(min, max));
+    
+    
     typedef pcl::PointXYZ PointT;
     
     pcl::PointCloud<PointT>::Ptr points(new pcl::PointCloud<PointT>());
@@ -130,14 +147,9 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node, const View
     if(newPos.x() > 0.0001 || newPos.y() > 0.0001)
         throw std::runtime_error("TraversabilityGenerator3d: Error, adjustement height calculation is weird");
 
-    //remove and reeinter node
-    auto &list(trMap.at(node.getIndex()));
-    
     if(newPos.allFinite())
     {
-        list.erase(&node);
         node.setHeight(newPos.z());
-        list.insert(&node);
     }    
     
     const Eigen::Vector3d slopeDir = computeSlopeDirection(node.getUserData().plane);
@@ -490,6 +502,13 @@ TravGenNode* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d&
     
     TravGenNode *startNode = new TravGenNode(startPosWorld.z(), idx);
     startNode->getUserData().id = currentNodeId++;
+    
+    if(!computePlaneRansac(*startNode))
+    {
+        startNode->setType(TraversabilityNodeBase::UNKNOWN);
+        startNode->setExpanded();
+    }
+    
     trMap.at(idx).insert(startNode);
 
     return startNode;
@@ -498,30 +517,8 @@ TravGenNode* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d&
 
 bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
 {
-    Eigen::Vector3d nodePos;
-    if(!trMap.fromGrid(node->getIndex(), nodePos))
-        throw std::runtime_error("TraversabilityGenerator3d: Internal error node out of grid");
-    
-    nodePos.z() += node->getHeight();
-    
-    //get all surfaces in a cube of robotwidth and stepheight
-    Eigen::Vector3d min(-config.robotSizeX / 2.0, -config.robotSizeX / 2.0, -config.maxStepHeight);
-    Eigen::Vector3d max(-min);
-    
-    min += nodePos;
-    max += nodePos;
-    
-    View intersections = mlsGrid->intersectCuboid(Eigen::AlignedBox3d(min, max));
-    
     node->setExpanded();
     
-    //NOTE computePlane must be done before checkForObstacles !
-    if(!computePlaneRansac(*node, intersections))
-    {
-        node->setType(TraversabilityNodeBase::UNKNOWN);
-        return false;
-    }
-
     if(!checkForObstacles(node))
     {
         node->setType(TraversabilityNodeBase::OBSTACLE);
@@ -595,20 +592,25 @@ void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
             continue;
         }
         
+        auto &trList(trMap.at(idx));
+
         //check if we got an existing node
-        for(TravGenNode *snode : trMap.at(idx))
+        for(TravGenNode *snode : trList)
         {
             const double searchHeight = snode->getHeight();
             if((searchHeight - config.maxStepHeight) <= curHeight && (searchHeight + config.maxStepHeight) >= curHeight)
             {
                 //found a connectable node
-                toAdd = snode;                
+                toAdd = snode;
                 break;
             }
             
             if(searchHeight > curHeight)
+            {
                 break;
+            }
         }
+        
         
         //no existing node exists at that location.
         //create a new one if a corresponding node in the mls exists
@@ -620,22 +622,41 @@ void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
             if(mlsGrid->toGrid(globalPos, mlsIdx))
             {
                 const auto& patches = mlsGrid->at(mlsIdx);
+                
                 for(const SurfacePatchBase& patch : patches)
                 {
                     const double height = patch.getTop();//FIXME is getTop correct?
+
+
                     if((height - config.maxStepHeight) <= curHeight && (height + config.maxStepHeight) >= curHeight)
                     {
                         //there is a neighboring patch in the mls that has a reachable hight
                         toAdd = new TravGenNode(height, idx);
                         toAdd->getUserData().id = currentNodeId++;
-                        trMap.at(idx).insert(toAdd);
+                        if(!computePlaneRansac(*toAdd))
+                        {
+                            toAdd->setType(TraversabilityNodeBase::UNKNOWN);
+                            toAdd->setExpanded();
+                        }
+
+                        if((toAdd->getHeight() - config.maxStepHeight) <= curHeight && (toAdd->getHeight() + config.maxStepHeight) >= curHeight)
+                        {
+                            trList.insert(toAdd);
+                            break;
+                        }
+                        else
+                        {
+                            //rare border case, ransac correction moved patch out of reachable height
+                            delete toAdd;
+                            toAdd = nullptr;
+                        }
+                        
 //                         COMPLEX_DRAWING(
 //                             maps::grid::Vector3d pos(globalPos);
 //                             trMap.fromGrid(idx, globalPos);
 //                             pos.z() = height;
 //                             DRAW_RING("neighbor patches", pos, mlsGrid->getResolution().x() / 2.0, 0.4, 0.01, vizkit3dDebugDrawings::Color::blue);
 //                         );
-                        break;
                     }
                     if(height > curHeight)
                         break;

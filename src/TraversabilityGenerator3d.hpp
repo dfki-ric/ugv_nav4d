@@ -38,7 +38,7 @@ private:
     maps::grid::TraversabilityMap3d<TravGenNode*> trMap;
     int currentNodeId = 0; //used while expanding
     
-    bool computePlaneRansac(TravGenNode &node, const View &area);
+    bool computePlaneRansac(TravGenNode &node);
     
     bool computePlane(TravGenNode &node, const View &area);
     
