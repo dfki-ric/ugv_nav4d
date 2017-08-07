@@ -87,14 +87,17 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
     travGen.expandAll(startNode);
     
     const std::vector<const TravGenNode*> frontier(getFrontierPatches());
-    if(frontier.size() == 0)
+    
+    const std::vector<const TravGenNode*> candidates(getCandidatesFromFrontierPatches(frontier));
+    
+    if(candidates.size() == 0)
     {
-        std::cout << "No frontiers found" << std::endl;
+        std::cout << "No candidates found" << std::endl;
         return result;
     }
 
     std::cout << "find frontiers" << std::endl;
-    const std::vector<NodeWithOrientation> frontierWithOrientation(getFrontierOrientation(frontier));
+    const std::vector<NodeWithOrientation> frontierWithOrientation(getFrontierOrientation(candidates));
     std::cout << "found frontiers: " << frontierWithOrientation.size() << std::endl;
     std::cout << "Removing frontiers with collisions" << std::endl;
     const std::vector<NodeWithOrientation> nodesWithoutCollisions(getNodesWithoutCollision(frontierWithOrientation));
@@ -220,6 +223,24 @@ std::vector<const TravGenNode*> FrontierGenerator::getFrontierPatches() const
     return std::move(frontier);    
 }
 
+std::vector< const TravGenNode* > FrontierGenerator::getCandidatesFromFrontierPatches(const std::vector<const TravGenNode*> &frontiers) const
+{
+    std::vector<const TravGenNode*> candidates;
+    
+    for(const TravGenNode* node : frontiers)
+    {
+        for(const TraversabilityNodeBase *connected : node->getConnections())
+        {
+            if(connected->getType() == TraversabilityNodeBase::TRAVERSABLE)
+            {
+                candidates.push_back(reinterpret_cast<const TravGenNode *>(connected));
+            }
+        }
+    }
+    return std::move(candidates); 
+}
+
+
 std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const std::vector<const TravGenNode*>& frontier) const
 {
     //sobel filter is used to get an estimate of the edge direction
@@ -247,7 +268,7 @@ std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const
                 if(travGen.getTraversabilityMap().inGrid(neighborIndex))
                 {
                     const TravGenNode* neighbor = frontierPatch->getConnectedNode(neighborIndex);
-                    if(neighbor != nullptr)
+                    if(neighbor != nullptr && neighbor->getType() == TraversabilityNodeBase::FRONTIER)
                     {
                         xSum += xOp[x + 1][y + 1];
                         ySum += yOp[x + 1][y + 1];
@@ -433,7 +454,7 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
     {
         const double distToGoal = distToPoint(node.node, goalPos);
         const double distFromStart = distancesOnMap[node.node->getUserData().id];
-        if(distFromStart == maxDist)
+        if(distFromStart >= maxDist)
             continue;
         maxDistToGoal = std::max(maxDistToGoal, distToGoal);
         maxDistFromStart = std::max(maxDistFromStart, distFromStart);
@@ -443,7 +464,7 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
     for(const NodeWithOrientation& node : nodes)
     {
         const double distFromStart = distancesOnMap[node.node->getUserData().id];
-        if(distFromStart == maxDist)
+        if(distFromStart >= maxDist)
             continue;
 
         const double distToGoal = distToPoint(node.node, goalPos) / maxDistToGoal; //range 0..1
