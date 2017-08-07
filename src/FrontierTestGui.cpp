@@ -26,8 +26,9 @@ FrontierTestGui::FrontierTestGui(int argc, char** argv)
     conf.inclineLimittingMinSlope = 0.35; // 10.0 * M_PI/180.0;
     conf.inclineLimittingLimit = 0.44;// 5.0 * M_PI/180.0;
     conf.parallelismEnabled = false;
-    conf.costFunctionObstacleDist = 0.4;
+    conf.costFunctionDist = 0.4;
     conf.costFunctionObstacleMultiplier = 1.0;
+    conf.costFunctionFrontierMultiplier = 1.0;
     
     frontGen.reset(new FrontierGenerator(conf, costParams));
     areaExplorer.reset(new AreaExplorer(frontGen));

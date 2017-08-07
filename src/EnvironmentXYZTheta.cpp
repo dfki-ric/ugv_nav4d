@@ -10,7 +10,7 @@
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.h>
 #include "CollisionCheck.hpp"
-
+#include "PathStatistics.hpp"
 
 backward::SignalHandling crashHandler;
 
@@ -577,8 +577,31 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             default:
                 throw std::runtime_error("unknown slope metric selected");
         }
+
+        PathStatistic statistic(travConf);
+        statistic.calculateStatistics(nodesOnPath);
         
-        cost += travConf.costFunctionObstacleMultiplier * calcObstacleCost(nodesOnPath);
+        if(statistic.getNumObstacles())
+        {
+            const double outer_radius = travConf.costFunctionDist;
+            double minDistToRobot = statistic.getMinDistToObstacles();
+            minDistToRobot = std::min(outer_radius, minDistToRobot);
+            double impactFactor = (outer_radius - minDistToRobot) / outer_radius;
+            oassert(impactFactor < 1.001 && impactFactor >= 0);
+            
+            cost += cost * impactFactor;
+        }
+
+        if(statistic.getNumFrontiers())
+        {
+            const double outer_radius = travConf.costFunctionDist;
+            double minDistToRobot = statistic.getMinDistToFrontiers();
+            minDistToRobot = std::min(outer_radius, minDistToRobot);
+            double impactFactor = (outer_radius - minDistToRobot) / outer_radius;
+            oassert(impactFactor < 1.001 && impactFactor >= 0);
+
+            cost += cost * impactFactor;
+        }
         
         oassert(int(cost) >= motion.baseCost);
         oassert(motion.baseCost > 0);
@@ -796,59 +819,6 @@ double EnvironmentXYZTheta::getAvgSlope(std::vector<TravGenNode*> path) const
     }
     const double avgSlope = slopeSum / path.size();
     return avgSlope;
-}
-
-double EnvironmentXYZTheta::calcObstacleCost(std::vector<TravGenNode*> path) const
-{
-    //dist is in real world 
-    const double neighborSquareDist = travConf.costFunctionObstacleDist * travConf.costFunctionObstacleDist;
-    std::unordered_set<maps::grid::TraversabilityNodeBase*> neighbors; //all neighbors that are closer than neighborSquareDist
-    
-    //find all neighbors within corridor around path
-    for(TravGenNode* node : path)
-    {
-        //vector is not the the most efficient when using std::find but for small vectors it should be ok.
-        //linear serach on a cached vector is as fast as unordered_set lookup for vector sizes < 100
-        // (yes, I benchmarked)
-        std::deque<maps::grid::TraversabilityNodeBase*> nodes;
-        std::unordered_set<maps::grid::TraversabilityNodeBase*> visited;
-        nodes.push_back(node);
-        const maps::grid::Vector2d nodePos = node->getIndex().cast<double>().cwiseProduct(travGen.getTraversabilityMap().getResolution());
-        do
-        {
-            maps::grid::TraversabilityNodeBase* currentNode = nodes.front();
-            nodes.pop_front();
-            neighbors.insert(currentNode);
-            
-            for(auto neighbor : currentNode->getConnections())
-            {
-                //check if we have already visited this node (happens because double connected graph)
-                if(visited.find(neighbor) != visited.end())
-                    continue;
-
-                visited.insert(neighbor);
-                    
-                //check if node is within corridor
-                const maps::grid::Vector2d neighborPos = neighbor->getIndex().cast<double>().cwiseProduct(travGen.getTraversabilityMap().getResolution());
-                if((neighborPos - nodePos).squaredNorm() > neighborSquareDist)
-                    continue;
-                
-                nodes.push_back(neighbor);
-            }
-        }while(!nodes.empty());
-    }
-    
-    int obstacleCount = 0;
-    for(maps::grid::TraversabilityNodeBase* n : neighbors)
-    {
-        if(n->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE &&
-           n->getType() != maps::grid::TraversabilityNodeBase::FRONTIER)
-        {
-            ++obstacleCount;
-        }
-    }   
-    
-    return obstacleCount;
 }
 
 double EnvironmentXYZTheta::getMaxSlope(std::vector<TravGenNode*> path) const

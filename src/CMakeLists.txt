@@ -19,6 +19,7 @@ rock_library(ugv_nav4d
         EnvironmentXYZTheta.cpp
         FrontierGenerator.cpp
         OrientedBox.cpp
+        PathStatistics.cpp
         Planner.cpp
         PreComputedMotions.cpp
         TraversabilityGenerator3d.cpp
