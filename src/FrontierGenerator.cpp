@@ -86,47 +86,58 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
     TravGenNode* startNode = travGen.generateStartNode(robotPos);
     travGen.expandAll(startNode);
     
+    std::cout << "find frontiers" << std::endl;
     const std::vector<const TravGenNode*> frontier(getFrontierPatches());
+    const std::vector<NodeWithOrientation> frontierWithOrientation(getFrontierOrientation(frontier));
+    std::cout << "found frontiers: " << frontierWithOrientation.size() << std::endl;
     
-    const std::vector<const TravGenNode*> candidates(getCandidatesFromFrontierPatches(frontier));
-    
-    if(candidates.size() == 0)
+    std::cout << "find candidates" << std::endl;
+    const std::vector<NodeWithOrientation> candidatesWithOrientation(getCandidatesFromFrontierPatches(frontierWithOrientation));
+    if(candidatesWithOrientation.size() == 0)
     {
         std::cout << "No candidates found" << std::endl;
         return result;
     }
-
-    std::cout << "find frontiers" << std::endl;
-    const std::vector<NodeWithOrientation> frontierWithOrientation(getFrontierOrientation(candidates));
-    std::cout << "found frontiers: " << frontierWithOrientation.size() << std::endl;
+    else
+    {
+        std::cout << "found candidates: " << candidatesWithOrientation.size() << std::endl;
+    }
+    
     std::cout << "Removing frontiers with collisions" << std::endl;
-    const std::vector<NodeWithOrientation> nodesWithoutCollisions(getNodesWithoutCollision(frontierWithOrientation));
+    const std::vector<NodeWithOrientation> nodesWithoutCollisions(getNodesWithoutCollision(candidatesWithOrientation));
     std::cout << "frontiers without collision: " << nodesWithoutCollisions.size() << std::endl;
+    
     std::cout << "Removing duplicates" << std::endl;
     const std::vector<NodeWithOrientation> nodesWithoutDuplicates(removeDuplicates(nodesWithoutCollisions));
     std::cout << "frontiers without duplicates: " << nodesWithoutDuplicates.size() << std::endl;
+    
     std::cout << "calculating costs" << std::endl;
     const std::vector<NodeWithOrientationAndCost> nodesWithCost = calculateCost(startNode, goalPos, nodesWithoutDuplicates);
+    std::cout << "calculated costs: " << nodesWithCost.size() << std::endl;
+    
     std::cout << "sorting ndoes" << std::endl;
     const std::vector<NodeWithOrientationAndCost> sortedNodes(sortNodes(nodesWithCost));
+    std::cout << "sorted nodes: " << sortedNodes.size() << std::endl;
+    
     std::cout << "Converting to poses" << std::endl;
     result = getPositions(sortedNodes);
+    
     std::cout << "Done. position count: " << result.size() << std::endl;
     
     //test code:
     
     
-//     COMPLEX_DRAWING(
-//         CLEAR_DRAWING("nodesWithoutCollision");
-//         for(const auto& node : nodesWithoutCollisions)
-//         {
-//             base::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
-//                                node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
-//                                node.node->getHeight());
-//             pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-//             DRAW_CYLINDER("nodesWithoutCollision", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::red);
-//         }
-//     );
+    COMPLEX_DRAWING(
+        CLEAR_DRAWING("candidates");
+        for(const auto& node : candidatesWithOrientation)
+        {
+            base::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
+                               node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
+                               node.node->getHeight());
+            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+            DRAW_CYLINDER("candidates", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::blue);
+        }
+    );
     
       COMPLEX_DRAWING(
         double maxCost = 0;
@@ -223,17 +234,17 @@ std::vector<const TravGenNode*> FrontierGenerator::getFrontierPatches() const
     return std::move(frontier);    
 }
 
-std::vector< const TravGenNode* > FrontierGenerator::getCandidatesFromFrontierPatches(const std::vector<const TravGenNode*> &frontiers) const
+std::vector<NodeWithOrientation> FrontierGenerator::getCandidatesFromFrontierPatches(const std::vector<NodeWithOrientation> &frontiers) const
 {
-    std::vector<const TravGenNode*> candidates;
+    std::vector<NodeWithOrientation> candidates;
     
-    for(const TravGenNode* node : frontiers)
+    for(const NodeWithOrientation& node : frontiers)
     {
-        for(const TraversabilityNodeBase *connected : node->getConnections())
+        for(const TraversabilityNodeBase *connected : node.node->getConnections())
         {
             if(connected->getType() == TraversabilityNodeBase::TRAVERSABLE)
             {
-                candidates.push_back(reinterpret_cast<const TravGenNode *>(connected));
+                candidates.push_back(NodeWithOrientation{reinterpret_cast<const TravGenNode *>(connected), node.orientationZ});
             }
         }
     }
@@ -302,7 +313,7 @@ std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const
             start = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * start;
             Eigen::Vector3d end((i.x() + xSum) * travConf.gridResolution + travConf.gridResolution / 2.0, (i.y() + ySum) * travConf.gridResolution + travConf.gridResolution / 2.0, frontierPatch->getHeight());
             end = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * end;
-            DRAW_LINE("edge direction", start, end, vizkit3dDebugDrawings::Color::cyan);
+            DRAW_LINE("edge direction", start, end, vizkit3dDebugDrawings::Color::red);
         );
     }
     return std::move(frontierWithOrientation);
@@ -314,6 +325,7 @@ std::vector<NodeWithOrientation> FrontierGenerator::getNodesWithoutCollision(con
     std::vector<NodeWithOrientation> result;
     const base::Vector3d robotHalfSize(travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight / 2);
     
+    CLEAR_DRAWING("removed_due_to_collision");
     
     for(const NodeWithOrientation& node : nodes)
     {
@@ -321,7 +333,22 @@ std::vector<NodeWithOrientation> FrontierGenerator::getNodesWithoutCollision(con
         {
             result.push_back(node);
         }
+        else
+        {
+            COMPLEX_DRAWING(
+            base::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
+                               node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
+                               node.node->getHeight());
+            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+            DRAW_CYLINDER("removed_due_to_collision", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::magenta);
+            );
+
+        }
     }   
+    
+    
+
+    
     return std::move(result);
 }
 
@@ -444,7 +471,7 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
     std::vector<NodeWithOrientationAndCost> result;
     std::vector<double> distancesOnMap;
     const double maxDist = 99999999;//FIXME constant in code? should be numeric_limits::max
-    travGen.dijkstraComputeCostNoDoubleFrontierts(startNode, distancesOnMap, maxDist);
+    travGen.dijkstraComputeCost(startNode, distancesOnMap, maxDist);
     
     
     //find max distances for normalization
@@ -455,7 +482,10 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
         const double distToGoal = distToPoint(node.node, goalPos);
         const double distFromStart = distancesOnMap[node.node->getUserData().id];
         if(distFromStart >= maxDist)
-            continue;
+        {
+            std::cout << "DIST FROM START > MAX DIST" << std::endl;
+            throw std::runtime_error("DIST FROM START > MAX DIST");
+        }
         maxDistToGoal = std::max(maxDistToGoal, distToGoal);
         maxDistFromStart = std::max(maxDistFromStart, distFromStart);
     }

@@ -46,7 +46,7 @@ private:
     std::vector<const TravGenNode*> getFrontierPatches() const;
 
     /** Get all traversable patches next to the frontier patches*/
-    std::vector<const TravGenNode*> getCandidatesFromFrontierPatches(const std::vector<const TravGenNode*> &frontiers) const;
+    std::vector<NodeWithOrientation> getCandidatesFromFrontierPatches(const std::vector<NodeWithOrientation> &frontiers) const;
     
     /**Figure out goal orientation for each node in @p frontier */
     std::vector<NodeWithOrientation> getFrontierOrientation(const std::vector<const TravGenNode*>& frontier) const;

@@ -210,10 +210,15 @@ void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
     startThetaNode = createNewStateFromPose(startPos, theta, &startXYZNode);
     startXYZNode->getUserData().travNode->setNotExpanded();
    
-    //NOTE this check is useless, the robot odometry/slam/trajectoryFollower are not perfect
+    //NOTE those checks are useless, the robot odometry/slam/trajectoryFollower are not perfect
     //     thus we can end up in locations where we shouldn't be.
 //     if(!checkOrientationAllowed(startXYZNode->getUserData().travNode, theta))
 //         throw std::runtime_error("Start orientation not allowed due to slope");
+    
+//     if(!CollisionCheck::checkCollision(startXYZNode->getUserData().travNode, theta, mlsGrid, robotHalfSize, travGen))
+//     {
+//         std::cout << "START INSIDE OBSTACLE" << std::endl;
+//     }
     
     std::cout << "START IS: " << startPos.transpose() << std::endl;
     
