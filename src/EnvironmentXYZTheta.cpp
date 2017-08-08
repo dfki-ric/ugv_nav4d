@@ -31,6 +31,9 @@ const double costScaleFactor = 1000;
         throw std::runtime_error("meeeeh"); \
     }
 
+#define PRINT_VAR(var) \
+    std::cout << #var << ": " << var << std::endl;
+    
 
 
 EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<MLGrid> mlsGrid,
@@ -297,6 +300,20 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     const double timeRotation = sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian() / mobilityConfig.mTurningSpeed;
     
     const int result = floor(std::max(timeTranslation, timeRotation) * costScaleFactor);
+    if(result < 0)
+    {
+        
+        PRINT_VAR(sourceToGoalDist);
+        PRINT_VAR( mobilityConfig.mSpeed);
+        PRINT_VAR(timeTranslation);
+        PRINT_VAR(sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian());
+        PRINT_VAR(mobilityConfig.mTurningSpeed);
+        PRINT_VAR(timeRotation);
+        PRINT_VAR(result);
+        PRINT_VAR(travNode->getUserData().id);
+        PRINT_VAR(travNode->getType());
+        
+    }
     oassert(result >= 0);
     return result;
 }
@@ -376,8 +393,7 @@ TravGenNode *EnvironmentXYZTheta::movementPossible(TravGenNode *fromTravNode, co
     
     //NOTE this check cannot be done before checkExpandTreadSafe because the type will be determined
     //     during the expansion. Beforehand the type is undefined
-    if(targetNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE &&
-       targetNode->getType() != maps::grid::TraversabilityNodeBase::FRONTIER)
+    if(targetNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
     {
         return nullptr;
     }  

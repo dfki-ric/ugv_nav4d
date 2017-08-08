@@ -696,6 +696,7 @@ TraversabilityMap3d< TraversabilityNodeBase *> TraversabilityGenerator3d::getTra
     return trBaseMap;
 }
 
+//FIXME super duplicate code!! (nearly same as below)
 void TraversabilityGenerator3d::dijkstraComputeCostNoDoubleFrontierts(const TravGenNode* source, std::vector< double >& outDistances, const double maxDist) const
 {
     using namespace maps::grid;
@@ -740,14 +741,14 @@ void TraversabilityGenerator3d::dijkstraComputeCostNoDoubleFrontierts(const Trav
         // Visit each edge exiting u
         for(TraversabilityNodeBase *v : u->getConnections())
         {   
-            //skip all non traversable nodes. They will retain the maximum cost.
-            if(v->getType() != TraversabilityNodeBase::TRAVERSABLE)
-                continue;
-            
             if(v->getType() == TraversabilityNodeBase::FRONTIER)
             {
                 nodeInfo.frontiersHit++;
             }
+            //skip all non traversable nodes. They will retain the maximum cost.
+            if(v->getType() != TraversabilityNodeBase::TRAVERSABLE)
+                continue;
+            
             
             if(nodeInfo.frontiersHit > 1)
                 continue;
@@ -772,6 +773,7 @@ void TraversabilityGenerator3d::dijkstraComputeCostNoDoubleFrontierts(const Trav
 }
 
 
+//FIXME super duplicate code (nearly same as above)!!
 //Adapted from: https://rosettacode.org/wiki/Dijkstra%27s_algorithm#C.2B.2B
 void TraversabilityGenerator3d::dijkstraComputeCost(const TravGenNode* source,
                           std::vector<double> &outDistances, const double maxDist) const 
@@ -803,8 +805,7 @@ void TraversabilityGenerator3d::dijkstraComputeCost(const TravGenNode* source,
         for(TraversabilityNodeBase *v : u->getConnections())
         {   
             //skip all non traversable nodes. They will retain the maximum cost.
-            if(v->getType() != TraversabilityNodeBase::TRAVERSABLE && 
-               v->getType() != TraversabilityNodeBase::FRONTIER)
+            if(v->getType() != TraversabilityNodeBase::TRAVERSABLE)
                 continue;
             
             TravGenNode* vCasted = static_cast<TravGenNode*>(v);
