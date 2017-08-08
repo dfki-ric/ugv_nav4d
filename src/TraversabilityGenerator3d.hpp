@@ -39,9 +39,6 @@ private:
     int currentNodeId = 0; //used while expanding
     
     bool computePlaneRansac(TravGenNode &node);
-    
-    bool computePlane(TravGenNode &node, const View &area);
-    
     double computeSlope(const Eigen::Hyperplane< double, int(3) >& plane) const;
     Eigen::Vector3d computeSlopeDirection(const Eigen::Hyperplane< double, int(3) >& plane) const;
     

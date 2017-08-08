@@ -428,7 +428,7 @@ std::vector<RigidBodyState> FrontierGenerator::getPositions(const std::vector<No
     {
         RigidBodyState rbs;
         Eigen::Vector3d pos;
-        map.fromGrid(node.node->getIndex(), pos, node.node->getHeight());
+        map.fromGrid(node.node->getIndex(), pos, node.node->getHeight(), false);
         rbs.position = pos;
         rbs.orientation = Eigen::AngleAxisd(node.orientationZ, Eigen::Vector3d::UnitZ());
         result.push_back(rbs);
