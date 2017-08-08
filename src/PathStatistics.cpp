@@ -7,6 +7,8 @@ ugv_nav4d::PathStatistic::PathStatistic(const ugv_nav4d::TraversabilityConfig& c
         frontiers(0),
         config(config)
 {
+    //FIXME this is going to break if FRONTIER is no longer the last entry in the enum
+    //      or someone starts attaching different values to the enums.
     minDistance.resize(maps::grid::TraversabilityNodeBase::FRONTIER + 1, std::numeric_limits< double >::max());
     minDistToObstacle = std::numeric_limits< double >::max();
 }
