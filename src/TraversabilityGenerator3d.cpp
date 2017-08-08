@@ -741,8 +741,7 @@ void TraversabilityGenerator3d::dijkstraComputeCostNoDoubleFrontierts(const Trav
         for(TraversabilityNodeBase *v : u->getConnections())
         {   
             //skip all non traversable nodes. They will retain the maximum cost.
-            if(v->getType() != TraversabilityNodeBase::TRAVERSABLE && 
-               v->getType() != TraversabilityNodeBase::FRONTIER)
+            if(v->getType() != TraversabilityNodeBase::TRAVERSABLE)
                 continue;
             
             if(v->getType() == TraversabilityNodeBase::FRONTIER)
