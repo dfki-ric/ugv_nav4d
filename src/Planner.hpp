@@ -5,8 +5,6 @@
 #include <base/Trajectory.hpp>
 #include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
 #include <motion_planning_libraries/sbpl/SbplSplineMotionPrimitives.hpp>
-#include "TraversabilityGenerator3d.hpp"
-#include "PreComputedMotions.hpp"
 #include "EnvironmentXYZTheta.hpp"
 
 class ARAPlanner;
