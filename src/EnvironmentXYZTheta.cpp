@@ -740,7 +740,7 @@ vector<Motion> EnvironmentXYZTheta::getMotions(const vector< int >& stateIDPath)
 }
 
 
-void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector< base::Trajectory >& result)
+void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector< base::Trajectory >& result, const Eigen::Affine3d &plan2Body)
 {
     if(stateIDPath.size() < 2)
         return;
@@ -790,13 +790,14 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
             }
             
             pos.z() = curNode->getHeight();
+            Eigen::Vector3d pos_Body = plan2Body * pos;
 
-            if(positions.empty() || !(positions.back().isApprox(pos)))
+            if(positions.empty() || !(positions.back().isApprox(pos_Body)))
             {
                 //need to offset by start because the poses are relative to (0/0)
-                positions.emplace_back(pos);
+                positions.emplace_back(pos_Body);
                 curPart.attributes.names.push_back("motion_" + std::to_string(i) + "_" + std::to_string(pwcIdx++));
-                curPart.attributes.elements.push_back(std::to_string(pos.x()) + "_" + std::to_string(pos.y()) + "_" + std::to_string(pos.z()));
+                curPart.attributes.elements.push_back(std::to_string(pos_Body.x()) + "_" + std::to_string(pos_Body.y()) + "_" + std::to_string(pos_Body.z()));
             }
         }
         
