@@ -23,11 +23,14 @@ Planner::Planner(const motion_planning_libraries::SplinePrimitivesConfig& primit
 
 void Planner::setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadius)
 {
-    env->setInitialPatch(body2Mls, patchRadius);
+    Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
+    ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
+    
+    env->setInitialPatch(body2Mls * ground2Body , patchRadius);
 }
 
-bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& start,
-              const base::samples::RigidBodyState& end, std::vector<base::Trajectory>& resultTrajectory)
+bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls,
+              const base::samples::RigidBodyState& endbody2Mls, std::vector<base::Trajectory>& resultTrajectory)
 {
     
     CLEAR_DRAWING("collisions");
@@ -39,8 +42,14 @@ bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyStat
     resultTrajectory.clear();
     env->clear();
     
+    Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
+    ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
+    
+    const Eigen::Affine3d startGround2Mls(startbody2Mls.getTransform() * ground2Body);
+    const Eigen::Affine3d endGround2Mls(endbody2Mls.getTransform() * ground2Body);
+    
     try {
-        env->setStart(start.position, start.getYaw());
+        env->setStart(startGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())));
     } catch (std::runtime_error &e)
     {
         std::cout << e.what() << std::endl;
@@ -48,7 +57,7 @@ bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyStat
     }
     
     try {
-        env->setGoal(end.position, end.getYaw());
+        env->setGoal(endGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(endGround2Mls.linear())));
     } catch (std::runtime_error &e)
     {
         std::cout << e.what() << std::endl;
@@ -101,7 +110,7 @@ bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyStat
         std::cout << "cost " << s.cost << " time " << s.time << "num childs " << s.expands << std::endl;
     }
     
-    env->getTrajectory(solutionIds, resultTrajectory);
+    env->getTrajectory(solutionIds, resultTrajectory, ground2Body);
     return true;
 }
 
