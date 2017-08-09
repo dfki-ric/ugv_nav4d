@@ -143,7 +143,7 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
     }
 
     //check if intitial patch is unknown
-    if(!travNode->isExpanded())
+    if(travNode->isExpanded())
     {
         cout << "createNewStateFromPose: Error Pose " << pos.transpose() << " is not traversable" << endl;
         throw runtime_error("Pose is not traversable");
