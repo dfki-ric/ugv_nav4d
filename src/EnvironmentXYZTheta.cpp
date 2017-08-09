@@ -141,9 +141,9 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
         cout << "createNewStateFromPose: Error Pose " << pos.transpose() << " is out of grid" << endl;
         throw runtime_error("Pose is out of grid");
     }
-    
-    //must be done, to correct height of start node
-    if(!travNode->isExpanded() && !travGen.expandNode(travNode))
+
+    //check if intitial patch is unknown
+    if(!travNode->isExpanded())
     {
         cout << "createNewStateFromPose: Error Pose " << pos.transpose() << " is not traversable" << endl;
         throw runtime_error("Pose is not traversable");
@@ -171,8 +171,6 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
         throw std::runtime_error("Error, start needs to be set before goal");
     
     goalThetaNode = createNewStateFromPose(goalPos, theta, &goalXYZNode);
-    
-    goalXYZNode->getUserData().travNode->setNotExpanded();
     
     if(!checkOrientationAllowed(goalXYZNode->getUserData().travNode, theta))
         throw std::runtime_error("Goal orientation not allowed due to slope");
@@ -208,7 +206,6 @@ void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
                base::Vector3d(1,1,1), vizkit3dDebugDrawings::Color::blue);
     
     startThetaNode = createNewStateFromPose(startPos, theta, &startXYZNode);
-    startXYZNode->getUserData().travNode->setNotExpanded();
    
     //NOTE those checks are useless, the robot odometry/slam/trajectoryFollower are not perfect
     //     thus we can end up in locations where we shouldn't be.
