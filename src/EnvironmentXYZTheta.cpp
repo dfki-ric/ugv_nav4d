@@ -143,10 +143,19 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
     }
 
     //check if intitial patch is unknown
-    if(travNode->isExpanded())
+    if(travNode->isExpanded() && (travNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE))
     {
         cout << "createNewStateFromPose: Error Pose " << pos.transpose() << " is not traversable" << endl;
         throw runtime_error("Pose is not traversable");
+    }
+    else
+    {
+        if(!travGen.expandNode(travNode))
+        {
+            cout << "createNewStateFromPose: Error Pose " << pos.transpose() << " is not traversable" << endl;
+            throw runtime_error("Pose is not traversable");
+        }
+        travNode->setNotExpanded();
     }
     
     XYZNode *xyzNode = createNewXYZState(travNode);
