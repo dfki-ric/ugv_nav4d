@@ -64,7 +64,7 @@ public:
     double robotSizeX;
     double robotSizeY;
     /* Distance from body frame to ground
-     *start and goal position are expected in body frame
+     * start and goal position are expected in body frame
      */
     double distToGround;
     double slopeMetricScale;

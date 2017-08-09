@@ -26,11 +26,9 @@ TraversabilityGenerator3d::~TraversabilityGenerator3d()
     clearTrMap();
 }
 
-void TraversabilityGenerator3d::setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadius)
+void TraversabilityGenerator3d::setInitialPatch(const Eigen::Affine3d& ground2Mls, double patchRadius)
 {
-    Eigen::Affine3d body2Ground(Eigen::Affine3d::Identity());
-    body2Ground.translation() = Eigen::Vector3d(0, 0, config.distToGround);
-    initialPatch2Mls = body2Mls * body2Ground.inverse();
+    initialPatch2Mls = ground2Mls;
     addInitialPatch = true;
     
     this->patchRadius = patchRadius;
@@ -341,9 +339,9 @@ void TraversabilityGenerator3d::setConfig(const TraversabilityConfig &config)
     this->config = config;
 }
 
-void TraversabilityGenerator3d::expandAll(const Eigen::Vector3d& startPosWorld)
+void TraversabilityGenerator3d::expandAll(const Eigen::Vector3d& startPos)
 {
-    TravGenNode *startNode = generateStartNode(startPosWorld);
+    TravGenNode *startNode = generateStartNode(startPos);
 
     expandAll(startNode);
 }
@@ -479,22 +477,20 @@ void TraversabilityGenerator3d::clearTrMap()
     }
 }
 
-TravGenNode* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d& startPosWorld)
+TravGenNode* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d& startPos)
 {
     Index idx;
-    if(!trMap.toGrid(startPosWorld, idx))
+    if(!trMap.toGrid(startPos, idx))
     {
         std::cout << "Start position outside of map !" << std::endl;
         return nullptr;
     }
 
-    double heightOverGround = startPosWorld.z() - config.distToGround;
-    
     //check if not already exists...
     auto candidates = trMap.at(idx);
     for(TravGenNode *node : candidates)
     {
-        if(fabs(node->getHeight() - heightOverGround) < config.maxStepHeight)
+        if(fabs(node->getHeight() - startPos.z()) < config.maxStepHeight)
         {
             std::cout << "TraversabilityGenerator3d::generateStartNode: Using existing node " << std::endl;
             return node;
@@ -502,7 +498,7 @@ TravGenNode* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d&
     }
 
     
-    TravGenNode *startNode = new TravGenNode(heightOverGround, idx);
+    TravGenNode *startNode = new TravGenNode(startPos.z(), idx);
     startNode->getUserData().id = currentNodeId++;
     
     if(!computePlaneRansac(*startNode))

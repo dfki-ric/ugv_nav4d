@@ -103,9 +103,9 @@ EnvironmentXYZTheta::~EnvironmentXYZTheta()
     clear();
 }
 
-void EnvironmentXYZTheta::setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadius)
+void EnvironmentXYZTheta::setInitialPatch(const Eigen::Affine3d& ground2Mls, double patchRadius)
 {
-    travGen.setInitialPatch(body2Mls, patchRadius);
+    travGen.setInitialPatch(ground2Mls, patchRadius);
 }
 
 void EnvironmentXYZTheta::updateMap(boost::shared_ptr< EnvironmentXYZTheta::MLGrid > mlsGrid)

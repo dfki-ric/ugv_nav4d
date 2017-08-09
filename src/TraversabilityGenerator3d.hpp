@@ -66,10 +66,10 @@ public:
 
     void clearTrMap();
     
-    void setInitialPatch(const Eigen::Affine3d &body2Mls, double patchRadius);
+    void setInitialPatch(const Eigen::Affine3d &ground2Mls, double patchRadius);
     
-    TravGenNode *generateStartNode(const Eigen::Vector3d &startPosWorld);
-    void expandAll(const Eigen::Vector3d &startPosWorld);
+    TravGenNode *generateStartNode(const Eigen::Vector3d &startPos);
+    void expandAll(const Eigen::Vector3d &startPos);
 
     void expandAll(TravGenNode *startNode);
 
