@@ -26,10 +26,10 @@ TraversabilityGenerator3d::~TraversabilityGenerator3d()
     clearTrMap();
 }
 
-void TraversabilityGenerator3d::setInitialPatch(const Eigen::Affine3d& body2Mls, double distToGround, double patchRadius)
+void TraversabilityGenerator3d::setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadius)
 {
     Eigen::Affine3d body2Ground(Eigen::Affine3d::Identity());
-    body2Ground.translation() = Eigen::Vector3d(0, 0, distToGround);
+    body2Ground.translation() = Eigen::Vector3d(0, 0, config.distToGround);
     initialPatch2Mls = body2Mls * body2Ground.inverse();
     addInitialPatch = true;
     

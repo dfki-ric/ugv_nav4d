@@ -32,7 +32,7 @@ public:
     
     void updateCostParameters(const CostFunctionParameters& params);
     
-    void setInitialPatch(const Eigen::Affine3d &body2Mls, double distToGround, double patchRadius);
+    void setInitialPatch(const Eigen::Affine3d &body2Mls, double patchRadius);
     
     /** Calculate a list of all frontiers that can be visited. Sorted by calculateCost() */
     std::vector<base::samples::RigidBodyState> getNextFrontiers();

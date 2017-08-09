@@ -21,9 +21,9 @@ Planner::Planner(const motion_planning_libraries::SplinePrimitivesConfig& primit
     setTravConfig(traversabilityConfig);
 }
 
-void Planner::setInitialPatch(const Eigen::Affine3d& body2Mls, double distToGround, double patchRadius)
+void Planner::setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadius)
 {
-    env->setInitialPatch(body2Mls, distToGround, patchRadius);
+    env->setInitialPatch(body2Mls, patchRadius);
 }
 
 bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& start,
