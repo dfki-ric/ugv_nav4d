@@ -9,11 +9,13 @@ AreaExplorer::AreaExplorer(std::shared_ptr< ugv_nav4d::FrontierGenerator > front
     frontGen(frontGen)
 {}
 
-bool AreaExplorer::getFrontiers(const Eigen::Vector3d& currentRobotPosition,
+bool AreaExplorer::getFrontiers(const Eigen::Vector3d& body2Mls,
                                 const OrientedBox& areaToExplore,
                                 std::vector<base::samples::RigidBodyState>& outFrontiers)
-{
-
+{   
+    Eigen::Vector3d ground2Mls(body2Mls);
+    ground2Mls.z() -= frontGen->getConfig().distToGround;
+    
      COMPLEX_DRAWING(
         
         base::Vector3d size;
@@ -25,10 +27,17 @@ bool AreaExplorer::getFrontiers(const Eigen::Vector3d& currentRobotPosition,
      );
     
     
-    frontGen->updateRobotPos(currentRobotPosition);
+    frontGen->updateRobotPos(ground2Mls);
     frontGen->updateGoalPos(areaToExplore.getCenter());
     std::cout << "generating frontiers" << std::endl;
     outFrontiers = frontGen->getNextFrontiers();
+    
+    //move to robot height
+    for(base::samples::RigidBodyState& frontier : outFrontiers)
+    {
+        frontier.position.z() += frontGen->getConfig().distToGround;
+    }
+    
     std::cout << "generated frontiers, count: " << outFrontiers.size() << std::endl;
 
     for(const base::samples::RigidBodyState& frontier : outFrontiers)
@@ -40,9 +49,5 @@ bool AreaExplorer::getFrontiers(const Eigen::Vector3d& currentRobotPosition,
     }
     return false;
 }
-
-
-
-
     
 }

@@ -566,6 +566,11 @@ maps::grid::TraversabilityMap3d< TraversabilityNodeBase* > FrontierGenerator::ge
     return travGen.getTraversabilityBaseMap();
 }
 
+const TraversabilityConfig& FrontierGenerator::getConfig() const
+{
+    return travConf;
+}
+
 
 
 }

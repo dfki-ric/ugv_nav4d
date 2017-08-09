@@ -26,12 +26,17 @@ public:
         travGen.setMLSGrid(mlsMap);
     }
     
+    /** @param robotPos in mls coordinates */
     void updateRobotPos(const base::Vector3d& robotPos);
     
+    /** @param goalPos in mls coordinates */
     void updateGoalPos(const base::Vector3d& goalPos);
     
     void updateCostParameters(const CostFunctionParameters& params);
     
+    /** Adds traversable patches to the mls below the robot.
+     * @param body2Mls Location of the body in mls coordinates
+     * @param patchRadius Radius of a circle around the robot which will be filled with traversable patches*/
     void setInitialPatch(const Eigen::Affine3d &body2Mls, double patchRadius);
     
     /** Calculate a list of all frontiers that can be visited. Sorted by calculateCost() */
@@ -39,6 +44,8 @@ public:
     
     //just for debugging
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;
+    
+    const TraversabilityConfig& getConfig() const;
     
 private:
 
