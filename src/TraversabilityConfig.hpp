@@ -31,6 +31,8 @@ public:
         , costFunctionFrontierMultiplier(50.0)
         , robotHeight(0)
         , robotSizeX(0)
+        , robotSizeY(0)
+        , distToGround(0)
         , slopeMetric(NONE)
         , heuristicType(HEURISTIC_2D)
         , gridResolution(0.0)
@@ -61,6 +63,10 @@ public:
     double robotHeight;
     double robotSizeX;
     double robotSizeY;
+    /* Distance from body frame to ground
+     *start and goal position are expected in body frame
+     */
+    double distToGround;
     double slopeMetricScale;
     SlopeMetric slopeMetric;//which metric to use to factor in the slope of a motion
     HeuristicType heuristicType;

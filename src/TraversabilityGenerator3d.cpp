@@ -488,11 +488,13 @@ TravGenNode* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d&
         return nullptr;
     }
 
+    double heightOverGround = startPosWorld.z() - config.distToGround;
+    
     //check if not already exists...
     auto candidates = trMap.at(idx);
     for(TravGenNode *node : candidates)
     {
-        if(fabs(node->getHeight() - startPosWorld.z()) < config.maxStepHeight)
+        if(fabs(node->getHeight() - heightOverGround) < config.maxStepHeight)
         {
             std::cout << "TraversabilityGenerator3d::generateStartNode: Using existing node " << std::endl;
             return node;
@@ -500,7 +502,7 @@ TravGenNode* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d&
     }
 
     
-    TravGenNode *startNode = new TravGenNode(startPosWorld.z(), idx);
+    TravGenNode *startNode = new TravGenNode(heightOverGround, idx);
     startNode->getUserData().id = currentNodeId++;
     
     if(!computePlaneRansac(*startNode))
