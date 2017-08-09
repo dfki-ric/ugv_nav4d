@@ -67,12 +67,8 @@ void FrontierGenerator::updateRobotPos(const base::Vector3d& _robotPos)
 
 base::Vector3d FrontierGenerator::nodeCenterPos(const TravGenNode* node) const
 {
-    base::Vector3d pos(node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
-                       node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
-                       node->getHeight());
-    pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-    pos.x() += travGen.getTraversabilityMap().getResolution().x() / 2.0;
-    pos.y() += travGen.getTraversabilityMap().getResolution().y() / 2.0;
+    Eigen::Vector3d pos;
+    travGen.getTraversabilityMap().fromGrid(node->getIndex(), pos, node->getHeight(), false);
     return pos;
 }
 
