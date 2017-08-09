@@ -83,7 +83,14 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
                     base::Vector2d point, tangent;
                     std::tie(point,tangent) = prim.spline.getPointAndTangent(param);
                     const base::Orientation2D orientation(std::atan2(tangent.y(), tangent.x()));
+                    //note, pose must not have an offset
                     const base::Pose2D pose(point, orientation);
+                    
+                    //point needs to be offset to the middle of the grid, 
+                    //as all path computation also starts in the middle
+                    //if not we would get a wrong diff
+                    point += base::Vector2d(gridResolution /2.0, gridResolution /2.0);
+                    
                     maps::grid::Index diff;
                     if(!dummyGrid.toGrid(base::Vector3d(point.x(), point.y(), 0), diff, false))
                         throw std::runtime_error("Internal Error : Cannot convert intermediate Pose to grid cell");
