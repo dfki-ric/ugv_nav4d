@@ -9,6 +9,14 @@ AreaExplorer::AreaExplorer(std::shared_ptr< ugv_nav4d::FrontierGenerator > front
     frontGen(frontGen)
 {}
 
+void AreaExplorer::setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadius)
+{
+    Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
+    ground2Body.translation() = Eigen::Vector3d(0, 0, -frontGen->getConfig().distToGround);
+    
+    frontGen->setInitialPatch(body2Mls * ground2Body , patchRadius);
+}
+
 bool AreaExplorer::getFrontiers(const Eigen::Vector3d& body2Mls,
                                 const OrientedBox& areaToExplore,
                                 std::vector<base::samples::RigidBodyState>& outFrontiers)

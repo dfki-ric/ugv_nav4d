@@ -13,6 +13,8 @@ class AreaExplorer
 public:
     AreaExplorer(std::shared_ptr<FrontierGenerator> frontGen);
     
+    void setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadius);
+
         
     /** Get a list of all frontiers sorted by how good they are to explore @p area
      * @param body2Mls current position of the robot in mls coordinates
