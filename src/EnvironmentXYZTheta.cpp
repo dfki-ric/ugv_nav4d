@@ -790,7 +790,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
             }
             
             pos.z() = curNode->getHeight();
-            Eigen::Vector3d pos_Body = plan2Body * pos;
+            Eigen::Vector3d pos_Body = plan2Body.inverse() * pos;
 
             if(positions.empty() || !(positions.back().isApprox(pos_Body)))
             {
