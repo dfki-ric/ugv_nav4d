@@ -54,6 +54,10 @@ private:
     bool getConnectedPatch(const maps::grid::Index& idx, double height, const Patch*& patch);
     
     double interpolate(double x, double x0, double y0, double x1, double y1) const;
+
+    TravGenNode *findMatchingTraversabilityPatchAt(maps::grid::Index idx, const double curHeight) const;
+    
+    TravGenNode *createTraversabilityPatchAt(maps::grid::Index idx, const double curHeight);
     
     TraversabilityConfig config;
     

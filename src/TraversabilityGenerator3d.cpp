@@ -482,32 +482,24 @@ TravGenNode* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d&
     Index idx;
     if(!trMap.toGrid(startPos, idx))
     {
-        std::cout << "Start position outside of map !" << std::endl;
+        std::cout << "TraversabilityGenerator3d::generateStartNode: Start position outside of map !" << std::endl;
         return nullptr;
     }
 
     //check if not already exists...
-    auto candidates = trMap.at(idx);
-    for(TravGenNode *node : candidates)
+    TravGenNode *startNode = findMatchingTraversabilityPatchAt(idx, startPos.z());
+    if(startNode)
     {
-        if(fabs(node->getHeight() - startPos.z()) < config.maxStepHeight)
-        {
-            std::cout << "TraversabilityGenerator3d::generateStartNode: Using existing node " << std::endl;
-            return node;
-        }
+        std::cout << "TraversabilityGenerator3d::generateStartNode: Using existing node " << std::endl;
+        return startNode;
     }
 
-    
-    TravGenNode *startNode = new TravGenNode(startPos.z(), idx);
-    startNode->getUserData().id = currentNodeId++;
-    
-    if(!computePlaneRansac(*startNode))
+    startNode = createTraversabilityPatchAt(idx, startPos.z());
+    if(!startNode)
     {
-        startNode->setType(TraversabilityNodeBase::UNKNOWN);
-        startNode->setExpanded();
+        std::cout << "TraversabilityGenerator3d::generateStartNode: Could not create travNode for given start position, no matching / not enough MSL patches" << std::endl;
+        return startNode;
     }
-    
-    trMap.at(idx).insert(startNode);
 
     return startNode;
 }
@@ -542,11 +534,97 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
     
     return true;
 }
+
+TravGenNode *TraversabilityGenerator3d::createTraversabilityPatchAt(maps::grid::Index idx, const double curHeight)
+{
+    TravGenNode *ret = nullptr;
+    
+    maps::grid::Vector3d globalPos;
+    trMap.fromGrid(idx, globalPos);
+    Index mlsIdx;
+    if(!mlsGrid->toGrid(globalPos, mlsIdx))
     {
-        node->setType(TraversabilityNodeBase::TRAVERSABLE);
+        return nullptr;
     }
     
-    return true;
+    const auto& patches = mlsGrid->at(mlsIdx);
+    
+    std::vector<double> candidates;
+    
+    for(const SurfacePatchBase& patch : patches)
+    {
+        //We use top, as we drive on the surface
+        const double height = patch.getTop();
+
+        if((height - config.maxStepHeight) <= curHeight && (height + config.maxStepHeight) >= curHeight)
+        {
+            candidates.push_back(height);
+        }
+        if(height > (curHeight + config.maxStepHeight))
+            break;
+    }
+
+    ret = new TravGenNode(0.0, idx);
+    ret->getUserData().id = currentNodeId++;
+    
+    for(double height: candidates)
+    {
+        ret->setHeight(height);
+        ret->setNotExpanded();
+        ret->setType(TraversabilityNodeBase::UNSET);
+        
+        //there is a neighboring patch in the mls that has a reachable hight
+        if(!computePlaneRansac(*ret))
+        {
+            ret->setType(TraversabilityNodeBase::UNKNOWN);
+            ret->setExpanded();
+        }
+
+        if((ret->getHeight() - config.maxStepHeight) <= curHeight && (ret->getHeight() + config.maxStepHeight) >= curHeight)
+        {
+            trMap.at(idx).insert(ret);
+            return ret;
+        }
+        else
+        {
+            //rare border case, ransac correction moved patch out of reachable height
+        }
+        
+//         COMPLEX_DRAWING(
+//             maps::grid::Vector3d pos(globalPos);
+//             trMap.fromGrid(idx, globalPos);
+//             pos.z() = height;
+//             DRAW_RING("neighbor patches", pos, mlsGrid->getResolution().x() / 2.0, 0.4, 0.01, vizkit3dDebugDrawings::Color::blue);
+//         );
+    }
+    
+    delete ret;
+    currentNodeId--;
+    
+    return nullptr;
+}
+
+TravGenNode* TraversabilityGenerator3d::findMatchingTraversabilityPatchAt(Index idx, const double curHeight) const
+{
+    auto &trList(trMap.at(idx));
+
+    //check if we got an existing node
+    for(TravGenNode *snode : trList)
+    {
+        const double searchHeight = snode->getHeight();
+        if((searchHeight - config.maxStepHeight) <= curHeight && (searchHeight + config.maxStepHeight) >= curHeight)
+        {
+            //found a connectable node
+            return snode;
+        }
+        
+        if(searchHeight > curHeight)
+        {
+            return nullptr;
+        }
+    }
+
+    return nullptr;
 }
 
 void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
@@ -594,76 +672,14 @@ void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
             continue;
         }
         
-        auto &trList(trMap.at(idx));
-
         //check if we got an existing node
-        for(TravGenNode *snode : trList)
-        {
-            const double searchHeight = snode->getHeight();
-            if((searchHeight - config.maxStepHeight) <= curHeight && (searchHeight + config.maxStepHeight) >= curHeight)
-            {
-                //found a connectable node
-                toAdd = snode;
-                break;
-            }
-            
-            if(searchHeight > curHeight)
-            {
-                break;
-            }
-        }
-        
+        toAdd = findMatchingTraversabilityPatchAt(idx, curHeight);
         
         //no existing node exists at that location.
-        //create a new one if a corresponding node in the mls exists
+        //try to create a new one at the position
         if(!toAdd)
         {
-            maps::grid::Vector3d globalPos;
-            trMap.fromGrid(idx, globalPos);
-            Index mlsIdx;
-            if(mlsGrid->toGrid(globalPos, mlsIdx))
-            {
-                const auto& patches = mlsGrid->at(mlsIdx);
-                
-                for(const SurfacePatchBase& patch : patches)
-                {
-                    const double height = patch.getTop();//FIXME is getTop correct?
-
-
-                    if((height - config.maxStepHeight) <= curHeight && (height + config.maxStepHeight) >= curHeight)
-                    {
-                        //there is a neighboring patch in the mls that has a reachable hight
-                        toAdd = new TravGenNode(height, idx);
-                        toAdd->getUserData().id = currentNodeId++;
-                        if(!computePlaneRansac(*toAdd))
-                        {
-                            toAdd->setType(TraversabilityNodeBase::UNKNOWN);
-                            toAdd->setExpanded();
-                        }
-
-                        if((toAdd->getHeight() - config.maxStepHeight) <= curHeight && (toAdd->getHeight() + config.maxStepHeight) >= curHeight)
-                        {
-                            trList.insert(toAdd);
-                            break;
-                        }
-                        else
-                        {
-                            //rare border case, ransac correction moved patch out of reachable height
-                            delete toAdd;
-                            toAdd = nullptr;
-                        }
-                        
-//                         COMPLEX_DRAWING(
-//                             maps::grid::Vector3d pos(globalPos);
-//                             trMap.fromGrid(idx, globalPos);
-//                             pos.z() = height;
-//                             DRAW_RING("neighbor patches", pos, mlsGrid->getResolution().x() / 2.0, 0.4, 0.01, vizkit3dDebugDrawings::Color::blue);
-//                         );
-                    }
-                    if(height > curHeight)
-                        break;
-                }
-            }
+            toAdd = createTraversabilityPatchAt(idx, curHeight);
         }
 
         if(toAdd)
