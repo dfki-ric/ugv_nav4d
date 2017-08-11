@@ -479,19 +479,24 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
         const double distFromStart = distancesOnMap[node.node->getUserData().id];
         if(distFromStart >= maxDist)
         {
-            std::cout << "DIST FROM START > MAX DIST" << std::endl;
-            throw std::runtime_error("DIST FROM START > MAX DIST");
+            //this means there is no traversable connection to the node.
+            continue;
         }
+        //0.0 is a dummy cost here, it is updated in the next loop
+        result.push_back({node.node, node.orientationZ, 0.0});
+
         maxDistToGoal = std::max(maxDistToGoal, distToGoal);
         maxDistFromStart = std::max(maxDistFromStart, distFromStart);
     }
 
     //calc cost
-    for(const NodeWithOrientation& node : nodes)
+    for(NodeWithOrientationAndCost& node : result)
     {
         const double distFromStart = distancesOnMap[node.node->getUserData().id];
         if(distFromStart >= maxDist)
-            continue;
+        {
+            throw std::runtime_error("Internal Error, list contains non reachable nodes");
+        }
 
         const double distToGoal = distToPoint(node.node, goalPos) / maxDistToGoal; //range 0..1
         const double explorableFactor = calcExplorablePatches(node.node); //range: 0.. 1
@@ -505,7 +510,7 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
                             costParams.explorableFactor * explorableFactor +
                             costParams.distFromStartFactor * travelDist;
         
-        result.push_back({node.node, node.orientationZ, cost});
+        node.cost = cost;
     }
     return result;
 }
