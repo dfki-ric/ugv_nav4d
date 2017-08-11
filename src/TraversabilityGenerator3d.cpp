@@ -229,7 +229,7 @@ Eigen::Vector3d TraversabilityGenerator3d::computeSlopeDirection(const Eigen::Hy
 }
 
 
-bool TraversabilityGenerator3d::checkForUnknown(TravGenNode* node)
+bool TraversabilityGenerator3d::checkForFrontier(TravGenNode* node)
 {
     //check direct neighborhood for missing connected patches. If 
     //patches are missing, this patch is unknown
@@ -532,12 +532,16 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
     //add sourounding 
     addConnectedPatches(node);
 
-    //FIXME rename to checkForFrontier
-    if(checkForUnknown(node))
+    if(checkForFrontier(node))
     {
         node->setType(TraversabilityNodeBase::FRONTIER);
+        return false;
     }
-    else
+
+    node->setType(TraversabilityNodeBase::TRAVERSABLE);
+    
+    return true;
+}
     {
         node->setType(TraversabilityNodeBase::TRAVERSABLE);
     }

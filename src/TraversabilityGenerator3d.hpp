@@ -47,7 +47,7 @@ private:
     /** @return false if no allowed orientation was found (e.g. due to extreme slope)*/
     bool computeAllowedOrientations(TravGenNode* node);
     
-    bool checkForUnknown(TravGenNode* node);
+    bool checkForFrontier(TravGenNode* node);
     
     void addConnectedPatches(TravGenNode* node);
 
