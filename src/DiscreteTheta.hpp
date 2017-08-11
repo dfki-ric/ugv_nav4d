@@ -80,6 +80,10 @@ public:
         return M_PI * 2.0 * theta / static_cast<double>(numAngles);
     }
     
+    int getNumAngles() const
+    {
+        return numAngles;
+    }
     
     DiscreteTheta shortestDist(const DiscreteTheta &ain) const
     {
