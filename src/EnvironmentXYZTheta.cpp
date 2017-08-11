@@ -138,8 +138,7 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
     TravGenNode *travNode = travGen.generateStartNode(pos);
     if(!travNode)
     {
-        cout << "createNewStateFromPose: Error Pose " << pos.transpose() << " is out of grid" << endl;
-        throw runtime_error("Pose is out of grid");
+        throw runtime_error("Could not generate Node at pos");
     }
 
     //check if intitial patch is unknown
