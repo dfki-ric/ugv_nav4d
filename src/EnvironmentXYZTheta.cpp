@@ -742,11 +742,9 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         
         size_t pwcIdx = 0;
         std::vector<base::Vector3d> positions;
-        for(const PoseWithCell &pwc : curMotion.intermediateSteps)
+        for(const CellWithPoses &cwp : curMotion.fullSplineSamples)
         {
-            //start is already corrected to be in the middle of a cell, thus pwc.pose.position should not be corrected
-            base::Vector3d pos(pwc.pose.position.x() + start.x(), pwc.pose.position.y() + start.y(), start.z());
-            maps::grid::Index curIndex = startIndex + pwc.cell;
+            maps::grid::Index curIndex = startIndex + cwp.cell;
 
             if(curIndex != lastIndex)
             {
@@ -763,15 +761,21 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
                 lastIndex = curIndex;
             }
             
-            pos.z() = curNode->getHeight();
-            Eigen::Vector3d pos_Body = plan2Body.inverse() * pos;
-
-            if(positions.empty() || !(positions.back().isApprox(pos_Body)))
+            for(const base::Pose2D &p : cwp.poses)
             {
-                //need to offset by start because the poses are relative to (0/0)
-                positions.emplace_back(pos_Body);
-                curPart.attributes.names.push_back("motion_" + std::to_string(i) + "_" + std::to_string(pwcIdx++));
-                curPart.attributes.elements.push_back(std::to_string(pos_Body.x()) + "_" + std::to_string(pos_Body.y()) + "_" + std::to_string(pos_Body.z()));
+                //start is already corrected to be in the middle of a cell, thus pwc.pose.position should not be corrected
+                base::Vector3d pos(p.position.x() + start.x(), p.position.y() + start.y(), start.z());
+
+                pos.z() = curNode->getHeight();
+                Eigen::Vector3d pos_Body = plan2Body.inverse() * pos;
+
+                if(positions.empty() || !(positions.back().isApprox(pos_Body)))
+                {
+                    //need to offset by start because the poses are relative to (0/0)
+                    positions.emplace_back(pos_Body);
+                    curPart.attributes.names.push_back("motion_" + std::to_string(i) + "_" + std::to_string(pwcIdx++));
+                    curPart.attributes.elements.push_back(std::to_string(pos_Body.x()) + "_" + std::to_string(pos_Body.y()) + "_" + std::to_string(pos_Body.z()));
+                }
             }
         }
         
