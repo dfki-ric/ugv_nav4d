@@ -292,12 +292,6 @@ const Motion& EnvironmentXYZTheta::getMotion(const int fromStateID, const int to
     return availableMotions.getMotion(motionId);
 }
 
-const vector<PoseWithCell> &EnvironmentXYZTheta::getPoses(const int fromStateID, const int toStateID)
-{
-    const Motion& motion = getMotion(fromStateID, toStateID);
-    return motion.intermediateSteps;
-}
-
 
 int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
 {
@@ -750,6 +744,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         std::vector<base::Vector3d> positions;
         for(const PoseWithCell &pwc : curMotion.intermediateSteps)
         {
+            //start is already corrected to be in the middle of a cell, thus pwc.pose.position should not be corrected
             base::Vector3d pos(pwc.pose.position.x() + start.x(), pwc.pose.position.y() + start.y(), start.z());
             maps::grid::Index curIndex = startIndex + pwc.cell;
 

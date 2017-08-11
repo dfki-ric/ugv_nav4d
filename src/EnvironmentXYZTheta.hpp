@@ -146,11 +146,7 @@ public:
     
     maps::grid::Vector3d getStatePosition(const int stateID) const;
     
-    /**Returns the intermediate poses of the motion connecting @p FromStateID 
-     * and @p toStateID.
-     * @throw std::runtime_error if no such motion exists*/
-    const std::vector<PoseWithCell> &getPoses(const int fromStateID, const int toStateID);
-    
+   
     /**returns the motion connection @p fromStateID and @p toStateID.
      * @throw std::runtime_error if no matching motion exists*/
     const Motion& getMotion(const int fromStateID, const int toStateID);
