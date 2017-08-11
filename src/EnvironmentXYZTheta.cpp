@@ -485,13 +485,11 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         maps::grid::Index curIndex = sourceNode->getIndex();
         std::vector<TravGenNode*> nodesOnPath;
         bool intermediateStepsOk = true;
+
         for(const PoseWithCell &diff : motion.intermediateSteps)
         {
-            maps::grid::Index newIndex = curIndex;
-            
             //diff is always a full offset to the start position
-            newIndex = sourceIndex + diff.cell;
-
+            const maps::grid::Index newIndex =  sourceIndex + diff.cell;
             travNode = movementPossible(travNode, curIndex, newIndex);
             nodesOnPath.push_back(travNode);
             
@@ -505,32 +503,19 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         }
         
         if(!intermediateStepsOk)
-        {
             continue;
-        }
-        
-        maps::grid::Index finalPos(sourceIndex);
-        finalPos.x() += motion.xDiff;
-        finalPos.y() += motion.yDiff;
-        
-        travNode = movementPossible(travNode, curIndex, finalPos);
-        nodesOnPath.push_back(travNode);
-        if(!travNode)
-            continue;
-        
+
         if(!travConf.ignoreCollisions && !checkCollisions(nodesOnPath, motion))
-        {
             continue;
-        }
         
         //goal from source to the end of the motion was valid
         XYZNode *successXYNode = nullptr;
         ThetaNode *successthetaNode = nullptr;
         
-        
         //WARNING This becomes a critical section if several motion primitives
         //        share the same finalPos.
         //        As long as this is not the case this section should be save.
+        const maps::grid::Index finalPos(sourceIndex.x() + motion.xDiff, sourceIndex.y() + motion.yDiff);
         
         #pragma omp critical(searchGridAccess) 
         {
@@ -666,22 +651,16 @@ bool EnvironmentXYZTheta::checkOrientationAllowed(const TravGenNode* node,
 bool EnvironmentXYZTheta::checkCollisions(const std::vector<TravGenNode*>& path,
                                           const Motion& motion) const
 {
-    //the final pose is part of the path but not of the poses.
-    //Thus the size should always differ by one.
-    oassert(motion.intermediateSteps.size() + 1 == path.size());
+    oassert(motion.intermediateSteps.size() == path.size());
     
-
     for(size_t i = 0; i < path.size(); ++i)
     {
         const TravGenNode* node(path[i]);
+        
         //path contains the final element while intermediatePoses does not.
-        const double zRot = i < motion.intermediateSteps.size() ?
-                            motion.intermediateSteps[i].pose.orientation :
-                            motion.endTheta.getRadian();
-                            
+        const double zRot = motion.intermediateSteps[i].pose.orientation;
         if(!CollisionCheck::checkCollision(node, zRot, mlsGrid, robotHalfSize, travGen))
             return false;
-
     }
     
     return true;

@@ -27,6 +27,13 @@ struct PoseWithCell
     maps::grid::Index cell;
 };
 
+struct CellWithPoses 
+{
+    maps::grid::Index cell;
+    std::vector<base::Pose2D> poses;
+};
+
+
 class Motion
 {
     /**used to scale the costs because costs
@@ -55,8 +62,21 @@ public:
     Type type;
     
     /**the intermediate poses are not discrete.
-     * They are relative to the starting cell*/
+     * They are relative to the starting cell.
+     * The Poses start from (0/0), while the 
+     * cell idx is computed from the center of the start cell + pose
+    */
     std::vector<PoseWithCell> intermediateSteps;
+    
+    /**
+     * This vector contains a full resoluton 
+     * sample of the motion primitiv, together 
+     * with the cell the poses are supposed to 
+     * be in. Poses are relative to (0/0), wile
+     * the cellIndex is computed relative to the 
+     * center of the start cell.
+     * */
+    std::vector<CellWithPoses> fullSplineSamples;
     
     int baseCost; //time the robot needs to follow the primivite scaled by some factors
     int costMultiplier;//is used to scale the baseCost
@@ -98,6 +118,9 @@ public:
     /**Calculate the curvature of a circle based on the radius of the circle */
     static double calculateCurvatureFromRadius(const double r);
 private:
+    
+    base::Pose2D getPointClosestToCellMiddle(const ugv_nav4d::CellWithPoses& cwp, const double gridResolution);
+    
     
     void computeSplinePrimCost(const motion_planning_libraries::SplinePrimitive& prim,
                                const motion_planning_libraries::Mobility& mobilityConfig, Motion& outMotion) const;

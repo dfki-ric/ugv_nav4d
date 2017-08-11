@@ -247,7 +247,6 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     config.generateLateralMotions = false;
 //     config.generateBackwardMotions = false;
     config.splineOrder = 4;
-    config.splineGeometricResolution = 0.1;
     
     mobility.mSpeed = 0.2;
     mobility.mTurningSpeed = 0.6;

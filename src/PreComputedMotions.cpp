@@ -22,6 +22,7 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
     const int numAngles = primGen.getConfig().numAngles;
     const double gridResolution = primGen.getConfig().gridSize;
     
+    //dummyGrid is used to convert between grid indices and positions
     maps::grid::GridMap<int> dummyGrid(maps::grid::Vector2ui(10, 10), base::Vector2d(gridResolution, gridResolution), 0);
     const double maxCurvature = calculateCurvatureFromRadius(mobilityConfig.mMinTurningRadius);
     
@@ -69,44 +70,58 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
             //there are no intermediate steps for point turns
             if(prim.motionType != SplinePrimitive::SPLINE_POINT_TURN)
             {
-                const double stepDist = gridResolution / 4.0;
+                CellWithPoses curPoses;
+                curPoses.cell = maps::grid::Index(0,0);
+                
+                //sample spline:
+                const double stepDist = gridResolution / 16.0;
                 std::vector<double> parameters;
                 //NOTE we dont need the points, but there is no sample() api that returns parameters only
                 const std::vector<base::geometry::Spline2::vector_t> points = prim.spline.sample(stepDist, &parameters);
                 assert(parameters.size() == points.size());
-                
-                maps::grid::Index lastIdx(0,0);
-                
                 for(size_t i = 0; i < parameters.size(); ++i)
                 {
                     const double param = parameters[i];
                     base::Vector2d point, tangent;
                     std::tie(point,tangent) = prim.spline.getPointAndTangent(param);
                     const base::Orientation2D orientation(std::atan2(tangent.y(), tangent.x()));
-                    //note, pose must not have an offset
-                    const base::Pose2D pose(point, orientation);
-                    
+
                     //point needs to be offset to the middle of the grid, 
                     //as all path computation also starts in the middle
                     //if not we would get a wrong diff
-                    point += base::Vector2d(gridResolution /2.0, gridResolution /2.0);
+                    const base::Pose2D pose(point, orientation);
                     
+                    point += base::Vector2d(gridResolution /2.0, gridResolution /2.0);
+
                     maps::grid::Index diff;
                     if(!dummyGrid.toGrid(base::Vector3d(point.x(), point.y(), 0), diff, false))
                         throw std::runtime_error("Internal Error : Cannot convert intermediate Pose to grid cell");
-                    if(lastIdx != diff ||
-                    i == parameters.size() - 1) //make sure that the last position is added, even if there already is a pose in this cell
+                    
+                    if(curPoses.cell != diff)
                     {
-                        PoseWithCell s;
-                        s.cell = diff;
-                        s.pose = pose;
-                        motion.intermediateSteps.push_back(s);
-                        if((lastIdx - diff).norm() > 1)
-                            throw std::runtime_error("skipped a cell");
+                        motion.fullSplineSamples.push_back(curPoses);
                         
-                        lastIdx = diff;
-                    } 
+                        //Find best match for collision check
+                        PoseWithCell pwc;
+                        pwc.cell = curPoses.cell;
+                        pwc.pose = getPointClosestToCellMiddle(curPoses, gridResolution);
+                        motion.intermediateSteps.push_back(pwc);
+
+                        curPoses.poses.clear();
+                        curPoses.cell = diff;
+                    }
+                    
+                    curPoses.poses.push_back(pose);
                 }
+                
+                motion.fullSplineSamples.push_back(curPoses);
+                
+                //Find best match for collision check
+                PoseWithCell pwc;
+                pwc.cell = curPoses.cell;
+                pwc.pose = getPointClosestToCellMiddle(curPoses, gridResolution);
+                motion.intermediateSteps.push_back(pwc);
+
                 assert(motion.intermediateSteps.size() > 0); //at least the end pose should always be part of the steps
             }
             computeSplinePrimCost(prim, mobilityConfig, motion);
@@ -153,6 +168,39 @@ void PreComputedMotions::setMotionForTheta(const Motion& motion, const DiscreteT
     idToMotion.push_back(copy);
     thetaToMotion[theta.getTheta()].push_back(copy);
 }
+
+base::Pose2D PreComputedMotions::getPointClosestToCellMiddle(const CellWithPoses& cwp, const double gridResolution)
+{
+    //dummyGrid is used to convert between grid indices and positions
+    maps::grid::GridMap<int> dummyGrid(maps::grid::Vector2ui(10, 10), base::Vector2d(gridResolution, gridResolution), 0);
+    
+    maps::grid::Vector3d cellCenter;
+    if(!dummyGrid.fromGrid(cwp.cell, cellCenter, 0, false))
+        throw std::runtime_error("Internal Error : Cannot convert index to cell position");
+    
+    const maps::grid::Vector2d cellCenter2D = cellCenter.topRows(2);
+    double closestDist = std::numeric_limits<double>::max();
+    assert(cwp.poses.size() > 0);
+    base::Pose2D closestPose = cwp.poses.front();
+    for(const base::Pose2D& pose : cwp.poses)
+    {
+        const Eigen::Vector2d centeredPos = pose.position + base::Vector2d(gridResolution /2.0, gridResolution /2.0);
+        const double dist = (cellCenter2D - centeredPos).norm();
+        if(dist < closestDist)
+        {
+            closestDist = dist;
+            closestPose = pose;
+        }
+        
+        maps::grid::Index testIdx;
+        dummyGrid.toGrid(Eigen::Vector3d(centeredPos.x(), centeredPos.y(), 0), testIdx, false);
+        
+        assert(testIdx == cwp.cell);
+    }
+    
+    return closestPose;
+}
+
 
 void PreComputedMotions::computeSplinePrimCost(const SplinePrimitive& prim,
                                                const Mobility& mobilityConfig,
