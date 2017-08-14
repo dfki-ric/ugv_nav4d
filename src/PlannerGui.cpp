@@ -272,8 +272,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     conf.inclineLimittingLimit = 0.44;// 5.0 * M_PI/180.0;
     conf.parallelismEnabled = false;
     conf.costFunctionDist = 0.4;
-    conf.costFunctionObstacleMultiplier = 1.0;
-    conf.costFunctionFrontierMultiplier = 10.0;
+    conf.distToGround = 0.2;
     
     maxSlopeSpinBox->setValue(33.23);
     inclineLimittingMinSlopeSpinBox->setValue(20);
@@ -488,7 +487,8 @@ void PlannerGui::obstacleDistanceSpinBoxEditingFinished()
 
 void PlannerGui::obstacleFactorSpinBoxEditingFinished()
 {
-    conf.costFunctionObstacleMultiplier = obstacleFactorSpinBox->value();
+    throw std::runtime_error("Function removed");
+//     conf.costFunctionObstacleMultiplier = obstacleFactorSpinBox->value();
 }
 
 void PlannerGui::timeEditingFinished()

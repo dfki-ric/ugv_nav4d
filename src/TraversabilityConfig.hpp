@@ -27,8 +27,6 @@ public:
         : maxStepHeight(0)
         , maxSlope(0)
         , costFunctionDist(0.4)
-        , costFunctionObstacleMultiplier(100.0)
-        , costFunctionFrontierMultiplier(50.0)
         , robotHeight(0)
         , robotSizeX(0)
         , robotSizeY(0)
@@ -54,10 +52,6 @@ public:
     /**Objects within a corridor of width costFunctionDist around a trajectory
      * will influence the cost function. */
     double costFunctionDist;
-    /** How much should obstacles within the corridor influence the cost function */
-    double costFunctionObstacleMultiplier;
-    /** How much should frontiers within the corridor influence the cost function */
-    double costFunctionFrontierMultiplier;
     
     
     double robotHeight;
