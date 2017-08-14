@@ -275,7 +275,8 @@ std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const
                 if(travGen.getTraversabilityMap().inGrid(neighborIndex))
                 {
                     const TravGenNode* neighbor = frontierPatch->getConnectedNode(neighborIndex);
-                    if(neighbor != nullptr && neighbor->getType() == TraversabilityNodeBase::FRONTIER)
+                    if(neighbor != nullptr && neighbor->getType() != TraversabilityNodeBase::UNKNOWN &&
+                        neighbor->getType() != TraversabilityNodeBase::UNSET)
                     {
                         xSum += xOp[x + 1][y + 1];
                         ySum += yOp[x + 1][y + 1];
