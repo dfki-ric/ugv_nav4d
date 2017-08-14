@@ -77,6 +77,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
     double fY = area.getSize().y() / area.getNumCells().y();
     
     int patchCnt = 0;
+    int patchCntTotal = 0;
     
     for(size_t y = 0; y < area.getNumCells().y(); y++)
     {
@@ -96,6 +97,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
                 
                 patchCnt++;
             }
+            patchCntTotal++;
         }
     }
 
@@ -104,6 +106,12 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
     if(patchCnt < 5)
     {
         //ransac will not produce a result below 5 points
+        return false;
+    }
+    
+    //filter out to sparse areas
+    if(patchCnt < patchCntTotal * config.minTraversablePercentage)
+    {
         return false;
     }
 
@@ -242,7 +250,7 @@ bool TraversabilityGenerator3d::checkForFrontier(TravGenNode* node)
         {
             const Index neighborIndex(index.x() + x, index.y() + y);
             const TravGenNode* neighbor = node->getConnectedNode(neighborIndex);
-            if(neighbor == nullptr)
+            if(neighbor == nullptr || neighbor->getType() == TraversabilityNodeBase::UNKNOWN)
             {
                 ++missingNeighbors;
             }
@@ -563,6 +571,10 @@ TravGenNode *TraversabilityGenerator3d::createTraversabilityPatchAt(maps::grid::
         if(height > (curHeight + config.maxStepHeight))
             break;
     }
+    
+    //Also add the interpolated height, to fill in small holes
+    //if there is no support, the ransac will filter the node out
+    candidates.push_back(curHeight);
 
     ret = new TravGenNode(0.0, idx);
     ret->getUserData().id = currentNodeId++;

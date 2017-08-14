@@ -27,6 +27,7 @@ public:
         : maxStepHeight(0)
         , maxSlope(0)
         , costFunctionDist(0.4)
+        , minTraversablePercentage(0.8)
         , robotHeight(0)
         , robotSizeX(0)
         , robotSizeY(0)
@@ -53,6 +54,13 @@ public:
      * will influence the cost function. */
     double costFunctionDist;
     
+    /**
+     * This value controls, how unknown patches are detected.
+     * If only a certain percentage of MSL patches are present,
+     * on the surface of a traversability patch, it is rated
+     * an unknown patch.
+     * */
+    double minTraversablePercentage;
     
     double robotHeight;
     double robotSizeX;
