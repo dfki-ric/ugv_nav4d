@@ -29,6 +29,11 @@ void Planner::setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadiu
     env->setInitialPatch(body2Mls * ground2Body , patchRadius);
 }
 
+void Planner::setTravMapCallback(const std::function< void ()>& callback)
+{
+    travMapCallback = callback;
+}
+
 bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls,
               const base::samples::RigidBodyState& endbody2Mls, std::vector<base::Trajectory>& resultTrajectory)
 {
@@ -63,6 +68,9 @@ bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyStat
         std::cout << e.what() << std::endl;
         return false;
     }
+    
+    if(travMapCallback)
+        travMapCallback();
     
     if(!planner)
         planner.reset(new ARAPlanner(env.get(), true));

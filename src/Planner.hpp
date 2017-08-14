@@ -24,6 +24,8 @@ protected:
     TraversabilityConfig traversabilityConfig;
     std::vector<int> solutionIds;
     
+    std::function<void ()> travMapCallback;
+    
 public:
     Planner(const motion_planning_libraries::SplinePrimitivesConfig &primitiveConfig, const TraversabilityConfig &traversabilityConfig,
             const motion_planning_libraries::Mobility& mobility);
@@ -44,6 +46,12 @@ public:
     }
     
     void setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadius);
+    
+    /**
+     * This callback is executed, whenever a new traverability map
+     * was expanded
+     * */
+    void setTravMapCallback(const std::function<void ()> &callback);
     
     std::vector<Motion> getMotions() const;
     
