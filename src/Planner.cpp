@@ -40,6 +40,8 @@ bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyStat
     
     CLEAR_DRAWING("collisions");
     CLEAR_DRAWING("successors");
+    CLEAR_DRAWING("collisionCheckFailed");
+    CLEAR_DRAWING("orientationCheckFailed");
     
     if(!env)
         throw std::runtime_error("Planner::plan : Error : No map was set");
