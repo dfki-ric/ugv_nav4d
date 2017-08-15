@@ -376,6 +376,7 @@ TravGenNode *EnvironmentXYZTheta::movementPossible(TravGenNode *fromTravNode, co
     TravGenNode *targetNode = fromTravNode->getConnectedNode(toIdx);
     if(!targetNode)
     {
+        std::cout << "movement not possible. nodes not conncted" << std::endl;
         return nullptr;
         //FIXME this should never happen but it does on the garage map with 0.5 resolution
         throw std::runtime_error("should not happen");
@@ -390,6 +391,7 @@ TravGenNode *EnvironmentXYZTheta::movementPossible(TravGenNode *fromTravNode, co
     //     during the expansion. Beforehand the type is undefined
     if(targetNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
     {
+        std::cout << "movement not possible. targetnode not traversable" << std::endl;
         return nullptr;
     }  
     
@@ -426,6 +428,14 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 }
 
 
+//are used in getSuccs
+//drawing directly from getSuccs is not possible due to multi threading issues.
+//therefore we buffer everything and draw at the end of getSuccs.
+COMPLEX_DRAWING_NO_SCOPE(
+    std::vector<const TravGenNode*> collisionCheckFailed;
+    std::vector<const TravGenNode*> orientationCheckFailed;
+);
+
 void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, vector< int >* CostV, vector< size_t >& motionIdV)
 {
     SuccIDV->clear();
@@ -444,6 +454,10 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                            0.05), vizkit3dDebugDrawings::Color::blue);
     );
 
+    COMPLEX_DRAWING(
+        collisionCheckFailed.clear();
+        orientationCheckFailed.clear();
+    );
     
     
     const ThetaNode *const thetaNode = sourceHash.thetaNode;
@@ -456,6 +470,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         //current node is not drivable
         if(!travGen.expandNode(curTravNode))
         {
+            std::cout << "GetSuccs: current node not expanded and not expandable" << std::endl;
             return;
         }
     }
@@ -477,9 +492,21 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             travNode = movementPossible(travNode, curIndex, newIndex);
             nodesOnPath.push_back(travNode);
             
-            if(!travNode ||
-               !checkOrientationAllowed(travNode, diff.pose.orientation))
+            if(!travNode)
             {
+                intermediateStepsOk = false;
+                break;
+            }
+            
+            if(!checkOrientationAllowed(travNode, diff.pose.orientation))
+            {
+                COMPLEX_DRAWING(
+                    #pragma omp critical(debugDrawingAccess) 
+                    {
+                        orientationCheckFailed.push_back(travNode);
+                    }
+                );
+                
                 intermediateStepsOk = false;
                 break;
             }
@@ -490,7 +517,9 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             continue;
 
         if(!travConf.ignoreCollisions && !checkCollisions(nodesOnPath, motion))
+        {
             continue;
+        }
         
         //goal from source to the end of the motion was valid
         XYZNode *successXYNode = nullptr;
@@ -610,6 +639,22 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             motionIdV.push_back(motion.id);
         }
     } 
+
+    for(const TravGenNode* node : collisionCheckFailed)
+    {
+        maps::grid::Vector3d p;
+        travGen.getTraversabilityMap().fromGrid(node->getIndex(), p, node->getHeight());
+        std::cout << "coll fail: " << p.transpose() << std::endl;
+        DRAW_LINE("collisionCheckFailed", p, p + maps::grid::Vector3d::UnitZ(), vizkit3dDebugDrawings::Color::magenta);
+    }
+    for(const TravGenNode* node : orientationCheckFailed)
+    {
+        maps::grid::Vector3d p;
+        travGen.getTraversabilityMap().fromGrid(node->getIndex(), p, node->getHeight());
+        p.z() += 0.03;
+        DRAW_LINE("orientationCheckFailed", p, p + maps::grid::Vector3d::UnitZ(), vizkit3dDebugDrawings::Color::cyan);
+    }
+    
 }
 
 bool EnvironmentXYZTheta::checkOrientationAllowed(const TravGenNode* node,
@@ -644,7 +689,17 @@ bool EnvironmentXYZTheta::checkCollisions(const std::vector<TravGenNode*>& path,
         //path contains the final element while intermediatePoses does not.
         const double zRot = motion.intermediateSteps[i].pose.orientation;
         if(!CollisionCheck::checkCollision(node, zRot, mlsGrid, robotHalfSize, travGen))
+        {
+            
+            COMPLEX_DRAWING(
+                #pragma omp critical(debugDrawingAccess) 
+                {
+                    collisionCheckFailed.push_back(node);
+                }
+            );
+            
             return false;
+        }
     }
     
     return true;
