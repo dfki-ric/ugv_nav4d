@@ -56,11 +56,6 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<MLGrid> mlsGrid,
     searchGrid.extend(travGen.getTraversabilityMap().getNumCells());
     robotHalfSize << travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight/2;
     
-    UGV_DEBUG(
-        debugData.setTravConf(travConf);
-        debugData.setTravGen(&travGen);
-        debugData.setMlsGrid(mlsGrid);
-    )
 }
 
 void EnvironmentXYZTheta::clear()
@@ -115,10 +110,6 @@ void EnvironmentXYZTheta::updateMap(boost::shared_ptr< EnvironmentXYZTheta::MLGr
     
     travGen.setMLSGrid(mlsGrid);
     this->mlsGrid = mlsGrid;
-    
-    UGV_DEBUG(
-        debugData.setMlsGrid(mlsGrid);
-    )
 
     clear();
 }
@@ -722,10 +713,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
     base::Trajectory curPart;
     
     CLEAR_DRAWING("trajectory");
-    
-    UGV_DEBUG(
-        std::vector<TravGenNode*> debugNodes;
-    )
     
     for(size_t i = 0; i < stateIDPath.size() - 1; ++i)
     {

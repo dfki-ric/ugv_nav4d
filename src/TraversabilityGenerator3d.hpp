@@ -5,21 +5,12 @@
 #include "TraversabilityConfig.hpp"
 #include "TravGenNode.hpp"
 
-//#define GENERATE_DEBUG_DATA
-#include "UgvDebug.hpp"
-#include "TravGenDebugData.hpp"
-
-
 namespace ugv_nav4d
 {
 
 class TraversabilityGenerator3d
 {
 public:
-
-    UGV_DEBUG(
-        ugv_nav4d_debug::TravGenDebugData debugData;
-    )
     typedef maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > MLGrid;
     
 private:

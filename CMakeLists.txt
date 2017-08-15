@@ -16,7 +16,7 @@ rock_executable(ugv_nav4d_bin
         src/PlannerGui.h
     MOC
         src/PlannerGui.h        
-   DEPS ugv_nav4d ugv_nav4d-viz
+   DEPS ugv_nav4d 
    DEPS_PKGCONFIG vizkit3d  maps-viz base-viz motion_planning_libraries-viz base-types)
 
 rock_executable(frontier_test_bin
@@ -27,7 +27,7 @@ rock_executable(frontier_test_bin
         src/FrontierTestGui.hpp
     MOC
         src/FrontierTestGui.hpp      
-   DEPS ugv_nav4d ugv_nav4d-viz
+   DEPS ugv_nav4d 
    DEPS_PKGCONFIG vizkit3d  maps-viz base-viz motion_planning_libraries-viz base-types)
    
 rock_executable(mls_clicker

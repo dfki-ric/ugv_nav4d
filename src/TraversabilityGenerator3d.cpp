@@ -15,10 +15,7 @@ namespace ugv_nav4d
 TraversabilityGenerator3d::TraversabilityGenerator3d(const TraversabilityConfig& config) : addInitialPatch(false), config(config)
 {
     trMap.setResolution(Eigen::Vector2d(config.gridResolution, config.gridResolution));
-    UGV_DEBUG(
-        debugData.setTravConfig(config);
-        debugData.setTravGen(this);
-    )
+
 }
 
 TraversabilityGenerator3d::~TraversabilityGenerator3d()
@@ -169,12 +166,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
 //         pos.z() += 0.06;
 //         DRAW_TEXT("slope", pos, std::to_string(node.getUserData().slope), 0.01, vizkit3dDebugDrawings::Color::red);
 //     );
-    
-    UGV_DEBUG(
-        debugData.planeComputed(node);
-    ) 
-
-    
+        
     return true;
 }
 
@@ -341,9 +333,6 @@ bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
 
 void TraversabilityGenerator3d::setConfig(const TraversabilityConfig &config)
 {
-    UGV_DEBUG(
-        debugData.setTravConfig(config);
-    )
     this->config = config;
 }
 

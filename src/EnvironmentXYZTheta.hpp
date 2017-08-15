@@ -8,12 +8,6 @@
 #include "PreComputedMotions.hpp"
 #include <base/Trajectory.hpp>
 
-//#define GENERATE_DEBUG_DATA
-#include "UgvDebug.hpp"
-#include "EnvironmentXYZThetaDebugData.hpp"
-
-
-
 std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle);
 
 namespace ugv_nav4d
@@ -95,10 +89,6 @@ protected:
     
 public:
     
-    UGV_DEBUG(
-        mutable ugv_nav4d_debug::EnvironmentXYZThetaDebugData debugData;
-    );
-
     Eigen::Vector3d robotHalfSize;
     
     /** @param generateDebugData If true, lots of debug information will becollected

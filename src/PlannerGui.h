@@ -4,7 +4,6 @@
 #include <vizkit3d/TrajectoryVisualization.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
 #include <vizkit3d/TraversabilityMap3dVisualization.hpp>
-#include <vizkit3d/EnvironmentXYZThetaVisualization.hpp>
 #include <vizkit3d/MotionPlanningLibrariesSbplMprimsVisualization.hpp>
 #include <vizkit3d/MotionPlanningLibrariesSbplSplineVisualization.hpp>
 #include <vizkit3d/RigidBodyStateVisualization.hpp>
@@ -77,7 +76,6 @@ private:
     vizkit3d::TrajectoryVisualization trajViz;
     vizkit3d::MLSMapVisualization mlsViz;
     vizkit3d::TraversabilityMap3dVisualization trav3dViz;
-    vizkit3d::EnvironmentXYZThetaVisualization envViz;
     vizkit3d::RigidBodyStateVisualization startViz;
     vizkit3d::RigidBodyStateVisualization goalViz;
     maps::grid::MLSMapKalman mlsMap;
@@ -91,6 +89,6 @@ private:
     ugv_nav4d::TraversabilityConfig conf;
     std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
     std::vector<base::Trajectory> path;
-    std::shared_ptr<FrontierGenerator> frontierGenerator;
+    std::shared_ptr<ugv_nav4d::FrontierGenerator> frontierGenerator;
     
 };

@@ -7,12 +7,12 @@
 #include <motion_planning_libraries/Config.hpp>
 #include "Planner.hpp"
 #include "PreComputedMotions.hpp"
-#include "UgvDebug.hpp"
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
 #include <boost/filesystem.hpp>
 #include <pcl/io/ply_io.h>
 #include <pcl/common/common.h>
 
+using namespace ugv_nav4d;
 
 PlannerGui::PlannerGui(int argc, char** argv): QObject()
 {
@@ -27,7 +27,6 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     widget->addPlugin(&trajViz);
     widget->addPlugin(&mlsViz);
     widget->addPlugin(&trav3dViz);
-    widget->addPlugin(&envViz);
     widget->addPlugin(&startViz);
     widget->addPlugin(&goalViz);
     
@@ -528,14 +527,6 @@ void PlannerGui::plannerIsDone()
     
     trav3dViz.updateData((planner->getEnv()->getTraversabilityBaseMap()));
     
-    envViz.setGridSize(mlsMap.getResolution().x());   
-    envViz.setRobotHalfSize(planner->getEnv()->robotHalfSize);
-    
-    UGV_DEBUG(
-        envViz.setEnvDebugData(planner->getEnv()->debugData);
-        envViz.setTravGenDebugData(planner->getEnv()->getTravGen().debugData);
-    )
-
     bar->setMaximum(1);
 }
 
@@ -555,14 +546,7 @@ goal: -0.455198   7.99133   2.08586
 */
 
 void PlannerGui::plan(const base::Pose& start, const base::Pose& goal)
-{
-    UGV_DEBUG(
-        planner->getEnv()->debugData.getSuccs().clear();
-        planner->getEnv()->debugData.getCollisions().clear();
-        planner->getEnv()->debugData.getSlopeData().clear();
-        planner->getEnv()->debugData.getSlopeCandidates().clear();
-    )
-    
+{   
     base::samples::RigidBodyState startState;
     startState.position = start.position;
     startState.orientation = start.orientation;
