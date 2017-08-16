@@ -2,6 +2,7 @@
 
 #include <sbpl/discrete_space_information/environment.h>
 #include "TraversabilityGenerator3d.hpp"
+#include "ObstacleMapGenerator3D.hpp"
 #include <maps/grid/TraversabilityMap3d.hpp>
 #include <base/Pose.hpp>
 #include "DiscreteTheta.hpp"
@@ -19,6 +20,7 @@ public:
     typedef TraversabilityGenerator3d::MLGrid MLGrid;
 protected:
     TraversabilityGenerator3d travGen;
+    ObstacleMapGenerator3D obsGen;
     boost::shared_ptr<MLGrid > mlsGrid;
 
     struct EnvironmentXYZThetaException : public SBPL_Exception
@@ -83,6 +85,9 @@ protected:
     ThetaNode *goalThetaNode;
     XYZNode *goalXYZNode;
     
+    /**Start node in obstacle map */
+    TravGenNode* obstacleStartNode;
+    
     ThetaNode *createNewState(const DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
     XYZNode *createNewXYZState(TravGenNode* travNode);
     ThetaNode *createNewStateFromPose(const Eigen::Vector3d& pos, double theta, EnvironmentXYZTheta::XYZNode** xyzNode);
@@ -142,8 +147,12 @@ public:
     const Motion& getMotion(const int fromStateID, const int toStateID);
     
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;
+    maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getObstacleBaseMap() const;
     const maps::grid::TraversabilityMap3d<TravGenNode *> &getTraversabilityMap() const;
+    const maps::grid::TraversabilityMap3d<TravGenNode *> &getObstacleMap() const;
+    
     TraversabilityGenerator3d& getTravGen();
+    TraversabilityGenerator3d& getObstacleGen();
 
     const MLGrid &getMlsMap() const;
     

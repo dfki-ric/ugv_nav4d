@@ -13,7 +13,7 @@ class TraversabilityGenerator3d
 public:
     typedef maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > MLGrid;
     
-private:
+protected:
     
     typedef MLGrid::CellType Cell;
     typedef MLGrid::View View;
@@ -54,10 +54,12 @@ private:
     
     void addInitialPatchToMLS();
     
+    int intersections();
+    
 public:
     TraversabilityGenerator3d(const TraversabilityConfig &config);
 
-    ~TraversabilityGenerator3d();
+    virtual ~TraversabilityGenerator3d();
 
     void clearTrMap();
     
@@ -68,7 +70,7 @@ public:
 
     void expandAll(TravGenNode *startNode);
 
-    bool expandNode(TravGenNode *node);
+    virtual bool expandNode(TravGenNode *node);
     
     void setMLSGrid(boost::shared_ptr<MLGrid> &grid);
     
@@ -80,9 +82,8 @@ public:
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;
         
     void setConfig(const TraversabilityConfig &config);
-    
-protected:
-    int intersections();
+
+
 };
 
 }

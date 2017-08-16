@@ -76,6 +76,7 @@ private:
     vizkit3d::TrajectoryVisualization trajViz;
     vizkit3d::MLSMapVisualization mlsViz;
     vizkit3d::TraversabilityMap3dVisualization trav3dViz;
+    vizkit3d::TraversabilityMap3dVisualization obstacleMapViz;
     vizkit3d::RigidBodyStateVisualization startViz;
     vizkit3d::RigidBodyStateVisualization goalViz;
     maps::grid::MLSMapKalman mlsMap;

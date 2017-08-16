@@ -22,11 +22,15 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     widget = new vizkit3d::Vizkit3DWidget();
     CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(widget);
     
+    trav3dViz.setPluginName("TravMap");
+    obstacleMapViz.setPluginName("ObstacleMap");
+    
     widget->setCameraManipulator(vizkit3d::ORBIT_MANIPULATOR);
     widget->addPlugin(&splineViz);
     widget->addPlugin(&trajViz);
     widget->addPlugin(&mlsViz);
     widget->addPlugin(&trav3dViz);
+    widget->addPlugin(&obstacleMapViz);
     widget->addPlugin(&startViz);
     widget->addPlugin(&goalViz);
     
@@ -526,6 +530,7 @@ void PlannerGui::plannerIsDone()
     trajViz.setLineWidth(8);
     
     trav3dViz.updateData((planner->getEnv()->getTraversabilityBaseMap()));
+    obstacleMapViz.updateData((planner->getEnv()->getObstacleBaseMap()));
     
     bar->setMaximum(1);
 }
@@ -535,7 +540,13 @@ void PlannerGui::expandPressed()
     planner->getEnv()->getTravGen().clearTrMap();
     planner->getEnv()->getTravGen().setConfig(conf);
     planner->getEnv()->getTravGen().expandAll(start.position.cast<double>());
+    
+    planner->getEnv()->getObstacleGen().clearTrMap();
+    planner->getEnv()->getObstacleGen().setConfig(conf);
+    planner->getEnv()->getObstacleGen().expandAll(start.position.cast<double>());
+    
     trav3dViz.updateData((planner->getEnv()->getTraversabilityBaseMap()));
+    obstacleMapViz.updateData((planner->getEnv()->getObstacleBaseMap()));
     mlsViz.setPluginEnabled(false);
 }
 

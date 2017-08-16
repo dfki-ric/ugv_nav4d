@@ -41,18 +41,20 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<MLGrid> mlsGrid,
                                          const TraversabilityConfig& travConf,
                                          const SplinePrimitivesConfig& primitiveConfig,
                                          const Mobility& mobilityConfig) :
-    travGen(travConf)
+    travGen(travConf), obsGen(travConf)
     , mlsGrid(mlsGrid)
     , availableMotions(primitiveConfig, mobilityConfig)
     , startThetaNode(nullptr)
     , startXYZNode(nullptr)
     , goalThetaNode(nullptr)
     , goalXYZNode(nullptr)
+    , obstacleStartNode(nullptr)
     , travConf(travConf)
     , mobilityConfig(mobilityConfig)
 {
     numAngles = primitiveConfig.numAngles;
     travGen.setMLSGrid(mlsGrid);
+    obsGen.setMLSGrid(mlsGrid);
     searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
     searchGrid.extend(travGen.getTraversabilityMap().getNumCells());
     robotHalfSize << travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight/2;
@@ -102,6 +104,7 @@ EnvironmentXYZTheta::~EnvironmentXYZTheta()
 void EnvironmentXYZTheta::setInitialPatch(const Eigen::Affine3d& ground2Mls, double patchRadius)
 {
     travGen.setInitialPatch(ground2Mls, patchRadius);
+    obsGen.setInitialPatch(ground2Mls, patchRadius);
 }
 
 void EnvironmentXYZTheta::updateMap(boost::shared_ptr< EnvironmentXYZTheta::MLGrid > mlsGrid)
@@ -110,6 +113,7 @@ void EnvironmentXYZTheta::updateMap(boost::shared_ptr< EnvironmentXYZTheta::MLGr
         throw std::runtime_error("EnvironmentXYZTheta::updateMap : Error got MLSMap with different resolution");
     
     travGen.setMLSGrid(mlsGrid);
+    obsGen.setMLSGrid(mlsGrid);
     this->mlsGrid = mlsGrid;
 
     clear();
@@ -193,8 +197,14 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     
     std::cout << "GOAL IS: " << goalPos.transpose() << std::endl;
     
+    std::cout << "Expanding trav map...\n";
     travGen.expandAll(startXYZNode->getUserData().travNode);
-    std::cout << "All expanded " << std::endl;
+    std::cout << "expanded " << std::endl;
+    
+    std::cout << "Expanding obstacle map...\n";
+    obsGen.expandAll(obstacleStartNode);
+    std::cout << "expanded " << std::endl;
+    
     precomputeCost();
     std::cout << "Heuristic computed" << std::endl;
 }
@@ -217,10 +227,14 @@ void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
 //         std::cout << "START INSIDE OBSTACLE" << std::endl;
 //     }
     
+    obstacleStartNode = obsGen.generateStartNode(startPos);
+    if(!obstacleStartNode)
+        throw runtime_error("Could not generate obstacle node at start pos");
+    
     std::cout << "START IS: " << startPos.transpose() << std::endl;
     
 }
-
+ 
 void EnvironmentXYZTheta::SetAllPreds(CMDPSTATE* state)
 {
     //implement this if the planner needs access to predecessors
@@ -843,10 +857,22 @@ maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > Environme
     return travGen.getTraversabilityBaseMap();
 }
 
+maps::grid::TraversabilityMap3d<maps::grid::TraversabilityNodeBase*> EnvironmentXYZTheta::getObstacleBaseMap() const
+{
+    return obsGen.getTraversabilityBaseMap();
+}
+
+
 const maps::grid::TraversabilityMap3d<TravGenNode*>& EnvironmentXYZTheta::getTraversabilityMap() const
 {
     return travGen.getTraversabilityMap();
 }
+
+const maps::grid::TraversabilityMap3d<TravGenNode*>& EnvironmentXYZTheta::getObstacleMap() const
+{
+    return obsGen.getTraversabilityMap();
+}
+
 
 const EnvironmentXYZTheta::MLGrid& EnvironmentXYZTheta::getMlsMap() const
 {
@@ -912,6 +938,11 @@ void EnvironmentXYZTheta::precomputeCost()
 TraversabilityGenerator3d& EnvironmentXYZTheta::getTravGen()
 {
     return travGen;
+}
+
+TraversabilityGenerator3d& EnvironmentXYZTheta::getObstacleGen()
+{
+    return obsGen;
 }
 
 void EnvironmentXYZTheta::setTravConfig(const TraversabilityConfig& cfg)
