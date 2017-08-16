@@ -2,10 +2,9 @@
 #include <unordered_set>
 #include <deque>
 
-ugv_nav4d::PathStatistic::PathStatistic(const ugv_nav4d::TraversabilityConfig& config) : 
-        obstacles(0), 
-        frontiers(0),
-        config(config)
+ugv_nav4d::PathStatistic::Stats::Stats() :
+    obstacles(0), 
+    frontiers(0)
 {
     //FIXME this is going to break if FRONTIER is no longer the last entry in the enum
     //      or someone starts attaching different values to the enums.
@@ -13,8 +12,7 @@ ugv_nav4d::PathStatistic::PathStatistic(const ugv_nav4d::TraversabilityConfig& c
     minDistToObstacle = std::numeric_limits< double >::max();
 }
 
-
-void ugv_nav4d::PathStatistic::updateStatistic(const maps::grid::TraversabilityNodeBase* node)
+void ugv_nav4d::PathStatistic::Stats::updateStatistic(const maps::grid::TraversabilityNodeBase* node)
 {
     switch(node->getType())
     {
@@ -30,29 +28,62 @@ void ugv_nav4d::PathStatistic::updateStatistic(const maps::grid::TraversabilityN
     }
 }
 
-void ugv_nav4d::PathStatistic::calculateStatistics(std::vector< ugv_nav4d::TravGenNode* > path)
-{
-    //dist is in real world 
-    const double neighborSquareDist = config.costFunctionDist * config.costFunctionDist;
-    std::unordered_set<maps::grid::TraversabilityNodeBase*> neighbors; //all neighbors that are closer than neighborSquareDist
 
-    const Eigen::Vector2d travGridResolution(config.gridResolution, config.gridResolution);
+ugv_nav4d::PathStatistic::PathStatistic(const ugv_nav4d::TraversabilityConfig& config) : 
+        config(config)
+{
+}
+
+void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector< ugv_nav4d::TravGenNode* >& path, 
+                                                   const std::vector< base::Pose2D >& poses, 
+                                                   const maps::grid::TraversabilityMap3d<TravGenNode *> &trMap)
+{
+    assert(path.size() == poses.size());
     
-    //find all neighbors within corridor around path
-    for(TravGenNode* node : path)
+    const Eigen::Vector2d travGridResolution(config.gridResolution, config.gridResolution);
+
+    Eigen::Vector2d halfRobotDimension(config.robotSizeX / 2.0, config.robotSizeY/2.0);
+    Eigen::Vector2d halfOuterBoxDimension(halfRobotDimension + Eigen::Vector2d::Constant(config.costFunctionDist));
+    
+    std::vector<Eigen::Vector2d> edgePositions = {
+        Eigen::Vector2d(- config.gridResolution /2.0, - config.gridResolution / 2.0),
+        Eigen::Vector2d(- config.gridResolution / 2.0, config.gridResolution / 2.0),
+        Eigen::Vector2d(config.gridResolution / 2.0, config.gridResolution / 2.0),
+        Eigen::Vector2d(config.gridResolution / 2.0, -config.gridResolution / 2.0)
+    };
+    
+    Eigen::AlignedBox<double, 2> robotBoundingBox(- halfRobotDimension, halfRobotDimension);
+    Eigen::AlignedBox<double, 2> costFunctionBoundingBox(- halfOuterBoxDimension, halfOuterBoxDimension);
+
+    std::unordered_set<maps::grid::TraversabilityNodeBase*> inRobot;
+    std::unordered_set<maps::grid::TraversabilityNodeBase*> inBoundary;
+
+
+    
+    for(size_t i = 0; i < path.size(); i++)
     {
+        TravGenNode *node(path[i]);
+        const base::Pose2D curPose(poses[i]);
+
+        const Eigen::Rotation2D<double> yawInverse(Eigen::Rotation2D<double>(curPose.orientation).inverse());
+
+        
         //vector is not the the most efficient when using std::find but for small vectors it should be ok.
         //linear serach on a cached vector is as fast as unordered_set lookup for vector sizes < 100
         // (yes, I benchmarked)
         std::deque<maps::grid::TraversabilityNodeBase*> nodes;
         std::unordered_set<maps::grid::TraversabilityNodeBase*> visited;
         nodes.push_back(node);
-        const maps::grid::Vector2d nodePos = node->getIndex().cast<double>().cwiseProduct(travGridResolution);
+        maps::grid::Vector3d nodePos3;
+        //index check was already performed before
+        trMap.fromGrid(node->getIndex(), nodePos3, false);
+        
+        const maps::grid::Vector2d nodePos(nodePos3.head<2>());
+
         do
         {
             maps::grid::TraversabilityNodeBase* currentNode = nodes.front();
             nodes.pop_front();
-            neighbors.insert(currentNode);
             
             for(auto neighbor : currentNode->getConnections())
             {
@@ -62,36 +93,67 @@ void ugv_nav4d::PathStatistic::calculateStatistics(std::vector< ugv_nav4d::TravG
 
                 visited.insert(neighbor);
                     
-                //check if node is within corridor
-                const maps::grid::Vector2d neighborPos = neighbor->getIndex().cast<double>().cwiseProduct(travGridResolution);
-                double curSquaredNorm = (neighborPos - nodePos).squaredNorm();
-                if(curSquaredNorm > neighborSquareDist)
-                    continue;
                 
-                minDistance[neighbor->getType()] = std::min(curSquaredNorm, minDistance[neighbor->getType()]);
+                //we need to compute the four edges of a cell and check if any is inside of the robot
+                maps::grid::Vector3d neighborPos;
+                trMap.fromGrid(neighbor->getIndex(), neighborPos, false);
+                
+                bool isInsideRobot = false;
+                bool isInsideBoundary = false;
+                
+                for(const Eigen::Vector2d &ep : edgePositions)
+                {
+                    const Eigen::Vector2d edgePos(neighborPos.head<2>() + ep);
+                    
+                    //translate to center
+                    Eigen::Vector2d tp = edgePos - curPose.position;
+                    //rotate invers to orientation of robot
+                    tp = yawInverse * tp;
+                    
+                    if(costFunctionBoundingBox.contains(tp))
+                    {
+                        isInsideBoundary = true;
+                        
+                        //it is only inside the robot
+                        if(robotBoundingBox.contains(tp))
+                        {
+                            isInsideRobot = true;
+                            
+                            //we continue iteration here, to compute the correct distances of all edges
+                        }
+                        else
+                        {
+                            boundaryStats.updateDistance(neighbor, robotBoundingBox.exteriorDistance(tp));
+                        }
+                    }
+                }
+                    
+                if(!isInsideBoundary)
+                {
+                    continue;
+                }
+
+                //further expand node
                 nodes.push_back(neighbor);
+
+                if(isInsideRobot)
+                {
+                    inRobot.insert(neighbor);
+                    continue;
+                }
+                
+                inBoundary.insert(neighbor);
             }
         }while(!nodes.empty());
     }
     
-    //get real norm, not squared one
-    for(double &d : minDistance)
+    for(maps::grid::TraversabilityNodeBase* n : inRobot)
     {
-        d = sqrt(d);
-    }
-    
-    for(maps::grid::TraversabilityNodeBase* n : neighbors)
-    {
-        updateStatistic(n);
+        robotStats.updateStatistic(n);
     }   
-}
 
-double ugv_nav4d::PathStatistic::getMinDistToFrontiers() const
-{
-    return minDistance[maps::grid::TraversabilityNodeBase::FRONTIER];
-}
-
-double ugv_nav4d::PathStatistic::getMinDistToObstacles() const
-{
-    return minDistToObstacle;
+    for(maps::grid::TraversabilityNodeBase* n : inBoundary)
+    {
+        boundaryStats.updateStatistic(n);
+    }   
 }

@@ -498,6 +498,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         TravGenNode *travNode = sourceNode->getUserData().travNode;
         maps::grid::Index curIndex = sourceNode->getIndex();
         std::vector<TravGenNode*> nodesOnPath;
+        std::vector<base::Pose2D> posesOnPath;
         bool intermediateStepsOk = true;
 
         for(const PoseWithCell &diff : motion.intermediateSteps)
@@ -506,7 +507,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             const maps::grid::Index newIndex =  sourceIndex + diff.cell;
             travNode = movementPossible(travNode, curIndex, newIndex);
             nodesOnPath.push_back(travNode);
-            
+            posesOnPath.push_back(diff.pose);
             if(!travNode)
             {
                 intermediateStepsOk = false;
@@ -531,10 +532,15 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         if(!intermediateStepsOk)
             continue;
 
-        if(!travConf.ignoreCollisions && !checkCollisions(nodesOnPath, motion))
+        PathStatistic statistic(travConf);
+        
+        statistic.calculateStatistics(nodesOnPath, posesOnPath, getObstacleMap());
+        
+        if(statistic.getRobotStats().getNumObstacles() || statistic.getRobotStats().getNumFrontiers())
         {
             continue;
         }
+        
         
         //goal from source to the end of the motion was valid
         XYZNode *successXYNode = nullptr;
@@ -618,13 +624,11 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 throw std::runtime_error("unknown slope metric selected");
         }
 
-        PathStatistic statistic(travConf);
-        statistic.calculateStatistics(nodesOnPath);
         
-        if(statistic.getNumObstacles())
+        if(statistic.getBoundaryStats().getNumObstacles())
         {
             const double outer_radius = travConf.costFunctionDist;
-            double minDistToRobot = statistic.getMinDistToObstacles();
+            double minDistToRobot = statistic.getBoundaryStats().getMinDistToObstacles();
             minDistToRobot = std::min(outer_radius, minDistToRobot);
             double impactFactor = (outer_radius - minDistToRobot) / outer_radius;
             oassert(impactFactor < 1.001 && impactFactor >= 0);
@@ -632,10 +636,10 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             cost += cost * impactFactor;
         }
 
-        if(statistic.getNumFrontiers())
+        if(statistic.getBoundaryStats().getNumFrontiers())
         {
             const double outer_radius = travConf.costFunctionDist;
-            double minDistToRobot = statistic.getMinDistToFrontiers();
+            double minDistToRobot = statistic.getBoundaryStats().getMinDistToFrontiers();
             minDistToRobot = std::min(outer_radius, minDistToRobot);
             double impactFactor = (outer_radius - minDistToRobot) / outer_radius;
             oassert(impactFactor < 1.001 && impactFactor >= 0);
