@@ -55,7 +55,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
     
 
     //get all surfaces in a cube of robotwidth and stepheight
-    Eigen::Vector3d min(-config.robotSizeX / 2.0, -config.robotSizeX / 2.0, -config.maxStepHeight);
+    Eigen::Vector3d min(-config.robotSizeY / 2.0, -config.robotSizeY / 2.0, -config.maxStepHeight);
     Eigen::Vector3d max(-min);
     
     min += nodePos;
@@ -296,7 +296,7 @@ bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
         throw std::runtime_error("TraversabilityGenerator3d: Internal error node out of grid");
     nodePos.z() += node->getHeight();
     
-    Eigen::Vector3d min(-config.robotSizeX / 2.0, -config.robotSizeX / 2.0, 0);
+    Eigen::Vector3d min(-config.robotSizeY / 2.0, -config.robotSizeY / 2.0, 0);
     Eigen::Vector3d max(-min);
     max.z() = config.robotHeight;
     
