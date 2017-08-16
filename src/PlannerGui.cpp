@@ -264,10 +264,10 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
      
     conf.gridResolution = res;
     conf.maxSlope = 0.58; //40.0/180.0 * M_PI;
-    conf.maxStepHeight = 0.5; //space below robot
+    conf.maxStepHeight = 0.2; //space below robot
     conf.robotSizeX = 1.0;
     conf.robotSizeY =  0.7;
-    conf.robotHeight = 0.5; //incl space below body
+    conf.robotHeight = 0.9; //incl space below body
     conf.slopeMetricScale = 0.0;
     conf.slopeMetric = SlopeMetric::NONE;
     conf.heuristicType = HeuristicType::HEURISTIC_2D;
