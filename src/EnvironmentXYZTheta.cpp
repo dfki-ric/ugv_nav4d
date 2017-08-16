@@ -11,6 +11,7 @@
 #include <vizkit3d_debug_drawings/DebugDrawingColors.h>
 #include "CollisionCheck.hpp"
 #include "PathStatistics.hpp"
+#include "Dijkstra.hpp"
 
 backward::SignalHandling crashHandler;
 
@@ -880,30 +881,30 @@ double EnvironmentXYZTheta::getMaxSlope(std::vector<TravGenNode*> path) const
 
 void EnvironmentXYZTheta::precomputeCost()
 {
-    std::vector<double> costToStart;
-    std::vector<double> costToEnd;
     
-    //FIXME test if using double max causes problems, if not, use it.
-    const double maxDist = 99999999; //big enough to never occur in reality. Small enough to not cause overflows when used by accident.
-    
-    travGen.dijkstraComputeCost(startXYZNode->getUserData().travNode, costToStart, maxDist);
-    travGen.dijkstraComputeCost(goalXYZNode->getUserData().travNode, costToEnd, maxDist);
-    
+    std::unordered_map<const maps::grid::TraversabilityNodeBase*, double> costToStart;
+    std::unordered_map<const maps::grid::TraversabilityNodeBase*, double> costToEnd;
+
+    Dijkstra::computeCost(startXYZNode->getUserData().travNode, costToStart, travConf);
+    Dijkstra::computeCost(goalXYZNode->getUserData().travNode, costToEnd, travConf);
     assert(costToStart.size() == costToEnd.size());
     
+    const double maxDist = 99999999; //big enough to never occur in reality. Small enough to not cause overflows when used by accident.
     travNodeIdToDistance.clear();
-    travNodeIdToDistance.resize(costToStart.size(), Distance(maxDist, maxDist));
-    for(size_t i = 0; i < costToStart.size(); ++i)
+    travNodeIdToDistance.resize(travGen.getNumNodes(), Distance(maxDist, maxDist));
+    
+    for(const auto pair : costToStart)
     {
-        travNodeIdToDistance[i].distToStart =  costToStart[i];
-        travNodeIdToDistance[i].distToGoal =  costToEnd[i];
-                
-        if(i != startXYZNode->getUserData().travNode->getUserData().id &&
-           i != goalXYZNode->getUserData().travNode->getUserData().id &&
-           costToStart[i] <= 0)
-        {
-            throw std::runtime_error("Heuristic of node other than start or goal is 0");
-        }
+        const TravGenNode* node = static_cast<const TravGenNode*>(pair.first);
+        const double cost = pair.second;
+        travNodeIdToDistance[node->getUserData().id].distToStart = cost;
+    }
+    
+    for(const auto pair : costToEnd)
+    {
+        const TravGenNode* node = static_cast<const TravGenNode*>(pair.first);
+        const double cost = pair.second;
+        travNodeIdToDistance[node->getUserData().id].distToGoal = cost;
     }
 }
 

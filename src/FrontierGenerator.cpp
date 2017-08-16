@@ -3,6 +3,7 @@
 #include <vizkit3d_debug_drawings/DebugDrawingColors.h>
 #include "TravMapBfsVisitor.hpp"
 #include "CollisionCheck.hpp"
+#include "Dijkstra.hpp"
 #include <Eigen/Geometry>
 
 
@@ -466,23 +467,23 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
 {
     //calc travel distances on map
     std::vector<NodeWithOrientationAndCost> result;
-    std::vector<double> distancesOnMap;
-    const double maxDist = 99999999;//FIXME constant in code? should be numeric_limits::max
-    travGen.dijkstraComputeCost(startNode, distancesOnMap, maxDist);
-    
+    std::unordered_map<const maps::grid::TraversabilityNodeBase*, double> distancesOnMap;
+    Dijkstra::computeCost(startNode, distancesOnMap, travConf);
     
     //find max distances for normalization
     double maxDistFromStart = 0;
     double maxDistToGoal = 0;
     for(const NodeWithOrientation& node : nodes)
     {
-        const double distToGoal = distToPoint(node.node, goalPos);
-        const double distFromStart = distancesOnMap[node.node->getUserData().id];
-        if(distFromStart >= maxDist)
+        if(distancesOnMap.find(node.node) == distancesOnMap.end())
         {
             //this means there is no traversable connection to the node.
             continue;
         }
+        
+        const double distToGoal = distToPoint(node.node, goalPos);
+        const double distFromStart = distancesOnMap[node.node];
+
         //0.0 is a dummy cost here, it is updated in the next loop
         result.push_back({node.node, node.orientationZ, 0.0});
 
@@ -493,12 +494,12 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
     //calc cost
     for(NodeWithOrientationAndCost& node : result)
     {
-        const double distFromStart = distancesOnMap[node.node->getUserData().id];
-        if(distFromStart >= maxDist)
+        if(distancesOnMap.find(node.node) == distancesOnMap.end())
         {
             throw std::runtime_error("Internal Error, list contains non reachable nodes");
         }
 
+        const double distFromStart = distancesOnMap[node.node];
         const double distToGoal = distToPoint(node.node, goalPos) / maxDistToGoal; //range 0..1
         const double explorableFactor = calcExplorablePatches(node.node); //range: 0.. 1
         const double travelDist = distFromStart / maxDistFromStart; //range: 0..1

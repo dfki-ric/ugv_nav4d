@@ -23,6 +23,7 @@ rock_library(ugv_nav4d
         Planner.cpp
         PreComputedMotions.cpp
         TraversabilityGenerator3d.cpp
+        Dijkstra.cpp
     HEADERS 
         AreaExplorer.hpp
         Config.hpp
@@ -37,6 +38,7 @@ rock_library(ugv_nav4d
         TravGenNode.hpp
         TraversabilityConfig.hpp
         TravMapBfsVisitor.hpp
+        Dijkstra.hpp
     DEPS_PKGCONFIG 
         base-types 
         sbpl
