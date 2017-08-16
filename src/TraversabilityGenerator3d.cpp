@@ -498,6 +498,11 @@ TravGenNode* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d&
         return startNode;
     }
 
+    if(startNode->isExpanded() && startNode->getType() != TraversabilityNodeBase::TRAVERSABLE)
+    {
+        std::cout << "TraversabilityGenerator3d::generateStartNode: Position is on unknow patch ! " << std::endl;
+    }
+    
     return startNode;
 }
 
