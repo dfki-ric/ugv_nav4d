@@ -39,7 +39,7 @@ ugv_nav4d::PathStatistic::PathStatistic(const ugv_nav4d::TraversabilityConfig& c
 {
 }
 
-void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector< ugv_nav4d::TravGenNode* >& path, 
+void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_nav4d::TravGenNode* >& path, 
                                                    const std::vector< base::Pose2D >& poses, 
                                                    const maps::grid::TraversabilityMap3d<TravGenNode *> &trMap)
 {
@@ -67,7 +67,7 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector< ugv_nav4d:
     
     for(size_t i = 0; i < path.size(); i++)
     {
-        TravGenNode *node(path[i]);
+        const TravGenNode *node(path[i]);
         const base::Pose2D curPose(poses[i]);
 
         const Eigen::Rotation2D<double> yawInverse(Eigen::Rotation2D<double>(curPose.orientation).inverse());
@@ -76,8 +76,8 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector< ugv_nav4d:
         //vector is not the the most efficient when using std::find but for small vectors it should be ok.
         //linear serach on a cached vector is as fast as unordered_set lookup for vector sizes < 100
         // (yes, I benchmarked)
-        std::deque<maps::grid::TraversabilityNodeBase*> nodes;
-        std::unordered_set<maps::grid::TraversabilityNodeBase*> visited;
+        std::deque<const maps::grid::TraversabilityNodeBase*> nodes;
+        std::unordered_set<const maps::grid::TraversabilityNodeBase*> visited;
         nodes.push_back(node);
         maps::grid::Vector3d nodePos3;
         //index check was already performed before
@@ -87,7 +87,7 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector< ugv_nav4d:
 
         do
         {
-            maps::grid::TraversabilityNodeBase* currentNode = nodes.front();
+            const maps::grid::TraversabilityNodeBase* currentNode = nodes.front();
             nodes.pop_front();
             
             for(auto neighbor : currentNode->getConnections())

@@ -5,6 +5,7 @@
 #include "CollisionCheck.hpp"
 #include "Dijkstra.hpp"
 #include <Eigen/Geometry>
+#include "PathStatistics.hpp"
 
 
 #define SHOW(x) std::cout << #x": "<< (x) << std::endl
@@ -100,12 +101,12 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
         std::cout << "found candidates: " << candidatesWithOrientation.size() << std::endl;
     }
     
-    std::cout << "Removing frontiers with collisions" << std::endl;
-    const std::vector<NodeWithOrientation> nodesWithoutCollisions(getNodesWithoutCollision(candidatesWithOrientation));
-    std::cout << "frontiers without collision: " << nodesWithoutCollisions.size() << std::endl;
+    std::cout << "Finding collision free neighbors" << std::endl;
+    const std::vector<NodeWithOrientation> collisionFreeNeighbors(getCollisionFreeNeighbor(candidatesWithOrientation));
+    std::cout << "Neighbors: " << collisionFreeNeighbors.size() << std::endl;
     
     std::cout << "Removing duplicates" << std::endl;
-    const std::vector<NodeWithOrientation> nodesWithoutDuplicates(removeDuplicates(nodesWithoutCollisions));
+    const std::vector<NodeWithOrientation> nodesWithoutDuplicates(removeDuplicates(collisionFreeNeighbors));
     std::cout << "frontiers without duplicates: " << nodesWithoutDuplicates.size() << std::endl;
     
     std::cout << "calculating costs" << std::endl;
@@ -344,9 +345,6 @@ std::vector<NodeWithOrientation> FrontierGenerator::getNodesWithoutCollision(con
         }
     }   
     
-    
-
-    
     return std::move(result);
 }
 
@@ -357,58 +355,60 @@ std::vector<NodeWithOrientation> FrontierGenerator::getCollisionFreeNeighbor(con
     //FIXME the collisions are drawn inside CollisionCheck::checkCollision().
     //      If they are not cleared we will run out of memory after some time.
 
-    const base::Vector3d robotHalfSize(travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight / 2);
-//     CLEAR_DRAWING("neighBorobstacleCheck");
+    
     for(const NodeWithOrientation& node : nodes)
     {
+        
+        maps::grid::Vector3d nodePos;
+        travGen.getTraversabilityMap().fromGrid(node.node->getIndex(), nodePos, node.node->getHeight(), false);
+        
         const TravGenNode* traversableNeighbor = nullptr;
-        base::Vector3d traversableNeighborPos(0, 0, 0);
-        const TravGenNode* nextFrontierNode = node.node;
-        base::Vector3d nextFrontierPos(nextFrontierNode->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
-                                       nextFrontierNode->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
-                                       nextFrontierNode->getHeight());
-        nextFrontierPos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * nextFrontierPos;
-        const double orientation = node.orientationZ;
-
-        CLEAR_DRAWING("collisions");
         TravMapBfsVisitor::visit(node.node, 
-            [&traversableNeighbor, &nextFrontierNode, &nextFrontierPos, this, orientation, &traversableNeighborPos, &robotHalfSize]
+            [this, &traversableNeighbor, &nodePos, &node]
             (const TravGenNode* currentNode, bool& visitChildren, bool& abort, std::size_t distToRoot)
             {
-                if((currentNode->getType() == maps::grid::TraversabilityNodeBase::TRAVERSABLE ||
-                   currentNode->getType() == TraversabilityNodeBase::FRONTIER) &&
-                   CollisionCheck::checkCollision(currentNode, orientation, mlsMap, robotHalfSize, travGen))
+                maps::grid::Vector3d neighborPos;
+                travGen.getTraversabilityMap().fromGrid(currentNode->getIndex(), neighborPos, currentNode->getHeight(), false);
+                
+                if(currentNode->getType() == maps::grid::TraversabilityNodeBase::TRAVERSABLE)
                 {
-                    traversableNeighbor = currentNode;
+                    const base::Pose2D pose(neighborPos.topRows(2), node.orientationZ);
+                    PathStatistic stats(travConf);
+                    std::vector<const TravGenNode*> path;
+                    path.push_back(currentNode);
+                    std::vector<base::Pose2D> poses;
+                    poses.push_back(pose);
+                    stats.calculateStatistics(path, poses, travGen.getTraversabilityMap());
                     
-                    base::Vector3d pos(currentNode->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
-                                       currentNode->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
-                                       currentNode->getHeight());
-                    pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-                    traversableNeighborPos = pos;
-//                     DRAW_CYLINDER("neighBorobstacleCheck", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::green);
-//                     found a nearby node that we can stand on, abort
-                    abort = true;
-                    
+                    if(stats.getRobotStats().getNumObstacles() == 0)
+                    {
+                        //found a patch that the robot can stand on without collision.
+                        traversableNeighbor = currentNode;
+                        abort = true;
+                    }
+                    else
+                    {
+                        abort = false;
+                    }
                 }
                 else
                 {
                     abort = false;
-                    base::Vector3d pos(currentNode->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
-                                       currentNode->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
-                                       currentNode->getHeight());
-                    pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+                }
+                
+                if(!abort)
+                {
+                    DRAW_CYLINDER("neighBorobstacleCheck", neighborPos, base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::red);
                     
-                     DRAW_CYLINDER("neighBorobstacleCheck", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::red);
-                    
-                    const double dist = (nextFrontierPos - pos).norm();
+                    const double dist = (nodePos - neighborPos).norm();
                     if(dist < maxNeighborDistance)
                         visitChildren = true;
                     else
                         visitChildren = false;
                 }
+                
             });
-        
+                
         if(traversableNeighbor != nullptr)
             result.push_back({traversableNeighbor, node.orientationZ});
     }

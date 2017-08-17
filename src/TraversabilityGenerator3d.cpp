@@ -514,12 +514,26 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
     if(!checkForObstacles(node))
     {
         node->setType(TraversabilityNodeBase::OBSTACLE);
+        
+        COMPLEX_DRAWING(
+            maps::grid::Vector3d pos;
+            trMap.fromGrid(node->getIndex(), pos, node->getHeight());
+            DRAW_SPHERE("expandFailObstacle", pos, 0.05, vizkit3dDebugDrawings::Color::red);
+        );
+        
+        
         return false;
     }
     
     if(!computeAllowedOrientations(node))
     {
         node->setType(TraversabilityNodeBase::OBSTACLE);
+        
+        COMPLEX_DRAWING(
+            maps::grid::Vector3d pos;
+            trMap.fromGrid(node->getIndex(), pos, node->getHeight());
+            DRAW_SPHERE("expandFailOrientation", pos, 0.05, vizkit3dDebugDrawings::Color::blue);
+        );
         return false;
     }
 
@@ -529,6 +543,13 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
     if(checkForFrontier(node))
     {
         node->setType(TraversabilityNodeBase::FRONTIER);
+        
+        COMPLEX_DRAWING(
+            maps::grid::Vector3d pos;
+            trMap.fromGrid(node->getIndex(), pos, node->getHeight());
+            DRAW_SPHERE("expandFailFrontier", pos, 0.05, vizkit3dDebugDrawings::Color::yellow);
+        );
+        
         return false;
     }
 
@@ -666,7 +687,15 @@ void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
 
         //The new patch is not reachable from the current patch
         if(fabs(newPos.z() - curHeight) > config.maxStepHeight)
+        {
+            COMPLEX_DRAWING(
+                maps::grid::Vector3d pos;
+                trMap.fromGrid(node->getIndex(), pos, node->getHeight());
+                DRAW_SPHERE("expandFailStepHeight", pos, 0.05, vizkit3dDebugDrawings::Color::carrot_orange);
+            );
+            
             continue;
+        }
         
         curHeight = newPos.z();
         

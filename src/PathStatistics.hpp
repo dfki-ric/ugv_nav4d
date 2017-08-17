@@ -42,7 +42,7 @@ public:
     
     PathStatistic(const TraversabilityConfig &config);
     
-    void calculateStatistics(const std::vector<TravGenNode*> &path, const std::vector<base::Pose2D> &poses, const maps::grid::TraversabilityMap3d<TravGenNode *> &trMap);
+    void calculateStatistics(const std::vector<const TravGenNode*> &path, const std::vector<base::Pose2D> &poses, const maps::grid::TraversabilityMap3d<TravGenNode *> &trMap);
     
     const Stats &getRobotStats() const
     {

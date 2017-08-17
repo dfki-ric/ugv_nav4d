@@ -511,7 +511,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         const Motion &motion = motions[i];
         TravGenNode *travNode = sourceNode->getUserData().travNode;
         maps::grid::Index curIndex = sourceNode->getIndex();
-        std::vector<TravGenNode*> nodesOnPath;
+        std::vector<const TravGenNode*> nodesOnPath;
         std::vector<base::Pose2D> posesOnPath;
         bool intermediateStepsOk = true;
 
@@ -904,10 +904,10 @@ const PreComputedMotions& EnvironmentXYZTheta::getAvailableMotions() const
     return availableMotions;
 }
 
-double EnvironmentXYZTheta::getAvgSlope(std::vector<TravGenNode*> path) const
+double EnvironmentXYZTheta::getAvgSlope(std::vector<const TravGenNode*> path) const
 {
     double slopeSum = 0;
-    for(TravGenNode* node : path)
+    for(const TravGenNode* node : path)
     {
         slopeSum += node->getUserData().slope; 
     }
@@ -915,10 +915,10 @@ double EnvironmentXYZTheta::getAvgSlope(std::vector<TravGenNode*> path) const
     return avgSlope;
 }
 
-double EnvironmentXYZTheta::getMaxSlope(std::vector<TravGenNode*> path) const
+double EnvironmentXYZTheta::getMaxSlope(std::vector<const TravGenNode*> path) const
 {
     const TravGenNode* maxElem =  *std::max_element(path.begin(), path.end(),
-                                  [] (TravGenNode* lhs, TravGenNode* rhs) 
+                                  [] (const TravGenNode* lhs, const TravGenNode* rhs) 
                                   {
                                     return lhs->getUserData().slope < rhs->getUserData().slope;
                                   });
