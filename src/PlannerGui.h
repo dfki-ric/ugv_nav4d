@@ -22,7 +22,7 @@ public:
     void show();
 public slots:
     /** Called when the user clicks a patch on the mls */
-    void picked(float x, float y, float z);
+    void picked(float x, float y,float z, int buttonMask, int modifierMask);
     
     //display the planner results
     void plannerIsDone();
@@ -84,6 +84,8 @@ private:
     base::Pose goal;
     base::Vector3d frontier;
     bool pickStart = true;
+    bool startPicked = false;
+    bool goalPicked = false;
     bool threadRunning = false;
     motion_planning_libraries::SplinePrimitivesConfig config;
     motion_planning_libraries::Mobility mobility;

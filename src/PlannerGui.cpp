@@ -216,9 +216,8 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     connect(parallelismCheckBox, SIGNAL(stateChanged(int)), this, SLOT(parallelismCheckBoxStateChanged(int)));
     
     
-    QPushButton* replanButton = new QPushButton("Replan");
+    QPushButton* replanButton = new QPushButton("Plan");
     timeLayout->addWidget(replanButton);
-    
 
     
     connect(replanButton, SIGNAL(released()), this, SLOT(replanButtonReleased()));
@@ -233,8 +232,8 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     qRegisterMetaType<std::vector<base::Trajectory>>("std::vector<base::Trajectory>");
     qRegisterMetaType<maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>>("maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase*>");
 
-    connect(&mlsViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
-    connect(&trav3dViz, SIGNAL(picked(float,float,float)), this, SLOT(picked(float,float,float)));
+    connect(&mlsViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
+    connect(&trav3dViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
     connect(this, SIGNAL(plannerDone()), this, SLOT(plannerIsDone()));
     
     double res = 0.1;
@@ -387,31 +386,40 @@ void PlannerGui::loadMls(const std::string& path)
 }
 
 
-void PlannerGui::picked(float x, float y, float z)
+void PlannerGui::picked(float x, float y, float z, int buttonMask, int modifierMask)
 {   
 //     start << 5.91327,  1.38306, -1.39575;
 //     goal <<  7.47328,  1.34183, -1.39437;
 //     startPlanThread();
-    expandButton->setEnabled(true);
-    if(pickStart)
+    
+    //1 = left click
+    //4 = right click
+    
+    switch(buttonMask)
     {
-        start.position << x, y, z;
-        start.position.z() += conf.distToGround; //because we click on the ground but need to put robot position
-        QVector3D pos(start.position.x(), start.position.y(), start.position.z());
-        startViz.setTranslation(pos);
-        std::cout << "Start: " << start.position.transpose() << std::endl;
-        pickStart = false;
-    }
-    else
-    {
-        goal.position << x, y, z;
-        goal.position.z() += conf.distToGround;
-        QVector3D pos(goal.position.x(), goal.position.y(), goal.position.z());
-        goalViz.setTranslation(pos);
-        std::cout << "goal: " << goal.position.transpose() << std::endl;
-        planner->setTravConfig(conf);
-        startPlanThread();
-        pickStart = true;
+        case 1: //left click
+        {
+            start.position << x, y, z;
+            start.position.z() += conf.distToGround; //because we click on the ground but need to put robot position
+            QVector3D pos(start.position.x(), start.position.y(), start.position.z());
+            startViz.setTranslation(pos);
+            std::cout << "Start: " << start.position.transpose() << std::endl;
+            startPicked = true;
+            expandButton->setEnabled(true);
+        }
+            break;
+        case 4: //right click
+        {
+            goal.position << x, y, z;
+            goal.position.z() += conf.distToGround;
+            QVector3D pos(goal.position.x(), goal.position.y(), goal.position.z());
+            goalViz.setTranslation(pos);
+            std::cout << "goal: " << goal.position.transpose() << std::endl;
+            goalPicked = true;
+        }
+            break;
+        default:
+            break;
     }
 }
 
