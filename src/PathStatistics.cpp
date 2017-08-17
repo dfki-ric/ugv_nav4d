@@ -85,6 +85,8 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
         
         const maps::grid::Vector2d nodePos(nodePos3.head<2>());
 
+        bool hasObstacle = false;
+        
         do
         {
             const maps::grid::TraversabilityNodeBase* currentNode = nodes.front();
@@ -144,12 +146,31 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
                 if(isInsideRobot)
                 {
                     inRobot.insert(neighbor);
+                    
+                    if(neighbor->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+                        hasObstacle = true;
+                    
                     continue;
                 }
                 
                 inBoundary.insert(neighbor);
             }
         }while(!nodes.empty());
+/*        
+        if(hasObstacle)
+        {
+            COMPLEX_DRAWING (
+
+            Eigen::Vector3d checkPos;
+            checkPos.head<2>() = curPose.position;
+            checkPos.z() = node->getHeight();
+            
+            DRAW_WIREFRAME_BOX("CollisionBox", checkPos, Eigen::Quaterniond(Eigen::AngleAxisd(curPose.orientation, Eigen::Vector3d::UnitZ())), Eigen::Vector3d(config.robotSizeX, config.robotSizeY, config.robotHeight), vizkit3dDebugDrawings::Color::red);
+            );
+        }*/
+
+        if(hasObstacle)
+            break;
     }
 
     for(maps::grid::TraversabilityNodeBase* n : inBoundary)
