@@ -510,7 +510,7 @@ double FrontierGenerator::distToPoint(const TravGenNode* node, const base::Vecto
 double FrontierGenerator::calcExplorablePatches(const TravGenNode* node) const
 {
     std::size_t visited = 0;
-    const size_t visitRadius = 4; //FIXME should be parameter
+    const size_t visitRadius = 3; //FIXME should be parameter
     /* Since the grid is a square we can calculate the number of visitable nodes using odd square*/
     const std::size_t maxVisitable = std::pow(2 * visitRadius + 1, 2);
     TravMapBfsVisitor::visit(node, 
