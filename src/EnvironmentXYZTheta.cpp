@@ -524,7 +524,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             const maps::grid::Index newIndex =  sourceIndex + diff.cell;
             travNode = movementPossible(travNode, curIndex, newIndex);
             nodesOnPath.push_back(travNode);
-            base::Pose2D curPose;
+            base::Pose2D curPose = diff.pose;
             curPose.position += startPos.head<2>();
             posesOnPath.push_back(curPose);
             if(!travNode)
