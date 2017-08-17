@@ -276,6 +276,7 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     conf.parallelismEnabled = false;
     conf.costFunctionDist = 0.4;
     conf.distToGround = 0.2;
+    conf.minTraversablePercentage = 0.5;
     
     maxSlopeSpinBox->setValue(33.23);
     inclineLimittingMinSlopeSpinBox->setValue(20);
@@ -395,6 +396,7 @@ void PlannerGui::picked(float x, float y, float z)
     if(pickStart)
     {
         start.position << x, y, z;
+        start.position.z() += conf.distToGround; //because we click on the ground but need to put robot position
         QVector3D pos(start.position.x(), start.position.y(), start.position.z());
         startViz.setTranslation(pos);
         std::cout << "Start: " << start.position.transpose() << std::endl;
@@ -403,6 +405,7 @@ void PlannerGui::picked(float x, float y, float z)
     else
     {
         goal.position << x, y, z;
+        goal.position.z() += conf.distToGround;
         QVector3D pos(goal.position.x(), goal.position.y(), goal.position.z());
         goalViz.setTranslation(pos);
         std::cout << "goal: " << goal.position.transpose() << std::endl;
