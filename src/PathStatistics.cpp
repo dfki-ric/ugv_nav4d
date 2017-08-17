@@ -81,7 +81,7 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
         nodes.push_back(node);
         maps::grid::Vector3d nodePos3;
         //index check was already performed before
-        trMap.fromGrid(node->getIndex(), nodePos3, false);
+        trMap.fromGrid(node->getIndex(), nodePos3, node->getHeight(), false);
         
         const maps::grid::Vector2d nodePos(nodePos3.head<2>());
 
@@ -103,7 +103,7 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
                 
                 //we need to compute the four edges of a cell and check if any is inside of the robot
                 maps::grid::Vector3d neighborPos;
-                trMap.fromGrid(neighbor->getIndex(), neighborPos, false);
+                trMap.fromGrid(neighbor->getIndex(), neighborPos, neighbor->getHeight(), false);
                 
                 bool isInsideRobot = false;
                 bool isInsideBoundary = false;
@@ -125,7 +125,7 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
                         if(robotBoundingBox.contains(tp))
                         {
                             isInsideRobot = true;
-                            
+                            robotStats.updateDistance(neighbor, (nodePos3 - neighborPos).norm());
                             //we continue iteration here, to compute the correct distances of all edges
                         }
                         else
@@ -185,3 +185,9 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
     }   
 
 }
+
+double ugv_nav4d::PathStatistic::Stats::getMinDistToObstacles() const
+{
+    return minDistToObstacle;
+}
+
