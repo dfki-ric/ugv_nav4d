@@ -151,14 +151,16 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector< ugv_nav4d:
             }
         }while(!nodes.empty());
     }
+
+    for(maps::grid::TraversabilityNodeBase* n : inBoundary)
+    {
+        if(inRobot.find(n) != inRobot.end())
+            boundaryStats.updateStatistic(n);
+    }   
     
     for(maps::grid::TraversabilityNodeBase* n : inRobot)
     {
         robotStats.updateStatistic(n);
     }   
 
-    for(maps::grid::TraversabilityNodeBase* n : inBoundary)
-    {
-        boundaryStats.updateStatistic(n);
-    }   
 }
