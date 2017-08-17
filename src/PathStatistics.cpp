@@ -28,6 +28,11 @@ void ugv_nav4d::PathStatistic::Stats::updateStatistic(const maps::grid::Traversa
     }
 }
 
+void ugv_nav4d::PathStatistic::Stats::updateDistance(const maps::grid::TraversabilityNodeBase* node, double distance)
+{
+    minDistance[node->getType()] = std::min(minDistance[node->getType()], distance);
+}
+
 
 ugv_nav4d::PathStatistic::PathStatistic(const ugv_nav4d::TraversabilityConfig& config) : 
         config(config)
