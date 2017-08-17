@@ -210,10 +210,11 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     std::cout << "Heuristic computed" << std::endl;
 
     COMPLEX_DRAWING (
+    CLEAR_DRAWING("GoalBox");
     Eigen::Vector3d goalNodePos;
     travGen.getTraversabilityMap().fromGrid(goalXYZNode->getIndex(), goalNodePos, goalPos.z(), false);
     
-    DRAW_WIREFRAME_BOX("GoalBox", goalNodePos, Eigen::Quaterniond(Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), vizkit3dDebugDrawings::Color::red);
+    DRAW_WIREFRAME_BOX("GoalBox", goalNodePos, Eigen::Quaterniond(Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), vizkit3dDebugDrawings::Color::green);
     );    
 }
 
@@ -241,10 +242,12 @@ void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
     
     std::cout << "START IS: " << startPos.transpose() << std::endl;
     COMPLEX_DRAWING (
+    CLEAR_DRAWING("StartBox");
+
     Eigen::Vector3d startNodePos;
     travGen.getTraversabilityMap().fromGrid(startXYZNode->getIndex(), startNodePos, startPos.z(), false);
     
-    DRAW_WIREFRAME_BOX("StartBox", startNodePos, Eigen::Quaterniond(Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), vizkit3dDebugDrawings::Color::red);
+    DRAW_WIREFRAME_BOX("StartBox", startNodePos, Eigen::Quaterniond(Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), vizkit3dDebugDrawings::Color::green);
     );
 }
  
