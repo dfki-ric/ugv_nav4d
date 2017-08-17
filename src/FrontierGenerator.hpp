@@ -10,6 +10,7 @@ namespace ugv_nav4d
 {
 struct NodeWithOrientation;
 struct NodeWithOrientationAndCost;
+struct MovedNode;
 class EnvironmentXYZTheta;
 
 class FrontierGenerator
@@ -59,16 +60,14 @@ private:
     std::vector<NodeWithOrientation> getFrontierOrientation(const std::vector<const TravGenNode*>& frontier) const;
     
     /**Figure out a node that we can stand on without collisions for each node in @p nodes. */
-    std::vector<NodeWithOrientation> getCollisionFreeNeighbor(const std::vector<NodeWithOrientation>& nodes) const;
-    
-    std::vector<NodeWithOrientation> getNodesWithoutCollision(const std::vector<NodeWithOrientation>& nodes) const;
-    
-    std::vector<NodeWithOrientation> removeDuplicates(const std::vector<NodeWithOrientation>& nodes) const;
+    std::vector<MovedNode> getCollisionFreeNeighbor(const std::vector<NodeWithOrientation>& nodes) const;
+        
+    std::vector<MovedNode> removeDuplicates(const std::vector<MovedNode>& nodes) const;
     
     /** TODO describe what cost contains and what is a good/bad value */
     std::vector<NodeWithOrientationAndCost> calculateCost(const TravGenNode* startNode,
                                                           const base::Vector3d& goalPos,
-                                                          const std::vector<NodeWithOrientation>& nodes) const;
+                                                          const std::vector<MovedNode>& nodes) const;
     
     /**Sort nodes according to node.cost */
     std::vector<NodeWithOrientationAndCost> sortNodes(const std::vector<NodeWithOrientationAndCost>& nodes) const;

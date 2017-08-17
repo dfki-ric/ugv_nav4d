@@ -21,6 +21,12 @@ struct NodeWithOrientation
     double orientationZ;
 };
 
+struct MovedNode
+{
+    NodeWithOrientation movedFrom;
+    const TravGenNode* newNode;
+};
+
 struct NodeWithOrientationAndCost
 {
     const TravGenNode* node;
@@ -102,11 +108,11 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
     }
     
     std::cout << "Finding collision free neighbors" << std::endl;
-    const std::vector<NodeWithOrientation> collisionFreeNeighbors(getCollisionFreeNeighbor(candidatesWithOrientation));
+    const std::vector<MovedNode> collisionFreeNeighbors(getCollisionFreeNeighbor(candidatesWithOrientation));
     std::cout << "Neighbors: " << collisionFreeNeighbors.size() << std::endl;
     
     std::cout << "Removing duplicates" << std::endl;
-    const std::vector<NodeWithOrientation> nodesWithoutDuplicates(removeDuplicates(collisionFreeNeighbors));
+    const std::vector<MovedNode> nodesWithoutDuplicates(removeDuplicates(collisionFreeNeighbors));
     std::cout << "frontiers without duplicates: " << nodesWithoutDuplicates.size() << std::endl;
     
     std::cout << "calculating costs" << std::endl;
@@ -319,38 +325,9 @@ std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const
 }
 
 
-std::vector<NodeWithOrientation> FrontierGenerator::getNodesWithoutCollision(const std::vector<NodeWithOrientation>& nodes) const
+std::vector<MovedNode> FrontierGenerator::getCollisionFreeNeighbor(const std::vector<NodeWithOrientation>& nodes) const
 {
-    std::vector<NodeWithOrientation> result;
-    const base::Vector3d robotHalfSize(travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight / 2);
-    
-    CLEAR_DRAWING("removed_due_to_collision");
-    
-    for(const NodeWithOrientation& node : nodes)
-    {
-        if(CollisionCheck::checkCollision(node.node, node.orientationZ, mlsMap, robotHalfSize, travGen))
-        {
-            result.push_back(node);
-        }
-        else
-        {
-            COMPLEX_DRAWING(
-            base::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
-                               node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
-                               node.node->getHeight());
-            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-            DRAW_CYLINDER("removed_due_to_collision", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::magenta);
-            );
-
-        }
-    }   
-    
-    return std::move(result);
-}
-
-std::vector<NodeWithOrientation> FrontierGenerator::getCollisionFreeNeighbor(const std::vector<NodeWithOrientation>& nodes) const
-{
-    std::vector<NodeWithOrientation> result;
+    std::vector<MovedNode> result;
     
     //FIXME the collisions are drawn inside CollisionCheck::checkCollision().
     //      If they are not cleared we will run out of memory after some time.
@@ -410,23 +387,28 @@ std::vector<NodeWithOrientation> FrontierGenerator::getCollisionFreeNeighbor(con
             });
                 
         if(traversableNeighbor != nullptr)
-            result.push_back({traversableNeighbor, node.orientationZ});
+        {
+            MovedNode movedNode;
+            movedNode.movedFrom = node;
+            movedNode.newNode = traversableNeighbor;
+            result.push_back(movedNode);
+        }
     }
 
     return std::move(result);
 }
 
 
-std::vector<NodeWithOrientation> FrontierGenerator::removeDuplicates(const std::vector<NodeWithOrientation>& nodes) const
+std::vector<MovedNode> FrontierGenerator::removeDuplicates(const std::vector<MovedNode>& nodes) const
 {
     //FIXME probably performance could be improved a lot
-    std::vector<NodeWithOrientation> result;
+    std::vector<MovedNode> result;
     std::unordered_set<const TravGenNode*> set;
-    for(const NodeWithOrientation& node : nodes)
+    for(const MovedNode& node : nodes)
     {
-        if(set.find(node.node) == set.end())
+        if(set.find(node.newNode) == set.end())
         {
-            set.insert(node.node);
+            set.insert(node.newNode);
             result.push_back(node);
         }
     }
@@ -463,45 +445,39 @@ std::vector<RigidBodyState> FrontierGenerator::getPositions(const std::vector<No
 
 std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const TravGenNode* startNode,
                                                                          const base::Vector3d& goalPos,
-                                                                         const std::vector<NodeWithOrientation>& nodes) const
+                                                                         const std::vector<MovedNode>& nodes) const
 {
     //calc travel distances on map
     std::vector<NodeWithOrientationAndCost> result;
+    std::vector<MovedNode> validNodes;
     std::unordered_map<const maps::grid::TraversabilityNodeBase*, double> distancesOnMap;
     Dijkstra::computeCost(startNode, distancesOnMap, travConf);
     
     //find max distances for normalization
     double maxDistFromStart = 0;
     double maxDistToGoal = 0;
-    for(const NodeWithOrientation& node : nodes)
+    for(const MovedNode& node : nodes)
     {
-        if(distancesOnMap.find(node.node) == distancesOnMap.end())
+        if(distancesOnMap.find(node.newNode) == distancesOnMap.end())
         {
             //this means there is no traversable connection to the node.
             continue;
         }
         
-        const double distToGoal = distToPoint(node.node, goalPos);
-        const double distFromStart = distancesOnMap[node.node];
-
-        //0.0 is a dummy cost here, it is updated in the next loop
-        result.push_back({node.node, node.orientationZ, 0.0});
+        const double distToGoal = distToPoint(node.newNode, goalPos);
+        const double distFromStart = distancesOnMap[node.newNode];
 
         maxDistToGoal = std::max(maxDistToGoal, distToGoal);
         maxDistFromStart = std::max(maxDistFromStart, distFromStart);
+        validNodes.push_back(node);
     }
 
     //calc cost
-    for(NodeWithOrientationAndCost& node : result)
+    for(MovedNode& node : validNodes)
     {
-        if(distancesOnMap.find(node.node) == distancesOnMap.end())
-        {
-            throw std::runtime_error("Internal Error, list contains non reachable nodes");
-        }
-
-        const double distFromStart = distancesOnMap[node.node];
-        const double distToGoal = distToPoint(node.node, goalPos) / maxDistToGoal; //range 0..1
-        const double explorableFactor = calcExplorablePatches(node.node); //range: 0.. 1
+        const double distFromStart = distancesOnMap[node.newNode];
+        const double distToGoal = distToPoint(node.newNode, goalPos) / maxDistToGoal; //range 0..1
+        const double explorableFactor = calcExplorablePatches(node.movedFrom.node); //range: 0.. 1  //explorableFactor does only make sense for the original node because it is the one at the frontier
         const double travelDist = distFromStart / maxDistFromStart; //range: 0..1
         
         assert(distToGoal >= 0 && distToGoal <= 1);
@@ -512,7 +488,12 @@ std::vector<NodeWithOrientationAndCost> FrontierGenerator::calculateCost(const T
                             costParams.explorableFactor * explorableFactor +
                             costParams.distFromStartFactor * travelDist;
         
-        node.cost = cost;
+                            
+        NodeWithOrientationAndCost costNode;
+        costNode.cost = cost;
+        costNode.node = node.newNode;
+        costNode.orientationZ = node.movedFrom.orientationZ;
+        result.push_back(costNode);
     }
     return result;
 }
@@ -529,13 +510,16 @@ double FrontierGenerator::distToPoint(const TravGenNode* node, const base::Vecto
 double FrontierGenerator::calcExplorablePatches(const TravGenNode* node) const
 {
     std::size_t visited = 0;
-    const size_t visitRadius = 3; //FIXME should be parameter
+    const size_t visitRadius = 4; //FIXME should be parameter
     /* Since the grid is a square we can calculate the number of visitable nodes using odd square*/
     const std::size_t maxVisitable = std::pow(2 * visitRadius + 1, 2);
     TravMapBfsVisitor::visit(node, 
         [&visited] (const TravGenNode* currentNode, bool& visitChildren, bool& abort, std::size_t distToRoot)
         {
-            ++visited;
+            if(currentNode->getType() != TraversabilityNodeBase::UNKNOWN && currentNode->getType() != TraversabilityNodeBase::UNSET
+               && currentNode->getType() != TraversabilityNodeBase::FRONTIER)
+                ++visited;
+            
             abort = false;
             if(distToRoot >= visitRadius)
                 visitChildren = false;
