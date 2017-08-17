@@ -180,18 +180,6 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     if(!checkOrientationAllowed(goalXYZNode->getUserData().travNode, theta))
         throw std::runtime_error("Goal orientation not allowed due to slope");
     
-    if(!CollisionCheck::checkCollision(goalXYZNode->getUserData().travNode, theta,
-                                       mlsGrid, robotHalfSize, travGen))
-    {
-        if(travConf.ignoreCollisions)
-        {
-            std::cout << "WARNING: Goal inside obstacle\n";
-        }
-        else
-        {
-            throw std::runtime_error("Goal inside obstacle");
-        }
-    }
     
     //NOTE If we want to precompute the heuristic (precomputeCost()) we need to expand 
     //     the whole travmap beforehand.
@@ -206,6 +194,38 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     obsGen.expandAll(obstacleStartNode);
     std::cout << "expanded " << std::endl;
     
+    
+    //check for collisions NOTE has to be done after expansion
+    PathStatistic stats(travConf);
+    maps::grid::Vector3d nodePos;
+    travGen.getTraversabilityMap().fromGrid(goalXYZNode->getUserData().travNode->getIndex(), nodePos, goalXYZNode->getUserData().travNode->getHeight(), false);
+    std::vector<base::Pose2D> poses;
+    
+    //FIXME generateStartNode might not be intendet for this use-case?
+    TravGenNode* obstacleNode = obsGen.generateStartNode(nodePos);
+    
+    std::vector<const TravGenNode*> path;
+    path.push_back(obstacleNode);
+    
+    poses.push_back(base::Pose2D(nodePos.topRows(2), theta));
+    stats.calculateStatistics(path, poses, obsGen.getTraversabilityMap());
+    
+    if(stats.getRobotStats().getNumObstacles() > 0)
+    {
+        
+        DRAW_RING("minimum obstacle distance", nodePos, stats.getRobotStats().getMinDistToObstacles(), 0.051, 0.01, vizkit3dDebugDrawings::Color::wheat);
+        
+        if(travConf.ignoreCollisions)
+        { 
+            std::cout << "WARNING: Goal inside obstacle\n";
+        }
+        else
+        {
+            throw std::runtime_error("Goal inside obstacle");
+        }
+    }
+    
+    
     precomputeCost();
     std::cout << "Heuristic computed" << std::endl;
 
@@ -214,7 +234,8 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     Eigen::Vector3d goalNodePos;
     travGen.getTraversabilityMap().fromGrid(goalXYZNode->getIndex(), goalNodePos, goalPos.z(), false);
     
-    DRAW_WIREFRAME_BOX("GoalBox", goalNodePos, Eigen::Quaterniond(Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), vizkit3dDebugDrawings::Color::green);
+    CLEAR_DRAWING("GoalBox");
+    DRAW_WIREFRAME_BOX("GoalBox", goalNodePos, Eigen::Quaterniond(Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), vizkit3dDebugDrawings::Color::red);
     );    
 }
 
@@ -242,12 +263,10 @@ void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
     
     std::cout << "START IS: " << startPos.transpose() << std::endl;
     COMPLEX_DRAWING (
-    CLEAR_DRAWING("StartBox");
-
     Eigen::Vector3d startNodePos;
     travGen.getTraversabilityMap().fromGrid(startXYZNode->getIndex(), startNodePos, startPos.z(), false);
-    
-    DRAW_WIREFRAME_BOX("StartBox", startNodePos, Eigen::Quaterniond(Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), vizkit3dDebugDrawings::Color::green);
+    CLEAR_DRAWING("StartBox");
+    DRAW_WIREFRAME_BOX("StartBox", startNodePos, Eigen::Quaterniond(Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), vizkit3dDebugDrawings::Color::red);
     );
 }
  
@@ -407,7 +426,7 @@ TravGenNode *EnvironmentXYZTheta::movementPossible(TravGenNode *fromTravNode, co
     TravGenNode *targetNode = fromTravNode->getConnectedNode(toIdx);
     if(!targetNode)
     {
-        std::cout << "movement not possible. nodes not conncted" << std::endl;
+//         std::cout << "movement not possible. nodes not conncted" << std::endl;
         return nullptr;
         //FIXME this should never happen but it does on the garage map with 0.5 resolution
         throw std::runtime_error("should not happen");
@@ -422,7 +441,7 @@ TravGenNode *EnvironmentXYZTheta::movementPossible(TravGenNode *fromTravNode, co
     //     during the expansion. Beforehand the type is undefined
     if(targetNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
     {
-        std::cout << "movement not possible. targetnode not traversable" << std::endl;
+//         std::cout << "movement not possible. targetnode not traversable" << std::endl;
         return nullptr;
     }  
     
