@@ -490,7 +490,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     
     const ThetaNode *const thetaNode = sourceHash.thetaNode;
     const maps::grid::Index sourceIndex = sourceNode->getIndex();
-
+    Eigen::Vector3d startPos;
+    travGen.getTraversabilityMap().fromGrid(sourceIndex, startPos, false);
     
     TravGenNode *curTravNode = sourceNode->getUserData().travNode;
     if(!curTravNode->isExpanded())
@@ -520,7 +521,9 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             const maps::grid::Index newIndex =  sourceIndex + diff.cell;
             travNode = movementPossible(travNode, curIndex, newIndex);
             nodesOnPath.push_back(travNode);
-            posesOnPath.push_back(diff.pose);
+            base::Pose2D curPose;
+            curPose.position += startPos.head<2>();
+            posesOnPath.push_back(curPose);
             if(!travNode)
             {
                 intermediateStepsOk = false;
