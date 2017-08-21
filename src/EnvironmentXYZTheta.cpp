@@ -245,6 +245,31 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     CLEAR_DRAWING("GoalBox");
     DRAW_WIREFRAME_BOX("GoalBox", goalNodePos, Eigen::Quaterniond(Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), vizkit3dDebugDrawings::Color::red);
     );    
+    
+    
+    //draw greedy path
+    COMPLEX_DRAWING(
+        TravGenNode* nextNode = startXYZNode->getUserData().travNode;
+        TravGenNode* goal = goalXYZNode->getUserData().travNode;
+        while(nextNode != goal)
+        {
+            maps::grid::Vector3d pos;
+            travGen.getTraversabilityMap().fromGrid(nextNode->getIndex(), pos, nextNode->getHeight(), false);
+            
+            DRAW_CYLINDER("greedyPath", pos, base::Vector3d(0.03, 0.03, 0.3), vizkit3dDebugDrawings::Color::yellow);
+            double minCost = std::numeric_limits< double >::max();
+            for(maps::grid::TraversabilityNodeBase* node : nextNode->getConnections())
+            {
+                TravGenNode* travNode = static_cast<TravGenNode*>(node);
+                const double cost = travNodeIdToDistance[travNode->getUserData().id].distToGoal;
+                if(cost < minCost)
+                {
+                    minCost = cost;
+                    nextNode = travNode;
+                }
+            }
+        }
+    );
 }
 
 void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta)
@@ -736,6 +761,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             cost += cost * impactFactor;
         }
         
+        oassert(cost <= std::numeric_limits<int>::max() && cost >= std::numeric_limits< int >::min());
         oassert(int(cost) >= motion.baseCost);
         oassert(motion.baseCost > 0);
         
@@ -748,20 +774,22 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         }
     } 
 
-    for(const TravGenNode* node : collisionCheckFailed)
-    {
-        maps::grid::Vector3d p;
-        travGen.getTraversabilityMap().fromGrid(node->getIndex(), p, node->getHeight());
-        std::cout << "coll fail: " << p.transpose() << std::endl;
-        DRAW_LINE("collisionCheckFailed", p, p + maps::grid::Vector3d::UnitZ(), vizkit3dDebugDrawings::Color::magenta);
-    }
-    for(const TravGenNode* node : orientationCheckFailed)
-    {
-        maps::grid::Vector3d p;
-        travGen.getTraversabilityMap().fromGrid(node->getIndex(), p, node->getHeight());
-        p.z() += 0.03;
-        DRAW_LINE("orientationCheckFailed", p, p + maps::grid::Vector3d::UnitZ(), vizkit3dDebugDrawings::Color::cyan);
-    }
+    COMPLEX_DRAWING(
+        for(const TravGenNode* node : collisionCheckFailed)
+        {
+            maps::grid::Vector3d p;
+            travGen.getTraversabilityMap().fromGrid(node->getIndex(), p, node->getHeight());
+            std::cout << "coll fail: " << p.transpose() << std::endl;
+            DRAW_LINE("collisionCheckFailed", p, p + maps::grid::Vector3d::UnitZ(), vizkit3dDebugDrawings::Color::magenta);
+        }
+        for(const TravGenNode* node : orientationCheckFailed)
+        {
+            maps::grid::Vector3d p;
+            travGen.getTraversabilityMap().fromGrid(node->getIndex(), p, node->getHeight());
+            p.z() += 0.03;
+            DRAW_LINE("orientationCheckFailed", p, p + maps::grid::Vector3d::UnitZ(), vizkit3dDebugDrawings::Color::cyan);
+        }
+    );
     
 }
 
