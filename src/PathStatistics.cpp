@@ -184,8 +184,10 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
 
     for(maps::grid::TraversabilityNodeBase* n : inBoundary)
     {
-        if(inRobot.find(n) != inRobot.end())
+        if(inRobot.find(n) == inRobot.end())
+        {
             boundaryStats.updateStatistic(n);
+        }
     }   
     
     for(maps::grid::TraversabilityNodeBase* n : inRobot)
