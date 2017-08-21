@@ -175,6 +175,8 @@ public:
     
 private:
   
+    TravGenNode* checkTraversableHeuristic(const maps::grid::Index sourceIndex, ugv_nav4d::TravGenNode* sourceNode, 
+                                           const ugv_nav4d::Motion& motion, const maps::grid::TraversabilityMap3d< ugv_nav4d::TravGenNode* >& trMap);
     
     //Return true if there is no collision on the given path.
     bool checkCollisions(const std::vector<TravGenNode*>& path,
@@ -200,7 +202,7 @@ private:
     /**Determines the distance between @p a and @p b depending on travConf.heuristicType */
     double getHeuristicDistance(const Eigen::Vector3d& a, const Eigen::Vector3d& b) const;
     
-    TravGenNode* movementPossible(TravGenNode* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& to);
+    TravGenNode* movementPossible(ugv_nav4d::TravGenNode* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& toIdx);
     
     /** Expands @p node if it needs expansion.
      *  Thread-safe. */

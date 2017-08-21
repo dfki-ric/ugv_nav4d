@@ -494,6 +494,28 @@ COMPLEX_DRAWING_NO_SCOPE(
     std::vector<const TravGenNode*> orientationCheckFailed;
 );
 
+TravGenNode * EnvironmentXYZTheta::checkTraversableHeuristic(const maps::grid::Index sourceIndex, TravGenNode *sourceNode, 
+                                                             const Motion &motion, const maps::grid::TraversabilityMap3d<TravGenNode *> &trMap)
+{
+    TravGenNode *travNode = sourceNode;
+    
+    maps::grid::Index curIndex = sourceIndex;
+    for(const PoseWithCell &diff : motion.intermediateStepsTravMap)
+    {
+        //diff is always a full offset to the start position
+        const maps::grid::Index newIndex =  sourceIndex + diff.cell;
+        travNode = movementPossible(travNode, curIndex, newIndex);
+        if(!travNode)
+        {
+            return nullptr;
+        }
+        
+        curIndex = newIndex;
+    }
+
+    return travNode;
+}
+
 void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, vector< int >* CostV, vector< size_t >& motionIdV)
 {
     SuccIDV->clear();
@@ -519,9 +541,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     
     
     const ThetaNode *const thetaNode = sourceHash.thetaNode;
-    const maps::grid::Index sourceIndex = sourceNode->getIndex();
-    Eigen::Vector3d startPos;
-    travGen.getTraversabilityMap().fromGrid(sourceIndex, startPos, false);
     
     TravGenNode *curTravNode = sourceNode->getUserData().travNode;
     if(!curTravNode->isExpanded())
@@ -534,53 +553,77 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         }
     }
 
+    Eigen::Vector3d startPosWorld;
+    travGen.getTraversabilityMap().fromGrid(sourceNode->getIndex(), startPosWorld, curTravNode->getHeight(), false);
+    
+    maps::grid::Index startIdxObstMap;
+    obsGen.getTraversabilityMap().toGrid(startPosWorld, startIdxObstMap, false);
+    TravGenNode *startNodeObstMap = nullptr;
+    {
+        double minDist = std::numeric_limits< double >::max();
+        for(TravGenNode *n: obsGen.getTraversabilityMap().at(startIdxObstMap))
+        {
+            double curDist = fabs(n->getHeight() - curTravNode->getHeight());
+            if(curDist > minDist)
+            {
+                //we passed the minimal distance point
+                break;
+            }
+            minDist = curDist;
+            startNodeObstMap = n;
+        }
+    }
+    assert(startNodeObstMap);
+    
     const auto& motions = availableMotions.getMotionForStartTheta(thetaNode->theta);
     #pragma omp parallel for schedule(dynamic, 5) if(travConf.parallelismEnabled)
     for(size_t i = 0; i < motions.size(); ++i)
     {
-        const Motion &motion = motions[i];
-        TravGenNode *travNode = sourceNode->getUserData().travNode;
-        maps::grid::Index curIndex = sourceNode->getIndex();
-        std::vector<const TravGenNode*> nodesOnPath;
-        std::vector<base::Pose2D> posesOnPath;
-        bool intermediateStepsOk = true;
+        const ugv_nav4d::Motion &motion(motions[i]);
+        TravGenNode *finalTravNode = checkTraversableHeuristic(sourceNode->getIndex(), sourceNode->getUserData().travNode, motions[i], travGen.getTraversabilityMap());
+        if(!finalTravNode)
+        {
+            continue;
+        }
+        
+        //get matching obstacle patch
+        
 
-        for(const PoseWithCell &diff : motion.intermediateSteps)
+        std::vector<const TravGenNode*> nodesOnObstPath;
+        std::vector<base::Pose2D> posesOnObstPath;
+        maps::grid::Index curObstIdx = startIdxObstMap;
+        TravGenNode *obstNode = startNodeObstMap;
+        bool intermediateStepsOk = true;
+        for(const PoseWithCell &diff : motion.intermediateStepsObstMap)
         {
             //diff is always a full offset to the start position
-            const maps::grid::Index newIndex =  sourceIndex + diff.cell;
-            travNode = movementPossible(travNode, curIndex, newIndex);
-            nodesOnPath.push_back(travNode);
+            const maps::grid::Index newIndex =  startIdxObstMap + diff.cell;
+            obstNode = movementPossible(obstNode, curObstIdx, newIndex);
+            nodesOnObstPath.push_back(obstNode);
             base::Pose2D curPose = diff.pose;
-            curPose.position += startPos.head<2>();
-            posesOnPath.push_back(curPose);
-            if(!travNode)
+            curPose.position += startPosWorld.head<2>();
+            posesOnObstPath.push_back(curPose);
+            if(!obstNode)
             {
                 intermediateStepsOk = false;
                 break;
             }
             
-            if(!checkOrientationAllowed(travNode, diff.pose.orientation))
+            if(!checkOrientationAllowed(obstNode, diff.pose.orientation))
             {
-                COMPLEX_DRAWING(
-                    #pragma omp critical(debugDrawingAccess) 
-                    {
-                        orientationCheckFailed.push_back(travNode);
-                    }
-                );
-                
                 intermediateStepsOk = false;
                 break;
             }
-            curIndex = newIndex;
+            curObstIdx = newIndex;
         }
-        
+
+        //no way from start to end
         if(!intermediateStepsOk)
             continue;
-
+        
         PathStatistic statistic(travConf);
         
-        statistic.calculateStatistics(nodesOnPath, posesOnPath, getObstacleMap());
+        statistic.calculateStatistics(nodesOnObstPath, posesOnObstPath, getObstacleMap());
         
         if(statistic.getRobotStats().getNumObstacles() || statistic.getRobotStats().getNumFrontiers())
         {
@@ -595,16 +638,16 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         //WARNING This becomes a critical section if several motion primitives
         //        share the same finalPos.
         //        As long as this is not the case this section should be save.
-        const maps::grid::Index finalPos(sourceIndex.x() + motion.xDiff, sourceIndex.y() + motion.yDiff);
+        const maps::grid::Index finalPos(sourceNode->getIndex() + maps::grid::Index(motion.xDiff,motion.yDiff));
         
         #pragma omp critical(searchGridAccess) 
         {
             const auto &candidateMap = searchGrid.at(finalPos);
 
-            if(travNode->getIndex() != finalPos)
+            if(finalTravNode->getIndex() != finalPos)
                 throw std::runtime_error("Internal error, indexes do not match");
             
-            XYZNode searchTmp(travNode->getHeight(), travNode->getIndex());
+            XYZNode searchTmp(finalTravNode->getHeight(), finalTravNode->getIndex());
             
             //note, this works, as the equals check is on the height, not the node itself
             auto it = candidateMap.find(&searchTmp);
@@ -616,7 +659,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             }
             else
             {
-                successXYNode = createNewXYZState(travNode); //modifies searchGrid at travNode->getIndex()
+                successXYNode = createNewXYZState(finalTravNode); //modifies searchGrid at travNode->getIndex()
             }
         }
 
@@ -640,13 +683,13 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         {
             case SlopeMetric::AVG_SLOPE:
             {
-                const double slopeFactor = getAvgSlope(nodesOnPath) * travConf.slopeMetricScale;
+                const double slopeFactor = getAvgSlope(nodesOnObstPath) * travConf.slopeMetricScale;
                 cost = motion.baseCost + motion.baseCost * slopeFactor;
                 break;
             }
             case SlopeMetric::MAX_SLOPE:
             {
-                const double slopeFactor = getMaxSlope(nodesOnPath) * travConf.slopeMetricScale;
+                const double slopeFactor = getMaxSlope(nodesOnObstPath) * travConf.slopeMetricScale;
                 cost = motion.baseCost + motion.baseCost * slopeFactor;
                 break;
             }
@@ -745,14 +788,14 @@ bool EnvironmentXYZTheta::checkOrientationAllowed(const TravGenNode* node,
 bool EnvironmentXYZTheta::checkCollisions(const std::vector<TravGenNode*>& path,
                                           const Motion& motion) const
 {
-    oassert(motion.intermediateSteps.size() == path.size());
+    oassert(motion.intermediateStepsTravMap.size() == path.size());
     
     for(size_t i = 0; i < path.size(); ++i)
     {
         const TravGenNode* node(path[i]);
         
         //path contains the final element while intermediatePoses does not.
-        const double zRot = motion.intermediateSteps[i].pose.orientation;
+        const double zRot = motion.intermediateStepsTravMap[i].pose.orientation;
         if(!CollisionCheck::checkCollision(node, zRot, mlsGrid, robotHalfSize, travGen))
         {
             
