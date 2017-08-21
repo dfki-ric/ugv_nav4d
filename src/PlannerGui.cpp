@@ -550,11 +550,12 @@ void PlannerGui::expandPressed()
 {
     planner->getEnv()->getTravGen().clearTrMap();
     planner->getEnv()->getTravGen().setConfig(conf);
-    planner->getEnv()->getTravGen().expandAll(start.position.cast<double>());
+    //expand position needs to be on map
+    planner->getEnv()->getTravGen().expandAll(start.position - base::Position(0, 0, conf.distToGround));
     
     planner->getEnv()->getObstacleGen().clearTrMap();
     planner->getEnv()->getObstacleGen().setConfig(conf);
-    planner->getEnv()->getObstacleGen().expandAll(start.position.cast<double>());
+    planner->getEnv()->getObstacleGen().expandAll(start.position - base::Position(0, 0, conf.distToGround));
     
     trav3dViz.updateData((planner->getEnv()->getTraversabilityBaseMap()));
     obstacleMapViz.updateData((planner->getEnv()->getObstacleBaseMap()));
