@@ -33,6 +33,15 @@ void ugv_nav4d::PathStatistic::Stats::updateDistance(const maps::grid::Traversab
     minDistance[node->getType()] = std::min(minDistance[node->getType()], distance);
 }
 
+double ugv_nav4d::PathStatistic::Stats::getMinDistToFrontiers() const
+{
+    return minDistance[maps::grid::TraversabilityNodeBase::FRONTIER];
+}
+
+double ugv_nav4d::PathStatistic::Stats::getMinDistToObstacles() const
+{
+    return minDistToObstacle;
+}
 
 ugv_nav4d::PathStatistic::PathStatistic(const ugv_nav4d::TraversabilityConfig& config) : 
         config(config)
@@ -184,10 +193,5 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
         robotStats.updateStatistic(n);
     }   
 
-}
-
-double ugv_nav4d::PathStatistic::Stats::getMinDistToObstacles() const
-{
-    return minDistToObstacle;
 }
 
