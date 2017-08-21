@@ -66,7 +66,14 @@ public:
      * The Poses start from (0/0), while the 
      * cell idx is computed from the center of the start cell + pose
     */
-    std::vector<PoseWithCell> intermediateSteps;
+    std::vector<PoseWithCell> intermediateStepsTravMap;
+
+    /**the intermediate poses are not discrete.
+     * They are relative to the starting cell.
+     * The Poses start from (0/0), while the 
+     * cell idx is computed from the center of the start cell + pose
+    */
+    std::vector<PoseWithCell> intermediateStepsObstMap;
     
     /**
      * This vector contains a full resoluton 
@@ -92,8 +99,8 @@ class PreComputedMotions
     //indexed by discrete start theta
     std::vector<std::vector<Motion> > thetaToMotion;
     std::vector<Motion> idToMotion;
-    motion_planning_libraries::SbplMotionPrimitives primitives;
-         
+    motion_planning_libraries::SbplSplineMotionPrimitives primitives;
+    motion_planning_libraries::Mobility mobilityConfig;
 public:
     /**Initialize using spline based primitives.
      * @param mobilityConfig Will be used to configure and filter the splines.
@@ -103,7 +110,10 @@ public:
                        const motion_planning_libraries::Mobility& mobilityConfig);
     
     void readMotionPrimitives(const motion_planning_libraries::SbplSplineMotionPrimitives& primGen,
-                              const motion_planning_libraries::Mobility& mobilityConfig);
+                              const motion_planning_libraries::Mobility& mobilityConfig,
+                              double obstGridResolution, double travGridResolution);
+    
+    void computeMotions(double obstGridResolution, double travGridResolution);
     
     void setMotionForTheta(const Motion &motion, const DiscreteTheta &theta);
     
@@ -113,11 +123,13 @@ public:
     
     const Motion &getMotion(std::size_t id) const; 
     
-    const motion_planning_libraries::SbplMotionPrimitives& getPrimitives() const;
+    const motion_planning_libraries::SbplSplineMotionPrimitives& getPrimitives() const;
     
     /**Calculate the curvature of a circle based on the radius of the circle */
     static double calculateCurvatureFromRadius(const double r);
 private:
+    
+    void sampleOnResolution(double gridResolution, base::geometry::Spline2 spline, std::vector< ugv_nav4d::PoseWithCell >& result, std::vector< ugv_nav4d::CellWithPoses >& fullResult);
     
     base::Pose2D getPointClosestToCellMiddle(const ugv_nav4d::CellWithPoses& cwp, const double gridResolution);
     

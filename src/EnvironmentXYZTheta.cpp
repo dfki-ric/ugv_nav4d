@@ -58,6 +58,10 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<MLGrid> mlsGrid,
     searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
     searchGrid.extend(travGen.getTraversabilityMap().getNumCells());
     robotHalfSize << travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight/2;
+    if(mlsGrid)
+    {
+        availableMotions.computeMotions(mlsGrid->getResolution().x(), travConf.gridResolution);
+    }
     
 }
 
@@ -112,6 +116,10 @@ void EnvironmentXYZTheta::updateMap(boost::shared_ptr< EnvironmentXYZTheta::MLGr
     if(this->mlsGrid && this->mlsGrid->getResolution() != mlsGrid->getResolution())
         throw std::runtime_error("EnvironmentXYZTheta::updateMap : Error got MLSMap with different resolution");
     
+    if(!this->mlsGrid)
+    {
+        availableMotions.computeMotions(mlsGrid->getResolution().x(), travConf.gridResolution);
+    }
     travGen.setMLSGrid(mlsGrid);
     obsGen.setMLSGrid(mlsGrid);
     this->mlsGrid = mlsGrid;

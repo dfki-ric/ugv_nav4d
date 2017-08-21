@@ -9,21 +9,88 @@ using namespace motion_planning_libraries;
 
 
 PreComputedMotions::PreComputedMotions(const SplinePrimitivesConfig& primitiveConfig,
-                                       const motion_planning_libraries::Mobility& mobilityConfig)
+                                       const motion_planning_libraries::Mobility& mobilityConfig):
+    primitives(primitiveConfig),
+    mobilityConfig(mobilityConfig)
 {
-    SbplSplineMotionPrimitives prims(primitiveConfig);
-    readMotionPrimitives(prims, mobilityConfig);
 }
 
+void PreComputedMotions::computeMotions(double obstGridResolution, double travGridResolution)
+{
+    if(fabs(primitives.getConfig().gridSize - travGridResolution) > 1E-5)
+    {
+        std::cout << "PreComputedMotions::computeMotions: Error grid size and trav size do not match" << std::endl;
+        throw std::runtime_error("PreComputedMotions::computeMotions: Error grid size and trav size do not match");
+    }
+    
+    readMotionPrimitives(primitives, mobilityConfig, obstGridResolution, travGridResolution);
+}
+
+void PreComputedMotions::sampleOnResolution(double gridResolution,base::geometry::Spline2 spline, std::vector<PoseWithCell> &result, std::vector<CellWithPoses> &fullResult)
+{
+    maps::grid::GridMap<int> dummyGrid(maps::grid::Vector2ui(10, 10), base::Vector2d(gridResolution, gridResolution), 0);
+
+    CellWithPoses curPoses;
+    curPoses.cell = maps::grid::Index(0,0);
+    
+    //sample spline:
+    const double stepDist = gridResolution / 16.0;
+    std::vector<double> parameters;
+    //NOTE we dont need the points, but there is no sample() api that returns parameters only
+    const std::vector<base::geometry::Spline2::vector_t> points = spline.sample(stepDist, &parameters);
+    assert(parameters.size() == points.size());
+    for(size_t i = 0; i < parameters.size(); ++i)
+    {
+        const double param = parameters[i];
+        base::Vector2d point, tangent;
+        std::tie(point,tangent) = spline.getPointAndTangent(param);
+        const base::Orientation2D orientation(std::atan2(tangent.y(), tangent.x()));
+
+        //point needs to be offset to the middle of the grid, 
+        //as all path computation also starts in the middle
+        //if not we would get a wrong diff
+        const base::Pose2D pose(point, orientation);
+        
+        point += base::Vector2d(gridResolution /2.0, gridResolution /2.0);
+
+        maps::grid::Index diff;
+        if(!dummyGrid.toGrid(base::Vector3d(point.x(), point.y(), 0), diff, false))
+            throw std::runtime_error("Internal Error : Cannot convert intermediate Pose to grid cell");
+        
+        if(curPoses.cell != diff)
+        {
+            fullResult.push_back(curPoses);
+            
+            //Find best match for collision check
+            PoseWithCell pwc;
+            pwc.cell = curPoses.cell;
+            pwc.pose = getPointClosestToCellMiddle(curPoses, gridResolution);
+            result.push_back(pwc);
+
+            curPoses.poses.clear();
+            curPoses.cell = diff;
+        }
+        
+        curPoses.poses.push_back(pose);
+    }
+    
+    fullResult.push_back(curPoses);
+    
+    //Find best match for collision check
+    PoseWithCell pwc;
+    pwc.cell = curPoses.cell;
+    pwc.pose = getPointClosestToCellMiddle(curPoses, gridResolution);
+    result.push_back(pwc);
+
+    assert(result.size() > 0); //at least the end pose should always be part of the steps
+
+}
 
 void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& primGen,
-                                              const motion_planning_libraries::Mobility& mobilityConfig)
+                                              const motion_planning_libraries::Mobility& mobilityConfig,
+                                              double obstGridResolution, double travGridResolution)
 {
     const int numAngles = primGen.getConfig().numAngles;
-    const double gridResolution = primGen.getConfig().gridSize;
-    
-    //dummyGrid is used to convert between grid indices and positions
-    maps::grid::GridMap<int> dummyGrid(maps::grid::Vector2ui(10, 10), base::Vector2d(gridResolution, gridResolution), 0);
     const double maxCurvature = calculateCurvatureFromRadius(mobilityConfig.mMinTurningRadius);
     
     for(int angle = 0; angle < numAngles; ++angle)
@@ -70,66 +137,15 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
             //there are no intermediate steps for point turns
             if(prim.motionType != SplinePrimitive::SPLINE_POINT_TURN)
             {
-                CellWithPoses curPoses;
-                curPoses.cell = maps::grid::Index(0,0);
-                
-                //sample spline:
-                const double stepDist = gridResolution / 16.0;
-                std::vector<double> parameters;
-                //NOTE we dont need the points, but there is no sample() api that returns parameters only
-                const std::vector<base::geometry::Spline2::vector_t> points = prim.spline.sample(stepDist, &parameters);
-                assert(parameters.size() == points.size());
-                for(size_t i = 0; i < parameters.size(); ++i)
-                {
-                    const double param = parameters[i];
-                    base::Vector2d point, tangent;
-                    std::tie(point,tangent) = prim.spline.getPointAndTangent(param);
-                    const base::Orientation2D orientation(std::atan2(tangent.y(), tangent.x()));
-
-                    //point needs to be offset to the middle of the grid, 
-                    //as all path computation also starts in the middle
-                    //if not we would get a wrong diff
-                    const base::Pose2D pose(point, orientation);
-                    
-                    point += base::Vector2d(gridResolution /2.0, gridResolution /2.0);
-
-                    maps::grid::Index diff;
-                    if(!dummyGrid.toGrid(base::Vector3d(point.x(), point.y(), 0), diff, false))
-                        throw std::runtime_error("Internal Error : Cannot convert intermediate Pose to grid cell");
-                    
-                    if(curPoses.cell != diff)
-                    {
-                        motion.fullSplineSamples.push_back(curPoses);
-                        
-                        //Find best match for collision check
-                        PoseWithCell pwc;
-                        pwc.cell = curPoses.cell;
-                        pwc.pose = getPointClosestToCellMiddle(curPoses, gridResolution);
-                        motion.intermediateSteps.push_back(pwc);
-
-                        curPoses.poses.clear();
-                        curPoses.cell = diff;
-                    }
-                    
-                    curPoses.poses.push_back(pose);
-                }
-                
-                motion.fullSplineSamples.push_back(curPoses);
-                
-                //Find best match for collision check
-                PoseWithCell pwc;
-                pwc.cell = curPoses.cell;
-                pwc.pose = getPointClosestToCellMiddle(curPoses, gridResolution);
-                motion.intermediateSteps.push_back(pwc);
-
-                assert(motion.intermediateSteps.size() > 0); //at least the end pose should always be part of the steps
+                sampleOnResolution(travGridResolution, prim.spline, motion.intermediateStepsTravMap, motion.fullSplineSamples);
+                std::vector<CellWithPoses> dummy;
+                sampleOnResolution(obstGridResolution, prim.spline, motion.intermediateStepsObstMap, dummy);
             }
             computeSplinePrimCost(prim, mobilityConfig, motion);
             setMotionForTheta(motion, motion.startTheta);
         }
     }
 }
-
 
 void PreComputedMotions::setMotionForTheta(const Motion& motion, const DiscreteTheta& theta)
 {
@@ -261,7 +277,7 @@ const Motion& PreComputedMotions::getMotion(std::size_t id) const
     return idToMotion.at(id);
 }
 
-const SbplMotionPrimitives& PreComputedMotions::getPrimitives() const
+const SbplSplineMotionPrimitives& PreComputedMotions::getPrimitives() const
 {
     return primitives;
 }
