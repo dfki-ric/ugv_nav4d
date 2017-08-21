@@ -74,9 +74,8 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
     double fX = area.getSize().x() / area.getNumCells().x();
     double fY = area.getSize().y() / area.getNumCells().y();
     
-    int patchCnt = 0;
-    int patchCntTotal = 0;
-    
+    //FIXME only works if there is only one patch per cell
+    const int patchCntTotal = area.getNumCells().y() * area.getNumCells().x();
     for(size_t y = 0; y < area.getNumCells().y(); y++)
     {
         for(size_t x = 0; x < area.getNumCells().x(); x++)
@@ -92,24 +91,25 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
                 pclP.x = pos.x();
                 pclP.y = pos.y();
                 points->push_back(pclP);
-                
-                patchCnt++;
             }
-            patchCntTotal++;
         }
     }
+    const int patchCnt = points->size();
 
+    
     //if less than 5 planes -> hole
     //TODO where to implement ? here or in check obstacles ?
     if(patchCnt < 5)
     {
         //ransac will not produce a result below 5 points
+//         std::cout << "ransac fail: patchCnt < 5" << std::endl;
         return false;
     }
     
     //filter out to sparse areas
     if(patchCnt < patchCntTotal * config.minTraversablePercentage)
     {
+//         std::cout << "ransac fail: too sparse patchCnt: " << patchCnt << ", total: " << patchCntTotal << std::endl;
         return false;
     }
 
@@ -133,7 +133,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
     seg.segment (*inliers, *coefficients);
     if (inliers->indices.size () <= 5)
     {
-//         std::cerr << "Could not estimate Ground Plane" << std::endl;
+//         std::cout << "ransac fail: inliers->indices.size () <= 5" << std::endl;
         return false;
     }
 
@@ -504,6 +504,7 @@ TravGenNode* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d&
     if(startNode->isExpanded() && startNode->getType() != TraversabilityNodeBase::TRAVERSABLE)
     {
         std::cout << "TraversabilityGenerator3d::generateStartNode: Position is on unknow patch ! " << std::endl;
+        std::cout << "type is: " << startNode->getType() << std::endl;
     }
     
     return startNode;
