@@ -45,8 +45,6 @@ protected:
     bool getConnectedPatch(const maps::grid::Index& idx, double height, const Patch*& patch);
     
     double interpolate(double x, double x0, double y0, double x1, double y1) const;
-
-    TravGenNode *findMatchingTraversabilityPatchAt(maps::grid::Index idx, const double curHeight) const;
     
     TravGenNode *createTraversabilityPatchAt(maps::grid::Index idx, const double curHeight);
     
@@ -66,6 +64,8 @@ public:
     void setInitialPatch(const Eigen::Affine3d &ground2Mls, double patchRadius);
     
     TravGenNode *generateStartNode(const Eigen::Vector3d &startPos);
+    TravGenNode *findMatchingTraversabilityPatchAt(maps::grid::Index idx, const double curHeight) const;
+    
     void expandAll(const Eigen::Vector3d &startPos);
 
     void expandAll(TravGenNode *startNode);

@@ -90,7 +90,9 @@ protected:
     
     ThetaNode *createNewState(const DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
     XYZNode *createNewXYZState(TravGenNode* travNode);
-    ThetaNode *createNewStateFromPose(const Eigen::Vector3d& pos, double theta, EnvironmentXYZTheta::XYZNode** xyzNode);
+    ThetaNode *createNewStateFromPose(const std::string& name, const Eigen::Vector3d& pos, double theta, ugv_nav4d::EnvironmentXYZTheta::XYZNode** xyzBackNode);
+    
+    bool checkStartGoalNode(const std::string& name, ugv_nav4d::TravGenNode* node, double theta);
     
 public:
     
