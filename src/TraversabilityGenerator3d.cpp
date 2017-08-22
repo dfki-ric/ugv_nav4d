@@ -76,6 +76,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
     
     //FIXME only works if there is only one patch per cell
     const int patchCntTotal = area.getNumCells().y() * area.getNumCells().x();
+    int patchCnt = 0;
     for(size_t y = 0; y < area.getNumCells().y(); y++)
     {
         for(size_t x = 0; x < area.getNumCells().x(); x++)
@@ -84,6 +85,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
             pos.x() = x * fX - sizeHalf.x();
             pos.y() = y * fY - sizeHalf.y();
             
+            bool hasPatch = false;
             for(const SurfacePatchBase *p : area.at(x, y))
             {
                 PointT pclP;
@@ -91,10 +93,13 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
                 pclP.x = pos.x();
                 pclP.y = pos.y();
                 points->push_back(pclP);
+                hasPatch = true;
             }
+            
+            if(hasPatch)
+                patchCnt++;
         }
     }
-    const int patchCnt = points->size();
 
     
     //if less than 5 planes -> hole
