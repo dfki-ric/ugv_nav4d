@@ -134,7 +134,7 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
                         if(robotBoundingBox.contains(tp))
                         {
                             isInsideRobot = true;
-                            robotStats.updateDistance(neighbor, (nodePos3 - neighborPos).norm());
+                            robotStats.updateDistance(neighbor, (nodePos3 - neighborPos).head<2>().norm());
                             //we continue iteration here, to compute the correct distances of all edges
                         }
                         else
