@@ -29,6 +29,8 @@ protected:
     maps::grid::TraversabilityMap3d<TravGenNode*> trMap;
     int currentNodeId = 0; //used while expanding
     
+    std::list<TravGenNode *> growList;
+    
     bool computePlaneRansac(TravGenNode &node);
     double computeSlope(const Eigen::Hyperplane< double, int(3) >& plane) const;
     Eigen::Vector3d computeSlopeDirection(const Eigen::Hyperplane< double, int(3) >& plane) const;
@@ -47,6 +49,8 @@ protected:
     double interpolate(double x, double x0, double y0, double x1, double y1) const;
     
     TravGenNode *createTraversabilityPatchAt(maps::grid::Index idx, const double curHeight);
+
+    void growNodes();
     
     TraversabilityConfig config;
     

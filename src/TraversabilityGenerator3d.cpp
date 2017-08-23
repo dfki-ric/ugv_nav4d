@@ -339,6 +339,46 @@ bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
     return true;
 }
 
+void TraversabilityGenerator3d::growNodes()
+{
+    const double growRadiusSquared = std::pow(std::min(config.robotSizeX, config.robotSizeY) / 2.0, 2);
+    
+    for(TravGenNode *n : growList)
+    {
+        Eigen::Vector3d nodePos = n ->getPosition(trMap);
+        
+        n->eachConnectedNode([&](maps::grid::TraversabilityNodeBase *neighbor, bool &expandNode, bool &stop)
+        {
+            if((neighbor->getPosition(trMap) - nodePos).squaredNorm() > growRadiusSquared)
+            {
+                //node out of radius, return
+                return;
+            }
+            
+            expandNode = true;
+            
+            switch(neighbor->getType())
+            {
+                case TraversabilityNodeBase::FRONTIER:
+                    if(n->getType() == TraversabilityNodeBase::OBSTACLE)
+                        neighbor->setType(n->getType());
+                    break;
+                case TraversabilityNodeBase::TRAVERSABLE:
+                    neighbor->setType(n->getType());
+                    break;
+                default:
+                    break;
+            }
+            
+            if(neighbor->getType() == TraversabilityNodeBase::TRAVERSABLE)
+            {
+            }
+        });
+    }
+    
+    growList.clear();
+}
+
 void TraversabilityGenerator3d::setConfig(const TraversabilityConfig &config)
 {
     this->config = config;
@@ -388,6 +428,9 @@ void TraversabilityGenerator3d::expandAll(TravGenNode* startNode)
                 candidates.push_back(static_cast<TravGenNode *>(n));
         }
     }
+    
+    //grow frontier nodes
+    growNodes();
     
     std::cout << "Expanded " << cnd << " nodes" << std::endl;
 }
@@ -552,6 +595,7 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
     if(checkForFrontier(node))
     {
         node->setType(TraversabilityNodeBase::FRONTIER);
+        growList.push_back(node);
         
         COMPLEX_DRAWING(
             maps::grid::Vector3d pos;
