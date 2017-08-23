@@ -204,13 +204,10 @@ bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, TravGenNode *no
     );
     
     poses.push_back(base::Pose2D(nodePos.topRows(2), theta));
-    stats.calculateStatistics(path, poses, obsGen.getTraversabilityMap());
+    stats.calculateStatistics(path, poses, obsGen.getTraversabilityMap(), true);
     
     if(stats.getRobotStats().getNumObstacles() || stats.getRobotStats().getNumFrontiers())
     {
-        double dist = std::min(stats.getRobotStats().getMinDistToFrontiers(), stats.getRobotStats().getMinDistToObstacles());
-        DRAW_RING("minimum obstacle distance" + name, nodePos, dist, 0.051, 0.01, vizkit3dDebugDrawings::Color::wheat);
-        
         std::cout << "Error: " << name << " inside obstacle" << std::endl;
         return false;
     }
@@ -253,6 +250,8 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     obsGen.expandAll(obstacleStartNode);
     std::cout << "expanded " << std::endl;
     
+    //obstacle arrows for initial collision check
+    CLEAR_DRAWING("CollsionObstacles");
     
     //check start position
     if(!checkStartGoalNode("start", startXYZNode->getUserData().travNode, startThetaNode->theta.getRadian()))
