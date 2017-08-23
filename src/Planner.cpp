@@ -67,6 +67,8 @@ bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyStat
         env->setGoal(endGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(endGround2Mls.linear())));
     } catch (std::runtime_error &e)
     {
+        if(travMapCallback)
+            travMapCallback();
         std::cout << e.what() << std::endl;
         return false;
     }
