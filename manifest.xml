@@ -15,4 +15,7 @@
   <depend package="slam/pcl" />
   <depend package="envire/envire_core" />
   <depend package="gui/vizkit3d_debug_drawings" />
+  
+    <tags>needs_opt</tags>
+
 </package>
