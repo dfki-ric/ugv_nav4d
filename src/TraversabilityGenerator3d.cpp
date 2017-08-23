@@ -526,7 +526,7 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
         
         COMPLEX_DRAWING(
             maps::grid::Vector3d pos;
-            trMap.fromGrid(node->getIndex(), pos, node->getHeight());
+            trMap.fromGrid(node->getIndex(), pos, node->getHeight(), false);
             DRAW_SPHERE("expandFailObstacle", pos, 0.05, vizkit3dDebugDrawings::Color::red);
         );
         
@@ -540,7 +540,7 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
         
         COMPLEX_DRAWING(
             maps::grid::Vector3d pos;
-            trMap.fromGrid(node->getIndex(), pos, node->getHeight());
+            trMap.fromGrid(node->getIndex(), pos, node->getHeight(), false);
             DRAW_SPHERE("expandFailOrientation", pos, 0.05, vizkit3dDebugDrawings::Color::blue);
         );
         return false;
@@ -555,7 +555,7 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
         
         COMPLEX_DRAWING(
             maps::grid::Vector3d pos;
-            trMap.fromGrid(node->getIndex(), pos, node->getHeight());
+            trMap.fromGrid(node->getIndex(), pos, node->getHeight(), false);
             DRAW_SPHERE("expandFailFrontier", pos, 0.05, vizkit3dDebugDrawings::Color::yellow);
         );
         
@@ -699,7 +699,7 @@ void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
         {
             COMPLEX_DRAWING(
                 maps::grid::Vector3d pos;
-                trMap.fromGrid(node->getIndex(), pos, node->getHeight());
+                trMap.fromGrid(node->getIndex(), pos, node->getHeight(), false);
                 DRAW_SPHERE("expandFailStepHeight", pos, 0.05, vizkit3dDebugDrawings::Color::carrot_orange);
             );
             
