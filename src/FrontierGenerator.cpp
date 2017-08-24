@@ -164,23 +164,23 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
       );
     
     
-//     COMPLEX_DRAWING(
-//         CLEAR_DRAWING("frontierWithOrientation");
-//         for(const NodeWithOrientation& node : frontierWithOrientation)
-//         {
-//             Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
-//             pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-//             pos.z() += 0.02;
-//             const double radius = travGen.getTraversabilityMap().getResolution().x() / 2.0;
-//             DRAW_RING("frontierWithOrientation", pos, radius, 0.01, 0.01, vizkit3dDebugDrawings::Color::blue);
-//             const Eigen::Rotation2Dd rot(node.orientationZ);
-//             Eigen::Vector2d rotVec(travGen.getTraversabilityMap().getResolution().x() / 2.0, 0);
-//             rotVec = rot * rotVec;
-//             Eigen::Vector3d to(pos);
-//             to.topRows(2) += rotVec;
-//             DRAW_LINE("frontierWithOrientation", pos, to, vizkit3dDebugDrawings::Color::cyan);
-//         }
-//      );
+    COMPLEX_DRAWING(
+        CLEAR_DRAWING("frontierWithOrientation");
+        for(const NodeWithOrientation& node : frontierWithOrientation)
+        {
+            Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
+            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+            pos.z() += 0.02;
+            const double radius = travGen.getTraversabilityMap().getResolution().x() / 2.0;
+            DRAW_RING("frontierWithOrientation", pos, radius, 0.01, 0.01, vizkit3dDebugDrawings::Color::blue);
+            const Eigen::Rotation2Dd rot(node.orientationZ);
+            Eigen::Vector2d rotVec(travGen.getTraversabilityMap().getResolution().x() / 2.0, 0);
+            rotVec = rot * rotVec;
+            Eigen::Vector3d to(pos);
+            to.topRows(2) += rotVec;
+            DRAW_LINE("frontierWithOrientation", pos, to, vizkit3dDebugDrawings::Color::cyan);
+        }
+     );
      
 //     COMPLEX_DRAWING(
 //         CLEAR_DRAWING("nodesWithoutCollisions");
@@ -231,7 +231,18 @@ std::vector<const TravGenNode*> FrontierGenerator::getFrontierPatches() const
         {
             if(node->getType() == TraversabilityNodeBase::FRONTIER)
             {
-                frontier.push_back(node);
+                //check if the frontier borders on traversable, otherwise it is not reachable anyway
+                
+                for(TraversabilityNodeBase* neighbor : node->getConnections())
+                {
+                    if(neighbor->getType() == TraversabilityNodeBase::TRAVERSABLE)
+                    {
+                        frontier.push_back(node);
+                        break;
+                    }
+                }
+                
+                
             }
         }
     }  
@@ -284,7 +295,8 @@ std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const
                 {
                     const TravGenNode* neighbor = frontierPatch->getConnectedNode(neighborIndex);
                     if(neighbor != nullptr && neighbor->getType() != TraversabilityNodeBase::UNKNOWN &&
-                        neighbor->getType() != TraversabilityNodeBase::UNSET)
+                       neighbor->getType() != TraversabilityNodeBase::UNSET && 
+                       neighbor->getType() != TraversabilityNodeBase::FRONTIER)
                     {
                         xSum += xOp[x + 1][y + 1];
                         ySum += yOp[x + 1][y + 1];
