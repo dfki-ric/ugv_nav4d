@@ -66,8 +66,8 @@ bool ObstacleMapGenerator3D::obstacleCheck(const TravGenNode* node) const
     if(!trMap.fromGrid(node->getIndex(), nodePos, node->getHeight()))
         throw std::runtime_error("ObstacleMapGenerator3D: Internal error node out of grid");
 
-    Eigen::Vector3d min(-config.gridResolution/2.0, -config.gridResolution / 2.0, config.maxStepHeight);
-    Eigen::Vector3d max(config.gridResolution/2.0, config.gridResolution/2.0, config.robotHeight);
+    Eigen::Vector3d min(-config.gridResolution/2.0 + 1e-5, -config.gridResolution / 2.0 + 1e-5, config.maxStepHeight);
+    Eigen::Vector3d max(config.gridResolution/2.0 - 1e-5, config.gridResolution/2.0 - 1e-5, config.robotHeight);
     
     
     min += nodePos;
