@@ -302,7 +302,7 @@ bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
         throw std::runtime_error("TraversabilityGenerator3d: Internal error node out of grid");
     nodePos.z() += node->getHeight();
 
-    const double growSize = std::min(config.robotSizeX, config.robotSizeY) / 2.0;
+    const double growSize = std::min(config.robotSizeX, config.robotSizeY) / 2.0 + 1e-5;
     
     Eigen::Vector3d min(-growSize, -growSize, 0);
     Eigen::Vector3d max(-min);
