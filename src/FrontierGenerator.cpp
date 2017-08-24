@@ -369,7 +369,7 @@ std::vector<MovedNode> FrontierGenerator::getCollisionFreeNeighbor(const std::ve
                     poses.push_back(pose);
                     stats.calculateStatistics(path, poses, travGen.getTraversabilityMap());
                     
-                    if(stats.getRobotStats().getNumObstacles() == 0)
+                    if(!stats.getRobotStats().getNumObstacles() && !stats.getRobotStats().getNumFrontiers())
                     {
                         //found a patch that the robot can stand on without collision.
                         traversableNeighbor = currentNode;
