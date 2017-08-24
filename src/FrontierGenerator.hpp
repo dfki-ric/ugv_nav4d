@@ -94,12 +94,6 @@ private:
     boost::shared_ptr<TraversabilityGenerator3d::MLGrid> mlsMap;
     base::Vector3d robotPos;
     base::Vector3d goalPos;//FIXME bad name, this is the point somewhere in the distance that indicates the direction of exploration
-    
-    /**When the robot cannot stand on a frontier patch (e.g. due to the obstacle check failing)
-     * we explore the neighborhood of the patch to find a patch that we can stand on. 
-     * This variable is the radius of the neighborhood that is explored.
-     * @note this parameter heavily impacts performance (it determines the size of an innermost loop)*/
-    const double maxNeighborDistance = 0.3;
 };
 
 

@@ -341,10 +341,6 @@ std::vector<MovedNode> FrontierGenerator::getCollisionFreeNeighbor(const std::ve
 {
     std::vector<MovedNode> result;
     
-    //FIXME the collisions are drawn inside CollisionCheck::checkCollision().
-    //      If they are not cleared we will run out of memory after some time.
-
-    
     for(const NodeWithOrientation& node : nodes)
     {
         
@@ -390,7 +386,7 @@ std::vector<MovedNode> FrontierGenerator::getCollisionFreeNeighbor(const std::ve
                     DRAW_CYLINDER("neighBorobstacleCheck", neighborPos, base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::red);
                     
                     const double dist = (nodePos - neighborPos).norm();
-                    if(dist < maxNeighborDistance)
+                    if(dist < travConf.robotSizeX + travConf.gridResolution)
                         visitChildren = true;
                     else
                         visitChildren = false;
