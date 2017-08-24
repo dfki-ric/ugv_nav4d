@@ -23,7 +23,12 @@ bool ObstacleMapGenerator3D::expandNode(TravGenNode *node)
 {
     node->setExpanded();
 
-    
+    if(node->getType() == TraversabilityNodeBase::UNKNOWN
+        || node->getType() == TraversabilityNodeBase::OBSTACLE)
+    {
+        return false;
+    }
+
     if(!obstacleCheck(node))
     {
         node->setType(TraversabilityNodeBase::OBSTACLE);

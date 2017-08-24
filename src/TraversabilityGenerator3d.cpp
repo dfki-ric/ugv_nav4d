@@ -114,7 +114,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
     //filter out to sparse areas
     if(patchCnt < patchCntTotal * config.minTraversablePercentage)
     {
-//         std::cout << "ransac fail: too sparse patchCnt: " << patchCnt << ", total: " << patchCntTotal << std::endl;
+//         std::cout << "TraversabilityGenerator3d::computePlaneRansac : not enough known patches : patchCnt " << patchCnt << " patchCntTotal " << patchCntTotal << " val " << patchCntTotal * config.minTraversablePercentage << std::endl;
         return false;
     }
 
@@ -562,7 +562,13 @@ TravGenNode* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d&
 bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
 {
     node->setExpanded();
-    
+
+    if(node->getType() == TraversabilityNodeBase::UNKNOWN
+        || node->getType() == TraversabilityNodeBase::OBSTACLE)
+    {
+        return false;
+    }
+
     if(!checkForObstacles(node))
     {
         node->setType(TraversabilityNodeBase::OBSTACLE);
@@ -657,7 +663,6 @@ TravGenNode *TraversabilityGenerator3d::createTraversabilityPatchAt(maps::grid::
         if(!computePlaneRansac(*ret))
         {
             ret->setType(TraversabilityNodeBase::UNKNOWN);
-            ret->setExpanded();
         }
 
         if((ret->getHeight() - config.maxStepHeight) <= curHeight && (ret->getHeight() + config.maxStepHeight) >= curHeight)
@@ -678,10 +683,11 @@ TravGenNode *TraversabilityGenerator3d::createTraversabilityPatchAt(maps::grid::
 //         );
     }
     
-    delete ret;
-    currentNodeId--;
-    
-    return nullptr;
+    ret->setHeight(curHeight);
+    ret->setNotExpanded();
+    ret->setType(TraversabilityNodeBase::OBSTACLE);
+    trMap.at(idx).insert(ret);
+    return ret;            
 }
 
 TravGenNode* TraversabilityGenerator3d::findMatchingTraversabilityPatchAt(Index idx, const double curHeight) const
