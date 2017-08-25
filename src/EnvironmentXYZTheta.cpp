@@ -93,7 +93,7 @@ void EnvironmentXYZTheta::clear()
     
     for(int *p: StateID2IndexMapping)
     {
-        delete p;
+        delete[] p;
     }
     StateID2IndexMapping.clear();    
 }
