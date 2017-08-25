@@ -572,26 +572,12 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
     if(!checkForObstacles(node))
     {
         node->setType(TraversabilityNodeBase::OBSTACLE);
-        
-        COMPLEX_DRAWING(
-            maps::grid::Vector3d pos;
-            trMap.fromGrid(node->getIndex(), pos, node->getHeight(), false);
-            DRAW_SPHERE("expandFailObstacle", pos, 0.05, vizkit3dDebugDrawings::Color::red);
-        );
-        
-        
         return false;
     }
     
     if(!computeAllowedOrientations(node))
     {
         node->setType(TraversabilityNodeBase::OBSTACLE);
-        
-        COMPLEX_DRAWING(
-            maps::grid::Vector3d pos;
-            trMap.fromGrid(node->getIndex(), pos, node->getHeight(), false);
-            DRAW_SPHERE("expandFailOrientation", pos, 0.05, vizkit3dDebugDrawings::Color::blue);
-        );
         return false;
     }
 
@@ -602,13 +588,6 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
     {
         node->setType(TraversabilityNodeBase::FRONTIER);
         growList.push_back(node);
-        
-        COMPLEX_DRAWING(
-            maps::grid::Vector3d pos;
-            trMap.fromGrid(node->getIndex(), pos, node->getHeight(), false);
-            DRAW_SPHERE("expandFailFrontier", pos, 0.05, vizkit3dDebugDrawings::Color::yellow);
-        );
-        
         return false;
     }
 
