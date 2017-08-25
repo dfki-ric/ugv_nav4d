@@ -340,6 +340,7 @@ std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const
 std::vector<MovedNode> FrontierGenerator::getCollisionFreeNeighbor(const std::vector<NodeWithOrientation>& nodes) const
 {
     std::vector<MovedNode> result;
+    CLEAR_DRAWING("neighborObstacleCheck");
     
     for(const NodeWithOrientation& node : nodes)
     {
@@ -383,7 +384,7 @@ std::vector<MovedNode> FrontierGenerator::getCollisionFreeNeighbor(const std::ve
                 
                 if(!abort)
                 {
-                    DRAW_CYLINDER("neighBorobstacleCheck", neighborPos, base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::red);
+                    DRAW_CYLINDER("neighborObstacleCheck", neighborPos, base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::red);
                     
                     const double dist = (nodePos - neighborPos).norm();
                     if(dist < travConf.robotSizeX + travConf.gridResolution)
