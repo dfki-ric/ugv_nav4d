@@ -21,10 +21,11 @@ public:
                       const CostFunctionParameters& costParams);
     
     template <maps::grid::MLSConfig::update_model SurfacePatch>
-    void updateMap(const maps::grid::MLSMap<SurfacePatch>& mls)
+    void updateMap(const maps::grid::MLSMap<SurfacePatch>& mls, const maps::grid::MLSMapBase* coverage_map = nullptr)
     {
         mlsMap.reset(new TraversabilityGenerator3d::MLGrid(mls));
         travGen.setMLSGrid(mlsMap);
+        coverageMap = coverage_map;
     }
     
     /** @param robotPos in mls coordinates */
@@ -92,6 +93,7 @@ private:
     TraversabilityConfig travConf;
     TraversabilityGenerator3d travGen;
     boost::shared_ptr<TraversabilityGenerator3d::MLGrid> mlsMap;
+    const maps::grid::MLSMapBase* coverageMap;
     base::Vector3d robotPos;
     base::Vector3d goalPos;//FIXME bad name, this is the point somewhere in the distance that indicates the direction of exploration
 };

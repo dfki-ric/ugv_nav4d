@@ -91,7 +91,28 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
     travGen.expandAll(startNode);
     
     std::cout << "find frontiers" << std::endl;
-    const std::vector<const TravGenNode*> frontier(getFrontierPatches());
+    std::vector<const TravGenNode*> frontier(getFrontierPatches());
+
+    if(coverageMap)
+    {
+        std::cout << "Removing already covered poses" << std::endl;
+        auto last_it = std::remove_if(frontier.begin(), frontier.end(), [&](const TravGenNode* node){
+            const auto& cell = coverageMap->at(node->getIndex());
+            for(const auto& patch : cell)  // this could be replaced by a find operation, but we will hardly have more than 1 or 2 patches per cell
+            {
+                if(patch.isCovered(node->getHeight(), 0.0f))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        ); // remove_if
+        std::cout << "Filtered out " << (frontier.end() - last_it) << " already visited patches\n";
+        frontier.erase(last_it, frontier.end());
+    }
+
+
     const std::vector<NodeWithOrientation> frontierWithOrientation(getFrontierOrientation(frontier));
     std::cout << "found frontiers: " << frontierWithOrientation.size() << std::endl;
     
@@ -119,7 +140,7 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
     const std::vector<NodeWithOrientationAndCost> nodesWithCost = calculateCost(startNode, goalPos, nodesWithoutDuplicates);
     std::cout << "calculated costs: " << nodesWithCost.size() << std::endl;
     
-    std::cout << "sorting ndoes" << std::endl;
+    std::cout << "sorting nodes" << std::endl;
     const std::vector<NodeWithOrientationAndCost> sortedNodes(sortNodes(nodesWithCost));
     std::cout << "sorted nodes: " << sortedNodes.size() << std::endl;
     
