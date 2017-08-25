@@ -4,9 +4,9 @@ cmake_minimum_required(VERSION 2.6)
 find_package(Rock)
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 rock_init(ugv_nav4d 0.1)
+add_definitions(-DENABLE_DEBUG_DRAWINGS)
 rock_standard_layout()
 
-add_definitions(-DENABLE_DEBUG_DRAWINGS)
 
 rock_executable(ugv_nav4d_bin
     SOURCES
