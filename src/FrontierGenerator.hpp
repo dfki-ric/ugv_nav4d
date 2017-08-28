@@ -92,7 +92,7 @@ private:
     CostFunctionParameters costParams;
     TraversabilityConfig travConf;
     TraversabilityGenerator3d travGen;
-    boost::shared_ptr<TraversabilityGenerator3d::MLGrid> mlsMap;
+    std::shared_ptr<TraversabilityGenerator3d::MLGrid> mlsMap;
     const maps::grid::MLSMapBase* coverageMap;
     base::Vector3d robotPos;
     base::Vector3d goalPos;//FIXME bad name, this is the point somewhere in the distance that indicates the direction of exploration

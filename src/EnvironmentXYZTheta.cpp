@@ -37,7 +37,7 @@ const double costScaleFactor = 1000;
     
 
 
-EnvironmentXYZTheta::EnvironmentXYZTheta(boost::shared_ptr<MLGrid> mlsGrid,
+EnvironmentXYZTheta::EnvironmentXYZTheta(std::shared_ptr<MLGrid> mlsGrid,
                                          const TraversabilityConfig& travConf,
                                          const SplinePrimitivesConfig& primitiveConfig,
                                          const Mobility& mobilityConfig) :
@@ -111,7 +111,7 @@ void EnvironmentXYZTheta::setInitialPatch(const Eigen::Affine3d& ground2Mls, dou
     obsGen.setInitialPatch(ground2Mls, patchRadius);
 }
 
-void EnvironmentXYZTheta::updateMap(boost::shared_ptr< EnvironmentXYZTheta::MLGrid > mlsGrid)
+void EnvironmentXYZTheta::updateMap(shared_ptr< ugv_nav4d::EnvironmentXYZTheta::MLGrid > mlsGrid)
 {
     if(this->mlsGrid && this->mlsGrid->getResolution() != mlsGrid->getResolution())
         throw std::runtime_error("EnvironmentXYZTheta::updateMap : Error got MLSMap with different resolution");
@@ -801,27 +801,6 @@ bool EnvironmentXYZTheta::checkOrientationAllowed(const TravGenNode* node,
         }
     }
     return isInside;
-}
-
-
-bool EnvironmentXYZTheta::checkCollisions(const std::vector<TravGenNode*>& path,
-                                          const Motion& motion) const
-{
-    oassert(motion.intermediateStepsTravMap.size() == path.size());
-    
-    for(size_t i = 0; i < path.size(); ++i)
-    {
-        const TravGenNode* node(path[i]);
-        
-        //path contains the final element while intermediatePoses does not.
-        const double zRot = motion.intermediateStepsTravMap[i].pose.orientation;
-        if(!CollisionCheck::checkCollision(node, zRot, mlsGrid, robotHalfSize, travGen))
-        {           
-            return false;
-        }
-    }
-    
-    return true;
 }
 
 Eigen::AlignedBox3d EnvironmentXYZTheta::getRobotBoundingBox() const

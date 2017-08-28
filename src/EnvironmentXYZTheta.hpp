@@ -21,7 +21,7 @@ public:
 protected:
     TraversabilityGenerator3d travGen;
     ObstacleMapGenerator3D obsGen;
-    boost::shared_ptr<MLGrid > mlsGrid;
+    std::shared_ptr<MLGrid > mlsGrid;
 
     struct EnvironmentXYZThetaException : public SBPL_Exception
     {
@@ -100,14 +100,14 @@ public:
     
     /** @param generateDebugData If true, lots of debug information will becollected
      *                           and stored in members starting with debug*/
-    EnvironmentXYZTheta(boost::shared_ptr<MLGrid > mlsGrid,
+    EnvironmentXYZTheta(std::shared_ptr<MLGrid > mlsGrid,
                         const TraversabilityConfig &travConf,
                         const motion_planning_libraries::SplinePrimitivesConfig &primitiveConfig,
                         const motion_planning_libraries::Mobility& mobilityConfig);
     
     virtual ~EnvironmentXYZTheta();
     
-    void updateMap(boost::shared_ptr<MLGrid > mlsGrid);
+    void updateMap(std::shared_ptr<MLGrid > mlsGrid);
     void setInitialPatch(const Eigen::Affine3d &ground2Mls, double patchRadius);
 
     virtual bool InitializeEnv(const char* sEnvFile);
@@ -180,10 +180,6 @@ private:
     TravGenNode* checkTraversableHeuristic(const maps::grid::Index sourceIndex, ugv_nav4d::TravGenNode* sourceNode, 
                                            const ugv_nav4d::Motion& motion, const maps::grid::TraversabilityMap3d< ugv_nav4d::TravGenNode* >& trMap);
     
-    //Return true if there is no collision on the given path.
-    bool checkCollisions(const std::vector<TravGenNode*>& path,
-                         const Motion& motion) const;
-                         
     /** Some movement directions are not allowed depending on the slope of the patch.
      *  @return true if the movement direction is allowed on that patch
      */

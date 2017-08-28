@@ -21,7 +21,7 @@ protected:
     typedef MLGrid::PatchType Patch;
     
     
-    boost::shared_ptr<MLGrid > mlsGrid;
+    std::shared_ptr<MLGrid > mlsGrid;
     bool addInitialPatch;
     Eigen::Affine3d initialPatch2Mls;
     double patchRadius;
@@ -76,7 +76,7 @@ public:
 
     virtual bool expandNode(TravGenNode *node);
     
-    void setMLSGrid(boost::shared_ptr<MLGrid> &grid);
+    void setMLSGrid(std::shared_ptr<MLGrid> &grid);
     
     /**Returns the number of nodes after expansion*/
     int getNumNodes() const;

@@ -489,7 +489,7 @@ void TraversabilityGenerator3d::addInitialPatchToMLS()
 
 }
 
-void TraversabilityGenerator3d::setMLSGrid(boost::shared_ptr< MLGrid >& grid)
+void TraversabilityGenerator3d::setMLSGrid(std::shared_ptr< ugv_nav4d::TraversabilityGenerator3d::MLGrid >& grid)
 {
     mlsGrid = grid;
     

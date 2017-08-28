@@ -42,7 +42,7 @@ public:
     template <maps::grid::MLSConfig::update_model SurfacePatch>
     void updateMap(const maps::grid::MLSMap<SurfacePatch>& mls)
     {
-        boost::shared_ptr<MLSBase> mlsPtr(getMLSBase(mls));
+        std::shared_ptr<MLSBase> mlsPtr = std::make_shared<MLSBase>(mls);
 
         if(!env)
         {
