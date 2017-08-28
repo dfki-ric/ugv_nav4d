@@ -138,8 +138,8 @@ public:
     virtual void SetAllPreds(CMDPSTATE* state);
     virtual int SizeofCreatedEnv();
     
-    void setStart(const Eigen::Vector3d &startPos, double theta);
-    void setGoal(const Eigen::Vector3d &goalPos, double theta);
+    bool setStart(const Eigen::Vector3d &startPos, double theta);
+    bool setGoal(const Eigen::Vector3d &goalPos, double theta);
     
     maps::grid::Vector3d getStatePosition(const int stateID) const;
     

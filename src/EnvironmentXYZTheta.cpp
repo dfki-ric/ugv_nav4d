@@ -142,7 +142,8 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
     TravGenNode *travNode = travGen.generateStartNode(pos);
     if(!travNode)
     {
-        throw runtime_error("Could not generate Node at pos");
+        std::cout << "Could not generate Node at pos" << std::endl;
+        return nullptr;
     }
 
     //check if intitial patch is unknown
@@ -150,14 +151,14 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
     {
         std::cout << "createNewStateFromPose: Node for " << name << " was expanded " << std::endl;
         cout << "createNewStateFromPose: Error : " << name << " Pose " << pos.transpose() << " is not traversable" << endl;
-        throw runtime_error("Pose of " + name  + " is not traversable");
+        return nullptr;
     }
     else
     {
         if(!travGen.expandNode(travNode))
         {
             cout << "createNewStateFromPose: Error: " << name << " Pose " << pos.transpose() << " is not traversable" << endl;
-            throw runtime_error("Pose of " + name  + " is not traversable");
+            return nullptr;
         }
         travNode->setNotExpanded();
     }
@@ -218,7 +219,7 @@ bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, TravGenNode *no
 }
 
 
-void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
+bool EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
 {
     
     CLEAR_DRAWING("env_goalPos");
@@ -229,11 +230,13 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
         throw std::runtime_error("Error, start needs to be set before goal");
     
     goalThetaNode = createNewStateFromPose("goal", goalPos, theta, &goalXYZNode);
+    if(!goalThetaNode)
+        return false;
     
     if(!checkOrientationAllowed(goalXYZNode->getUserData().travNode, theta))
     {
         std::cout << "Goal orientation not allowed due to slope" << std::endl;
-        throw std::runtime_error("Goal orientation not allowed due to slope");
+        return false;
     }
     
     
@@ -257,14 +260,14 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     if(!checkStartGoalNode("start", startXYZNode->getUserData().travNode, startThetaNode->theta.getRadian()))
     {
         std::cout << "Start position is invalid" << std::endl;
-        throw std::runtime_error("Start position is invalid");
+        return false;
     }
     
     //check goal position
     if(!checkStartGoalNode("goal", goalXYZNode->getUserData().travNode, goalThetaNode->theta.getRadian()))
     {
         std::cout << "goal position is invalid" << std::endl;
-        throw std::runtime_error("goal position is invalid");
+        return false;        
     }
     
     precomputeCost();
@@ -293,24 +296,29 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
             }
         }
     );
+    
+    return true;
 }
 
-void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta)
+bool EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta)
 {
     CLEAR_DRAWING("env_startPos");
     DRAW_ARROW("env_startPos", startPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
                base::Vector3d(1,1,1), vizkit3dDebugDrawings::Color::blue);
     
     startThetaNode = createNewStateFromPose("start", startPos, theta, &startXYZNode);
+    if(!startThetaNode)
+        return false;
    
     obstacleStartNode = obsGen.generateStartNode(startPos);
     if(!obstacleStartNode)
     {
         std::cout << "Could not generate obstacle node at start pos" << std::endl;
-        throw runtime_error("Could not generate obstacle node at start pos");
+        return false;
     }
     
     std::cout << "START IS: " << startPos.transpose() << std::endl;
+    return true;
 }
  
 void EnvironmentXYZTheta::SetAllPreds(CMDPSTATE* state)

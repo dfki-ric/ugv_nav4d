@@ -34,8 +34,7 @@ void Planner::setTravMapCallback(const std::function< void ()>& callback)
     travMapCallback = callback;
 }
 
-bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls,
-              const base::samples::RigidBodyState& endbody2Mls, std::vector<base::Trajectory>& resultTrajectory)
+Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls, const base::samples::RigidBodyState& endbody2Mls, std::vector< base::Trajectory >& resultTrajectory)
 {
     
     CLEAR_DRAWING("collisions");
@@ -44,7 +43,10 @@ bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyStat
     CLEAR_DRAWING("orientationCheckFailed");
     
     if(!env)
-        throw std::runtime_error("Planner::plan : Error : No map was set");
+    {
+        std::cout << "Planner::plan : Error : No map was set" << std::endl;
+        return NO_MAP;
+    }
     
     resultTrajectory.clear();
     env->clear();
@@ -55,22 +57,16 @@ bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyStat
     const Eigen::Affine3d startGround2Mls(startbody2Mls.getTransform() * ground2Body);
     const Eigen::Affine3d endGround2Mls(endbody2Mls.getTransform() * ground2Body);
     
-    try {
-        env->setStart(startGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())));
-    } catch (std::runtime_error &e)
+    if(!env->setStart(startGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(startGround2Mls.linear()))))
     {
-        std::cout << e.what() << std::endl;
-        return false;
+        return START_INVALID;
     }
     
-    try {
-        env->setGoal(endGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(endGround2Mls.linear())));
-    } catch (std::runtime_error &e)
+    if(!env->setGoal(endGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(endGround2Mls.linear()))))
     {
         if(travMapCallback)
             travMapCallback();
-        std::cout << e.what() << std::endl;
-        return false;
+        return GOAL_INVALID;
     }
     
     if(travMapCallback)
@@ -85,18 +81,18 @@ bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyStat
         
     if (! env->InitializeMDPCfg(&mdp_cfg)) {
         std::cout << "InitializeMDPCfg failed, start and goal id cannot be requested yet" << std::endl;
-        return false;
+        return INTERNAL_ERROR;
     }
         
     std::cout << "SBPL: About to set start and goal, startid" << mdp_cfg.startstateid << std::endl;
     if (planner->set_start(mdp_cfg.startstateid) == 0) {
         std::cout << "Failed to set start state" << std::endl;
-        return false;
+        return INTERNAL_ERROR;
     }
 
     if (planner->set_goal(mdp_cfg.goalstateid) == 0) {
         std::cout << "Failed to set goal state" << std::endl;
-        return false;
+        return INTERNAL_ERROR;
     }
 
     planner->set_eps_step(1.0);
@@ -106,7 +102,7 @@ bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyStat
     if(!planner->replan(maxTime.toSeconds(), &solutionIds))
     {
         std::cout << "num expands: " << planner->get_n_expands() << std::endl;
-        return false;
+        return NO_SOLUTION;
     }
         
     std::cout << "num expands: " << planner->get_n_expands() << std::endl;
@@ -123,7 +119,7 @@ bool Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyStat
     }
     
     env->getTrajectory(solutionIds, resultTrajectory, ground2Body);
-    return true;
+    return FOUND_SOLUTION;
 }
 
 std::vector< Motion > Planner::getMotions() const

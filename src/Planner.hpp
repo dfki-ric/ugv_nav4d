@@ -27,6 +27,15 @@ protected:
     std::function<void ()> travMapCallback;
     
 public:
+    enum PLANNING_RESULT {
+        GOAL_INVALID,
+        START_INVALID, 
+        NO_SOLUTION,
+        NO_MAP,
+        INTERNAL_ERROR,
+        FOUND_SOLUTION,
+    };
+    
     Planner(const motion_planning_libraries::SplinePrimitivesConfig &primitiveConfig, const TraversabilityConfig &traversabilityConfig,
             const motion_planning_libraries::Mobility& mobility);
     
@@ -58,7 +67,7 @@ public:
     /** Plan a path from @p start to @p end.
      * @param maxTime Maximum processor time to use.
      * */
-    bool plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls, const base::samples::RigidBodyState& endbody2Mls, std::vector< base::Trajectory >& resultTrajectory);
+    PLANNING_RESULT plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls, const base::samples::RigidBodyState& endbody2Mls, std::vector< base::Trajectory >& resultTrajectory);
     
     
     void setTravConfig(const TraversabilityConfig& config);
