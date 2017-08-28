@@ -226,6 +226,8 @@ bool EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     DRAW_ARROW("env_goalPos", goalPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
                base::Vector3d(1,1,1), vizkit3dDebugDrawings::Color::red);
     
+    std::cout << "GOAL IS: " << goalPos.transpose() << std::endl;
+
     if(!startXYZNode)
         throw std::runtime_error("Error, start needs to be set before goal");
     
@@ -242,26 +244,6 @@ bool EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     
     //NOTE If we want to precompute the heuristic (precomputeCost()) we need to expand 
     //     the whole travmap beforehand.
-    
-    std::cout << "GOAL IS: " << goalPos.transpose() << std::endl;
-    
-    std::cout << "Expanding trav map...\n";
-    travGen.expandAll(startXYZNode->getUserData().travNode);
-    std::cout << "expanded " << std::endl;
-    
-    std::cout << "Expanding obstacle map...\n";
-    obsGen.expandAll(obstacleStartNode);
-    std::cout << "expanded " << std::endl;
-    
-    //obstacle arrows for initial collision check
-    CLEAR_DRAWING("CollsionObstacles");
-    
-    //check start position
-    if(!checkStartGoalNode("start", startXYZNode->getUserData().travNode, startThetaNode->theta.getRadian()))
-    {
-        std::cout << "Start position is invalid" << std::endl;
-        return false;
-    }
     
     //check goal position
     if(!checkStartGoalNode("goal", goalXYZNode->getUserData().travNode, goalThetaNode->theta.getRadian()))
@@ -306,6 +288,8 @@ bool EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
     DRAW_ARROW("env_startPos", startPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
                base::Vector3d(1,1,1), vizkit3dDebugDrawings::Color::blue);
     
+    std::cout << "START IS: " << startPos.transpose() << std::endl;
+    
     startThetaNode = createNewStateFromPose("start", startPos, theta, &startXYZNode);
     if(!startThetaNode)
         return false;
@@ -317,7 +301,26 @@ bool EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
         return false;
     }
     
-    std::cout << "START IS: " << startPos.transpose() << std::endl;
+    std::cout << "Expanding trav map...\n";
+    travGen.expandAll(startXYZNode->getUserData().travNode);
+    std::cout << "expanded " << std::endl;
+    
+    std::cout << "Expanding obstacle map...\n";
+    obsGen.expandAll(obstacleStartNode);
+    std::cout << "expanded " << std::endl;
+    
+    //obstacle arrows for initial collision check
+    CLEAR_DRAWING("CollsionObstacles");
+    
+    //check start position
+    if(!checkStartGoalNode("start", startXYZNode->getUserData().travNode, startThetaNode->theta.getRadian()))
+    {
+        std::cout << "Start position is invalid" << std::endl;
+        return false;
+    }
+    
+
+    
     return true;
 }
  

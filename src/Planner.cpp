@@ -59,18 +59,18 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     
     if(!env->setStart(startGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(startGround2Mls.linear()))))
     {
+        if(travMapCallback)
+            travMapCallback();
         return START_INVALID;
     }
+
+    if(travMapCallback)
+        travMapCallback();    
     
     if(!env->setGoal(endGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(endGround2Mls.linear()))))
     {
-        if(travMapCallback)
-            travMapCallback();
         return GOAL_INVALID;
     }
-    
-    if(travMapCallback)
-        travMapCallback();
     
     if(!planner)
         planner.reset(new ARAPlanner(env.get(), true));
