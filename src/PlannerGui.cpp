@@ -11,10 +11,46 @@
 #include <boost/filesystem.hpp>
 #include <pcl/io/ply_io.h>
 #include <pcl/common/common.h>
+#include "PlannerDump.hpp"
 
 using namespace ugv_nav4d;
 
+PlannerGui::PlannerGui(const std::string& dumpName): QObject()
+{
+    setupUI();
+    
+    PlannerDump dump(dumpName);
+
+    mobility = dump.getMobilityConf();
+    conf = dump.getTravConfig();
+    config = dump.getSplineConfig();
+    
+    planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
+    
+    motion_planning_libraries::SbplSplineMotionPrimitives primitives(config);
+    splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.mMinTurningRadius));
+    splineViz.updateData(primitives);
+
+    start = dump.getStart().getPose();
+    goal = dump.getGoal().getPose();
+
+    startViz.updateData(dump.getStart());
+    goalViz.updateData(dump.getGoal());
+
+    planner->updateMap(dump.getMlsMap());
+    
+    startPlanThread();
+}
+
+
 PlannerGui::PlannerGui(int argc, char** argv): QObject()
+{
+    setupUI();
+
+    setupPlanner(argc, argv);
+}
+
+void PlannerGui::setupUI()
 {
     start.orientation.setIdentity();
     goal.orientation.setIdentity();
@@ -236,6 +272,14 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     connect(&trav3dViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
     connect(this, SIGNAL(plannerDone()), this, SLOT(plannerIsDone()));
     
+    maxSlopeSpinBox->setValue(33.23);
+    inclineLimittingMinSlopeSpinBox->setValue(20);
+    inclineLimittingLimitSpinBox->setValue(25.21);
+}
+
+
+void PlannerGui::setupPlanner(int argc, char** argv)
+{
     double res = 0.1;
      if(argc > 2)
          res = atof(argv[2]);
@@ -277,10 +321,6 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     conf.distToGround = 0.2;
     conf.minTraversablePercentage = 0.5;
     
-    maxSlopeSpinBox->setValue(33.23);
-    inclineLimittingMinSlopeSpinBox->setValue(20);
-    inclineLimittingLimitSpinBox->setValue(25.21);
-    
     planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
     
     motion_planning_libraries::SbplSplineMotionPrimitives primitives(config);
@@ -307,8 +347,8 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
         pickStart = false;
         expandButton->setEnabled(true);
     }
-    
 }
+
 
 void PlannerGui::loadMls()
 {

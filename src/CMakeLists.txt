@@ -20,6 +20,7 @@ rock_library(ugv_nav4d
         OrientedBox.cpp
         PathStatistics.cpp
         Planner.cpp
+        PlannerDump.cpp
         PreComputedMotions.cpp
         TraversabilityGenerator3d.cpp
         Dijkstra.cpp

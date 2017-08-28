@@ -16,8 +16,12 @@ class PlannerGui : public QObject
 {
     Q_OBJECT;
     
+    void setupPlanner(int argc, char** argv);
+    void setupUI();
+    
 public:
     PlannerGui(int argc, char** argv);
+    PlannerGui(const std::string &dumpName);
     
     void show();
 public slots:

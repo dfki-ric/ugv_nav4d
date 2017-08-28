@@ -12,9 +12,12 @@ class ARAPlanner;
 namespace ugv_nav4d
 {
 
+class PlannerDump;
+    
 class Planner
 {
 protected:
+    friend class PlannerDump;
     typedef EnvironmentXYZTheta::MLGrid MLSBase;
     boost::shared_ptr<EnvironmentXYZTheta> env;
     boost::shared_ptr<ARAPlanner> planner;
@@ -54,8 +57,21 @@ public:
         }
     }
     
+    void updateMap(const MLSBase &mls)
+    {
+        std::shared_ptr<MLSBase> mlsPtr= std::make_shared<MLSBase>(mls);
+
+        if(!env)
+        {
+            env.reset(new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, splinePrimitiveConfig, mobility));
+        }
+        else
+        {
+            env->updateMap(mlsPtr);
+        }
+    }
     void setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadius);
-    
+
     /**
      * This callback is executed, whenever a new traverability map
      * was expanded
@@ -75,17 +91,7 @@ public:
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* >getTraversabilityMap() const;
     
     boost::shared_ptr<EnvironmentXYZTheta> getEnv() const;
-    
-private:
-    template <class mapType>
-    boost::shared_ptr<MLSBase> getMLSBase(const mapType &map)
-    {
-        std::cout << "Grid has size " << map.getSize().transpose() << std::endl;
 
-        boost::shared_ptr<MLSBase> mlsPtr(new MLSBase(map));
-
-        return mlsPtr;
-    }
 };
 
 }

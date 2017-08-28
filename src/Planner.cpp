@@ -1,5 +1,4 @@
 #include "Planner.hpp"
-#include "TravMapBfsVisitor.hpp"
 #include <sbpl/planners/araplanner.h>
 #include <sbpl/utils/mdpconfig.h>
 #include <maps/grid/MultiLevelGridMap.hpp>
