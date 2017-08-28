@@ -37,10 +37,7 @@ void Planner::setTravMapCallback(const std::function< void ()>& callback)
 Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls, const base::samples::RigidBodyState& endbody2Mls, std::vector< base::Trajectory >& resultTrajectory, bool dumpOnError)
 {
     
-    CLEAR_DRAWING("collisions");
     CLEAR_DRAWING("successors");
-    CLEAR_DRAWING("collisionCheckFailed");
-    CLEAR_DRAWING("orientationCheckFailed");
     
     if(!env)
     {

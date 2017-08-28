@@ -52,7 +52,7 @@ ugv_nav4d::PathStatistic::PathStatistic(const ugv_nav4d::TraversabilityConfig& c
 void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_nav4d::TravGenNode* >& path, 
                                                    const std::vector< base::Pose2D >& poses, 
                                                    const maps::grid::TraversabilityMap3d<TravGenNode *> &trMap,
-                                                   bool drawObstacles)
+                                                   const std::string &debugObstacleName)
 {
     assert(path.size() == poses.size());
 //     CLEAR_DRAWING("CollisionBox");
@@ -82,8 +82,7 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
 
         const Eigen::Rotation2D<double> yawInverse(Eigen::Rotation2D<double>(curPose.orientation).inverse());
 
-        maps::grid::Vector3d nodePos3;
-        trMap.fromGrid(node->getIndex(), nodePos3, node->getHeight(), false);
+        maps::grid::Vector3d nodePos3 = node->getPosition(trMap);
         const maps::grid::Vector2d nodePos(nodePos3.head<2>());
 
         bool hasObstacle = false;
@@ -137,11 +136,12 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
                 
                 if(neighbor->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
                 {
-                    if(drawObstacles)
+                    COMPLEX_DRAWING (
+                    if(!debugObstacleName.empty())
                     {
                         
-                        DRAW_ARROW("CollsionObstacles", neighborPos, Eigen::Quaterniond(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX())), Eigen::Vector3d(.3, 0.3, 0.8), vizkit3dDebugDrawings::Color::red);
-                    }
+                        DRAW_ARROW(debugObstacleName, neighborPos, Eigen::Quaterniond(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX())), Eigen::Vector3d(.3, 0.3, 0.8), vizkit3dDebugDrawings::Color::red);
+                    });
                     hasObstacle = true;
                     stop = true;
                 }

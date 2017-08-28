@@ -205,15 +205,13 @@ bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, TravGenNode *no
     );
     
     poses.push_back(base::Pose2D(nodePos.topRows(2), theta));
-    stats.calculateStatistics(path, poses, obsGen.getTraversabilityMap(), true);
+    stats.calculateStatistics(path, poses, obsGen.getTraversabilityMap(), name + "Box");
     
     if(stats.getRobotStats().getNumObstacles() || stats.getRobotStats().getNumFrontiers())
     {
         std::cout << "Error: " << name << " inside obstacle" << std::endl;
         return false;
     }
-    
-    
     
     return true;
 }
@@ -308,9 +306,6 @@ bool EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
     std::cout << "Expanding obstacle map...\n";
     obsGen.expandAll(obstacleStartNode);
     std::cout << "expanded " << std::endl;
-    
-    //obstacle arrows for initial collision check
-    CLEAR_DRAWING("CollsionObstacles");
     
     //check start position
     if(!checkStartGoalNode("start", startXYZNode->getUserData().travNode, startThetaNode->theta.getRadian()))
