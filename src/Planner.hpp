@@ -83,7 +83,7 @@ public:
     /** Plan a path from @p start to @p end.
      * @param maxTime Maximum processor time to use.
      * */
-    PLANNING_RESULT plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls, const base::samples::RigidBodyState& endbody2Mls, std::vector< base::Trajectory >& resultTrajectory);
+    PLANNING_RESULT plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls, const base::samples::RigidBodyState& endbody2Mls, std::vector< base::Trajectory >& resultTrajectory, bool dumpOnError = false);
     
     
     void setTravConfig(const TraversabilityConfig& config);

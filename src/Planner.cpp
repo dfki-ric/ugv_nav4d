@@ -5,6 +5,7 @@
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.h>
 #include <base/Eigen.hpp>
+#include "PlannerDump.hpp"
 
 using namespace maps::grid;
 
@@ -33,7 +34,7 @@ void Planner::setTravMapCallback(const std::function< void ()>& callback)
     travMapCallback = callback;
 }
 
-Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls, const base::samples::RigidBodyState& endbody2Mls, std::vector< base::Trajectory >& resultTrajectory)
+Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls, const base::samples::RigidBodyState& endbody2Mls, std::vector< base::Trajectory >& resultTrajectory, bool dumpOnError)
 {
     
     CLEAR_DRAWING("collisions");
@@ -60,6 +61,10 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     {
         if(travMapCallback)
             travMapCallback();
+
+        if(dumpOnError)
+            PlannerDump dump(*this, "bad_start", maxTime, startbody2Mls, endbody2Mls);
+
         return START_INVALID;
     }
 
@@ -68,6 +73,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     
     if(!env->setGoal(endGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(endGround2Mls.linear()))))
     {
+        if(dumpOnError)
+            PlannerDump dump(*this, "bad_goal", maxTime, startbody2Mls, endbody2Mls);
         return GOAL_INVALID;
     }
     
@@ -101,6 +108,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     if(!planner->replan(maxTime.toSeconds(), &solutionIds))
     {
         std::cout << "num expands: " << planner->get_n_expands() << std::endl;
+        if(dumpOnError)
+            PlannerDump dump(*this, "no_solution", maxTime, startbody2Mls, endbody2Mls);
         return NO_SOLUTION;
     }
         
@@ -125,7 +134,6 @@ std::vector< Motion > Planner::getMotions() const
 {
     return env->getMotions(solutionIds);
 }
-
 
 maps::grid::TraversabilityMap3d< TraversabilityNodeBase* > Planner::getTraversabilityMap() const
 {
