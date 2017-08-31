@@ -87,7 +87,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         return INTERNAL_ERROR;
     }
         
-    std::cout << "SBPL: About to set start and goal, startid" << mdp_cfg.startstateid << std::endl;
+    std::cout << "SBPL: About to set start and goal, startid=" << mdp_cfg.startstateid << std::endl;
     if (planner->set_start(mdp_cfg.startstateid) == 0) {
         std::cout << "Failed to set start state" << std::endl;
         return INTERNAL_ERROR;

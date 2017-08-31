@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 {
     if(argc < 2)
     {
-        std::cout << "ReplayDump [dumpName]" << std::endl;
+        std::cout << argv[0] << " [dumpName]" << std::endl;
         return -1;
     }
     

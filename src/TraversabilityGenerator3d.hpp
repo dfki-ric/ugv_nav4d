@@ -29,7 +29,7 @@ protected:
     maps::grid::TraversabilityMap3d<TravGenNode*> trMap;
     int currentNodeId = 0; //used while expanding
     
-    std::list<TravGenNode *> growList;
+    std::vector<TravGenNode *> growList;
     
     bool computePlaneRansac(TravGenNode &node);
     double computeSlope(const Eigen::Hyperplane< double, int(3) >& plane) const;
@@ -40,13 +40,13 @@ protected:
     /** @return false if no allowed orientation was found (e.g. due to extreme slope)*/
     bool computeAllowedOrientations(TravGenNode* node);
     
-    bool checkForFrontier(TravGenNode* node);
+    static bool checkForFrontier(const TravGenNode* node);
     
     void addConnectedPatches(TravGenNode* node);
 
     bool getConnectedPatch(const maps::grid::Index& idx, double height, const Patch*& patch);
     
-    double interpolate(double x, double x0, double y0, double x1, double y1) const;
+    static double interpolate(double x, double x0, double y0, double x1, double y1);
     
     TravGenNode *createTraversabilityPatchAt(maps::grid::Index idx, const double curHeight);
 

@@ -782,7 +782,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 bool EnvironmentXYZTheta::checkOrientationAllowed(const TravGenNode* node,
                                 const base::Orientation2D& orientationRad) const
 {   
-    //otherwise something whent wrong when generating the map
+    //otherwise something went wrong when generating the map
     assert(node->getUserData().allowedOrientations.size() > 0);
     
     const base::Angle orientation = base::Angle::fromRad(orientationRad);
@@ -887,7 +887,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
                 {
                     for(auto *n : curNode->getConnections())
                         std::cout << "Con Node " << n->getIndex().transpose() << std::endl;;
-                    throw std::runtime_error("Internal error, trajectory is not continous on tr grid");
+                    throw std::runtime_error("Internal error, trajectory is not continuous on tr grid");
                 }
 
                 curNode = nextNode;
@@ -901,7 +901,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
                 base::Vector3d pos(p.position.x() + start.x(), p.position.y() + start.y(), start.z());
 
                 pos.z() = curNode->getHeight();
-                Eigen::Vector3d pos_Body = plan2Body.inverse() * pos;
+                Eigen::Vector3d pos_Body = plan2Body.inverse(Eigen::Isometry) * pos;
 
                 if(positions.empty() || !(positions.back().isApprox(pos_Body)))
                 {

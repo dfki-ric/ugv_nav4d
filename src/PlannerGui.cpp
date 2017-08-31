@@ -398,8 +398,7 @@ void PlannerGui::loadMls(const std::string& path)
             maps::grid::MLSConfig cfg;
             mlsMap = maps::grid::MLSMapKalman(maps::grid::Vector2ui(size_x / mls_res, size_y / mls_res), maps::grid::Vector2d(mls_res, mls_res), cfg);
             mlsMap.translate(base::Vector3d(- size_x / 2.0, - size_y / 2.0, 0));
-            base::TransformWithCovariance tf = base::TransformWithCovariance::Identity();
-            tf.cov.setZero();
+            base::Transform3d tf = base::Transform3d::Identity();
             mlsMap.mergePointCloud(*cloud, tf);
             mlsViz.updateMLSKalman(mlsMap);
             planner->updateMap(mlsMap);

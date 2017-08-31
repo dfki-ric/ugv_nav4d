@@ -61,8 +61,7 @@ void MinimalClickGui::loadPly(const std::string& path)
             maps::grid::MLSConfig cfg;
             maps::grid::MLSMapKalman map(maps::grid::Vector2ui(size_x / mls_res, size_y / mls_res), maps::grid::Vector2d(mls_res, mls_res), cfg);
             map.translate(base::Vector3d(- size_x / 2.0, - size_y / 2.0, 0));
-            base::TransformWithCovariance tf = base::TransformWithCovariance::Identity();
-            tf.cov.setZero();
+            base::Transform3d tf = base::Transform3d::Identity();
             map.mergePointCloud(*cloud, tf, 0.01);
             
             mlsViz.updateMLSKalman(map);
