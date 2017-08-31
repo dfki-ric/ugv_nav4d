@@ -11,7 +11,9 @@ namespace ugv_nav4d
 class TraversabilityGenerator3d
 {
 public:
-    typedef maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > MLGrid;
+    // TODO use MLSMapPrecalculated and actually use slope information?
+//    typedef maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > MLGrid;
+    typedef maps::grid::MLSMapBase MLGrid;
     
 protected:
     

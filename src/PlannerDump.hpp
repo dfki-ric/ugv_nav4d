@@ -3,8 +3,7 @@
 #include <motion_planning_libraries/sbpl/SplinePrimitivesConfig.hpp>
 #include <motion_planning_libraries/Config.hpp>
 #include "TraversabilityConfig.hpp"
-#include <maps/grid/SurfacePatches.hpp>
-#include <maps/grid/MultiLevelGridMap.hpp>
+#include "TraversabilityGenerator3d.hpp"
 #include <base/samples/RigidBodyState.hpp>
 
 namespace ugv_nav4d {
@@ -21,7 +20,7 @@ class PlannerDump
     base::samples::RigidBodyState goal;
     base::Time maxTime;
     
-    typedef maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > MLSBase;
+    typedef TraversabilityGenerator3d::MLGrid MLSBase;
     std::string getUnusedFilename(const std::string& filePostfix) const;
 
     MLSBase mlsMap;

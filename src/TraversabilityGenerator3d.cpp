@@ -464,7 +464,7 @@ void TraversabilityGenerator3d::addInitialPatchToMLS()
             auto &ll = mlsGrid->at(idx);
             
             bool hasPatch = false;
-            for(const SurfacePatchBase &p: ll)
+            for(const MLGrid::PatchType &p: ll)
             {
                 if(p.isCovered(posMLS.z(), 0.05))
                 {
@@ -477,7 +477,7 @@ void TraversabilityGenerator3d::addInitialPatchToMLS()
             if(hasPatch)
                 continue;
             
-            SurfacePatchBase newPatch(posMLS.z());
+            MLGrid::PatchType newPatch(posMLS.z());
 //             std::cout << "Adding Patch at " << posMLS.transpose() << std::endl;
             
             ll.insert(newPatch);
