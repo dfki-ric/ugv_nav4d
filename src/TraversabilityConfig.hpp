@@ -24,16 +24,20 @@ class TraversabilityConfig
 public:
     
     TraversabilityConfig()
-        : maxStepHeight(0)
-        , maxSlope(0)
+        : maxStepHeight(0.05)
+        , maxSlope(0.5)
+        , inclineLimittingMinSlope(0.2)
+        , inclineLimittingLimit(0.1)
         , costFunctionDist(0.4)
         , minTraversablePercentage(0.8)
         , robotHeight(0)
         , robotSizeX(0)
         , robotSizeY(0)
         , distToGround(0)
+        , slopeMetricScale(1.0)
         , slopeMetric(NONE)
         , heuristicType(HEURISTIC_2D)
+        , parallelismEnabled(true)
         , gridResolution(0.0)
         , ignoreCollisions(false)
     {};
