@@ -1,9 +1,12 @@
 #pragma once
 #include <QApplication>
 #include <QObject>
+
+#ifndef Q_MOC_RUN
 #include <vizkit3d/Vizkit3DWidget.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
 #include <maps/grid/MLSMap.hpp>
+#endif
 
 class MinimalClickGui : public QObject
 {

@@ -1,12 +1,13 @@
 #include "FrontierTestGui.hpp"
 #include "FrontierGenerator.hpp"
+#ifndef Q_MOC_RUN
 #include <vizkit3d/Vizkit3DWidget.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.h>
 #include <envire_core/graph/EnvireGraph.hpp>
 #include <envire_core/items/Item.hpp>
 #include <thread>
-
+#endif
 namespace ugv_nav4d
 {
 

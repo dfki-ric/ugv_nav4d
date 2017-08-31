@@ -1,4 +1,6 @@
+
 #include "MinimalClickGui.hpp"
+#ifndef Q_MOC_RUN
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
 #include <QFileDialog>
 #include <iostream>
@@ -12,7 +14,7 @@
 #include <pcl/io/ply_io.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/filters/voxel_grid.h>
-
+#endif
 
 MinimalClickGui::MinimalClickGui(int argc, char** argv): QObject()
 {

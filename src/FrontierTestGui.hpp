@@ -1,11 +1,13 @@
 #pragma once
 #include <QObject>
 #include <memory>
+#ifndef Q_MOC_RUN
 #include <base/Eigen.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
 #include <vizkit3d/TraversabilityMap3dVisualization.hpp>
 #include "FrontierGenerator.hpp"
 #include "AreaExplorer.hpp"
+#endif
 
 namespace vizkit3d 
 {

@@ -1,5 +1,7 @@
 #pragma once
 #include <QObject>
+
+#ifndef Q_MOC_RUN
 #include <vizkit3d/Vizkit3DWidget.hpp>
 #include <vizkit3d/TrajectoryVisualization.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
@@ -11,6 +13,9 @@
 #include <base/Eigen.hpp>
 #include "Planner.hpp"
 #include "FrontierGenerator.hpp"
+#endif
+
+
 
 class PlannerGui : public QObject
 {
