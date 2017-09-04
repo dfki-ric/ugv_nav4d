@@ -76,8 +76,8 @@ public:
     std::vector<PoseWithCell> intermediateStepsObstMap;
     
     /**
-     * This vector contains a full resoluton 
-     * sample of the motion primitiv, together 
+     * This vector contains a full resolution
+     * sample of the motion primitive, together
      * with the cell the poses are supposed to 
      * be in. Poses are relative to (0/0), wile
      * the cellIndex is computed relative to the 

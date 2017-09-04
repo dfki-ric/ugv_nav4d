@@ -871,6 +871,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         maps::grid::Index lastIndex = startIndex;
         TravGenNode *curNode = startHash.node->getUserData().travNode;     
         
+        // FIXME attributes are never read at the moment. Also, why are attributes accumulated?
         curPart.attributes.names.push_back("start_" + std::to_string(i));
         curPart.attributes.elements.push_back(std::to_string(start.x()) + "_" + std::to_string(start.y()) + "_" + std::to_string(start.z()));
         
@@ -901,6 +902,12 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
                 base::Vector3d pos(p.position.x() + start.x(), p.position.y() + start.y(), start.z());
 
                 pos.z() = curNode->getHeight();
+
+                // HACK this overwrite avoids wrong headings in trajectory
+                // TODO ideally, this should interpolate the actual height (but at the moment this would only make a difference in visualization)
+                pos.z() = 0.0;
+
+                // TODO this just changes the z-coordinate (slightly wasteful to use Affine3d for that, but not inside critical loop)
                 Eigen::Vector3d pos_Body = plan2Body.inverse(Eigen::Isometry) * pos;
 
                 if(positions.empty() || !(positions.back().isApprox(pos_Body)))
