@@ -1164,8 +1164,12 @@ base::Trajectory EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::V
         for(const base::Pose2D &p : bestPosesOnObstPath)
         {
             base::Vector3d position(p.position.x(), p.position.y(), startPosWorld.z());
-            std::cout << position.transpose() << std::endl;
+
+            // HACK this overwrite avoids wrong headings in trajectory
+            // TODO ideally, this should interpolate the actual height (but at the moment this would only make a difference in visualization)
+            position.z() = 0.0;
             Eigen::Vector3d pos_Body = ground2Body.inverse(Eigen::Isometry) * position;
+            
             positions.push_back(pos_Body);
             trajectory.attributes.names.push_back("motion_" + std::to_string(0) + "_" + std::to_string(idx++));
             trajectory.attributes.elements.push_back(std::to_string(pos_Body.x()) + "_" + std::to_string(pos_Body.y()) + "_" + std::to_string(pos_Body.z()));
