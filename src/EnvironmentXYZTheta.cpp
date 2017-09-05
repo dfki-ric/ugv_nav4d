@@ -1064,8 +1064,16 @@ base::Trajectory EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::V
                                                                   base::Vector3d& outNewStart,
                                                                   double& outNewStartTheta)
 {
-    startThetaNode = createNewStateFromPose("start", start, theta, &startXYZNode);
-    TravGenNode* startTravNode = startXYZNode->getUserData().travNode;    
+    TravGenNode* startTravNode = travGen.generateStartNode(start);
+    
+    if(!startTravNode->isExpanded())
+    {
+        std::cout << "cannot find trajectory out of obstacle, map not expanded" << std::endl;
+        //this node should be expanded
+        throw std::runtime_error("cannot find trajectory out of obstacle, map not expanded");
+    }
+    
+    DiscreteTheta thetaD(theta, numAngles);
     TravGenNode* startNodeObstMap = findObstacleNode(startTravNode);
     const maps::grid::Index startIdxObstMap =  startNodeObstMap->getIndex();
 
@@ -1083,7 +1091,7 @@ base::Trajectory EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::V
     int bestMotionObstacleCount = std::numeric_limits<int>::max();
     
     bool abort = false;
-    const auto& motions = availableMotions.getMotionForStartTheta(startThetaNode->theta);
+    const auto& motions = availableMotions.getMotionForStartTheta(thetaD);
     for(size_t i = 0; i < motions.size(); ++i)
     {
         const ugv_nav4d::Motion &motion(motions[i]);
@@ -1135,7 +1143,8 @@ base::Trajectory EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::V
         endPosePoses.push_back(endPose);
         PathStatistic endPoseStats(travConf);
         endPoseStats.calculateStatistics(endPosePath, endPosePoses, obsGen.getTraversabilityMap());
-        if(endPoseStats.getRobotStats().getNumObstacles() > 0)
+        if(endPoseStats.getRobotStats().getNumObstacles() > 0 || 
+           endPoseStats.getRobotStats().getNumFrontiers() > 0)
         {
             //this path ends in an obstacle
             continue;
