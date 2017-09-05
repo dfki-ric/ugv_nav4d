@@ -54,7 +54,27 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     const Eigen::Affine3d startGround2Mls(startbody2Mls.getTransform() * ground2Body);
     const Eigen::Affine3d endGround2Mls(endbody2Mls.getTransform() * ground2Body);
     
-    if(!env->setStart(startGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(startGround2Mls.linear()))))
+    
+    try
+    {
+        env->setStart(startGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())));
+    }
+    catch(const ugv_nav4d::ObstacleCheckFailed& ex)
+    {
+        //Try to find the path of least resistance out of the obstacle
+        const base::Trajectory traj = env->findTrajectoryOutOfObstacle(startGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())),
+                                         ground2Body);
+        if(traj.attributes.size() > 0)
+        {
+            resultTrajectory.push_back(traj);
+            return FOUND_SOLUTION;
+        }
+        else
+        {
+            return NO_SOLUTION;
+        }
+    }
+    catch(const std::runtime_error& ex)
     {
         if(travMapCallback)
             travMapCallback();
@@ -64,16 +84,18 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
 
         return START_INVALID;
     }
-
-    if(travMapCallback)
-        travMapCallback();    
     
-    if(!env->setGoal(endGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(endGround2Mls.linear()))))
+    try
+    {
+        env->setGoal(endGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(endGround2Mls.linear())));
+    }
+    catch(const std::runtime_error& ex)
     {
         if(dumpOnError)
             PlannerDump dump(*this, "bad_goal", maxTime, startbody2Mls, endbody2Mls);
         return GOAL_INVALID;
     }
+    
     
     if(!planner)
         planner.reset(new ARAPlanner(env.get(), true));

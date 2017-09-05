@@ -8,6 +8,7 @@
 #include "Planner.hpp"
 #include "PreComputedMotions.hpp"
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.h>
 #include <boost/filesystem.hpp>
 #include <pcl/io/ply_io.h>
 #include <pcl/common/common.h>
@@ -343,6 +344,8 @@ void PlannerGui::setupPlanner(int argc, char** argv)
         start.position << 9.08776,  5.8535, 0.06052;
         QVector3D pos(start.position.x(), start.position.y(), start.position.z());
         startViz.setTranslation(pos);
+
+        
         std::cout << "Start: " << start.position.transpose() << std::endl;
         pickStart = false;
         expandButton->setEnabled(true);
@@ -440,6 +443,11 @@ void PlannerGui::picked(float x, float y, float z, int buttonMask, int modifierM
         {
             start.position << x, y, z;
             start.position.z() += conf.distToGround; //because we click on the ground but need to put robot position
+            
+            CLEAR_DRAWING("start_aabb");
+            DRAW_WIREFRAME_BOX("start_aabb", start.position +  base::Vector3d(0, 0, conf.distToGround / 2.0), start.orientation,
+                               base::Vector3d(conf.robotSizeX, conf.robotSizeY, conf.robotHeight - conf.distToGround), vizkit3dDebugDrawings::Color::cyan);
+            
             QVector3D pos(start.position.x(), start.position.y(), start.position.z());
             startViz.setTranslation(pos);
             std::cout << "Start: " << start.position.transpose() << std::endl;
@@ -531,6 +539,10 @@ void PlannerGui::startOrientationChanged(int newValue)
     const double rad = newValue/180.0 * M_PI;
     start.orientation = Eigen::AngleAxisd(rad, Eigen::Vector3d::UnitZ());
     startViz.setRotation(QQuaternion(start.orientation.w(), start.orientation.x(), start.orientation.y(), start.orientation.z()));
+    
+    CLEAR_DRAWING("start_aabb");
+    DRAW_WIREFRAME_BOX("start_aabb", start.position + Eigen::Vector3d(0, 0, conf.distToGround),
+                       start.orientation, base::Vector3d(conf.robotSizeX, conf.robotSizeY, conf.robotHeight), vizkit3dDebugDrawings::Color::cyan);
 }
 
 void PlannerGui::obstacleDistanceSpinBoxEditingFinished()

@@ -14,6 +14,12 @@ std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle);
 namespace ugv_nav4d
 {
 
+    class StateCreationFailed : public std::runtime_error {using std::runtime_error::runtime_error;};
+    class NodeCreationFailed : public std::runtime_error {using std::runtime_error::runtime_error;};
+    class ObstacleCheckFailed : public std::runtime_error {using std::runtime_error::runtime_error;};
+    class OrientationNotAllowed : public std::runtime_error {using std::runtime_error::runtime_error;};
+    
+    
 class EnvironmentXYZTheta : public DiscreteSpaceInformation
 {
 public:
@@ -94,6 +100,9 @@ protected:
     
     bool checkStartGoalNode(const std::string& name, ugv_nav4d::TravGenNode* node, double theta);
     
+    /** Find the obstacle node corresponding to @p travNode */
+    TravGenNode* findObstacleNode(const TravGenNode* travNode) const;
+    
 public:
     
     Eigen::Vector3d robotHalfSize;
@@ -112,6 +121,13 @@ public:
 
     virtual bool InitializeEnv(const char* sEnvFile);
     virtual bool InitializeMDPCfg(MDPConfig* MDPCfg);
+    
+    
+    /**Returns the trajectory of least resistance to leave the obstacle.
+     * @param start start position that is inside an obstacle
+     * @param theta robot orientation*/
+    base::Trajectory findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
+                                                 const Eigen::Affine3d& ground2Body);
     
      /**
      * \brief heuristic estimate from state FromStateID to state ToStateID
@@ -138,8 +154,8 @@ public:
     virtual void SetAllPreds(CMDPSTATE* state);
     virtual int SizeofCreatedEnv();
     
-    bool setStart(const Eigen::Vector3d &startPos, double theta);
-    bool setGoal(const Eigen::Vector3d &goalPos, double theta);
+    void setStart(const Eigen::Vector3d &startPos, double theta);
+    void setGoal(const Eigen::Vector3d &goalPos, double theta);
     
     maps::grid::Vector3d getStatePosition(const int stateID) const;
     

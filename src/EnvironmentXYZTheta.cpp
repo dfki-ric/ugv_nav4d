@@ -217,7 +217,7 @@ bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, TravGenNode *no
 }
 
 
-bool EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
+void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
 {
     
     CLEAR_DRAWING("env_goalPos");
@@ -231,12 +231,14 @@ bool EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     
     goalThetaNode = createNewStateFromPose("goal", goalPos, theta, &goalXYZNode);
     if(!goalThetaNode)
-        return false;
+    {
+        throw StateCreationFailed("Failed to create goal state");
+    }
     
     if(!checkOrientationAllowed(goalXYZNode->getUserData().travNode, theta))
     {
         std::cout << "Goal orientation not allowed due to slope" << std::endl;
-        return false;
+        throw OrientationNotAllowed("Goal orientation not allowed due to slope");
     }
     
     
@@ -247,7 +249,7 @@ bool EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     if(!checkStartGoalNode("goal", goalXYZNode->getUserData().travNode, goalThetaNode->theta.getRadian()))
     {
         std::cout << "goal position is invalid" << std::endl;
-        return false;        
+        throw ObstacleCheckFailed("goal position is invalid");
     }
     
     precomputeCost();
@@ -276,11 +278,9 @@ bool EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
             }
         }
     );
-    
-    return true;
 }
 
-bool EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta)
+void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta)
 {
     CLEAR_DRAWING("env_startPos");
     DRAW_ARROW("env_startPos", startPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
@@ -290,13 +290,13 @@ bool EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
     
     startThetaNode = createNewStateFromPose("start", startPos, theta, &startXYZNode);
     if(!startThetaNode)
-        return false;
+        throw StateCreationFailed("Failed to create start state");
    
     obstacleStartNode = obsGen.generateStartNode(startPos);
     if(!obstacleStartNode)
     {
         std::cout << "Could not generate obstacle node at start pos" << std::endl;
-        return false;
+        throw NodeCreationFailed("Could not generate obstacle node at start pos");
     }
     
     std::cout << "Expanding trav map...\n";
@@ -311,12 +311,8 @@ bool EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
     if(!checkStartGoalNode("start", startXYZNode->getUserData().travNode, startThetaNode->theta.getRadian()))
     {
         std::cout << "Start position is invalid" << std::endl;
-        return false;
+        throw ObstacleCheckFailed("Start position inside obstacle");
     }
-    
-
-    
-    return true;
 }
  
 void EnvironmentXYZTheta::SetAllPreds(CMDPSTATE* state)
@@ -1034,6 +1030,167 @@ void EnvironmentXYZTheta::setTravConfig(const TraversabilityConfig& cfg)
 {
     travConf = cfg;
 }
+
+
+TravGenNode* EnvironmentXYZTheta::findObstacleNode(const TravGenNode* travNode) const
+{
+    Eigen::Vector3d posWorld;
+    travGen.getTraversabilityMap().fromGrid(travNode->getIndex(), posWorld, travNode->getHeight(), false);
+    maps::grid::Index idxObstMap;
+    obsGen.getTraversabilityMap().toGrid(posWorld, idxObstMap, false);
+    
+    
+    TravGenNode *obstNode = nullptr;
+    double minDist = std::numeric_limits< double >::max();
+    for(TravGenNode* n: obsGen.getTraversabilityMap().at(idxObstMap))
+    {
+        double curDist = fabs(n->getHeight() - travNode->getHeight());
+        if(curDist > minDist)
+        {
+            //we passed the minimal distance point
+            break;
+        }
+        minDist = curDist;
+        obstNode = n;
+    }
+    
+    return obstNode;
+    
+}
+
+base::Trajectory EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
+                                                                  const Eigen::Affine3d& ground2Body)
+{
+    startThetaNode = createNewStateFromPose("start", start, theta, &startXYZNode);
+    TravGenNode* startTravNode = startXYZNode->getUserData().travNode;    
+    TravGenNode* startNodeObstMap = findObstacleNode(startTravNode);
+    const maps::grid::Index startIdxObstMap =  startNodeObstMap->getIndex();
+
+    Eigen::Vector3d startPosWorld;
+    travGen.getTraversabilityMap().fromGrid(startTravNode->getIndex(), startPosWorld, startTravNode->getHeight(), false);
+
+    if(!startNodeObstMap)
+    {
+        throw std::runtime_error("unable to find obstacle node corresponding to trav node");
+    }
+    
+    int bestMotionIndex = -1;
+    std::vector<const TravGenNode*> bestNodesOnPath;
+    std::vector<base::Pose2D> bestPosesOnObstPath;
+    int bestMotionObstacleCount = std::numeric_limits<int>::max();
+    
+    bool abort = false;
+    const auto& motions = availableMotions.getMotionForStartTheta(startThetaNode->theta);
+    for(size_t i = 0; i < motions.size(); ++i)
+    {
+        const ugv_nav4d::Motion &motion(motions[i]);
+        const TravGenNode* currentObstNode = startNodeObstMap;
+        std::vector<const TravGenNode*> nodesOnPath;
+        std::vector<base::Pose2D> posesOnObstPath;
+        
+        nodesOnPath.push_back(currentObstNode);
+        
+        base::Pose2D firstPose = motion.intermediateStepsObstMap[0].pose;
+        firstPose.position += startPosWorld.head<2>();
+        posesOnObstPath.push_back(firstPose);
+        
+        abort = false;
+        for(int j = 1; j < motion.intermediateStepsObstMap.size(); ++j)
+        {
+            const PoseWithCell& pwc = motion.intermediateStepsObstMap[j];
+            //diff is always a full offset to the start position
+            const maps::grid::Index newIndex =  startIdxObstMap + pwc.cell;
+            currentObstNode = currentObstNode->getConnectedNode(newIndex);
+            if(currentObstNode == nullptr)
+            {
+                abort = true;
+                break;
+            }
+            nodesOnPath.push_back(currentObstNode);
+            
+            base::Pose2D curPose = pwc.pose;
+            curPose.position += startPosWorld.head<2>();
+            posesOnObstPath.push_back(curPose);
+            
+        }
+
+        if(abort)
+        {
+            continue;
+        }
+        
+        
+        //check if the endpose is outside an obstacle
+        std::vector<const TravGenNode*> endPosePath;
+        std::vector<base::Pose2D> endPosePoses;
+        endPosePath.push_back(currentObstNode);
+        Eigen::Vector3d endPosWorld;
+        obsGen.getTraversabilityMap().fromGrid(currentObstNode->getIndex(), endPosWorld, currentObstNode->getHeight(), false);
+        base::Pose2D endPose;
+        endPose.position = endPosWorld.topRows(2);
+        endPose.orientation = motions[bestMotionIndex].endTheta.getRadian();
+        endPosePoses.push_back(endPose);
+        PathStatistic endPoseStats(travConf);
+        endPoseStats.calculateStatistics(endPosePath, endPosePoses, obsGen.getTraversabilityMap());
+        if(endPoseStats.getRobotStats().getNumObstacles() > 0)
+        {
+            //this path ends in an obstacle
+            continue;
+        }
+        
+        
+        PathStatistic stats(travConf);
+        stats.calculateStatistics(nodesOnPath, posesOnObstPath, obsGen.getTraversabilityMap());
+        const int obstacleCount = stats.getRobotStats().getNumObstacles() + stats.getRobotStats().getNumFrontiers();
+        
+        if(obstacleCount < bestMotionObstacleCount)
+        {
+            bestMotionObstacleCount = obstacleCount;
+            bestMotionIndex = i;
+            bestNodesOnPath = nodesOnPath;
+            bestPosesOnObstPath = posesOnObstPath;
+        }
+    }
+    
+    base::Trajectory trajectory;
+    
+    if(bestMotionIndex != -1)
+    {
+        size_t idx = 0;
+
+        //turn the poses into a spline
+        std::vector<base::Vector3d> positions;
+        
+        for(const base::Pose2D &p : bestPosesOnObstPath)
+        {
+            base::Vector3d position(p.position.x(), p.position.y(), startPosWorld.z());
+            std::cout << position.transpose() << std::endl;
+            Eigen::Vector3d pos_Body = ground2Body.inverse(Eigen::Isometry) * position;
+            positions.push_back(pos_Body);
+            trajectory.attributes.names.push_back("motion_" + std::to_string(0) + "_" + std::to_string(idx++));
+            trajectory.attributes.elements.push_back(std::to_string(pos_Body.x()) + "_" + std::to_string(pos_Body.y()) + "_" + std::to_string(pos_Body.z()));
+        }
+        trajectory.spline.interpolate(positions);
+        trajectory.speed = motions[bestMotionIndex].type == Motion::Type::MOV_BACKWARD? -motions[bestMotionIndex].speed : motions[bestMotionIndex].speed;
+        
+        COMPLEX_DRAWING(
+            for(base::Vector3d pos : positions)
+            {
+//                 pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
+                DRAW_CYLINDER("trajectory", pos,  base::Vector3d(0.02, 0.02, 0.2), vizkit3dDebugDrawings::Color::cyan);
+            }
+        );
+    }
+    else
+    {
+        std::cout << "NO WAY OUT, ROBOT IS STUCK!" << std::endl;
+        std::cout << "NO WAY OUT, ROBOT IS STUCK!" << std::endl;
+        std::cout << "NO WAY OUT, ROBOT IS STUCK!" << std::endl;
+    }
+
+    return trajectory;
+}
+
 
 
 }
