@@ -125,9 +125,13 @@ public:
     
     /**Returns the trajectory of least resistance to leave the obstacle.
      * @param start start position that is inside an obstacle
-     * @param theta robot orientation*/
+     * @param theta robot orientation
+     * @param[out] outNewStart The new start position of the robot after it has moved out of the obstacle in the map frame
+     * @return the best trajectory that gets the robot out of the obstacle.
+     *         Or an empty trajectory if no way out can be found*/
     base::Trajectory findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
-                                                 const Eigen::Affine3d& ground2Body);
+                                                 const Eigen::Affine3d& ground2Body,
+                                                 base::Vector3d& outNewStart, double& outNewStartTheta);
     
      /**
      * \brief heuristic estimate from state FromStateID to state ToStateID

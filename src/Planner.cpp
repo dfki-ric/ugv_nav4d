@@ -55,6 +55,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     const Eigen::Affine3d endGround2Mls(endbody2Mls.getTransform() * ground2Body);
     
     
+    std::vector<base::Trajectory> moveOutOfObstacleTrajectory;
+    
     try
     {
         env->setStart(startGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())));
@@ -62,15 +64,30 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     catch(const ugv_nav4d::ObstacleCheckFailed& ex)
     {
         //Try to find the path of least resistance out of the obstacle
-        const base::Trajectory traj = env->findTrajectoryOutOfObstacle(startGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())),
-                                         ground2Body);
+        base::Vector3d newStart;
+        double newStartTheta;
+        const base::Trajectory traj = env->findTrajectoryOutOfObstacle(startGround2Mls.translation(),
+                                                                       base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())),
+                                                                       ground2Body, newStart, newStartTheta);
         if(traj.attributes.size() > 0)
         {
-            resultTrajectory.push_back(traj);
-            return FOUND_SOLUTION;
+            moveOutOfObstacleTrajectory.push_back(traj);
+            
+            try
+            {
+                env->setStart(newStart, newStartTheta);
+            }
+            catch(const std::runtime_error& ex)
+            {
+                //new start is also not valid for some reason
+                std::cout << "Tried to move start out of obstacle but failed\n";
+                return NO_SOLUTION;
+            }
+            
         }
         else
         {
+            //no way out of obstacle
             return NO_SOLUTION;
         }
     }
@@ -146,6 +163,12 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     }
     
     env->getTrajectory(solutionIds, resultTrajectory, ground2Body);
+    
+    //have to move out of obstacle before the trajectory can be executed
+    if(moveOutOfObstacleTrajectory.size() > 0)
+    {
+        resultTrajectory.insert(resultTrajectory.begin(), moveOutOfObstacleTrajectory.begin(), moveOutOfObstacleTrajectory.end());
+    }
     return FOUND_SOLUTION;
 }
 

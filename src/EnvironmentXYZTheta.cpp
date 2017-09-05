@@ -1058,8 +1058,11 @@ TravGenNode* EnvironmentXYZTheta::findObstacleNode(const TravGenNode* travNode) 
     
 }
 
-base::Trajectory EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
-                                                                  const Eigen::Affine3d& ground2Body)
+base::Trajectory EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
+                                                                  double theta,
+                                                                  const Eigen::Affine3d& ground2Body,
+                                                                  base::Vector3d& outNewStart,
+                                                                  double& outNewStartTheta)
 {
     startThetaNode = createNewStateFromPose("start", start, theta, &startXYZNode);
     TravGenNode* startTravNode = startXYZNode->getUserData().travNode;    
@@ -1128,7 +1131,7 @@ base::Trajectory EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::V
         obsGen.getTraversabilityMap().fromGrid(currentObstNode->getIndex(), endPosWorld, currentObstNode->getHeight(), false);
         base::Pose2D endPose;
         endPose.position = endPosWorld.topRows(2);
-        endPose.orientation = motions[bestMotionIndex].endTheta.getRadian();
+        endPose.orientation = motions[i].endTheta.getRadian();
         endPosePoses.push_back(endPose);
         PathStatistic endPoseStats(travConf);
         endPoseStats.calculateStatistics(endPosePath, endPosePoses, obsGen.getTraversabilityMap());
@@ -1149,6 +1152,10 @@ base::Trajectory EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::V
             bestMotionIndex = i;
             bestNodesOnPath = nodesOnPath;
             bestPosesOnObstPath = posesOnObstPath;
+            
+            outNewStart = endPosWorld;
+            outNewStartTheta = motions[bestMotionIndex].endTheta.getRadian();
+            
         }
     }
     
@@ -1181,7 +1188,7 @@ base::Trajectory EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::V
             for(base::Vector3d pos : positions)
             {
 //                 pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
-                DRAW_CYLINDER("trajectory", pos,  base::Vector3d(0.02, 0.02, 0.2), vizkit3dDebugDrawings::Color::cyan);
+                DRAW_CYLINDER("outOfObstacleTrajectory", pos,  base::Vector3d(0.02, 0.02, 0.2), vizkit3dDebugDrawings::Color::blue);
             }
         );
     }
