@@ -137,32 +137,44 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         return INTERNAL_ERROR;
     }
 
-    planner->set_eps_step(1.0);
-    planner->set_initialsolution_eps(10.0);
-    
-    solutionIds.clear();
-    if(!planner->replan(maxTime.toSeconds(), &solutionIds))
+    try
     {
+        planner->set_eps_step(1.0);
+        planner->set_initialsolution_eps(10.0);
+        
+        solutionIds.clear();
+        if(!planner->replan(maxTime.toSeconds(), &solutionIds))
+        {
+            std::cout << "num expands: " << planner->get_n_expands() << std::endl;
+            if(dumpOnError)
+                PlannerDump dump(*this, "no_solution", maxTime, startbody2Mls, endbody2Mls);
+            return NO_SOLUTION;
+        }
+            
         std::cout << "num expands: " << planner->get_n_expands() << std::endl;
+        std::cout << "Epsilon is " << planner->get_final_epsilon() << std::endl;
+
+        std::vector<PlannerStats> stats;
+        
+        planner->get_search_stats(&stats);
+        
+        std::cout << std::endl << "Stats" << std::endl;
+        for(const PlannerStats &s: stats)
+        {
+            std::cout << "cost " << s.cost << " time " << s.time << "num childs " << s.expands << std::endl;
+        }
+        
+        env->getTrajectory(solutionIds, resultTrajectory, ground2Body);
+    }
+    catch(const SBPL_Exception& ex)
+    {
+        std::cout << "caught sbpl exception: " << ex.what() << std::endl;
+        std::cout << "dumping state" << std::endl;
         if(dumpOnError)
             PlannerDump dump(*this, "no_solution", maxTime, startbody2Mls, endbody2Mls);
         return NO_SOLUTION;
     }
-        
-    std::cout << "num expands: " << planner->get_n_expands() << std::endl;
-    std::cout << "Epsilon is " << planner->get_final_epsilon() << std::endl;
-
-    std::vector<PlannerStats> stats;
     
-    planner->get_search_stats(&stats);
-    
-    std::cout << std::endl << "Stats" << std::endl;
-    for(const PlannerStats &s: stats)
-    {
-        std::cout << "cost " << s.cost << " time " << s.time << "num childs " << s.expands << std::endl;
-    }
-    
-    env->getTrajectory(solutionIds, resultTrajectory, ground2Body);
     
     //have to move out of obstacle before the trajectory can be executed
     if(moveOutOfObstacleTrajectory.size() > 0)
