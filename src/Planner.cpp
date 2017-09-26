@@ -37,6 +37,22 @@ void Planner::setTravMapCallback(const std::function< void ()>& callback)
 Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls, const base::samples::RigidBodyState& endbody2Mls, std::vector< base::Trajectory >& resultTrajectory, bool dumpOnError)
 {
     
+    if(!planner)
+        planner.reset(new ARAPlanner(env.get(), true));
+    
+    try
+    {
+        //has to be done before env->setStart and env->setGoal because it resets state ids
+        planner->force_planning_from_scratch_and_free_memory();
+        planner->set_search_mode(false);
+    }
+    catch(const SBPL_Exception& ex)
+    {
+        std::cout << "caught sbpl exception: " << ex.what() << std::endl;
+        return NO_SOLUTION;
+    }
+    
+    
     CLEAR_DRAWING("successors");
     
     if(!env)
@@ -113,12 +129,6 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         return GOAL_INVALID;
     }
     
-    
-    if(!planner)
-        planner.reset(new ARAPlanner(env.get(), true));
-    planner->force_planning_from_scratch_and_free_memory();
-    planner->set_search_mode(false);
-
     MDPConfig mdp_cfg;
         
     if (! env->InitializeMDPCfg(&mdp_cfg)) {
