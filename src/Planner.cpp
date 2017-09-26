@@ -35,8 +35,20 @@ void Planner::setTravMapCallback(const std::function< void ()>& callback)
 }
 
 Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls, const base::samples::RigidBodyState& endbody2Mls, std::vector< base::Trajectory >& resultTrajectory, bool dumpOnError)
-{
+{ 
     
+    CLEAR_DRAWING("successors");
+    
+    if(!env)
+    {
+        std::cout << "Planner::plan : Error : No map was set" << std::endl;
+        return NO_MAP;
+    }
+    
+    resultTrajectory.clear();
+    env->clear();
+ 
+        
     if(!planner)
         planner.reset(new ARAPlanner(env.get(), true));
     
@@ -51,18 +63,6 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         std::cout << "caught sbpl exception: " << ex.what() << std::endl;
         return NO_SOLUTION;
     }
-    
-    
-    CLEAR_DRAWING("successors");
-    
-    if(!env)
-    {
-        std::cout << "Planner::plan : Error : No map was set" << std::endl;
-        return NO_MAP;
-    }
-    
-    resultTrajectory.clear();
-    env->clear();
     
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
