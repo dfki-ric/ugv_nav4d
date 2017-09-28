@@ -86,10 +86,10 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
             pos.y() = y * fY - sizeHalf.y();
             
             bool hasPatch = false;
-            for(const SurfacePatchBase *p : area.at(x, y))
+            for(const SurfacePatch<MLSConfig::KALMAN> *p : area.at(x, y))
             {
                 PointT pclP;
-                pclP.z = p->getTop();
+                pclP.z = p->getMean();
                 pclP.x = pos.x();
                 pclP.y = pos.y();
                 points->push_back(pclP);
@@ -320,9 +320,9 @@ bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
                 throw std::runtime_error("WTF");
             }
 
-            for(const SurfacePatchBase *p : area.at(x, y))
+            for(const SurfacePatch<MLSConfig::KALMAN> *p : area.at(x, y))
             {
-                pos.z() = p->getTop();
+                pos.z() = p->getMean();
                 float dist = plane.absDistance(pos);
                 //bounding box already checks height of robot
                 if(dist > config.maxStepHeight)
@@ -476,8 +476,8 @@ void TraversabilityGenerator3d::addInitialPatchToMLS()
             
             if(hasPatch)
                 continue;
-            
-            MLGrid::PatchType newPatch(posMLS.z());
+                        
+            MLGrid::PatchType newPatch(posMLS.z(), config.initialPatchVariance);
 //             std::cout << "Adding Patch at " << posMLS.transpose() << std::endl;
             
             ll.insert(newPatch);
@@ -609,10 +609,10 @@ TravGenNode *TraversabilityGenerator3d::createTraversabilityPatchAt(maps::grid::
     
     std::vector<double> candidates;
     
-    for(const SurfacePatchBase& patch : patches)
+    for(const SurfacePatch<MLSConfig::KALMAN>& patch : patches)
     {
         //We use top, as we drive on the surface
-        const double height = patch.getTop();
+        const double height = patch.getMean();
 
         if((height - config.maxStepHeight) <= curHeight && (height + config.maxStepHeight) >= curHeight)
         {

@@ -40,6 +40,8 @@ public:
         , parallelismEnabled(true)
         , gridResolution(0.0)
         , ignoreCollisions(false)
+        , initialPatchVariance(0.01 * 0.01)
+        
     {};
     
     double maxStepHeight;
@@ -79,6 +81,9 @@ public:
     bool parallelismEnabled; //if true openMP will be used to parallelize the planning
     double gridResolution;
     bool ignoreCollisions; //Disable all obstacle checks
+    double initialPatchVariance; //the variance that is set for initially added patches.
+    
 };
+
 
 }
