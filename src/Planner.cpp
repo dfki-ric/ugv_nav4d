@@ -52,17 +52,6 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     if(!planner)
         planner.reset(new ARAPlanner(env.get(), true));
     
-    try
-    {
-        //has to be done before env->setStart and env->setGoal because it resets state ids
-        planner->force_planning_from_scratch_and_free_memory();
-        planner->set_search_mode(false);
-    }
-    catch(const SBPL_Exception& ex)
-    {
-        std::cout << "caught sbpl exception: " << ex.what() << std::endl;
-        return NO_SOLUTION;
-    }
     
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
@@ -79,6 +68,12 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     }
     catch(const ugv_nav4d::ObstacleCheckFailed& ex)
     {
+        std::cout << "Start inside obstacle. Trying to move out of obstacle" << std::endl;
+        
+        //env->setStart might have partially initialized the environment, clear it in case of error
+        //if we dont do this, sbpl sometimes breaks with strange errors...
+        env->clear(); 
+        
         //Try to find the path of least resistance out of the obstacle
         base::Vector3d newStart;
         double newStartTheta;
@@ -127,6 +122,23 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         if(dumpOnError)
             PlannerDump dump(*this, "bad_goal", maxTime, startbody2Mls, endbody2Mls);
         return GOAL_INVALID;
+    }
+    
+    
+    //this has to happen after env->setStart and env->setGoal because those methods initialize the 
+    //StateID2IndexMapping which is accessed inside force_planning_from_scratch_and_free_memory().
+    try
+    {
+        //has to be done before env->setStart and env->setGoal because it resets state ids
+        std::cout << "force from scracts" << std::endl;
+        planner->force_planning_from_scratch_and_free_memory();
+        std::cout << "set search mode" << std::endl;
+        planner->set_search_mode(false);
+    }
+    catch(const SBPL_Exception& ex)
+    {
+        std::cout << "caught sbpl exception: " << ex.what() << std::endl;
+        return NO_SOLUTION;
     }
     
     MDPConfig mdp_cfg;
