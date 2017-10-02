@@ -48,10 +48,8 @@ int TraversabilityGenerator3d::getNumNodes() const
 bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
 {
     Eigen::Vector3d nodePos;
-    if(!trMap.fromGrid(node.getIndex(), nodePos))
+    if(!trMap.fromGrid(node.getIndex(), nodePos, node.getHeight()))
         throw std::runtime_error("TraversabilityGenerator3d: Internal error node out of grid");
-    
-    nodePos.z() += node.getHeight();
 
     const double growSize = std::min(config.robotSizeX, config.robotSizeY) / 2.0;
 
@@ -71,8 +69,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
     
     Eigen::Vector2d sizeHalf(area.getSize() / 2.0);
     
-    double fX = area.getSize().x() / area.getNumCells().x();
-    double fY = area.getSize().y() / area.getNumCells().y();
+    const Eigen::Vector2d& res = mlsGrid->getResolution();
     
     //FIXME only works if there is only one patch per cell
     const int patchCntTotal = area.getNumCells().y() * area.getNumCells().x();
@@ -81,17 +78,12 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
     {
         for(size_t x = 0; x < area.getNumCells().x(); x++)
         {
-            Eigen::Vector3d pos;
-            pos.x() = x * fX - sizeHalf.x();
-            pos.y() = y * fY - sizeHalf.y();
+            Eigen::Vector2d pos = Eigen::Vector2d(x,y).cwiseProduct(res) - sizeHalf;
             
             bool hasPatch = false;
-            for(const SurfacePatch<MLSConfig::KALMAN> *p : area.at(x, y))
+            for(const MLGrid::PatchType *p : area.at(x, y))
             {
-                PointT pclP;
-                pclP.z = p->getMean();
-                pclP.x = pos.x();
-                pclP.y = pos.y();
+                PointT pclP(pos.x(), pos.y(), p->getMean());
                 points->push_back(pclP);
                 hasPatch = true;
             }
