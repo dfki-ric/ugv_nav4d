@@ -2,7 +2,7 @@
 #include <maps/grid/MLSMap.hpp>
 #include <base/samples/RigidBodyState.hpp>
 #include <boost/shared_ptr.hpp>
-#include <base/Trajectory.hpp>
+#include <trajectory_follower/SubTrajectory.hpp>
 #include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
 #include <motion_planning_libraries/sbpl/SbplSplineMotionPrimitives.hpp>
 #include "EnvironmentXYZTheta.hpp"
@@ -83,7 +83,9 @@ public:
     /** Plan a path from @p start to @p end.
      * @param maxTime Maximum processor time to use.
      * */
-    PLANNING_RESULT plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls, const base::samples::RigidBodyState& endbody2Mls, std::vector< base::Trajectory >& resultTrajectory, bool dumpOnError = false);
+    PLANNING_RESULT plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls,
+                         const base::samples::RigidBodyState& endbody2Mls, std::vector<trajectory_follower::SubTrajectory>& resultTrajectory,
+                         bool dumpOnError = false);
     
     
     void setTravConfig(const TraversabilityConfig& config);

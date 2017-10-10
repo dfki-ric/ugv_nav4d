@@ -49,6 +49,7 @@ rock_library(ugv_nav4d
         dwa
         maps
         envire_core
+        trajectory_follower
         pcl_segmentation-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
         vizkit3d_debug_drawings
 )

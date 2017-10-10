@@ -579,16 +579,13 @@ void PlannerGui::startPlanThread()
 
 
 void PlannerGui::plannerIsDone()
-{
-    double pathLen = 0;
-    for(const base::Trajectory& traj : path)
+{   
+    std::vector<base::Trajectory> basePath;
+    for(auto& traj : path)
     {
-        pathLen += traj.spline.length(traj.spline.getStartParam(), traj.spline.getEndParam(), traj.spline.getGeometricResolution());
+        basePath.push_back(traj.toBaseTrajectory());
     }
-    
-    std::cout << "path length:  " << pathLen << std::endl;
-    
-    trajViz.updateTr(path);
+    trajViz.updateTr(basePath);
     trajViz.setLineWidth(8);
     
     trav3dViz.updateData((planner->getEnv()->getTraversabilityBaseMap()));

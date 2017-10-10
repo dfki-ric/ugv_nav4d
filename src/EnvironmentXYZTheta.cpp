@@ -847,7 +847,9 @@ vector<Motion> EnvironmentXYZTheta::getMotions(const vector< int >& stateIDPath)
 }
 
 
-void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector< base::Trajectory >& result, const Eigen::Affine3d &plan2Body)
+void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
+                                        vector<trajectory_follower::SubTrajectory>& result,
+                                        const Eigen::Affine3d &plan2Body)
 {
     if(stateIDPath.size() < 2)
         return;
@@ -928,7 +930,8 @@ void EnvironmentXYZTheta::getTrajectory(const vector< int >& stateIDPath, vector
         
         
         curPart.speed = curMotion.type == Motion::Type::MOV_BACKWARD? -curMotion.speed : curMotion.speed;
-        result.push_back(curPart);
+        result.emplace_back(curPart);
+        result.back().kind = trajectory_follower::TRAJECTORY_KIND_NORMAL;
     }
     
 }
@@ -1058,11 +1061,11 @@ TravGenNode* EnvironmentXYZTheta::findObstacleNode(const TravGenNode* travNode) 
     
 }
 
-base::Trajectory EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
-                                                                  double theta,
-                                                                  const Eigen::Affine3d& ground2Body,
-                                                                  base::Vector3d& outNewStart,
-                                                                  double& outNewStartTheta)
+trajectory_follower::SubTrajectory EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
+                                                                                    double theta,
+                                                                                    const Eigen::Affine3d& ground2Body,
+                                                                                    base::Vector3d& outNewStart,
+                                                                                    double& outNewStartTheta)
 {
     TravGenNode* startTravNode = travGen.generateStartNode(start);
     
@@ -1187,8 +1190,6 @@ base::Trajectory EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::V
             Eigen::Vector3d pos_Body = ground2Body.inverse(Eigen::Isometry) * position;
             
             positions.push_back(pos_Body);
-            trajectory.attributes.names.push_back("motion_" + std::to_string(0) + "_" + std::to_string(idx++));
-            trajectory.attributes.elements.push_back(std::to_string(pos_Body.x()) + "_" + std::to_string(pos_Body.y()) + "_" + std::to_string(pos_Body.z()));
         }
         trajectory.spline.interpolate(positions);
         trajectory.speed = motions[bestMotionIndex].type == Motion::Type::MOV_BACKWARD? -motions[bestMotionIndex].speed : motions[bestMotionIndex].speed;
@@ -1208,7 +1209,9 @@ base::Trajectory EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::V
         std::cout << "NO WAY OUT, ROBOT IS STUCK!" << std::endl;
     }
 
-    return trajectory;
+    trajectory_follower::SubTrajectory subTraj(trajectory);
+    subTraj.kind = trajectory_follower::TRAJECTORY_KIND_RESCUE;
+    return subTraj;
 }
 
 

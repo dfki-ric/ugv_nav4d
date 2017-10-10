@@ -34,7 +34,9 @@ void Planner::setTravMapCallback(const std::function< void ()>& callback)
     travMapCallback = callback;
 }
 
-Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls, const base::samples::RigidBodyState& endbody2Mls, std::vector< base::Trajectory >& resultTrajectory, bool dumpOnError)
+Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls,
+                                       const base::samples::RigidBodyState& endbody2Mls,
+                                       std::vector<trajectory_follower::SubTrajectory>& resultTrajectory, bool dumpOnError)
 { 
     
     CLEAR_DRAWING("successors");
@@ -60,7 +62,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     const Eigen::Affine3d endGround2Mls(endbody2Mls.getTransform() * ground2Body);
     
     
-    std::vector<base::Trajectory> moveOutOfObstacleTrajectory;
+    std::vector<trajectory_follower::SubTrajectory> moveOutOfObstacleTrajectory;
     
     try
     {
@@ -77,10 +79,10 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         //Try to find the path of least resistance out of the obstacle
         base::Vector3d newStart;
         double newStartTheta;
-        const base::Trajectory traj = env->findTrajectoryOutOfObstacle(startGround2Mls.translation(),
-                                                                       base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())),
-                                                                       ground2Body, newStart, newStartTheta);
-        if(traj.attributes.size() > 0)
+        const trajectory_follower::SubTrajectory traj = env->findTrajectoryOutOfObstacle(startGround2Mls.translation(),
+                                                                                         base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())),
+                                                                                         ground2Body, newStart, newStartTheta);
+        if(!traj.posSpline.isEmpty())
         {
             moveOutOfObstacleTrajectory.push_back(traj);
             
