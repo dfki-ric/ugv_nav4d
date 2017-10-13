@@ -380,7 +380,18 @@ void TraversabilityGenerator3d::expandAll(const Eigen::Vector3d& startPos)
     expandAll(startNode);
 }
 
+void TraversabilityGenerator3d::expandAll(const Eigen::Vector3d& startPos, const double expandDist)
+{
+    TravGenNode *startNode = generateStartNode(startPos);
+    expandAll(startNode, expandDist);    
+}
+
+
 void TraversabilityGenerator3d::expandAll(TravGenNode* startNode)
+{
+    expandAll(startNode, -1.0);
+}
+void TraversabilityGenerator3d::expandAll(TravGenNode* startNode, const double expandDist)
 {
     if(!startNode)
         return;
@@ -414,7 +425,18 @@ void TraversabilityGenerator3d::expandAll(TravGenNode* startNode)
         for(auto *n : node->getConnections())
         {
             if(!n->isExpanded())
-                candidates.push_back(static_cast<TravGenNode *>(n));
+            {
+                if(expandDist > 0)
+                {
+                    const double dist = (startNode->getPosition(trMap) - n->getPosition(trMap)).norm();
+                    if(dist <= expandDist)
+                        candidates.push_back(static_cast<TravGenNode *>(n));
+                }
+                else
+                {
+                    candidates.push_back(static_cast<TravGenNode *>(n));
+                }
+            }
         }
     }
     

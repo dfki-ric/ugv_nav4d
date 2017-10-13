@@ -73,8 +73,16 @@ public:
     TravGenNode *findMatchingTraversabilityPatchAt(maps::grid::Index idx, const double curHeight) const;
     
     void expandAll(const Eigen::Vector3d &startPos);
-
+    
+    /**Expands the map starting at @p startPos.
+     * Expansion will stop if a distance of @p expandDist is reached. I.e. this will expand all nodes
+     * in a circle of radius @p expandDist around @p startPos.*/
+    void expandAll(const Eigen::Vector3d &startPos, const double expandDist);
+    
     void expandAll(TravGenNode *startNode);
+    
+    /** @param expandDist is ignored if negative. */
+    void expandAll(TravGenNode *startNode, const double expandDist);
 
     virtual bool expandNode(TravGenNode *node);
     
