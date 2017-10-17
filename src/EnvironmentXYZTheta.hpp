@@ -100,11 +100,17 @@ protected:
     
     bool checkStartGoalNode(const std::string& name, ugv_nav4d::TravGenNode* node, double theta);
     
+    
     /** Find the obstacle node corresponding to @p travNode */
     TravGenNode* findObstacleNode(const TravGenNode* travNode) const;
     
 public:
     
+    /** @param pos Position in map frame */
+    static bool obstacleCheck(const maps::grid::Vector3d& pos, double theta, const ObstacleMapGenerator3D& obsGen,
+                              const ugv_nav4d::TraversabilityConfig& travConf,
+                              const motion_planning_libraries::SplinePrimitivesConfig& splineConf,
+                              const std::string& nodeName="node");
     Eigen::Vector3d robotHalfSize;
     
     /** @param generateDebugData If true, lots of debug information will becollected
@@ -227,6 +233,7 @@ private:
     bool checkExpandTreadSafe(TravGenNode * node);
     
     TraversabilityConfig travConf;
+    motion_planning_libraries::SplinePrimitivesConfig primitiveConfig;
     
     unsigned int numAngles;
     

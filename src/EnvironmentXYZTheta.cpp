@@ -50,6 +50,7 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(std::shared_ptr<MLGrid> mlsGrid,
     , goalXYZNode(nullptr)
     , obstacleStartNode(nullptr)
     , travConf(travConf)
+    , primitiveConfig(primitiveConfig)
     , mobilityConfig(mobilityConfig)
 {
     numAngles = primitiveConfig.numAngles;
@@ -173,47 +174,70 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
     return createNewState(thetaD, xyzNode);
 }
 
-bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, TravGenNode *node, double theta)
+bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double theta,
+                                        const ObstacleMapGenerator3D& obsGen,
+                                        const ugv_nav4d::TraversabilityConfig& travConf,
+                                        const SplinePrimitivesConfig& splineConf,
+                                        const std::string& nodeName)
 {
-    //check for collisions NOTE has to be done after expansion
-    PathStatistic stats(travConf);
-    maps::grid::Vector3d nodePos;
-    travGen.getTraversabilityMap().fromGrid(node->getIndex(), nodePos, node->getHeight(), false);
+    PathStatistic stats(travConf);    
     std::vector<base::Pose2D> poses;
     
     maps::grid::Index idxObstNode;
-    if(!obsGen.getTraversabilityMap().toGrid(nodePos, idxObstNode))
+    if(!obsGen.getTraversabilityMap().toGrid(pos, idxObstNode))
     {
-        std::cout << "Error " << name << " is outside of obstacle map " << std::endl;
+        std::cout << "Error " << nodeName << " is outside of obstacle map " << std::endl;
         return false;
     }
-    TravGenNode* obstacleNode = obsGen.findMatchingTraversabilityPatchAt(idxObstNode, node->getHeight());
+    TravGenNode* obstacleNode = obsGen.findMatchingTraversabilityPatchAt(idxObstNode, pos.z());
     if(!obstacleNode)
     {
-        std::cout << "Error, could not find matching obstacle node for " << name << std::endl;
+        std::cout << "Error, could not find matching obstacle node for " << nodeName << std::endl;
         return false;
     }
     
     std::vector<const TravGenNode*> path;
     path.push_back(obstacleNode);
 
-    COMPLEX_DRAWING (
-    CLEAR_DRAWING(name + "Box");
-    Eigen::Vector3d goalNodePos;
-    travGen.getTraversabilityMap().fromGrid(node->getIndex(), goalNodePos, node->getHeight(), false);
-    DRAW_WIREFRAME_BOX(name + "Box", goalNodePos, Eigen::Quaterniond(Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), vizkit3dDebugDrawings::Color::red);
-    );
     
-    poses.push_back(base::Pose2D(nodePos.topRows(2), theta));
-    stats.calculateStatistics(path, poses, obsGen.getTraversabilityMap(), name + "Box");
+    //NOTE theta needs to be discretized because the planner uses discrete theta internally everywhere.
+    //     If we do not discretize here, external calls and internal calls will have different results for the same pose input
+    
+    DiscreteTheta discTheta(theta, splineConf.numAngles);
+    
+    poses.push_back(base::Pose2D(pos.topRows(2), discTheta.getRadian()));
+    stats.calculateStatistics(path, poses, obsGen.getTraversabilityMap(), nodeName + "Box");
     
     if(stats.getRobotStats().getNumObstacles() || stats.getRobotStats().getNumFrontiers())
     {
-        std::cout << "Error: " << name << " inside obstacle" << std::endl;
+        COMPLEX_DRAWING(
+            const std::string drawName("obs_check_fail_" + nodeName);
+            CLEAR_DRAWING(drawName);
+            DRAW_WIREFRAME_BOX(drawName, pos, Eigen::Quaterniond(Eigen::AngleAxisd(discTheta.getRadian(), Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), vizkit3dDebugDrawings::Color::red);
+        );
+        
+        std::cout << "Error: " << nodeName << " inside obstacle" << std::endl;
         return false;
     }
     
     return true;
+}
+
+bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, TravGenNode *node, double theta)
+{
+    //check for collisions NOTE has to be done after expansion
+
+    maps::grid::Vector3d nodePos;
+    travGen.getTraversabilityMap().fromGrid(node->getIndex(), nodePos, node->getHeight(), false);
+    
+    COMPLEX_DRAWING(
+            const std::string drawName("check_start_goal_" + name);
+            CLEAR_DRAWING(drawName);
+            DRAW_WIREFRAME_BOX(drawName, nodePos, Eigen::Quaterniond(Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), vizkit3dDebugDrawings::Color::red);
+        );
+    
+    
+    return obstacleCheck(nodePos, theta, obsGen, travConf, primitiveConfig, name); 
 }
 
 
@@ -257,6 +281,7 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     
     //draw greedy path
     COMPLEX_DRAWING(
+        CLEAR_DRAWING("greedyPath");
         TravGenNode* nextNode = startXYZNode->getUserData().travNode;
         TravGenNode* goal = goalXYZNode->getUserData().travNode;
         while(nextNode != goal)
@@ -1109,7 +1134,7 @@ trajectory_follower::SubTrajectory EnvironmentXYZTheta::findTrajectoryOutOfObsta
         posesOnObstPath.push_back(firstPose);
         
         abort = false;
-        for(int j = 1; j < motion.intermediateStepsObstMap.size(); ++j)
+        for(size_t j = 1; j < motion.intermediateStepsObstMap.size(); ++j)
         {
             const PoseWithCell& pwc = motion.intermediateStepsObstMap[j];
             //diff is always a full offset to the start position

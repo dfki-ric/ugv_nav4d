@@ -79,6 +79,9 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         //Try to find the path of least resistance out of the obstacle
         base::Vector3d newStart;
         double newStartTheta;
+        
+        DRAW_CYLINDER("rescue", startGround2Mls.translation(), base::Vector3d(0.05, 0.05, 0.7), vizkit3dDebugDrawings::Color::pink_orange);
+        
         const trajectory_follower::SubTrajectory traj = env->findTrajectoryOutOfObstacle(startGround2Mls.translation(),
                                                                                          base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())),
                                                                                          ground2Body, newStart, newStartTheta);
