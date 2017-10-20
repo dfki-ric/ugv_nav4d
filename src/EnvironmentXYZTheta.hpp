@@ -129,6 +129,9 @@ public:
     virtual bool InitializeMDPCfg(MDPConfig* MDPCfg);
     
     
+    /**Expand the underlying travmap and obstacle map starting from all given positions. */
+    void expandMap(const std::vector<Eigen::Vector3d>& positions);
+    
     /**Returns the trajectory of least resistance to leave the obstacle.
      * @param start start position that is inside an obstacle
      * @param theta robot orientation

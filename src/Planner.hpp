@@ -29,6 +29,9 @@ protected:
     
     std::function<void ()> travMapCallback;
     
+    /**are buffered and reused for a more robust map generation */
+    std::vector<Eigen::Vector3d> previousStartPositions;
+    
 public:
     enum PLANNING_RESULT {
         GOAL_INVALID,

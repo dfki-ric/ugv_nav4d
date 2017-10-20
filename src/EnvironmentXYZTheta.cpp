@@ -148,13 +148,7 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
     }
 
     //check if intitial patch is unknown
-    if(travNode->isExpanded() && (travNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE))
-    {
-        std::cout << "createNewStateFromPose: Node for " << name << " was expanded " << std::endl;
-        cout << "createNewStateFromPose: Error : " << name << " Pose " << pos.transpose() << " is not traversable" << endl;
-        return nullptr;
-    }
-    else
+    if(!travNode->isExpanded())
     {
         if(!travGen.expandNode(travNode))
         {
@@ -304,6 +298,23 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
         }
     );
 }
+
+void EnvironmentXYZTheta::expandMap(const std::vector<Eigen::Vector3d>& positions)
+{
+    
+    COMPLEX_DRAWING(
+        CLEAR_DRAWING("expandStarts");
+        for(const Eigen::Vector3d& pos : positions)
+        {
+            DRAW_ARROW("expandStarts", pos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
+                       base::Vector3d(1,1,1), vizkit3dDebugDrawings::Color::cyan);
+        }
+    );
+    
+    travGen.expandAll(positions);
+    obsGen.expandAll(positions);
+}
+
 
 void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta)
 {
@@ -1200,8 +1211,6 @@ trajectory_follower::SubTrajectory EnvironmentXYZTheta::findTrajectoryOutOfObsta
     
     if(bestMotionIndex != -1)
     {
-        size_t idx = 0;
-
         //turn the poses into a spline
         std::vector<base::Vector3d> positions;
         

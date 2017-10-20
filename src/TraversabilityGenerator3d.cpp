@@ -380,6 +380,15 @@ void TraversabilityGenerator3d::expandAll(const Eigen::Vector3d& startPos)
     expandAll(startNode);
 }
 
+void TraversabilityGenerator3d::expandAll(const std::vector<Eigen::Vector3d>& positions)
+{
+    for(const Eigen::Vector3d& pos : positions)
+    {
+        expandAll(pos);
+    }
+}
+
+
 void TraversabilityGenerator3d::expandAll(const Eigen::Vector3d& startPos, const double expandDist)
 {
     TravGenNode *startNode = generateStartNode(startPos);

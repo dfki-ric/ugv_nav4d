@@ -72,7 +72,12 @@ public:
     TravGenNode *generateStartNode(const Eigen::Vector3d &startPos);
     TravGenNode *findMatchingTraversabilityPatchAt(maps::grid::Index idx, const double curHeight) const;
     
+    
+    /**Expand the map starting from all given @p positions */
+    void expandAll(const std::vector<Eigen::Vector3d>& positions);
+    
     void expandAll(const Eigen::Vector3d &startPos);
+    
     
     /**Expands the map starting at @p startPos.
      * Expansion will stop if a distance of @p expandDist is reached. I.e. this will expand all nodes

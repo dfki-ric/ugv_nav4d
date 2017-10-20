@@ -61,6 +61,11 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     const Eigen::Affine3d startGround2Mls(startbody2Mls.getTransform() * ground2Body);
     const Eigen::Affine3d endGround2Mls(endbody2Mls.getTransform() * ground2Body);
     
+    //TODO maybe use a deque and limit to last 30 starts?
+    previousStartPositions.push_back(startGround2Mls.translation());
+    previousStartPositions.push_back(endGround2Mls.translation());
+    
+    env->expandMap(previousStartPositions);
     
     std::vector<trajectory_follower::SubTrajectory> moveOutOfObstacleTrajectory;
     
@@ -91,6 +96,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
             
             try
             {
+                previousStartPositions.push_back(newStart);
+                env->expandMap(previousStartPositions);//FIXME reexpanding is kinda stupid. This is only neccessary because we call env->clear() above. Which is only neded due to sbpl bugs... fix them to remove this!
                 env->setStart(newStart, newStartTheta);
             }
             catch(const std::runtime_error& ex)
@@ -109,6 +116,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     }
     catch(const std::runtime_error& ex)
     {
+        
         if(travMapCallback)
             travMapCallback();
 
