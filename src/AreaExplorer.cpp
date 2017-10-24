@@ -34,11 +34,8 @@ bool AreaExplorer::getFrontiers(const Eigen::Vector3d& body2Mls,
         DRAW_WIREFRAME_BOX("Exploration_Area", areaToExplore.getCenter(), areaToExplore.getOrientation(), size,vizkit3dDebugDrawings::Color::amber);
      );
     
-    
-    frontGen->updateRobotPos(ground2Mls);
-    frontGen->updateGoalPos(areaToExplore.getCenter());
-    std::cout << "generating frontiers" << std::endl;
-    outFrontiers = frontGen->getNextFrontiers();
+    oldStarts.push_back(ground2Mls);
+    generateFrontiers(oldStarts, areaToExplore, outFrontiers);
     
     //move to robot height
     for(base::samples::RigidBodyState& frontier : outFrontiers)
@@ -57,5 +54,29 @@ bool AreaExplorer::getFrontiers(const Eigen::Vector3d& body2Mls,
     }
     return false;
 }
+    
+void AreaExplorer::generateFrontiers(std::vector< Eigen::Vector3d > starts,
+                                     const OrientedBox& areaToExplore,
+                                     std::vector< base::samples::RigidBodyState >& outFrontiers)
+{
+    std::cout << "genarting frontier iterations" << std::endl;
+    for(int i = starts.size() - 1; i >= 0; --i)
+    {
+        std::cout << "iteration: " << i << std::endl;
+        const base::Vector3d start = starts[i];
+        frontGen->updateRobotPos(start);
+        frontGen->updateGoalPos(areaToExplore.getCenter());
+        std::cout << "generating frontiers" << std::endl;
+        outFrontiers = frontGen->getNextFrontiers();
+        
+        if(outFrontiers.size() > 0)
+        {
+            std::cout << "got frontiers at iteration: " << i << std::endl;
+            return;
+        }
+    }
+}
+
+    
     
 }

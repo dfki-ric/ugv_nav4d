@@ -29,8 +29,16 @@ public:
                       const OrientedBox& areaToExplore,
                       std::vector<base::samples::RigidBodyState>& outFrontiers);
     
+    void generateFrontiers(std::vector<Eigen::Vector3d> starts,
+                           const OrientedBox& areaToExplore,
+                           std::vector<base::samples::RigidBodyState>& outFrontiers);
+    
+    
 private:
     std::shared_ptr<FrontierGenerator> frontGen;
+    
+    std::vector<Eigen::Vector3d> oldStarts;
+    
 
 };
 
