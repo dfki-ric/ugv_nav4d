@@ -290,43 +290,19 @@ std::vector<NodeWithOrientation> FrontierGenerator::getCandidatesFromFrontierPat
 
 std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const std::vector<const TravGenNode*>& frontier) const
 {
-    //sobel filter is used to get an estimate of the edge direction
-    const int yOp[3][3] = {{1,0,-1},
-                           {2,0,-2},
-                           {1,0,-1}};
-    const int xOp[3][3] = {{1,2,1},
-                           {0,0,0},
-                           {-1,-2,-1}};
-    
-    CLEAR_DRAWING("edge direction");
+//     CLEAR_DRAWING("edge direction");
+//     CLEAR_DRAWING("robotToPatch");
 
     std::vector<NodeWithOrientation> frontierWithOrientation;
     for(const TravGenNode* frontierPatch : frontier)
     {
-        int xSum = 0;
-        int ySum = 0;
-        const maps::grid::Index i = frontierPatch->getIndex();
+        const Eigen::Vector3d patchPos = frontierPatch->getPosition(travGen.getTraversabilityMap());
+        const Eigen::Vector3d robotToPatch = patchPos - robotPos;
         
-        for(int x = -1; x < 2; ++x)
-        {
-            for(int y = -1; y < 2; ++y)
-            {
-                const maps::grid::Index neighborIndex(x + i.x(), y + i.y());
-                if(travGen.getTraversabilityMap().inGrid(neighborIndex))
-                {
-                    const TravGenNode* neighbor = frontierPatch->getConnectedNode(neighborIndex);
-                    if(neighbor != nullptr && neighbor->getType() != TraversabilityNodeBase::UNKNOWN &&
-                       neighbor->getType() != TraversabilityNodeBase::UNSET && 
-                       neighbor->getType() != TraversabilityNodeBase::FRONTIER)
-                    {
-                        xSum += xOp[x + 1][y + 1];
-                        ySum += yOp[x + 1][y + 1];
-                    }
-                }
-            }
-        } 
+//         DRAW_LINE("robotToPatch", robotPos, robotPos + robotToPatch, vizkit3dDebugDrawings::Color::cyan);
         
-        base::Angle orientation = base::Angle::fromRad(atan2(ySum, xSum));
+        base::Angle orientation = base::Angle::fromRad(atan2(robotToPatch.y(), robotToPatch.x()));
+        
         //check if frontier is allowed, if not use the closest allowed frontier
         bool orientationAllowed = false;
         for(const base::AngleSegment& allowedOrientation : frontierPatch->getUserData().allowedOrientations)
@@ -345,14 +321,11 @@ std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const
         }
         frontierWithOrientation.push_back(NodeWithOrientation{frontierPatch, orientation.getRad()});
 
-        COMPLEX_DRAWING(
-        
-            Eigen::Vector3d start(i.x() * travConf.gridResolution + travConf.gridResolution / 2.0, i.y() * travConf.gridResolution + travConf.gridResolution / 2.0, frontierPatch->getHeight());
-            start = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * start;
-            Eigen::Vector3d end((i.x() + xSum) * travConf.gridResolution + travConf.gridResolution / 2.0, (i.y() + ySum) * travConf.gridResolution + travConf.gridResolution / 2.0, frontierPatch->getHeight());
-            end = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * end;
-            DRAW_LINE("edge direction", start, end, vizkit3dDebugDrawings::Color::red);
-        );
+//          COMPLEX_DRAWING(
+//             Eigen::AngleAxisd rot(orientation.getRad(), Eigen::Vector3d::UnitZ());            
+//             Eigen::Vector3d end = rot * Eigen::Vector3d(travGen.getTraversabilityMap().getResolution().x() , 0, frontierPatch->getHeight());
+//             DRAW_LINE("edge direction", patchPos, patchPos + end, vizkit3dDebugDrawings::Color::red);
+//         );
     }
     return std::move(frontierWithOrientation);
 }
