@@ -1097,7 +1097,7 @@ TravGenNode* EnvironmentXYZTheta::findObstacleNode(const TravGenNode* travNode) 
     
 }
 
-trajectory_follower::SubTrajectory EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
+std::shared_ptr<trajectory_follower::SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
                                                                                     double theta,
                                                                                     const Eigen::Affine3d& ground2Body,
                                                                                     base::Vector3d& outNewStart,
@@ -1241,10 +1241,11 @@ trajectory_follower::SubTrajectory EnvironmentXYZTheta::findTrajectoryOutOfObsta
         std::cout << "NO WAY OUT, ROBOT IS STUCK!" << std::endl;
         std::cout << "NO WAY OUT, ROBOT IS STUCK!" << std::endl;
         std::cout << "NO WAY OUT, ROBOT IS STUCK!" << std::endl;
+        return nullptr;
     }
 
-    trajectory_follower::SubTrajectory subTraj(trajectory);
-    subTraj.kind = trajectory_follower::TRAJECTORY_KIND_RESCUE;
+    std::shared_ptr<trajectory_follower::SubTrajectory> subTraj(new trajectory_follower::SubTrajectory(trajectory));
+    subTraj->kind = trajectory_follower::TRAJECTORY_KIND_RESCUE;
     return subTraj;
 }
 
