@@ -182,16 +182,59 @@ bool TraversabilityGenerator3d::computeAllowedOrientations(TravGenNode* node)
     }
     else
     {
-        //only allow orientations 
+        //only allow certail orientations because we are above the slope limit
         const double limitRad = interpolate(node->getUserData().slope, config.inclineLimittingMinSlope,
                                          M_PI_2, config.maxSlope, config.inclineLimittingLimit);
         const double startRad = node->getUserData().slopeDirectionAtan2 - limitRad;
         const double width = 2 * limitRad;
         assert(width >= 0);//this happens if the travmap was generated with a different maxSlope than config.maxSlope
-        const base::AngleSegment segment(base::Angle::fromRad(startRad), width);
-        const base::AngleSegment segmentMirrored(base::Angle::fromRad(startRad - M_PI), width);
+//         const base::AngleSegment segment(base::Angle::fromRad(startRad), width);
+//         const base::AngleSegment segmentMirrored(base::Angle::fromRad(startRad - M_PI), width);
+        
+        //add forward allowed angles
         node->getUserData().allowedOrientations.emplace_back(base::Angle::fromRad(startRad), width);
-        node->getUserData().allowedOrientations.emplace_back(base::Angle::fromRad(startRad - M_PI), width);
+        
+        COMPLEX_DRAWING(
+            Eigen::Vector3d patchPos(node->getIndex().x() * config.gridResolution, node->getIndex().y() * config.gridResolution, node->getHeight());
+            patchPos.x() += config.gridResolution / 2.0;
+            patchPos.y() += config.gridResolution / 2.0;
+            patchPos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * patchPos;
+            patchPos.z() += 0.06;
+
+            Eigen::AngleAxisd rot1(node->getUserData().allowedOrientations.back().getStart().getRad(), Eigen::Vector3d::UnitZ());
+            Eigen::AngleAxisd rot2(node->getUserData().allowedOrientations.back().getEnd().getRad(), Eigen::Vector3d::UnitZ());
+            
+            Eigen::Vector3d end1 = rot1 * Eigen::Vector3d(0.1, 0, 0);
+            Eigen::Vector3d end2 = rot2 * Eigen::Vector3d(0.1, 0, 0);
+                    
+            DRAW_LINE("allowedAngles", patchPos, patchPos + end1, vizkit3dDebugDrawings::Color::magenta);
+            DRAW_LINE("allowedAngles", patchPos, patchPos + end2, vizkit3dDebugDrawings::Color::magenta);
+        );
+        
+        //add backward allowed angles
+        if(config.allowForwardDownhill)
+        {
+            node->getUserData().allowedOrientations.emplace_back(base::Angle::fromRad(startRad - M_PI), width);
+            
+            COMPLEX_DRAWING(
+            Eigen::Vector3d patchPos(node->getIndex().x() * config.gridResolution, node->getIndex().y() * config.gridResolution, node->getHeight());
+            patchPos.x() += config.gridResolution / 2.0;
+            patchPos.y() += config.gridResolution / 2.0;
+            patchPos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * patchPos;
+            patchPos.z() += 0.06;
+
+            Eigen::AngleAxisd rot1(node->getUserData().allowedOrientations.back().getStart().getRad(), Eigen::Vector3d::UnitZ());
+            Eigen::AngleAxisd rot2(node->getUserData().allowedOrientations.back().getEnd().getRad(), Eigen::Vector3d::UnitZ());
+            
+            Eigen::Vector3d end1 = rot1 * Eigen::Vector3d(0.1, 0, 0);
+            Eigen::Vector3d end2 = rot2 * Eigen::Vector3d(0.1, 0, 0);
+                    
+            DRAW_LINE("allowedAngles", patchPos, patchPos + end1, vizkit3dDebugDrawings::Color::cyan);
+            DRAW_LINE("allowedAngles", patchPos, patchPos + end2, vizkit3dDebugDrawings::Color::cyan);
+        );
+            
+        }
+        
     }
     
     return true;

@@ -321,6 +321,7 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     conf.costFunctionDist = 0.4;
     conf.distToGround = 0.2;
     conf.minTraversablePercentage = 0.5;
+    conf.allowForwardDownhill = false;
     
     planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
     

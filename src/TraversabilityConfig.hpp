@@ -41,6 +41,7 @@ public:
         , gridResolution(0.0)
         , ignoreCollisions(false)
         , initialPatchVariance(0.01 * 0.01)
+        , allowForwardDownhill(false)
         
     {};
     
@@ -83,6 +84,8 @@ public:
     bool ignoreCollisions; //Disable all obstacle checks
     double initialPatchVariance; //the variance that is set for initially added patches.
     
+    //if true the robot is allowed to drive downhill forward, otherwise it has to drive downhill backwards
+    bool allowForwardDownhill;
 };
 
 
