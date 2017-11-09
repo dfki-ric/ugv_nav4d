@@ -383,6 +383,21 @@ void PlannerGui::loadMls(const std::string& path)
         }
         catch(...) {}
     }
+    
+    if(path.find(".graph") != std::string::npos)
+    {
+        std::cout << "Loading Map from Graph" << std::endl;
+        try
+        {
+            envire::core::EnvireGraph g;
+            g.loadFromFile(path);
+            mlsMap = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
+            mlsViz.updateMLSKalman(mlsMap);
+            planner->updateMap(mlsMap);
+            return;
+        }
+        catch(...) {}
+    }
 
     if(path.find(".ply") != std::string::npos)
     {
