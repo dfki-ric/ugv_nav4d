@@ -12,6 +12,7 @@ struct NodeWithOrientation;
 struct NodeWithOrientationAndCost;
 struct MovedNode;
 class EnvironmentXYZTheta;
+class OrientedBox;
 
 class FrontierGenerator
 {
@@ -48,6 +49,9 @@ public:
     maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;
     
     const TraversabilityConfig& getConfig() const;
+    
+    /** Returns true if there are any travMap patches inside @p box */
+    bool patchesInBox(const OrientedBox& box) const;
     
 private:
 
@@ -88,6 +92,7 @@ private:
     
     base::Vector3d nodeCenterPos(const TravGenNode* node) const;
 
+    
 private:
     CostFunctionParameters costParams;
     TraversabilityConfig travConf;

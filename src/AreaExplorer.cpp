@@ -45,15 +45,29 @@ bool AreaExplorer::getFrontiers(const Eigen::Vector3d& body2Mls,
     
     std::cout << "generated frontiers, count: " << outFrontiers.size() << std::endl;
 
-    for(const base::samples::RigidBodyState& frontier : outFrontiers)
-    {
-        if(areaToExplore.isInside(frontier.position))
-        {
-            return true;
-        }
-    }
-    return false;
+    
+    return !isAreaExplored(areaToExplore, outFrontiers);
+
 }
+
+
+bool AreaExplorer::isAreaExplored(const OrientedBox& areaToExplore, const std::vector<base::samples::RigidBodyState>& frontiers) const
+{
+    if(frontGen->patchesInBox(areaToExplore))
+    {
+        for(const base::samples::RigidBodyState& frontier : frontiers)
+        {
+            if(areaToExplore.isInside(frontier.position))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    return frontiers.empty();
+}
+
     
 void AreaExplorer::generateFrontiers(std::vector< Eigen::Vector3d > starts,
                                      const OrientedBox& areaToExplore,

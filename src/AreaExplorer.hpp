@@ -35,6 +35,9 @@ public:
     
     
 private:
+    
+    bool isAreaExplored(const OrientedBox& areaToExplore, const std::vector<base::samples::RigidBodyState>& frontiers) const;
+    
     std::shared_ptr<FrontierGenerator> frontGen;
     
     std::vector<Eigen::Vector3d> oldStarts;

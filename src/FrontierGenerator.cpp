@@ -6,6 +6,7 @@
 #include "Dijkstra.hpp"
 #include <Eigen/Geometry>
 #include "PathStatistics.hpp"
+#include "OrientedBox.hpp"
 
 
 #define SHOW(x) std::cout << #x": "<< (x) << std::endl
@@ -559,6 +560,13 @@ maps::grid::TraversabilityMap3d< TraversabilityNodeBase* > FrontierGenerator::ge
 const TraversabilityConfig& FrontierGenerator::getConfig() const
 {
     return travConf;
+}
+
+bool FrontierGenerator::patchesInBox(const OrientedBox& box) const
+{
+    size_t numIntersections = 0;
+    travGen.getTraversabilityMap().intersectCuboid(box.getBox(), numIntersections);
+    return numIntersections > 0;
 }
 
 
