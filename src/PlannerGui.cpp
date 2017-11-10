@@ -102,7 +102,7 @@ void PlannerGui::setupUI()
     QHBoxLayout* timeLayout = new QHBoxLayout();
     time = new QDoubleSpinBox();
     time->setMinimum(1);
-    time->setMaximum(999);
+    time->setMaximum(9999999);
     time->setValue(14);
     QLabel* lab2 = new QLabel();
     lab2->setText("Max processor time:");
@@ -307,16 +307,16 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     mobility.mMultiplierPointTurn = 8;
      
     conf.gridResolution = res;
-    conf.maxSlope = 0.58; //40.0/180.0 * M_PI;
+    conf.maxSlope = 0.57; //40.0/180.0 * M_PI;
     conf.maxStepHeight = 0.2; //space below robot
-    conf.robotSizeX = 1.0;
-    conf.robotSizeY =  0.7;
+    conf.robotSizeX = 0.9;
+    conf.robotSizeY =  0.5;
     conf.robotHeight = 0.9; //incl space below body
     conf.slopeMetricScale = 0.0;
     conf.slopeMetric = SlopeMetric::NONE;
     conf.heuristicType = HeuristicType::HEURISTIC_2D;
-    conf.inclineLimittingMinSlope = 0.35; // 10.0 * M_PI/180.0;
-    conf.inclineLimittingLimit = 0.44;// 5.0 * M_PI/180.0;
+    conf.inclineLimittingMinSlope = 0.22; // 10.0 * M_PI/180.0;
+    conf.inclineLimittingLimit = 0.43;// 5.0 * M_PI/180.0;
     conf.parallelismEnabled = false;
     conf.costFunctionDist = 0.4;
     conf.distToGround = 0.2;
