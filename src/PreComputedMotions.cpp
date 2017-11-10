@@ -2,6 +2,7 @@
 #include <maps/grid/GridMap.hpp>
 #include <dwa/SubTrajectory.hpp>
 #include <cmath>
+#include <base/Angle.hpp>
 
 namespace ugv_nav4d
 {
@@ -142,6 +143,16 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
                 sampleOnResolution(obstGridResolution, prim.spline, motion.intermediateStepsObstMap, dummy);
             }
             computeSplinePrimCost(prim, mobilityConfig, motion);
+            
+            //orientations for backward motions need to be inverted
+            if(motion.type == Motion::Type::MOV_BACKWARD)
+            {
+                for(PoseWithCell& pwc : motion.intermediateStepsTravMap)
+                    pwc.pose.orientation = base::Angle::fromRad(pwc.pose.orientation).flipped().getRad();
+                for(PoseWithCell& pwc : motion.intermediateStepsObstMap)
+                    pwc.pose.orientation = base::Angle::fromRad(pwc.pose.orientation).flipped().getRad();
+            }
+
             setMotionForTheta(motion, motion.startTheta);
         }
     }
