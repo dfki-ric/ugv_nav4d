@@ -63,7 +63,6 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     
     //TODO maybe use a deque and limit to last 30 starts?
     previousStartPositions.push_back(startGround2Mls.translation());
-    previousStartPositions.push_back(endGround2Mls.translation());
     
     env->expandMap(previousStartPositions);
     
