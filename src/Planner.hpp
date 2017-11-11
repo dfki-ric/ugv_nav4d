@@ -89,7 +89,8 @@ public:
     PLANNING_RESULT plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls,
                          const base::samples::RigidBodyState& endbody2Mls, std::vector<trajectory_follower::SubTrajectory>& resultTrajectory,
                          bool dumpOnError = false);
-    
+
+    void genTravMap(const base::samples::RigidBodyState& startbody2Mls);    
     
     void setTravConfig(const TraversabilityConfig& config);
     
