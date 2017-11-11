@@ -140,7 +140,7 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
                     if(!debugObstacleName.empty())
                     {
                         
-                        DRAW_ARROW(debugObstacleName, neighborPos, Eigen::Quaterniond(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX())), Eigen::Vector3d(.3, 0.3, 0.8), vizkit3dDebugDrawings::Color::red);
+//                         DRAW_ARROW(debugObstacleName, neighborPos, Eigen::Quaterniond(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX())), Eigen::Vector3d(.3, 0.3, 0.8), vizkit3dDebugDrawings::Color::red);
                     });
                     hasObstacle = true;
                     stop = true;

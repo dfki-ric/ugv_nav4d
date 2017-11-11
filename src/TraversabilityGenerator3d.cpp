@@ -194,22 +194,22 @@ bool TraversabilityGenerator3d::computeAllowedOrientations(TravGenNode* node)
         //add forward allowed angles
         node->getUserData().allowedOrientations.emplace_back(base::Angle::fromRad(startRad), width);
         
-        COMPLEX_DRAWING(
-            Eigen::Vector3d patchPos(node->getIndex().x() * config.gridResolution, node->getIndex().y() * config.gridResolution, node->getHeight());
-            patchPos.x() += config.gridResolution / 2.0;
-            patchPos.y() += config.gridResolution / 2.0;
-            patchPos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * patchPos;
-            patchPos.z() += 0.06;
-
-            Eigen::AngleAxisd rot1(node->getUserData().allowedOrientations.back().getStart().getRad(), Eigen::Vector3d::UnitZ());
-            Eigen::AngleAxisd rot2(node->getUserData().allowedOrientations.back().getEnd().getRad(), Eigen::Vector3d::UnitZ());
-            
-            Eigen::Vector3d end1 = rot1 * Eigen::Vector3d(0.1, 0, 0);
-            Eigen::Vector3d end2 = rot2 * Eigen::Vector3d(0.1, 0, 0);
-                    
-            DRAW_LINE("allowedAngles", patchPos, patchPos + end1, vizkit3dDebugDrawings::Color::magenta);
-            DRAW_LINE("allowedAngles", patchPos, patchPos + end2, vizkit3dDebugDrawings::Color::magenta);
-        );
+//         COMPLEX_DRAWING(
+//             Eigen::Vector3d patchPos(node->getIndex().x() * config.gridResolution, node->getIndex().y() * config.gridResolution, node->getHeight());
+//             patchPos.x() += config.gridResolution / 2.0;
+//             patchPos.y() += config.gridResolution / 2.0;
+//             patchPos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * patchPos;
+//             patchPos.z() += 0.06;
+// 
+//             Eigen::AngleAxisd rot1(node->getUserData().allowedOrientations.back().getStart().getRad(), Eigen::Vector3d::UnitZ());
+//             Eigen::AngleAxisd rot2(node->getUserData().allowedOrientations.back().getEnd().getRad(), Eigen::Vector3d::UnitZ());
+//             
+//             Eigen::Vector3d end1 = rot1 * Eigen::Vector3d(0.1, 0, 0);
+//             Eigen::Vector3d end2 = rot2 * Eigen::Vector3d(0.1, 0, 0);
+//                     
+//             DRAW_LINE("allowedAngles", patchPos, patchPos + end1, vizkit3dDebugDrawings::Color::magenta);
+//             DRAW_LINE("allowedAngles", patchPos, patchPos + end2, vizkit3dDebugDrawings::Color::magenta);
+//         );
         
         //add backward allowed angles
         if(config.allowForwardDownhill)

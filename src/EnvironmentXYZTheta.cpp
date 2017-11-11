@@ -428,7 +428,29 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     const int result = floor(std::max(timeTranslation, timeRotation) * costScaleFactor);
     if(result < 0)
     {
-        
+        switch(travNode->getType())
+        {
+            case maps::grid::TraversabilityNodeBase::OBSTACLE:
+                std::cout << "nodetype: OBSTACLE" << std::endl;
+                break;
+            case maps::grid::TraversabilityNodeBase::TRAVERSABLE:
+                std::cout << "nodetype: TRAVERSABLE" << std::endl;
+                break;
+            case maps::grid::TraversabilityNodeBase::UNKNOWN:
+                std::cout << "nodetype: UNKNOWN" << std::endl;
+                break;
+            case maps::grid::TraversabilityNodeBase::HOLE:
+                std::cout << "nodetype: HOLE" << std::endl;
+                break;
+            case maps::grid::TraversabilityNodeBase::UNSET:
+                std::cout << "nodetype: UNSET" << std::endl;
+                break;
+            case maps::grid::TraversabilityNodeBase::FRONTIER:
+                std::cout << "nodetype: FRONTIER" << std::endl;
+            break;
+            default:
+                std::cout << "nodetype: default case!!!" << std::endl;
+        }
         PRINT_VAR(sourceToGoalDist);
         PRINT_VAR( mobilityConfig.mSpeed);
         PRINT_VAR(timeTranslation);
@@ -589,15 +611,15 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     const Hash &sourceHash(idToHash[SourceStateID]);
     const XYZNode *const sourceNode = sourceHash.node;
     
-    COMPLEX_DRAWING(
-        const TravGenNode* node = sourceNode->getUserData().travNode;
-        Eigen::Vector3d pos((node->getIndex().x() + 0.5) * travConf.gridResolution,
-                             (node->getIndex().y() + 0.5) * travConf.gridResolution,
-                              node->getHeight());
-        pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
-        DRAW_WIREFRAME_BOX("successors", pos, base::Vector3d(mlsGrid->getResolution().x() / 2.0, mlsGrid->getResolution().y() / 2.0,
-                           0.05), vizkit3dDebugDrawings::Color::blue);
-    );
+//     COMPLEX_DRAWING(
+//         const TravGenNode* node = sourceNode->getUserData().travNode;
+//         Eigen::Vector3d pos((node->getIndex().x() + 0.5) * travConf.gridResolution,
+//                              (node->getIndex().y() + 0.5) * travConf.gridResolution,
+//                               node->getHeight());
+//         pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
+//         DRAW_WIREFRAME_BOX("successors", pos, base::Vector3d(mlsGrid->getResolution().x() / 2.0, mlsGrid->getResolution().y() / 2.0,
+//                            0.05), vizkit3dDebugDrawings::Color::blue);
+//     );
 
     
     
