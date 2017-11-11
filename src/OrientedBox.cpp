@@ -6,8 +6,8 @@ OrientedBox::OrientedBox(const base::Vector3d& center, const base::Vector3d& dim
     center(center), orientation(orientation)
 {
     const base::Vector3d halfSize = dimensions / 2.0;
-    Eigen::Vector3d min = -halfSize;
-    Eigen::Vector3d max = halfSize;
+    Eigen::Vector3d min = -halfSize + center;
+    Eigen::Vector3d max = halfSize + center;
     
     box = Eigen::AlignedBox3d(min, max);
 }
