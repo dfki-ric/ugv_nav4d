@@ -65,6 +65,7 @@ void PlannerGui::setupUI()
     widget->setCameraManipulator(vizkit3d::ORBIT_MANIPULATOR);
     widget->addPlugin(&splineViz);
     widget->addPlugin(&trajViz);
+    widget->addPlugin(&trajViz2);
     widget->addPlugin(&mlsViz);
     widget->addPlugin(&trav3dViz);
     widget->addPlugin(&obstacleMapViz);
@@ -79,6 +80,8 @@ void PlannerGui::setupUI()
     
     trajViz.setLineWidth(5);
     trajViz.setColor(QColor("Cyan"));
+    trajViz2.setLineWidth(5);
+    trajViz2.setColor(QColor("magenta"));
         
     QVBoxLayout* layout = new QVBoxLayout();
     
@@ -603,6 +606,16 @@ void PlannerGui::plannerIsDone()
     }
     trajViz.updateTr(basePath);
     trajViz.setLineWidth(8);
+
+    std::vector<base::Trajectory> beautifiedBasePath;
+    for(auto& traj : beautifiedPath)
+    {
+        beautifiedBasePath.push_back(traj.toBaseTrajectory());
+    }
+    trajViz2.updateTr(beautifiedBasePath);
+    trajViz2.setLineWidth(8);    
+    
+    
     
     trav3dViz.updateData((planner->getEnv()->getTraversabilityBaseMap()));
     obstacleMapViz.updateData((planner->getEnv()->getObstacleBaseMap()));
@@ -644,7 +657,7 @@ void PlannerGui::plan(const base::Pose& start, const base::Pose& goal)
     std::cout << std::endl << std::endl;
     std::cout << "Planning: " << start << " -> " << goal << std::endl;
     const bool result = planner->plan(base::Time::fromSeconds(time->value()),
-                                      startState, endState, path);
+                                      startState, endState, path, beautifiedPath);
     if(result)
     {
         std::cout << "DONE" << std::endl;

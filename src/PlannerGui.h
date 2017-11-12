@@ -84,6 +84,7 @@ private:
     QWidget window;
     vizkit3d::MotionPlanningLibrariesSbplSplineVisualization splineViz;
     vizkit3d::TrajectoryVisualization trajViz;
+    vizkit3d::TrajectoryVisualization trajViz2;
     vizkit3d::MLSMapVisualization mlsViz;
     vizkit3d::TraversabilityMap3dVisualization trav3dViz;
     vizkit3d::TraversabilityMap3dVisualization obstacleMapViz;
@@ -102,6 +103,7 @@ private:
     ugv_nav4d::TraversabilityConfig conf;
     std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
     std::vector<trajectory_follower::SubTrajectory> path;
+    std::vector<trajectory_follower::SubTrajectory> beautifiedPath;
     std::shared_ptr<ugv_nav4d::FrontierGenerator> frontierGenerator;
     
 };

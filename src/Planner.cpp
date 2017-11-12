@@ -61,7 +61,8 @@ void Planner::genTravMap(const base::samples::RigidBodyState& startbody2Mls)
 
 Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls,
                                        const base::samples::RigidBodyState& endbody2Mls,
-                                       std::vector<trajectory_follower::SubTrajectory>& resultTrajectory, bool dumpOnError)
+                                       std::vector<trajectory_follower::SubTrajectory>& resultTrajectory,
+                                       std::vector<trajectory_follower::SubTrajectory>& beautifiedTrajectory, bool dumpOnError)
 { 
     
     CLEAR_DRAWING("successors");
@@ -223,7 +224,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
             std::cout << "cost " << s.cost << " time " << s.time << "num childs " << s.expands << std::endl;
         }
         
-        env->getTrajectory(solutionIds, resultTrajectory, ground2Body);
+        env->getTrajectory(solutionIds, resultTrajectory, true, ground2Body);
+        env->getTrajectory(solutionIds, beautifiedTrajectory, false, ground2Body);
     }
     catch(const SBPL_Exception& ex)
     {

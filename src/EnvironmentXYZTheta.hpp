@@ -189,7 +189,8 @@ public:
     
     std::vector<Motion> getMotions(const std::vector<int> &stateIDPath);
     
-    void getTrajectory(const std::vector<int> &stateIDPath, std::vector<trajectory_follower::SubTrajectory> &result, const Eigen::Affine3d &plan2Body = Eigen::Affine3d::Identity());
+    void getTrajectory(const std::vector<int> &stateIDPath, std::vector<trajectory_follower::SubTrajectory> &result,
+                       bool setZToZero, const Eigen::Affine3d &plan2Body = Eigen::Affine3d::Identity());
     
     const PreComputedMotions& getAvailableMotions() const;
     

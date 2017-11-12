@@ -907,7 +907,7 @@ vector<Motion> EnvironmentXYZTheta::getMotions(const vector< int >& stateIDPath)
 
 void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                                         vector<trajectory_follower::SubTrajectory>& result,
-                                        const Eigen::Affine3d &plan2Body)
+                                        bool setZToZero, const Eigen::Affine3d &plan2Body)
 {
     if(stateIDPath.size() < 2)
         return;
@@ -961,7 +961,8 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
 
                 // HACK this overwrite avoids wrong headings in trajectory
                 // TODO ideally, this should interpolate the actual height (but at the moment this would only make a difference in visualization)
-                pos.z() = 0.0;
+                if(setZToZero)
+                    pos.z() = 0.0;
 
                 // TODO this just changes the z-coordinate (slightly wasteful to use Affine3d for that, but not inside critical loop)
                 Eigen::Vector3d pos_Body = plan2Body.inverse(Eigen::Isometry) * pos;
