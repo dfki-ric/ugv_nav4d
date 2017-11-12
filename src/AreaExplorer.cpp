@@ -55,14 +55,25 @@ bool AreaExplorer::isAreaExplored(const OrientedBox& areaToExplore, const std::v
 {
     if(frontGen->patchesInBox(areaToExplore))
     {
+        std::cout << "Patches in box\n";
         for(const base::samples::RigidBodyState& frontier : frontiers)
         {
             if(areaToExplore.isInside(frontier.position))
             {
+                std::cout << "Still some frontiers in box, continue exploration\n";
                 return false;
             }
         }
+        std::cout << "No frontiers remaining in box, stop exploration\n";
         return true;
+    }
+    if(frontiers.empty())
+    {
+        std::cout << "No patches in box and frontiers empty. Stop exploration\n";
+    }
+    else
+    {
+        std::cout << "No patches in box but some frontiers remaining. Continue exploration\n";
     }
     
     return frontiers.empty();
