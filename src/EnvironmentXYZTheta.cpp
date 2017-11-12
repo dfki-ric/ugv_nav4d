@@ -812,6 +812,19 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             SuccIDV->push_back(successthetaNode->id);
             CostV->push_back(iCost);
             motionIdV.push_back(motion.id);
+            
+            //####BEGIN DEBUG BLOCK!
+            {
+                const Hash &sourceHashh(idToHash[successthetaNode->id]);
+                const XYZNode *sourceNodeh = sourceHashh.node;
+                const TravGenNode* travNodeh = sourceNodeh->getUserData().travNode;
+        
+                if(travNodeh->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+                {
+                    throw std::runtime_error("In GetSuccs() returned id for non-traversable patch");
+                }
+            }
+            //####END DEBUG BLOCK!!!
         }
     }     
 }
