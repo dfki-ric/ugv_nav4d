@@ -421,6 +421,11 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     const TravGenNode* travNode = sourceNode->getUserData().travNode;
     const ThetaNode *sourceThetaNode = sourceHash.thetaNode;
     
+    if(travNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+    {
+        throw std::runtime_error("tried to get heuristic for non-traversable patch. StateID: " + std::to_string(stateID));
+    }
+
     const double sourceToGoalDist = travNodeIdToDistance[travNode->getUserData().id].distToGoal;
     const double timeTranslation = sourceToGoalDist / mobilityConfig.mSpeed;
     const double timeRotation = sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian() / mobilityConfig.mTurningSpeed;
@@ -428,30 +433,8 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     const int result = floor(std::max(timeTranslation, timeRotation) * costScaleFactor);
     if(result < 0)
     {
-        switch(travNode->getType())
-        {
-            case maps::grid::TraversabilityNodeBase::OBSTACLE:
-                std::cout << "nodetype: OBSTACLE" << std::endl;
-                break;
-            case maps::grid::TraversabilityNodeBase::TRAVERSABLE:
-                std::cout << "nodetype: TRAVERSABLE" << std::endl;
-                break;
-            case maps::grid::TraversabilityNodeBase::UNKNOWN:
-                std::cout << "nodetype: UNKNOWN" << std::endl;
-                break;
-            case maps::grid::TraversabilityNodeBase::HOLE:
-                std::cout << "nodetype: HOLE" << std::endl;
-                break;
-            case maps::grid::TraversabilityNodeBase::UNSET:
-                std::cout << "nodetype: UNSET" << std::endl;
-                break;
-            case maps::grid::TraversabilityNodeBase::FRONTIER:
-                std::cout << "nodetype: FRONTIER" << std::endl;
-            break;
-            default:
-                std::cout << "nodetype: default case!!!" << std::endl;
-        }
         PRINT_VAR(sourceToGoalDist);
+        PRINT_VAR(stateID);
         PRINT_VAR( mobilityConfig.mSpeed);
         PRINT_VAR(timeTranslation);
         PRINT_VAR(sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian());
@@ -460,7 +443,7 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
         PRINT_VAR(result);
         PRINT_VAR(travNode->getUserData().id);
         PRINT_VAR(travNode->getType());
-        
+        throw std::runtime_error("Goal heuristic < 0");
     }
     oassert(result >= 0);
     return result;
