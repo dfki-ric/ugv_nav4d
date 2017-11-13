@@ -69,7 +69,7 @@ public:
     
     void setInitialPatch(const Eigen::Affine3d &ground2Mls, double patchRadius);
     
-    TravGenNode *generateStartNode(const Eigen::Vector3d &startPos);
+    virtual TravGenNode *generateStartNode(const Eigen::Vector3d &startPos);
     TravGenNode *findMatchingTraversabilityPatchAt(maps::grid::Index idx, const double curHeight) const;
     
     

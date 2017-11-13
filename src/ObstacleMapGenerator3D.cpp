@@ -18,6 +18,41 @@ ObstacleMapGenerator3D::~ObstacleMapGenerator3D()
 }
 
 
+TravGenNode *ObstacleMapGenerator3D::generateStartNode(const Eigen::Vector3d &startPos) 
+{
+    //HACK This method only exists to ensure consistent behavior with the PoseWatchdog 
+    //     for the final entern demo. This should ***NOT*** remain 
+    
+    //if we dont do this check here, expansion will fail silently when expandAll is called
+    //downstream. In that case setStart() would not fail. If setStart does not fail,
+    //the planner does not generate a rescue trajectory, even though it should!
+    
+    
+    TravGenNode* node = TraversabilityGenerator3d::generateStartNode(startPos);
+    
+    //do additional obstacle check to ensure consistent behavior with PoseWatchdog
+    if(node)
+    {
+        //if it is expanded, just do the additional obstacle check
+        if(node->isExpanded() && !obstacleCheck(node))
+        {
+            //FIXME probably this never happens because generateStartNode should not return expanded nodes?! Maybe it happens if it returned an already existing node
+            return nullptr;
+        }
+        else
+        {
+            //expansion contains the additional obstacle check that we want
+            const bool expansionOk = expandNode(node);
+            //but we have to return a non-expanded node, otherwise downstream expandAll() calls will fail
+            node->setNotExpanded();
+
+            if(!expansionOk)
+                return nullptr;
+        }
+    }
+    return node;
+}
+
     
 bool ObstacleMapGenerator3D::expandNode(TravGenNode *node)
 {
@@ -28,6 +63,9 @@ bool ObstacleMapGenerator3D::expandNode(TravGenNode *node)
     {
         return false;
     }
+    
+    if(node->getUserData().slope > config.maxSlope)
+        return false;
 
     if(!obstacleCheck(node))
     {
@@ -58,9 +96,6 @@ bool ObstacleMapGenerator3D::expandNode(TravGenNode *node)
 
 bool ObstacleMapGenerator3D::obstacleCheck(const TravGenNode* node) const
 {
-    if(node->getUserData().slope > config.maxSlope)
-        return false;
-    
     //check if there is an mls patch above the ground
     Eigen::Vector3d nodePos;
     if(!trMap.fromGrid(node->getIndex(), nodePos, node->getHeight()))
