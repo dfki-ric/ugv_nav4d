@@ -332,7 +332,7 @@ void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
     if(!obstacleStartNode)
     {
         std::cout << "Could not generate obstacle node at start pos" << std::endl;
-        throw NodeCreationFailed("Could not generate obstacle node at start pos");
+        throw ObstacleCheckFailed("Could not generate obstacle node at start pos");
     }
     
     std::cout << "Expanding trav map...\n";
