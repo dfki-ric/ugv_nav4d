@@ -192,6 +192,8 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
     
     std::vector<const TravGenNode*> path;
     path.push_back(obstacleNode);
+    
+    const Eigen::Vector3d centeredPos = obstacleNode->getPosition(obsGen.getTraversabilityMap());
 
     
     //NOTE theta needs to be discretized because the planner uses discrete theta internally everywhere.
@@ -199,7 +201,7 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
     
     DiscreteTheta discTheta(theta, splineConf.numAngles);
     
-    poses.push_back(base::Pose2D(pos.topRows(2), discTheta.getRadian()));
+    poses.push_back(base::Pose2D(centeredPos.topRows(2), discTheta.getRadian()));
     stats.calculateStatistics(path, poses, obsGen.getTraversabilityMap(), nodeName + "Box");
     
     if(stats.getRobotStats().getNumObstacles() || stats.getRobotStats().getNumFrontiers())
