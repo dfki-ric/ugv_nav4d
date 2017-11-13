@@ -36,6 +36,7 @@ TravGenNode *ObstacleMapGenerator3D::generateStartNode(const Eigen::Vector3d &st
         //if it is expanded, just do the additional obstacle check
         if(node->isExpanded() && !obstacleCheck(node))
         {
+            std::cout << "ObstacleMapGenerator3D: Additional obstaclecheck fail!!" << std::endl;
             //FIXME probably this never happens because generateStartNode should not return expanded nodes?! Maybe it happens if it returned an already existing node
             return nullptr;
         }
@@ -47,7 +48,10 @@ TravGenNode *ObstacleMapGenerator3D::generateStartNode(const Eigen::Vector3d &st
             node->setNotExpanded();
 
             if(!expansionOk)
+            {
+                std::cout << "ObstacleMapGenerator3D: Additional obstaclecheck fail!!" << std::endl;
                 return nullptr;
+            }
         }
     }
     return node;
