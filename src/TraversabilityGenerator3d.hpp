@@ -98,7 +98,6 @@ public:
     
     const maps::grid::TraversabilityMap3d<TravGenNode *> &getTraversabilityMap() const;
 
-    maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;
         
     void setConfig(const TraversabilityConfig &config);
 

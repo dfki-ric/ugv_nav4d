@@ -548,9 +548,9 @@ void FrontierGenerator::updateCostParameters(const CostFunctionParameters& param
     costParams = params;
 }
 
-maps::grid::TraversabilityMap3d< TraversabilityNodeBase* > FrontierGenerator::getTraversabilityBaseMap() const
+const maps::grid::TraversabilityMap3d< TravGenNode* >& FrontierGenerator::getTraversabilityMap() const
 {
-    return travGen.getTraversabilityBaseMap();
+    return travGen.getTraversabilityMap();
 }
 
 const TraversabilityConfig& FrontierGenerator::getConfig() const

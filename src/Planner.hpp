@@ -94,7 +94,7 @@ public:
     
     void setTravConfig(const TraversabilityConfig& config);
     
-    maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* >getTraversabilityMap() const;
+    const maps::grid::TraversabilityMap3d<TravGenNode*> &getTraversabilityMap() const;
     
     boost::shared_ptr<EnvironmentXYZTheta> getEnv() const;
 

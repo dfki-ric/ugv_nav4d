@@ -993,15 +993,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
     
 }
 
-maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > EnvironmentXYZTheta::getTraversabilityBaseMap() const
-{
-    return travGen.getTraversabilityBaseMap();
-}
-
-maps::grid::TraversabilityMap3d<maps::grid::TraversabilityNodeBase*> EnvironmentXYZTheta::getObstacleBaseMap() const
-{
-    return obsGen.getTraversabilityBaseMap();
-}
 
 
 const maps::grid::TraversabilityMap3d<TravGenNode*>& EnvironmentXYZTheta::getTraversabilityMap() const

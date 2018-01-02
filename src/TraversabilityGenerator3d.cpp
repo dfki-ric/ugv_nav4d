@@ -830,24 +830,6 @@ void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
     }
 }
 
-TraversabilityMap3d< TraversabilityNodeBase *> TraversabilityGenerator3d::getTraversabilityBaseMap() const
-{
-    maps::grid::TraversabilityMap3d<maps::grid::TraversabilityNodeBase *> trBaseMap(trMap.getNumCells(), trMap.getResolution(), trMap.getLocalMapData());
-    
-    for(size_t y = 0 ; y < trMap.getNumCells().y(); y++)
-    {
-        for(size_t x = 0 ; x < trMap.getNumCells().x(); x++)
-        {
-            Index idx(x, y);
-            for(auto &p : trMap.at(idx))
-            {
-                trBaseMap.at(idx).insert(p);
-            }
-        }
-    }
-    
-    return trBaseMap;
-}
 
 
 }

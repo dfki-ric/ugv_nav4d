@@ -617,8 +617,8 @@ void PlannerGui::plannerIsDone()
     
     
     
-    trav3dViz.updateData((planner->getEnv()->getTraversabilityBaseMap()));
-    obstacleMapViz.updateData((planner->getEnv()->getObstacleBaseMap()));
+    trav3dViz.updateData((planner->getEnv()->getTraversabilityMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
+    obstacleMapViz.updateData((planner->getEnv()->getObstacleMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
     
     bar->setMaximum(1);
 }
@@ -634,8 +634,8 @@ void PlannerGui::expandPressed()
     planner->getEnv()->getObstacleGen().setConfig(conf);
     planner->getEnv()->getObstacleGen().expandAll(start.position - base::Position(0, 0, conf.distToGround));
     
-    trav3dViz.updateData((planner->getEnv()->getTraversabilityBaseMap()));
-    obstacleMapViz.updateData((planner->getEnv()->getObstacleBaseMap()));
+    trav3dViz.updateData((planner->getEnv()->getTraversabilityMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
+    obstacleMapViz.updateData((planner->getEnv()->getObstacleMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
     mlsViz.setPluginEnabled(false);
 }
 

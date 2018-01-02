@@ -250,9 +250,9 @@ std::vector< Motion > Planner::getMotions() const
     return env->getMotions(solutionIds);
 }
 
-maps::grid::TraversabilityMap3d< TraversabilityNodeBase* > Planner::getTraversabilityMap() const
+const maps::grid::TraversabilityMap3d<TravGenNode*> &Planner::getTraversabilityMap() const
 {
-    return env->getTraversabilityBaseMap();
+    return env->getTraversabilityMap();
 }
 
 boost::shared_ptr< EnvironmentXYZTheta > Planner::getEnv() const

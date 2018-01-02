@@ -219,7 +219,7 @@ void FrontierTestGui::generateFrontier()
     const bool result = areaExplorer->getFrontiers(robotPos, areaToExplore, frontiers);
     
     std::cout << "RESULT = " << result << std::endl;
-    travViz.updateData(frontGen->getTraversabilityBaseMap());
+    travViz.updateData(frontGen->getTraversabilityMap().copyCast<maps::grid::TraversabilityNodeBase *>());
 }
 
 void FrontierTestGui::boxSizeChanged(double)

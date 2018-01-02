@@ -46,7 +46,7 @@ public:
     std::vector<base::samples::RigidBodyState> getNextFrontiers();
     
     //just for debugging
-    maps::grid::TraversabilityMap3d< maps::grid::TraversabilityNodeBase* > getTraversabilityBaseMap() const;
+    const maps::grid::TraversabilityMap3d< TravGenNode *> &getTraversabilityMap() const;
     
     const TraversabilityConfig& getConfig() const;
     
