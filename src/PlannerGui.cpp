@@ -412,7 +412,7 @@ void PlannerGui::loadMls(const std::string& path)
             pcl::PointXYZ mi, ma; 
             pcl::getMinMax3D (*cloud, mi, ma); 
             
-            double mls_res = 0.1;
+            double mls_res = conf.gridResolution;
             double size_x = std::max(ma.x, -std::min<float>(mi.x, 0.0)) * 2.0;
             double size_y = std::max(ma.y, -std::min<float>(mi.y, 0.0)) * 2.0;
             
