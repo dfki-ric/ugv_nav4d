@@ -39,7 +39,6 @@ public:
         , heuristicType(HEURISTIC_2D)
         , parallelismEnabled(true)
         , gridResolution(0.0)
-        , ignoreCollisions(false)
         , initialPatchVariance(0.01 * 0.01)
         , allowForwardDownhill(false)
         
@@ -81,7 +80,6 @@ public:
     HeuristicType heuristicType;
     bool parallelismEnabled; //if true openMP will be used to parallelize the planning
     double gridResolution;
-    bool ignoreCollisions; //Disable all obstacle checks
     double initialPatchVariance; //the variance that is set for initially added patches.
     
     //if true the robot is allowed to drive downhill forward, otherwise it has to drive downhill backwards
