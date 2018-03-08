@@ -3,9 +3,16 @@
   
   </description>
   <author>Janosch Machowinski/Janosch.Machowinski@dfki.de</author>
+  <author>Arne Böckmann/arne.boeckmann@dfki.de</author>
   <license></license>
   <url>http://</url>
   <logo>http://</logo>
+  <keywords>
+    <keyword>Planning</keyword>
+    <keyword>motion primitives</keyword>
+    <keyword>sampling based motion planner</keyword>
+    <keyword>Multi level surface planner</keyword>
+  </keywords>
   <depend package="base/cmake" />
   <depend package="planning/sbpl" />
   <depend package="planning/motion_planning_libraries" />
@@ -16,7 +23,6 @@
   <depend package="envire/envire_core" />
   <depend package="gui/vizkit3d_debug_drawings" />
   <depend package="control/trajectory_follower" />
-  
-    <tags>needs_opt</tags>
+  <tags>needs_opt</tags>
 
 </package>
