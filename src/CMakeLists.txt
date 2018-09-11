@@ -45,7 +45,7 @@ rock_library(ugv_nav4d
         base-types 
         sbpl
         backward
-        motion_planning_libraries
+        sbpl_spline_primitives
         dwa
         maps
         envire_core

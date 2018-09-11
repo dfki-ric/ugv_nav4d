@@ -14,6 +14,7 @@
 #include "Planner.hpp"
 #include "FrontierGenerator.hpp"
 #include "trajectory_follower/SubTrajectory.hpp"
+#include "Config.hpp"
 #endif
 
 
@@ -98,8 +99,8 @@ private:
     bool startPicked = false;
     bool goalPicked = false;
     bool threadRunning = false;
-    motion_planning_libraries::SplinePrimitivesConfig config;
-    motion_planning_libraries::Mobility mobility;
+    sbpl_spline_primitives::SplinePrimitivesConfig config;
+    ugv_nav4d::Mobility mobility;
     ugv_nav4d::TraversabilityConfig conf;
     std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
     std::vector<trajectory_follower::SubTrajectory> path;

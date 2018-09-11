@@ -15,7 +15,7 @@
   </keywords>
   <depend package="base/cmake" />
   <depend package="planning/sbpl" />
-  <depend package="planning/motion_planning_libraries" />
+  <depend package="planning/sbpl_spline_primitives" />
   <depend package="tools/backward" />
   <depend package="control/dwa" />
   <depend package="slam/maps" />

@@ -4,7 +4,7 @@
 #include <QFileDialog>
 #include <QPushButton>
 #include <thread>
-#include <motion_planning_libraries/Config.hpp>
+#include "Config.hpp"
 #include "Planner.hpp"
 #include "PreComputedMotions.hpp"
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
@@ -28,7 +28,7 @@ PlannerGui::PlannerGui(const std::string& dumpName): QObject()
     
     planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
     
-    motion_planning_libraries::SbplSplineMotionPrimitives primitives(config);
+    sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(config);
     splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.mMinTurningRadius));
     splineViz.updateData(primitives);
 
@@ -328,7 +328,7 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     
     planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
     
-    motion_planning_libraries::SbplSplineMotionPrimitives primitives(config);
+    sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(config);
     
     splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.mMinTurningRadius));
     splineViz.updateData(primitives);

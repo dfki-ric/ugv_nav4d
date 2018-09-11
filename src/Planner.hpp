@@ -3,8 +3,7 @@
 #include <base/samples/RigidBodyState.hpp>
 #include <boost/shared_ptr.hpp>
 #include <trajectory_follower/SubTrajectory.hpp>
-#include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
-#include <motion_planning_libraries/sbpl/SbplSplineMotionPrimitives.hpp>
+#include <sbpl_spline_primitives/SbplSplineMotionPrimitives.hpp>
 #include "EnvironmentXYZTheta.hpp"
 
 class ARAPlanner;
@@ -22,8 +21,8 @@ protected:
     boost::shared_ptr<EnvironmentXYZTheta> env;
     boost::shared_ptr<ARAPlanner> planner;
     
-    const motion_planning_libraries::SplinePrimitivesConfig splinePrimitiveConfig; 
-    const motion_planning_libraries::Mobility mobility;
+    const sbpl_spline_primitives::SplinePrimitivesConfig splinePrimitiveConfig; 
+    const Mobility mobility;
     TraversabilityConfig traversabilityConfig;
     std::vector<int> solutionIds;
     
@@ -42,8 +41,8 @@ public:
         FOUND_SOLUTION,
     };
     
-    Planner(const motion_planning_libraries::SplinePrimitivesConfig &primitiveConfig, const TraversabilityConfig &traversabilityConfig,
-            const motion_planning_libraries::Mobility& mobility);
+    Planner(const sbpl_spline_primitives::SplinePrimitivesConfig &primitiveConfig, const TraversabilityConfig &traversabilityConfig,
+            const Mobility& mobility);
     
     template <maps::grid::MLSConfig::update_model SurfacePatch>
     void updateMap(const maps::grid::MLSMap<SurfacePatch>& mls)

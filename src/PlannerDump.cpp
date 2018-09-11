@@ -5,6 +5,7 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <fstream>
 
 ugv_nav4d::PlannerDump::PlannerDump(const std::string& dumpName)
 {
@@ -91,8 +92,8 @@ std::string ugv_nav4d::PlannerDump::getUnusedFilename(const std::string& filePos
 //     std::ifstream input(dumpName, std::ios::binary | std::ios::in);
 //     
 //     READ(traversabilityConfig);
-//     READ(const_cast<motion_planning_libraries::Mobility &>(mobility));
-//     READ(const_cast<motion_planning_libraries::SplinePrimitivesConfig &>(splinePrimitiveConfig));
+//     READ(const_cast<sbpl_spline_primitives::Mobility &>(mobility));
+//     READ(const_cast<sbpl_spline_primitives::SplinePrimitivesConfig &>(splinePrimitiveConfig));
 //     base::Pose start;
 //     READ(start);
 //     base::Pose goal;

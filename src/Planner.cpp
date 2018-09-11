@@ -13,8 +13,8 @@ namespace ugv_nav4d
 {
 
 
-Planner::Planner(const motion_planning_libraries::SplinePrimitivesConfig& primitiveConfig, const TraversabilityConfig& traversabilityConfig,
-                const motion_planning_libraries::Mobility& mobility) :
+Planner::Planner(const sbpl_spline_primitives::SplinePrimitivesConfig& primitiveConfig, const TraversabilityConfig& traversabilityConfig,
+                const Mobility& mobility) :
     splinePrimitiveConfig(primitiveConfig),
     mobility(mobility)
 {

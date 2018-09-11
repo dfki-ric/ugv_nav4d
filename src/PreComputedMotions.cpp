@@ -6,11 +6,11 @@
 
 namespace ugv_nav4d
 {
-using namespace motion_planning_libraries;
+using namespace sbpl_spline_primitives;
 
 
 PreComputedMotions::PreComputedMotions(const SplinePrimitivesConfig& primitiveConfig,
-                                       const motion_planning_libraries::Mobility& mobilityConfig):
+                                       const Mobility& mobilityConfig):
     primitives(primitiveConfig),
     mobilityConfig(mobilityConfig)
 {
@@ -88,7 +88,7 @@ void PreComputedMotions::sampleOnResolution(double gridResolution,base::geometry
 }
 
 void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& primGen,
-                                              const motion_planning_libraries::Mobility& mobilityConfig,
+                                              const Mobility& mobilityConfig,
                                               double obstGridResolution, double travGridResolution)
 {
     const int numAngles = primGen.getConfig().numAngles;

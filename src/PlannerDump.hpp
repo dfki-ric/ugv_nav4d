@@ -1,9 +1,9 @@
 #pragma once
 
-#include <motion_planning_libraries/sbpl/SplinePrimitivesConfig.hpp>
-#include <motion_planning_libraries/Config.hpp>
+#include <sbpl_spline_primitives/SplinePrimitivesConfig.hpp>
 #include "TraversabilityConfig.hpp"
 #include "TraversabilityGenerator3d.hpp"
+#include "Config.hpp"
 #include <base/samples/RigidBodyState.hpp>
 
 namespace ugv_nav4d {
@@ -12,8 +12,8 @@ class Planner;
     
 class PlannerDump
 {
-    motion_planning_libraries::SplinePrimitivesConfig splinePrimitiveConfig; 
-    motion_planning_libraries::Mobility mobility;
+    sbpl_spline_primitives::SplinePrimitivesConfig splinePrimitiveConfig; 
+    Mobility mobility;
     TraversabilityConfig traversabilityConfig;
     
     base::samples::RigidBodyState start;
@@ -33,12 +33,12 @@ public:
 
     PlannerDump(const ugv_nav4d::Planner& planner, const std::string& filePostfix, const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls, const base::samples::RigidBodyState& endbody2Mls);
     
-    const motion_planning_libraries::SplinePrimitivesConfig &getSplineConfig() const
+    const sbpl_spline_primitives::SplinePrimitivesConfig &getSplineConfig() const
     {
         return splinePrimitiveConfig;
     }
 
-    const motion_planning_libraries::Mobility &getMobilityConf() const
+    const Mobility &getMobilityConf() const
     {
         return mobility;
     }
