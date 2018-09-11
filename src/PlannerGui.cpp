@@ -1,6 +1,4 @@
 #include "PlannerGui.h"
-#include <envire_core/graph/EnvireGraph.hpp>
-#include <envire_core/items/Item.hpp>
 #include <QFileDialog>
 #include <QPushButton>
 #include <thread>
@@ -10,6 +8,7 @@
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.h>
 #include <boost/filesystem.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 #include <pcl/io/ply_io.h>
 #include <pcl/common/common.h>
 #include "PlannerDump.hpp"
@@ -372,35 +371,6 @@ void PlannerGui::loadMls(const std::string& path)
 {
     std::ifstream fileIn(path);       
     
-    if(path.find("graph_mls_kalman") != std::string::npos)
-    {
-        std::cout << "Loading Graph " << std::endl;
-        try
-        {
-            envire::core::EnvireGraph g;
-            g.loadFromFile(path);
-            mlsMap = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
-            mlsViz.updateMLSKalman(mlsMap);
-            planner->updateMap(mlsMap);
-            return;
-        }
-        catch(...) {}
-    }
-    
-    if(path.find(".graph") != std::string::npos)
-    {
-        std::cout << "Loading Map from Graph" << std::endl;
-        try
-        {
-            envire::core::EnvireGraph g;
-            g.loadFromFile(path);
-            mlsMap = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
-            mlsViz.updateMLSKalman(mlsMap);
-            planner->updateMap(mlsMap);
-            return;
-        }
-        catch(...) {}
-    }
 
     if(path.find(".ply") != std::string::npos)
     {

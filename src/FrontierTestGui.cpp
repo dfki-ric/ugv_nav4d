@@ -4,8 +4,7 @@
 #include <vizkit3d/Vizkit3DWidget.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.h>
-#include <envire_core/graph/EnvireGraph.hpp>
-#include <envire_core/items/Item.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 #include <thread>
 #endif
 namespace ugv_nav4d
@@ -256,34 +255,16 @@ void FrontierTestGui::loadMls()
 void FrontierTestGui::loadMls(const std::string& path)
 {
     std::ifstream fileIn(path);       
-    
-    if(path.find("graph_mls_kalman") != std::string::npos)
+    try
     {
-        try
-        {
-            envire::core::EnvireGraph g;
-            g.loadFromFile(path);
-            maps::grid::MLSMapKalman mlsMap = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
-            mlsViz.updateMLSKalman(mlsMap);
-            frontGen->updateMap(mlsMap);
-            return;
-        }
-        catch(...) {}   
+        boost::archive::binary_iarchive mlsIn(fileIn);
+        maps::grid::MLSMapKalman mlsMap;
+        mlsIn >> mlsMap;
+        mlsViz.updateMLSKalman(mlsMap);
+        frontGen->updateMap(mlsMap);
+        return;
     }
-    else
-    {
-        try
-        {
-            boost::archive::binary_iarchive mlsIn(fileIn);
-            maps::grid::MLSMapKalman mlsMap;
-            mlsIn >> mlsMap;
-            mlsViz.updateMLSKalman(mlsMap);
-            frontGen->updateMap(mlsMap);
-            return;
-        }
-        catch(...) {}
-    }
-
+    catch(...) {}
     std::cerr << "Unabled to load mls. Unknown format" << std::endl;
     
 }

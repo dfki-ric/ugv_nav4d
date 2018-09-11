@@ -46,7 +46,6 @@ rock_library(ugv_nav4d
         sbpl
         sbpl_spline_primitives
         maps
-        envire_core
         trajectory_follower
         pcl_segmentation-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
         vizkit3d_debug_drawings
