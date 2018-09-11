@@ -16,7 +16,7 @@
 backward::SignalHandling crashHandler;
 
 using namespace std;
-using namespace motion_planning_libraries;
+using namespace sbpl_spline_primitives;
 
 namespace ugv_nav4d
 {

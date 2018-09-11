@@ -109,7 +109,7 @@ public:
     /** @param pos Position in map frame */
     static bool obstacleCheck(const maps::grid::Vector3d& pos, double theta, const ObstacleMapGenerator3D& obsGen,
                               const ugv_nav4d::TraversabilityConfig& travConf,
-                              const motion_planning_libraries::SplinePrimitivesConfig& splineConf,
+                              const sbpl_spline_primitives::SplinePrimitivesConfig& splineConf,
                               const std::string& nodeName="node");
     Eigen::Vector3d robotHalfSize;
     
@@ -117,8 +117,8 @@ public:
      *                           and stored in members starting with debug*/
     EnvironmentXYZTheta(std::shared_ptr<MLGrid > mlsGrid,
                         const TraversabilityConfig &travConf,
-                        const motion_planning_libraries::SplinePrimitivesConfig &primitiveConfig,
-                        const motion_planning_libraries::Mobility& mobilityConfig);
+                        const sbpl_spline_primitives::SplinePrimitivesConfig &primitiveConfig,
+                        const Mobility& mobilityConfig);
     
     virtual ~EnvironmentXYZTheta();
     
@@ -236,11 +236,11 @@ private:
     bool checkExpandTreadSafe(TravGenNode * node);
     
     TraversabilityConfig travConf;
-    motion_planning_libraries::SplinePrimitivesConfig primitiveConfig;
+    sbpl_spline_primitives::SplinePrimitivesConfig primitiveConfig;
     
     unsigned int numAngles;
     
-    motion_planning_libraries::Mobility mobilityConfig;
+    Mobility mobilityConfig;
 };
 
 }

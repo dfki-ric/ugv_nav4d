@@ -1,19 +1,19 @@
 #pragma once
 
 #include "DiscreteTheta.hpp"
+#include "Config.hpp"
 #include <limits>
 #include <stdexcept>
 #include <iostream>
 #include <vector>
 #include <base/Pose.hpp>
 #include <maps/grid/Index.hpp>
-#include <motion_planning_libraries/sbpl/SbplMotionPrimitives.hpp>
-#include <motion_planning_libraries/sbpl/SbplSplineMotionPrimitives.hpp>
+#include <sbpl_spline_primitives/SbplSplineMotionPrimitives.hpp>
 #include <base/Trajectory.hpp>
 
 
 
-namespace motion_planning_libraries
+namespace sbpl_spline_primitives
 {
     class MotionPrimitivesConfig;
 };
@@ -99,18 +99,18 @@ class PreComputedMotions
     //indexed by discrete start theta
     std::vector<std::vector<Motion> > thetaToMotion;
     std::vector<Motion> idToMotion;
-    motion_planning_libraries::SbplSplineMotionPrimitives primitives;
-    motion_planning_libraries::Mobility mobilityConfig;
+    sbpl_spline_primitives::SbplSplineMotionPrimitives primitives;
+    Mobility mobilityConfig;
 public:
     /**Initialize using spline based primitives.
      * @param mobilityConfig Will be used to configure and filter the splines.
      *                       mobilityConfig.mMinTurningRadius will be used to
      *                       filter the splines and remove all splines with a smaller turning radius.*/
-    PreComputedMotions(const motion_planning_libraries::SplinePrimitivesConfig& primitiveConfig,
-                       const motion_planning_libraries::Mobility& mobilityConfig);
+    PreComputedMotions(const sbpl_spline_primitives::SplinePrimitivesConfig& primitiveConfig,
+                       const Mobility& mobilityConfig);
     
-    void readMotionPrimitives(const motion_planning_libraries::SbplSplineMotionPrimitives& primGen,
-                              const motion_planning_libraries::Mobility& mobilityConfig,
+    void readMotionPrimitives(const sbpl_spline_primitives::SbplSplineMotionPrimitives& primGen,
+                              const Mobility& mobilityConfig,
                               double obstGridResolution, double travGridResolution);
     
     void computeMotions(double obstGridResolution, double travGridResolution);
@@ -123,7 +123,7 @@ public:
     
     const Motion &getMotion(std::size_t id) const; 
     
-    const motion_planning_libraries::SbplSplineMotionPrimitives& getPrimitives() const;
+    const sbpl_spline_primitives::SbplSplineMotionPrimitives& getPrimitives() const;
     
     /**Calculate the curvature of a circle based on the radius of the circle */
     static double calculateCurvatureFromRadius(const double r);
@@ -134,8 +134,8 @@ private:
     base::Pose2D getPointClosestToCellMiddle(const ugv_nav4d::CellWithPoses& cwp, const double gridResolution);
     
     
-    void computeSplinePrimCost(const motion_planning_libraries::SplinePrimitive& prim,
-                               const motion_planning_libraries::Mobility& mobilityConfig, Motion& outMotion) const;
+    void computeSplinePrimCost(const sbpl_spline_primitives::SplinePrimitive& prim,
+                               const Mobility& mobilityConfig, Motion& outMotion) const;
     
 };
 

@@ -17,7 +17,7 @@ rock_executable(ugv_nav4d_bin
     MOC
         src/PlannerGui.h        
    DEPS ugv_nav4d 
-   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz motion_planning_libraries-viz base-types)
+   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz sbpl_spline_primitives-viz base-types)
 
 rock_executable(ugv_nav4d_replay
     SOURCES
@@ -28,7 +28,7 @@ rock_executable(ugv_nav4d_replay
     MOC
         src/PlannerGui.h        
    DEPS ugv_nav4d 
-   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz motion_planning_libraries-viz base-types)
+   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz sbpl_spline_primitives-viz base-types)
 
 rock_executable(frontier_test_bin
     SOURCES
@@ -39,7 +39,7 @@ rock_executable(frontier_test_bin
     MOC
         src/FrontierTestGui.hpp      
    DEPS ugv_nav4d 
-   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz motion_planning_libraries-viz base-types)
+   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz sbpl_spline_primitives-viz base-types)
    
 rock_executable(mls_clicker
     SOURCES
@@ -49,4 +49,4 @@ rock_executable(mls_clicker
         src/MinimalClickGui.hpp
     MOC
         src/MinimalClickGui.hpp
-   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz motion_planning_libraries-viz base-types vizkit3d_debug_drawings)
+   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz sbpl_spline_primitives-viz base-types vizkit3d_debug_drawings)
