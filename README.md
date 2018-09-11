@@ -20,7 +20,7 @@ export VIZKIT_PLUGIN_RUBY_PATH=<PATH_TO_INSTALL_PREFIX>/lib
 Most of the environment variables are only needed while compiling. Only *VIZKIT_PLUGIN_RUBY_PATH* needs to be exported for execution. This variable is used by vizkit3d to locate the visualization plugins.
 
 ##### install base-cmake
-base-cmake contains special cmake macros that are used in osgviz, vizkit3d and V3DD. 
+base-cmake contains special cmake macros that are used in osgviz, vizkit3d and V3DD.
 
 ```
 git clone git@github.com:rock-core/base-cmake.git
@@ -31,6 +31,38 @@ cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
 make -j install
 ```
 
+##### install base-logging
+
+```
+git clone git@github.com:rock-core/base-logging.git
+cd base-cmake
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
+make -j install
+```
+
+##### install SISL
+Build SISL as shared library
+```
+git clone git@github.com:SINTEF-Geometry/SISL.git
+cd base-cmake
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> -DBUILD_SHARED_LIBS=On ..
+make -j install
+```
+
+##### install base-types
+build base-types without ruby support to avoid the ruby dependencies
+```
+git clone git@github.com:rock-core/base-types.git
+cd base-cmake
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=/home/arne/git/ugv_standalone/install/ -DBINDINGS_RUBY=Off ..
+make -j install
+```
 
 ##### install sbpl
 sbpl is used as underlying planner
@@ -44,15 +76,19 @@ cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
 make -j install
 ```
 
+##### install sbpl_spline_primitives
+sbpl is used as underlying planner
 
-##### install motion_planning_libraries
 ```
-git clone git@github.com:entern2017/planning-motion_planning_libraries.git
-cd gui-osgviz-osgviz
+git clone git@github.com:sbpl/sbpl.git
+cd sbpl
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
 make -j install
+```
+
+
 ```
 ##### install vizkit3d
 ```
