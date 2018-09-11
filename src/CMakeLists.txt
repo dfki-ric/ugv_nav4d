@@ -45,7 +45,6 @@ rock_library(ugv_nav4d
         base-types 
         sbpl
         sbpl_spline_primitives
-        dwa
         maps
         envire_core
         trajectory_follower
