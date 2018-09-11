@@ -44,7 +44,6 @@ rock_library(ugv_nav4d
     DEPS_PKGCONFIG 
         base-types 
         sbpl
-        backward
         sbpl_spline_primitives
         dwa
         maps
