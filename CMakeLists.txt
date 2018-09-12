@@ -17,7 +17,8 @@ rock_executable(ugv_nav4d_bin
     MOC
         src/PlannerGui.h        
    DEPS ugv_nav4d 
-   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz sbpl_spline_primitives-viz base-types)
+   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz sbpl_spline_primitives-viz base-types
+   DEPS_PLAIN pthread)
 
 rock_executable(ugv_nav4d_replay
     SOURCES
