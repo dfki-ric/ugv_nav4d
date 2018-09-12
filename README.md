@@ -31,11 +31,31 @@ cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
 make -j install
 ```
 
+##### install osgviz
+```
+
+cd gui-osgviz
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
+make -j install
+```
+
+##### install vizkit3d
+```
+git clone git@github.com:envire/gui-vizkit3d.git
+cd gui-vizkit3d
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
+make -j install
+```
+
 ##### install base-logging
 
 ```
 git clone git@github.com:rock-core/base-logging.git
-cd base-cmake
+cd base-logging
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
@@ -46,7 +66,7 @@ make -j install
 Build SISL as shared library
 ```
 git clone git@github.com:SINTEF-Geometry/SISL.git
-cd base-cmake
+cd SISL
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> -DBUILD_SHARED_LIBS=On ..
@@ -57,10 +77,10 @@ make -j install
 build base-types without ruby support to avoid the ruby dependencies
 ```
 git clone git@github.com:rock-core/base-types.git
-cd base-cmake
+cd base-types
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=/home/arne/git/ugv_standalone/install/ -DBINDINGS_RUBY=Off ..
+cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> -DBINDINGS_RUBY=Off ..
 make -j install
 ```
 
@@ -77,11 +97,9 @@ make -j install
 ```
 
 ##### install sbpl_spline_primitives
-
-
 ```
 git clone git@github.com:rock-planning/planning-sbpl_spline_primitives.git
-cd sbpl
+cd sbpl_spline_primitives
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
@@ -89,10 +107,9 @@ make -j install
 ```
 
 ##### install base-numeric
-
 ```
-git clone git@github.com:envire/base-boost_serialization.git
-cd sbpl
+git clone git@github.com:rock-core/base-numeric.git
+cd base-numeric
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
@@ -100,43 +117,46 @@ make -j install
 ```
 
 ##### install base-boost_serialization
-
 ```
 git clone git@github.com:envire/base-boost_serialization.git
-cd sbpl
+cd base-boost_serialization
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
 make -j install
 ```
 
-
-
+##### install vizkit3d_debug_drawings
+Outside of rock ports dont exists, therefore disable port support.
+```
+git clone git@github.com:rock-gui/gui-vizkit3d_debug_drawings.git
+cd gui-vizkit3d_debug_drawings
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> -DWITH_PORTS=OFF -DROCK_TEST_ENABLED=ON ..
+make -j install
+```
 
 ##### install slam-maps
-
-
+slam-maps has to be built after all the gui stuff, otherwise it will fallback to
+building without vizkit plugins.
 ```
 git clone git@github.com:envire/slam-maps.git
-cd sbpl
+cd slam-maps
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
 make -j install
 ```
 
-
-
-
-
+##### install ugv_nav4d
+Finally install ugv_nav4d and switch to standalone branch
 ```
-##### install vizkit3d
-```
-git clone git@github.com:envire/gui-vizkit3d.git
-cd gui-vizkit3d
-git checkout osgviz
+git clone git@git.hb.dfki.de:entern/ugv_nav4d.git
+cd ugv_nav4d
+git checkout standalone
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
+cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> -DWITH_PORTS=OFF -DROCK_TEST_ENABLED=ON ..
 make -j install
 ```
