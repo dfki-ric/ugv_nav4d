@@ -1,6 +1,5 @@
 #include "PreComputedMotions.hpp"
 #include <maps/grid/GridMap.hpp>
-#include <dwa/SubTrajectory.hpp>
 #include <cmath>
 #include <base/Angle.hpp>
 

@@ -5,7 +5,6 @@
 #include <boost/lexical_cast.hpp>
 #include <base/Pose.hpp>
 #include <fstream>
-#include <dwa/SubTrajectory.hpp>
 #include <backward/backward.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.h>
