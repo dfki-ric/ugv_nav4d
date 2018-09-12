@@ -11,8 +11,6 @@
 #include "PathStatistics.hpp"
 #include "Dijkstra.hpp"
 
-backward::SignalHandling crashHandler;
-
 using namespace std;
 using namespace sbpl_spline_primitives;
 
