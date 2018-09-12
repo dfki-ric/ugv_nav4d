@@ -921,10 +921,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
         maps::grid::Index lastIndex = startIndex;
         TravGenNode *curNode = startHash.node->getUserData().travNode;     
         
-        // FIXME attributes are never read at the moment. Also, why are attributes accumulated?
-        curPart.attributes.names.push_back("start_" + std::to_string(i));
-        curPart.attributes.elements.push_back(std::to_string(start.x()) + "_" + std::to_string(start.y()) + "_" + std::to_string(start.z()));
-        
         size_t pwcIdx = 0;
         std::vector<base::Vector3d> positions;
         for(const CellWithPoses &cwp : curMotion.fullSplineSamples)
@@ -965,8 +961,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 {
                     //need to offset by start because the poses are relative to (0/0)
                     positions.emplace_back(pos_Body);
-                    curPart.attributes.names.push_back("motion_" + std::to_string(i) + "_" + std::to_string(pwcIdx++));
-                    curPart.attributes.elements.push_back(std::to_string(pos_Body.x()) + "_" + std::to_string(pos_Body.y()) + "_" + std::to_string(pos_Body.z()));
                 }
             }
         }
