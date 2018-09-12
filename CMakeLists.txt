@@ -7,6 +7,8 @@ rock_init(ugv_nav4d 0.1)
 add_definitions(-DENABLE_DEBUG_DRAWINGS)
 rock_standard_layout()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
 
 rock_executable(ugv_nav4d_bin
     SOURCES
@@ -29,7 +31,8 @@ rock_executable(ugv_nav4d_replay
     MOC
         src/PlannerGui.h        
    DEPS ugv_nav4d 
-   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz sbpl_spline_primitives-viz base-types)
+   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz sbpl_spline_primitives-viz base-types
+   DEPS_CMAKE Threads)
 
 rock_executable(frontier_test_bin
     SOURCES
