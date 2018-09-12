@@ -5,8 +5,8 @@
 #include <base/Eigen.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
 #include <vizkit3d/TraversabilityMap3dVisualization.hpp>
-#include "FrontierGenerator.hpp"
-#include "AreaExplorer.hpp"
+#include <ugv_nav4d/FrontierGenerator.hpp>
+#include <ugv_nav4d/AreaExplorer.hpp>
 #endif
 
 namespace vizkit3d 

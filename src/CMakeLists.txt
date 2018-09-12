@@ -9,7 +9,6 @@ if(OPENMP_FOUND)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-
 rock_library(ugv_nav4d
     SOURCES 
         AreaExplorer.cpp
@@ -49,3 +48,5 @@ rock_library(ugv_nav4d
         pcl_segmentation-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
         vizkit3d_debug_drawings
 )
+
+add_subdirectory(gui)

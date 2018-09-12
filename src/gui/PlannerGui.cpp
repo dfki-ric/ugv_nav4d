@@ -2,16 +2,16 @@
 #include <QFileDialog>
 #include <QPushButton>
 #include <thread>
-#include "Config.hpp"
-#include "Planner.hpp"
-#include "PreComputedMotions.hpp"
+#include <ugv_nav4d/Config.hpp>
+#include <ugv_nav4d/Planner.hpp>
+#include <ugv_nav4d/PreComputedMotions.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.h>
 #include <boost/filesystem.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <pcl/io/ply_io.h>
 #include <pcl/common/common.h>
-#include "PlannerDump.hpp"
+#include <ugv_nav4d/PlannerDump.hpp>
 
 using namespace ugv_nav4d;
 

@@ -10,9 +10,9 @@
 #include <vizkit3d/RigidBodyStateVisualization.hpp>
 #include <maps/grid/MLSMap.hpp>
 #include <base/Eigen.hpp>
-#include "Planner.hpp"
-#include "FrontierGenerator.hpp"
-#include "Config.hpp"
+#include <ugv_nav4d/Planner.hpp>
+#include <ugv_nav4d/FrontierGenerator.hpp>
+#include <ugv_nav4d/Config.hpp>
 #endif
 
 

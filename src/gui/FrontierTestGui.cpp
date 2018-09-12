@@ -1,5 +1,5 @@
 #include "FrontierTestGui.hpp"
-#include "FrontierGenerator.hpp"
+#include <ugv_nav4d/FrontierGenerator.hpp>
 #ifndef Q_MOC_RUN
 #include <vizkit3d/Vizkit3DWidget.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawing.h>
