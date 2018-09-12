@@ -61,8 +61,8 @@ void Planner::genTravMap(const base::samples::RigidBodyState& startbody2Mls)
 
 Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls,
                                        const base::samples::RigidBodyState& endbody2Mls,
-                                       std::vector<trajectory_follower::SubTrajectory>& resultTrajectory,
-                                       std::vector<trajectory_follower::SubTrajectory>& beautifiedTrajectory, bool dumpOnError)
+                                       std::vector<base::Trajectory>& resultTrajectory,
+                                       std::vector<base::Trajectory>& beautifiedTrajectory, bool dumpOnError)
 { 
     
     CLEAR_DRAWING("successors");
@@ -92,52 +92,14 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     
     env->expandMap(previousStartPositions);
     
-    std::vector<trajectory_follower::SubTrajectory> moveOutOfObstacleTrajectory;
-    
     try
     {
         env->setStart(startGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())));
     }
     catch(const ugv_nav4d::ObstacleCheckFailed& ex)
     {
-        std::cout << "Start inside obstacle. Trying to move out of obstacle" << std::endl;
-        
-        //env->setStart might have partially initialized the environment, clear it in case of error
-        //if we dont do this, sbpl sometimes breaks with strange errors...
-        env->clear(); 
-        
-        //Try to find the path of least resistance out of the obstacle
-        base::Vector3d newStart;
-        double newStartTheta;
-        
-        DRAW_CYLINDER("rescue", startGround2Mls.translation(), base::Vector3d(0.05, 0.05, 0.7), vizkit3dDebugDrawings::Color::pink_orange);
-        
-        std::shared_ptr<trajectory_follower::SubTrajectory> traj = env->findTrajectoryOutOfObstacle(startGround2Mls.translation(),
-                                                                                                    base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())),
-                                                                                                    ground2Body, newStart, newStartTheta);
-        if(traj)
-        {
-            moveOutOfObstacleTrajectory.push_back(*traj);
-            
-            try
-            {
-                previousStartPositions.push_back(newStart);
-                env->expandMap(previousStartPositions);//FIXME reexpanding is kinda stupid. This is only neccessary because we call env->clear() above. Which is only neded due to sbpl bugs... fix them to remove this!
-                env->setStart(newStart, newStartTheta);
-            }
-            catch(const std::runtime_error& ex)
-            {
-                //new start is also not valid for some reason
-                std::cout << "Tried to move start out of obstacle but failed\n";
-                return NO_SOLUTION;
-            }
-            
-        }
-        else
-        {
-            //no way out of obstacle
-            return NO_SOLUTION;
-        }
+        std::cout << "Start inside obstacle." << std::endl;
+        return NO_SOLUTION;
     }
     catch(const std::runtime_error& ex)
     {
@@ -236,12 +198,6 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         return NO_SOLUTION;
     }
     
-    
-    //have to move out of obstacle before the trajectory can be executed
-    if(moveOutOfObstacleTrajectory.size() > 0)
-    {
-        resultTrajectory.insert(resultTrajectory.begin(), moveOutOfObstacleTrajectory.begin(), moveOutOfObstacleTrajectory.end());
-    }
     return FOUND_SOLUTION;
 }
 

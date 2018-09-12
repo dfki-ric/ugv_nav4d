@@ -904,7 +904,7 @@ vector<Motion> EnvironmentXYZTheta::getMotions(const vector< int >& stateIDPath)
 
 
 void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
-                                        vector<trajectory_follower::SubTrajectory>& result,
+                                        vector<base::Trajectory>& result,
                                         bool setZToZero, const Eigen::Affine3d &plan2Body)
 {
     if(stateIDPath.size() < 2)
@@ -988,7 +988,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
         
         curPart.speed = curMotion.type == Motion::Type::MOV_BACKWARD? -curMotion.speed : curMotion.speed;
         result.emplace_back(curPart);
-        result.back().kind = trajectory_follower::TRAJECTORY_KIND_NORMAL;
     }
     
 }
@@ -1109,7 +1108,7 @@ TravGenNode* EnvironmentXYZTheta::findObstacleNode(const TravGenNode* travNode) 
     
 }
 
-std::shared_ptr<trajectory_follower::SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
+std::shared_ptr<base::Trajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
                                                                                     double theta,
                                                                                     const Eigen::Affine3d& ground2Body,
                                                                                     base::Vector3d& outNewStart,
@@ -1256,8 +1255,7 @@ std::shared_ptr<trajectory_follower::SubTrajectory> EnvironmentXYZTheta::findTra
         return nullptr;
     }
 
-    std::shared_ptr<trajectory_follower::SubTrajectory> subTraj(new trajectory_follower::SubTrajectory(trajectory));
-    subTraj->kind = trajectory_follower::TRAJECTORY_KIND_RESCUE;
+    std::shared_ptr<base::Trajectory> subTraj(new base::Trajectory(trajectory));
     return subTraj;
 }
 

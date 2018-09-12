@@ -13,7 +13,6 @@
 #include <base/Eigen.hpp>
 #include "Planner.hpp"
 #include "FrontierGenerator.hpp"
-#include "trajectory_follower/SubTrajectory.hpp"
 #include "Config.hpp"
 #endif
 
@@ -103,8 +102,8 @@ private:
     ugv_nav4d::Mobility mobility;
     ugv_nav4d::TraversabilityConfig conf;
     std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
-    std::vector<trajectory_follower::SubTrajectory> path;
-    std::vector<trajectory_follower::SubTrajectory> beautifiedPath;
+    std::vector<base::Trajectory> path;
+    std::vector<base::Trajectory> beautifiedPath;
     std::shared_ptr<ugv_nav4d::FrontierGenerator> frontierGenerator;
     
 };

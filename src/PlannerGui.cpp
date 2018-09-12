@@ -569,20 +569,10 @@ void PlannerGui::startPlanThread()
 
 void PlannerGui::plannerIsDone()
 {   
-    std::vector<base::Trajectory> basePath;
-    for(auto& traj : path)
-    {
-        basePath.push_back(traj.toBaseTrajectory());
-    }
-    trajViz.updateTr(basePath);
+    trajViz.updateTr(path);
     trajViz.setLineWidth(8);
 
-    std::vector<base::Trajectory> beautifiedBasePath;
-    for(auto& traj : beautifiedPath)
-    {
-        beautifiedBasePath.push_back(traj.toBaseTrajectory());
-    }
-    trajViz2.updateTr(beautifiedBasePath);
+    trajViz2.updateTr(beautifiedPath);
     trajViz2.setLineWidth(8);    
     
     

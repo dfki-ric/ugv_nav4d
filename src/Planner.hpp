@@ -2,7 +2,6 @@
 #include <maps/grid/MLSMap.hpp>
 #include <base/samples/RigidBodyState.hpp>
 #include <boost/shared_ptr.hpp>
-#include <trajectory_follower/SubTrajectory.hpp>
 #include <sbpl_spline_primitives/SbplSplineMotionPrimitives.hpp>
 #include "EnvironmentXYZTheta.hpp"
 
@@ -86,8 +85,8 @@ public:
      * @param maxTime Maximum processor time to use.
      * */
     PLANNING_RESULT plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls,
-                         const base::samples::RigidBodyState& endbody2Mls, std::vector<trajectory_follower::SubTrajectory>& resultTrajectory,
-                         std::vector<trajectory_follower::SubTrajectory>& beautifiedTrajectory, bool dumpOnError = false);
+                         const base::samples::RigidBodyState& endbody2Mls, std::vector<base::Trajectory>& resultTrajectory,
+                         std::vector<base::Trajectory>& beautifiedTrajectory, bool dumpOnError = false);
 
     void genTravMap(const base::samples::RigidBodyState& startbody2Mls);    
     
