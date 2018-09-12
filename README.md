@@ -77,16 +77,56 @@ make -j install
 ```
 
 ##### install sbpl_spline_primitives
-sbpl is used as underlying planner
+
 
 ```
-git clone git@github.com:sbpl/sbpl.git
+git clone git@github.com:rock-planning/planning-sbpl_spline_primitives.git
 cd sbpl
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
 make -j install
 ```
+
+##### install base-numeric
+
+```
+git clone git@github.com:envire/base-boost_serialization.git
+cd sbpl
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
+make -j install
+```
+
+##### install base-boost_serialization
+
+```
+git clone git@github.com:envire/base-boost_serialization.git
+cd sbpl
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
+make -j install
+```
+
+
+
+
+##### install slam-maps
+
+
+```
+git clone git@github.com:envire/slam-maps.git
+cd sbpl
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
+make -j install
+```
+
+
+
 
 
 ```
