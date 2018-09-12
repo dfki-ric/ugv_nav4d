@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sbpl/discrete_space_information/environment.h>
+#undef DEBUG //sbpl defines DEBUG 0 but the word debug is also used in base-logging which is included from TraversabilityGenerator3d
 #include "TraversabilityGenerator3d.hpp"
 #include "ObstacleMapGenerator3D.hpp"
 #include <maps/grid/TraversabilityMap3d.hpp>
