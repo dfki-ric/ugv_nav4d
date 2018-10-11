@@ -6,7 +6,6 @@
 #include <vizkit3d/TrajectoryVisualization.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
 #include <vizkit3d/TraversabilityMap3dVisualization.hpp>
-#include <vizkit3d/MotionPlanningLibrariesSbplMprimsVisualization.hpp>
 #include <vizkit3d/MotionPlanningLibrariesSbplSplineVisualization.hpp>
 #include <vizkit3d/RigidBodyStateVisualization.hpp>
 #include <maps/grid/MLSMap.hpp>
