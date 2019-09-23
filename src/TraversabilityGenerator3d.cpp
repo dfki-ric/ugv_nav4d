@@ -110,8 +110,8 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
         return false;
     }
 
-    pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients ());
-    pcl::PointIndices::Ptr inliers (new pcl::PointIndices ());
+    pcl::ModelCoefficients coefficients;
+    pcl::PointIndices inliers;
     // Create the segmentation object
     pcl::SACSegmentation<PointT> seg;
     // Optional
@@ -127,17 +127,17 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
 
     // Segment the largest planar component from the remaining cloud
     seg.setInputCloud (points);
-    seg.segment (*inliers, *coefficients);
-    if (inliers->indices.size () <= 5)
+    seg.segment (inliers, coefficients);
+    if (inliers.indices.size () <= 5)
     {
 //         std::cout << "ransac fail: inliers->indices.size () <= 5" << std::endl;
         return false;
     }
 
 
-    Eigen::Vector3d normal(coefficients->values[0], coefficients->values[1], coefficients->values[2]);
+    Eigen::Vector3d normal(coefficients.values[0], coefficients.values[1], coefficients.values[2]);
     normal.normalize();
-    double distToOrigin = coefficients->values[3];
+    double distToOrigin = coefficients.values[3];
     
     node.getUserData().plane = Eigen::Hyperplane<double, 3>(normal, distToOrigin);
     

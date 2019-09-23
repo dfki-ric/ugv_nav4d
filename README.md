@@ -1,11 +1,22 @@
 ugv_nav4d
 =============
-A 4D (X,Y,Z, Theta) Planner for UGVs
+A 4D (X,Y,Z, Theta) Planner for unmaned ground vehicles (UGVs).
+
+
+### Installation
+
+#### Dependencies
+See the `manifest.xml` for an up to date list of dependencies.
+
+#### Compiling inside a ROCK environment
+
+The easiest way to build and install this package is to use Rock’s build system. See http://rock-robotics.org/documentation/installation.html for addional information.
 
 
 #### Compiling standalone
 
 Several dependencies need to be compiled and installed using a common install prefix.
+The following steps describe what needs to be done to get a working standalone version of `ugv_nav_4d`.
 
 ##### Prepare environment
 Create env.sh with following content and source it:
@@ -18,6 +29,9 @@ export VIZKIT_PLUGIN_RUBY_PATH=<PATH_TO_INSTALL_PREFIX>/lib
 ```
 
 Most of the environment variables are only needed while compiling. Only *VIZKIT_PLUGIN_RUBY_PATH* needs to be exported for execution. This variable is used by vizkit3d to locate the visualization plugins.
+
+Visualization is only required by the test guis. The planner itself can work without vizkit.
+
 
 ##### install base-cmake
 base-cmake contains special cmake macros that are used in osgviz, vizkit3d and V3DD.
@@ -137,9 +151,26 @@ cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> -DWITH_PORTS=OFF -DROCK_TE
 make -j install
 ```
 
+##### Install pcl
+At the time of writing there seems to a bug in pcl versions above commit 0d43316f62a5142d735db948679beb05412894ff that causes a segfault. Mostly likely the bug is not in pcl but in how we use it. However this has not been investigated further as the specified commit works.
+It might very well be that a newer version works for you. Feel free to try!
+```
+git clone https://github.com/PointCloudLibrary/pcl.git
+cd pcl
+git checkout 0d43316f62a5142d735db948679beb05412894ff
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> ..
+make -j install
+```
+
 ##### install slam-maps
 slam-maps has to be built after all the gui stuff, otherwise it will fallback to
 building without vizkit plugins.
+
+the current pcl version needs at least c++14.
+patch the cmake file and set the CMAKE_CXX_STANDARD_REQUIRED to 14.
+
 ```
 git clone git@github.com:envire/slam-maps.git
 cd slam-maps
