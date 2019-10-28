@@ -1,8 +1,8 @@
 #include "PathStatistics.hpp"
 #include <unordered_set>
 #include <deque>
-#include <vizkit3d_debug_drawings/DebugDrawing.h>
-#include <vizkit3d_debug_drawings/DebugDrawingColors.h>
+#include <vizkit3d_debug_drawings/DebugDrawing.hpp>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 ugv_nav4d::PathStatistic::Stats::Stats() :
     obstacles(0), 
     frontiers(0)
@@ -136,12 +136,16 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
                 
                 if(neighbor->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
                 {
-                    COMPLEX_DRAWING (
-                    if(!debugObstacleName.empty())
+                    V3DD::COMPLEX_DRAWING([&]()
                     {
-                        
-//                         DRAW_ARROW(debugObstacleName, neighborPos, Eigen::Quaterniond(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX())), Eigen::Vector3d(.3, 0.3, 0.8), vizkit3dDebugDrawings::Color::red);
+                        if(!debugObstacleName.empty())
+                        {
+                        V3DD::DRAW_ARROW(debugObstacleName,
+                                         neighborPos,
+                                         Eigen::Quaterniond(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX())), Eigen::Vector3d(.3, 0.3, 0.8), V3DD::Color::red);
+                        }
                     });
+                    
                     hasObstacle = true;
                     stop = true;
                 }

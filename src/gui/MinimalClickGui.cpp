@@ -1,7 +1,7 @@
 
 #include "MinimalClickGui.hpp"
 #ifndef Q_MOC_RUN
-#include <vizkit3d_debug_drawings/DebugDrawing.h>
+#include <vizkit3d_debug_drawings/DebugDrawing.hpp>
 #include <QFileDialog>
 #include <iostream>
 #include <maps/grid/MLSConfig.hpp>
@@ -19,7 +19,7 @@
 MinimalClickGui::MinimalClickGui(int argc, char** argv): QObject()
 {
     widget = new vizkit3d::Vizkit3DWidget();
-    CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(widget);
+    V3DD::CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(widget);
     
     connect(&mlsViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float, float, float, int, int)));
     

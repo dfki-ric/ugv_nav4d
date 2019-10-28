@@ -5,8 +5,8 @@
 #include <ugv_nav4d/Config.hpp>
 #include <ugv_nav4d/Planner.hpp>
 #include <ugv_nav4d/PreComputedMotions.hpp>
-#include <vizkit3d_debug_drawings/DebugDrawing.h>
-#include <vizkit3d_debug_drawings/DebugDrawingColors.h>
+#include <vizkit3d_debug_drawings/DebugDrawing.hpp>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <pcl/io/ply_io.h>
@@ -56,7 +56,7 @@ void PlannerGui::setupUI()
     goal.orientation.setIdentity();
     
     widget = new vizkit3d::Vizkit3DWidget();
-    CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(widget);
+    V3DD::CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(widget);
     
     trav3dViz.setPluginName("TravMap");
     obstacleMapViz.setPluginName("ObstacleMap");
@@ -433,9 +433,9 @@ void PlannerGui::picked(float x, float y, float z, int buttonMask, int modifierM
             start.position << x, y, z;
             start.position.z() += conf.distToGround; //because we click on the ground but need to put robot position
             
-            CLEAR_DRAWING("start_aabb");
-            DRAW_WIREFRAME_BOX("start_aabb", start.position +  base::Vector3d(0, 0, conf.distToGround / 2.0), start.orientation,
-                               base::Vector3d(conf.robotSizeX, conf.robotSizeY, conf.robotHeight - conf.distToGround), vizkit3dDebugDrawings::Color::cyan);
+            V3DD::CLEAR_DRAWING("ugv_nav4d_start_aabb");
+            V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_start_aabb", start.position +  base::Vector3d(0, 0, conf.distToGround / 2.0), start.orientation,
+                               base::Vector3d(conf.robotSizeX, conf.robotSizeY, conf.robotHeight - conf.distToGround), V3DD::Color::cyan);
             
             QVector3D pos(start.position.x(), start.position.y(), start.position.z());
             startViz.setTranslation(pos);
@@ -529,9 +529,9 @@ void PlannerGui::startOrientationChanged(int newValue)
     start.orientation = Eigen::AngleAxisd(rad, Eigen::Vector3d::UnitZ());
     startViz.setRotation(QQuaternion(start.orientation.w(), start.orientation.x(), start.orientation.y(), start.orientation.z()));
     
-    CLEAR_DRAWING("start_aabb");
-    DRAW_WIREFRAME_BOX("start_aabb", start.position + Eigen::Vector3d(0, 0, conf.distToGround),
-                       start.orientation, base::Vector3d(conf.robotSizeX, conf.robotSizeY, conf.robotHeight), vizkit3dDebugDrawings::Color::cyan);
+    V3DD::CLEAR_DRAWING("ugv_nav4d_start_aabb");
+    V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_start_aabb", start.position + Eigen::Vector3d(0, 0, conf.distToGround),
+                       start.orientation, base::Vector3d(conf.robotSizeX, conf.robotSizeY, conf.robotHeight), V3DD::Color::cyan);
 }
 
 void PlannerGui::obstacleDistanceSpinBoxEditingFinished()
@@ -560,7 +560,7 @@ void PlannerGui::startPlanThread()
 {
     bar->setMaximum(0);
     std::thread t([this](){
-        CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET_NO_THROW(this->widget);
+        V3DD::CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(this->widget);
         this->plan(this->start, this->goal);
     });
     t.detach(); //needed to avoid destruction of thread at end of method

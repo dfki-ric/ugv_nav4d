@@ -2,8 +2,8 @@
 #include <ugv_nav4d/FrontierGenerator.hpp>
 #ifndef Q_MOC_RUN
 #include <vizkit3d/Vizkit3DWidget.hpp>
-#include <vizkit3d_debug_drawings/DebugDrawing.h>
-#include <vizkit3d_debug_drawings/DebugDrawingColors.h>
+#include <vizkit3d_debug_drawings/DebugDrawing.hpp>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <thread>
 #endif
@@ -32,7 +32,7 @@ FrontierTestGui::FrontierTestGui(int argc, char** argv)
     areaExplorer.reset(new AreaExplorer(frontGen));
     
     widget = new vizkit3d::Vizkit3DWidget();
-    CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(widget);
+    V3DD::CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(widget);
     widget->setCameraManipulator(vizkit3d::ORBIT_MANIPULATOR);
     widget->addPlugin(&mlsViz);
     widget->addPlugin(&travViz);
@@ -186,8 +186,8 @@ void FrontierTestGui::picked(float x, float y,float z, int buttonMask, int modif
     {
         goalPos << x, y, z;
         frontGen->updateGoalPos(goalPos);
-        CLEAR_DRAWING("AreaToExplore");
-        DRAW_WIREFRAME_BOX("AreaToExplore", goalPos, getBoxOrientation(), getBoxSize(), vizkit3dDebugDrawings::Color::red);
+        V3DD::CLEAR_DRAWING("ugv_nav4d_AreaToExplore");
+        V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_AreaToExplore", goalPos, getBoxOrientation(), getBoxSize(), V3DD::Color::red);
     }
 }
 
@@ -223,14 +223,14 @@ void FrontierTestGui::generateFrontier()
 
 void FrontierTestGui::boxSizeChanged(double)
 {
-    CLEAR_DRAWING("AreaToExplore");
-    DRAW_WIREFRAME_BOX("AreaToExplore", goalPos, getBoxOrientation(), getBoxSize(), vizkit3dDebugDrawings::Color::red);
+    V3DD::CLEAR_DRAWING("ugv_nav4d_AreaToExplore");
+    V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_AreaToExplore", goalPos, getBoxOrientation(), getBoxSize(), V3DD::Color::red);
 }
 
 void FrontierTestGui::boxRotChanged(double)
 {
-    CLEAR_DRAWING("AreaToExplore");
-    DRAW_WIREFRAME_BOX("AreaToExplore", goalPos, getBoxOrientation(), getBoxSize(), vizkit3dDebugDrawings::Color::red);
+    V3DD::CLEAR_DRAWING("ugv_nav4d_AreaToExplore");
+    V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_AreaToExplore", goalPos, getBoxOrientation(), getBoxSize(), V3DD::Color::red);
 }
 
 

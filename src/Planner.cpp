@@ -2,8 +2,8 @@
 #include <sbpl/planners/araplanner.h>
 #include <sbpl/utils/mdpconfig.h>
 #include <maps/grid/MultiLevelGridMap.hpp>
-#include <vizkit3d_debug_drawings/DebugDrawing.h>
-#include <vizkit3d_debug_drawings/DebugDrawingColors.h>
+#include <vizkit3d_debug_drawings/DebugDrawing.hpp>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include <base/Eigen.hpp>
 #include "PlannerDump.hpp"
 
@@ -65,7 +65,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
                                        std::vector<base::Trajectory>& beautifiedTrajectory, bool dumpOnError)
 { 
     
-    CLEAR_DRAWING("successors");
+    V3DD::CLEAR_DRAWING("ugv_nav4d_successors");
     
     if(!env)
     {
