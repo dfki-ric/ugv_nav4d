@@ -1,6 +1,6 @@
 #include "FrontierGenerator.hpp"
-#include <vizkit3d_debug_drawings/DebugDrawing.h>
-#include <vizkit3d_debug_drawings/DebugDrawingColors.h>
+#include <vizkit3d_debug_drawings/DebugDrawing.hpp>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include "TravMapBfsVisitor.hpp"
 #include "CollisionCheck.hpp"
 #include "Dijkstra.hpp"
@@ -52,21 +52,22 @@ void FrontierGenerator::setInitialPatch(const Eigen::Affine3d& body2Mls, double 
 void FrontierGenerator::updateGoalPos(const base::Vector3d& _goalPos)
 {
     goalPos = _goalPos;
-    CLEAR_DRAWING("goalPos");
-    DRAW_ARROW("goalPos", _goalPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
-               base::Vector3d(1,1,1), vizkit3dDebugDrawings::Color::yellow);
+    V3DD::CLEAR_DRAWING("ugv_nav4d_goalPos");
+    V3DD::DRAW_ARROW("ugv_nav4d_goalPos", _goalPos,
+                     base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
+                     base::Vector3d(1,1,1), V3DD::Color::yellow);
 }
 
 
 void FrontierGenerator::updateRobotPos(const base::Vector3d& _robotPos)
 {
     robotPos = _robotPos;
-    CLEAR_DRAWING("RobotPos");
-    DRAW_ARROW("RobotPos", _robotPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
-               base::Vector3d(1,1,1), vizkit3dDebugDrawings::Color::blue);
+    V3DD::CLEAR_DRAWING("ugv_nav4d_RobotPos");
+    V3DD::DRAW_ARROW("ugv_nav4d_RobotPos", _robotPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
+                     base::Vector3d(1,1,1), V3DD::Color::blue);
     
-    CLEAR_DRAWING("robotToGoal");
-    DRAW_LINE("robotToGoal", robotPos, goalPos, vizkit3dDebugDrawings::Color::magenta);
+    V3DD::CLEAR_DRAWING("ugv_nav4d_robotToGoal");
+    V3DD::DRAW_LINE("ugv_nav4d_robotToGoal", robotPos, goalPos, V3DD::Color::magenta);
 }
 
 
@@ -80,7 +81,7 @@ base::Vector3d FrontierGenerator::nodeCenterPos(const TravGenNode* node) const
     
 std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
 {
-    CLEAR_DRAWING("visitable");
+    V3DD::CLEAR_DRAWING("ugv_nav4d_visitable");
     
     std::vector<RigidBodyState> result;
     
@@ -149,22 +150,24 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
     //test code:
     
     
-//     COMPLEX_DRAWING(
-//         CLEAR_DRAWING("candidates");
-//         for(const auto& node : candidatesWithOrientation)
-//         {
-//             base::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
-//                                node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
-//                                node.node->getHeight());
-//             pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-//             DRAW_CYLINDER("candidates", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::blue);
-//         }
-//     );
+    V3DD::COMPLEX_DRAWING([&]()
+    {
+        V3DD::CLEAR_DRAWING("ugv_nav4d_candidates");
+        for(const auto& node : candidatesWithOrientation)
+        {
+            base::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
+                               node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
+                               node.node->getHeight());
+            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+            V3DD::DRAW_CYLINDER("ugv_nav4d_candidates", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), V3DD::Color::blue);
+        }
+    });
     
-      COMPLEX_DRAWING(
+    V3DD::COMPLEX_DRAWING([&]()
+    {
         double maxCost = 0;
         double costSum = 0;
-        CLEAR_DRAWING("explorable");  
+        V3DD::CLEAR_DRAWING("ugv_nav4d_explorable");  
         for(const auto& node : sortedNodes)
         {
             costSum += node.cost;
@@ -177,62 +180,64 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
             base::Vector3d pos(nodeCenterPos(node.node));
             pos.z() += value / 2.0;
             
-            DRAW_CYLINDER("explorable", pos,  base::Vector3d(0.03, 0.03, value), vizkit3dDebugDrawings::Color::green);
+            V3DD::DRAW_CYLINDER("ugv_nav4d_explorable", pos,  base::Vector3d(0.03, 0.03, value), V3DD::Color::green);
         }
-      );
+    });
     
     
-//     COMPLEX_DRAWING(
-//         CLEAR_DRAWING("frontierWithOrientation");
-//         for(const NodeWithOrientation& node : frontierWithOrientation)
-//         {
-//             Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
-//             pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-//             pos.z() += 0.02;
-//             const double radius = travGen.getTraversabilityMap().getResolution().x() / 2.0;
-//             DRAW_RING("frontierWithOrientation", pos, radius, 0.01, 0.01, vizkit3dDebugDrawings::Color::blue);
-//             const Eigen::Rotation2Dd rot(node.orientationZ);
-//             Eigen::Vector2d rotVec(travGen.getTraversabilityMap().getResolution().x() / 2.0, 0);
-//             rotVec = rot * rotVec;
-//             Eigen::Vector3d to(pos);
-//             to.topRows(2) += rotVec;
-//             DRAW_LINE("frontierWithOrientation", pos, to, vizkit3dDebugDrawings::Color::cyan);
-//         }
-//      );
+    V3DD::COMPLEX_DRAWING([&]()
+    {
+        V3DD::CLEAR_DRAWING("ugv_nav4d_frontierWithOrientation");
+        for(const NodeWithOrientation& node : frontierWithOrientation)
+        {
+            Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
+            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+            pos.z() += 0.02;
+            const double radius = travGen.getTraversabilityMap().getResolution().x() / 2.0;
+            V3DD::DRAW_RING("ugv_nav4d_frontierWithOrientation", pos, radius, 0.01, 0.01, V3DD::Color::blue);
+            const Eigen::Rotation2Dd rot(node.orientationZ);
+            Eigen::Vector2d rotVec(travGen.getTraversabilityMap().getResolution().x() / 2.0, 0);
+            rotVec = rot * rotVec;
+            Eigen::Vector3d to(pos);
+            to.topRows(2) += rotVec;
+            V3DD::DRAW_LINE("ugv_nav4d_frontierWithOrientation", pos, to, V3DD::Color::cyan);
+        }
+    });
      
-//     COMPLEX_DRAWING(
-//         CLEAR_DRAWING("nodesWithoutCollisions");
+//     V3DD::COMPLEX_DRAWING([&]()
+//     {
+//         V3DD::CLEAR_DRAWING("ugv_nav4d_nodesWithoutCollisions");
 //         for(const NodeWithOrientation& node : nodesWithoutCollisions)
 //         {
 //             Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
 //             pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
 //             pos.z() += 0.02;
 //             const double radius = travGen.getTraversabilityMap().getResolution().x() / 2.0;
-//             DRAW_RING("nodesWithoutCollisions", pos, radius, 0.01, 0.01, vizkit3dDebugDrawings::Color::green);
+//             V3DD::DRAW_RING("ugv_nav4d_nodesWithoutCollisions", pos, radius, 0.01, 0.01, V3DD::Color::green);
 //             const Eigen::Rotation2Dd rot(node.orientationZ);
 //             Eigen::Vector2d rotVec(travGen.getTraversabilityMap().getResolution().x() / 2.0, 0);
 //             rotVec = rot * rotVec;
 //             Eigen::Vector3d to(pos);
 //             to.topRows(2) += rotVec;
-//             DRAW_LINE("nodesWithoutCollisions", pos, to, vizkit3dDebugDrawings::Color::green);
+//             V3DD::DRAW_LINE("ugv_nav4d_nodesWithoutCollisions", pos, to, V3DD::Color::green);
 //         }
-//      );
+//     });
     
-//     COMPLEX_DRAWING(
-//         CLEAR_DRAWING("sortedNodes");
-//         for(size_t i = 0; i < sortedNodes.size(); ++i)
-//         {
-//             const NodeWithOrientationAndCost& node = sortedNodes[i];
-//             Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
-//             pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-//             pos.z() += 0.02;
-//             
-//             DRAW_TEXT("sortedNodes", pos, std::to_string(i), 0.3, vizkit3dDebugDrawings::Color::magenta);
-//         }
-//     );
+    V3DD::COMPLEX_DRAWING([&]()
+    {
+        V3DD::CLEAR_DRAWING("ugv_nav4d_sortedNodes");
+        for(size_t i = 0; i < sortedNodes.size(); ++i)
+        {
+            const NodeWithOrientationAndCost& node = sortedNodes[i];
+            Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
+            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+            pos.z() += 0.02;
+            
+            V3DD::DRAW_TEXT("ugv_nav4d_sortedNodes", pos, std::to_string(i), 0.3, V3DD::Color::magenta);
+        }
+    });
      
     
-
     return std::move(result);
 }
 
@@ -331,7 +336,7 @@ std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const
 std::vector<MovedNode> FrontierGenerator::getCollisionFreeNeighbor(const std::vector<NodeWithOrientation>& nodes) const
 {
     std::vector<MovedNode> result;
-    CLEAR_DRAWING("neighborObstacleCheck");
+    V3DD::CLEAR_DRAWING("ugv_nav4d_neighborObstacleCheck");
     
     for(const NodeWithOrientation& node : nodes)
     {
@@ -375,7 +380,7 @@ std::vector<MovedNode> FrontierGenerator::getCollisionFreeNeighbor(const std::ve
                 
                 if(!abort)
                 {
-                    DRAW_CYLINDER("neighborObstacleCheck", neighborPos, base::Vector3d(0.05, 0.05, 2), vizkit3dDebugDrawings::Color::red);
+                    V3DD::DRAW_CYLINDER("ugv_nav4d_neighborObstacleCheck", neighborPos, base::Vector3d(0.05, 0.05, 2), V3DD::Color::red);
                     
                     const double dist = (nodePos - neighborPos).norm();
                     if(dist < travConf.robotSizeX + travConf.gridResolution)
@@ -531,13 +536,14 @@ double FrontierGenerator::calcExplorablePatches(const TravGenNode* node) const
     
     const double explorablePatches = (visited / (double)maxVisitable);
     
-    COMPLEX_DRAWING(
+    V3DD::COMPLEX_DRAWING([&]()
+    {
         Eigen::Vector3d pos(node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node->getHeight());
         pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
         pos.z() += 0.02;
         
-        DRAW_TEXT("visitable", pos, std::to_string(maxVisitable - visited), 0.3, vizkit3dDebugDrawings::Color::magenta);
-    );
+        V3DD::DRAW_TEXT("ugv_nav4d_visitable", pos, std::to_string(maxVisitable - visited), 0.3, V3DD::Color::magenta);
+    });
     
     
     return explorablePatches;

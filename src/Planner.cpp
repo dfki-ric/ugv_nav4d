@@ -2,8 +2,8 @@
 #include <sbpl/planners/araplanner.h>
 #include <sbpl/utils/mdpconfig.h>
 #include <maps/grid/MultiLevelGridMap.hpp>
-#include <vizkit3d_debug_drawings/DebugDrawing.h>
-#include <vizkit3d_debug_drawings/DebugDrawingColors.h>
+#include <vizkit3d_debug_drawings/DebugDrawing.hpp>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include <base/Eigen.hpp>
 #include "PlannerDump.hpp"
 
@@ -65,7 +65,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
                                        std::vector<trajectory_follower::SubTrajectory>& beautifiedTrajectory, bool dumpOnError)
 { 
     
-    CLEAR_DRAWING("successors");
+    V3DD::CLEAR_DRAWING("ugv_nav4d_successors");
     
     if(!env)
     {
@@ -110,7 +110,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         base::Vector3d newStart;
         double newStartTheta;
         
-        DRAW_CYLINDER("rescue", startGround2Mls.translation(), base::Vector3d(0.05, 0.05, 0.7), vizkit3dDebugDrawings::Color::pink_orange);
+        V3DD::DRAW_CYLINDER("ugv_nav4d_rescue", startGround2Mls.translation(), base::Vector3d(0.05, 0.05, 0.7), V3DD::Color::pink_orange);
         
         std::shared_ptr<trajectory_follower::SubTrajectory> traj = env->findTrajectoryOutOfObstacle(startGround2Mls.translation(),
                                                                                                     base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())),

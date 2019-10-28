@@ -1,6 +1,6 @@
 #include "CollisionCheck.hpp"
 #include <base/Eigen.hpp>
-#include <vizkit3d_debug_drawings/DebugDrawing.h>
+#include <vizkit3d_debug_drawings/DebugDrawing.hpp>
 namespace ugv_nav4d 
 {
 bool CollisionCheck::checkCollision(const TravGenNode* node, double zRot,

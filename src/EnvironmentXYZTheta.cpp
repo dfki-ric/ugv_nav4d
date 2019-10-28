@@ -7,8 +7,8 @@
 #include <fstream>
 #include <dwa/SubTrajectory.hpp>
 #include <backward/backward.hpp>
-#include <vizkit3d_debug_drawings/DebugDrawing.h>
-#include <vizkit3d_debug_drawings/DebugDrawingColors.h>
+#include <vizkit3d_debug_drawings/DebugDrawing.hpp>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include "CollisionCheck.hpp"
 #include "PathStatistics.hpp"
 #include "Dijkstra.hpp"
@@ -206,11 +206,12 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
     
     if(stats.getRobotStats().getNumObstacles() || stats.getRobotStats().getNumFrontiers())
     {
-        COMPLEX_DRAWING(
-            const std::string drawName("obs_check_fail_" + nodeName);
-            CLEAR_DRAWING(drawName);
-            DRAW_WIREFRAME_BOX(drawName, pos, Eigen::Quaterniond(Eigen::AngleAxisd(discTheta.getRadian(), Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), vizkit3dDebugDrawings::Color::red);
-        );
+        V3DD::COMPLEX_DRAWING([&]()
+        {
+            const std::string drawName("ugv_nav4d_obs_check_fail_" + nodeName);
+            V3DD::CLEAR_DRAWING(drawName);
+            V3DD::DRAW_WIREFRAME_BOX(drawName, pos, Eigen::Quaterniond(Eigen::AngleAxisd(discTheta.getRadian(), Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), V3DD::Color::red);
+        });
         
         std::cout << "Error: " << nodeName << " inside obstacle" << std::endl;
         return false;
@@ -226,11 +227,12 @@ bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, TravGenNode *no
     maps::grid::Vector3d nodePos;
     travGen.getTraversabilityMap().fromGrid(node->getIndex(), nodePos, node->getHeight(), false);
     
-    COMPLEX_DRAWING(
-            const std::string drawName("check_start_goal_" + name);
-            CLEAR_DRAWING(drawName);
-            DRAW_WIREFRAME_BOX(drawName, nodePos, Eigen::Quaterniond(Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), vizkit3dDebugDrawings::Color::red);
-        );
+    V3DD::COMPLEX_DRAWING([&]()
+    {
+        const std::string drawName("ugv_nav4d_check_start_goal_" + name);
+        V3DD::CLEAR_DRAWING(drawName);
+        V3DD::DRAW_WIREFRAME_BOX(drawName, nodePos, Eigen::Quaterniond(Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), V3DD::Color::red);
+    });
     
     
     return obstacleCheck(nodePos, theta, obsGen, travConf, primitiveConfig, name); 
@@ -240,9 +242,9 @@ bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, TravGenNode *no
 void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
 {
     
-    CLEAR_DRAWING("env_goalPos");
-    DRAW_ARROW("env_goalPos", goalPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
-               base::Vector3d(1,1,1), vizkit3dDebugDrawings::Color::red);
+    V3DD::CLEAR_DRAWING("ugv_nav4d_env_goalPos");
+    V3DD::DRAW_ARROW("ugv_nav4d_env_goalPos", goalPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
+               base::Vector3d(1,1,1), V3DD::Color::red);
     
     std::cout << "GOAL IS: " << goalPos.transpose() << std::endl;
 
@@ -276,8 +278,9 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     std::cout << "Heuristic computed" << std::endl;
     
     //draw greedy path
-    COMPLEX_DRAWING(
-        CLEAR_DRAWING("greedyPath");
+    V3DD::COMPLEX_DRAWING([&]()
+    {
+        V3DD::CLEAR_DRAWING("ugv_nav4d_greedyPath");
         TravGenNode* nextNode = startXYZNode->getUserData().travNode;
         TravGenNode* goal = goalXYZNode->getUserData().travNode;
         while(nextNode != goal)
@@ -285,7 +288,7 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
             maps::grid::Vector3d pos;
             travGen.getTraversabilityMap().fromGrid(nextNode->getIndex(), pos, nextNode->getHeight(), false);
             
-            DRAW_CYLINDER("greedyPath", pos, base::Vector3d(0.03, 0.03, 0.3), vizkit3dDebugDrawings::Color::yellow);
+            V3DD::DRAW_CYLINDER("ugv_nav4d_greedyPath", pos, base::Vector3d(0.03, 0.03, 0.3), V3DD::Color::yellow);
             double minCost = std::numeric_limits< double >::max();
             for(maps::grid::TraversabilityNodeBase* node : nextNode->getConnections())
             {
@@ -298,20 +301,21 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
                 }
             }
         }
-    );
+    });
 }
 
 void EnvironmentXYZTheta::expandMap(const std::vector<Eigen::Vector3d>& positions)
 {
     
-    COMPLEX_DRAWING(
-        CLEAR_DRAWING("expandStarts");
+    V3DD::COMPLEX_DRAWING([&]()
+    {
+        V3DD::CLEAR_DRAWING("ugv_nav4d_expandStarts");
         for(const Eigen::Vector3d& pos : positions)
         {
-            DRAW_ARROW("expandStarts", pos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
-                       base::Vector3d(1,1,1), vizkit3dDebugDrawings::Color::cyan);
+            V3DD::DRAW_ARROW("ugv_nav4d_expandStarts", pos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
+                       base::Vector3d(1,1,1), V3DD::Color::cyan);
         }
-    );
+    });
     
     travGen.expandAll(positions);
     obsGen.expandAll(positions);
@@ -320,9 +324,9 @@ void EnvironmentXYZTheta::expandMap(const std::vector<Eigen::Vector3d>& position
 
 void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta)
 {
-    CLEAR_DRAWING("env_startPos");
-    DRAW_ARROW("env_startPos", startPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
-               base::Vector3d(1,1,1), vizkit3dDebugDrawings::Color::blue);
+    V3DD::CLEAR_DRAWING("env_startPos""ugv_nav4d_env_startPos");
+    V3DD::DRAW_ARROW("ugv_nav4d_env_startPos", startPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
+                     base::Vector3d(1,1,1), V3DD::Color::blue);
     
     std::cout << "START IS: " << startPos.transpose() << std::endl;
     
@@ -603,7 +607,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 //                               node->getHeight());
 //         pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
 //         DRAW_WIREFRAME_BOX("successors", pos, base::Vector3d(mlsGrid->getResolution().x() / 2.0, mlsGrid->getResolution().y() / 2.0,
-//                            0.05), vizkit3dDebugDrawings::Color::blue);
+//                            0.05), V3DD::Color::blue);
 //     );
 
     
@@ -914,7 +918,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
 
     base::Trajectory curPart;
     
-    CLEAR_DRAWING("trajectory");
+    V3DD::CLEAR_DRAWING("ugv_nav4d_trajectory");
     
     for(size_t i = 0; i < stateIDPath.size() - 1; ++i)
     {
@@ -977,13 +981,14 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
         
         curPart.spline.interpolate(positions);
         
-        COMPLEX_DRAWING(
+        V3DD::COMPLEX_DRAWING([&]()
+        {
             for(base::Vector3d pos : positions)
             {
 //                 pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
-                DRAW_CYLINDER("trajectory", pos,  base::Vector3d(0.02, 0.02, 0.2), vizkit3dDebugDrawings::Color::cyan);
+                V3DD::DRAW_CYLINDER("ugv_nav4d_trajectory", pos,  base::Vector3d(0.02, 0.02, 0.2), V3DD::Color::cyan);
             }
-        );
+        });
         
         
         curPart.speed = curMotion.type == Motion::Type::MOV_BACKWARD? -curMotion.speed : curMotion.speed;
@@ -1240,13 +1245,14 @@ std::shared_ptr<trajectory_follower::SubTrajectory> EnvironmentXYZTheta::findTra
         trajectory.spline.interpolate(positions);
         trajectory.speed = motions[bestMotionIndex].type == Motion::Type::MOV_BACKWARD? -motions[bestMotionIndex].speed : motions[bestMotionIndex].speed;
         
-        COMPLEX_DRAWING(
+        V3DD::COMPLEX_DRAWING([&]()
+        {
             for(base::Vector3d pos : positions)
             {
 //                 pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
-                DRAW_CYLINDER("outOfObstacleTrajectory", pos,  base::Vector3d(0.02, 0.02, 0.2), vizkit3dDebugDrawings::Color::blue);
+                V3DD::DRAW_CYLINDER("ugv_nav4d_outOfObstacleTrajectory", pos,  base::Vector3d(0.02, 0.02, 0.2), V3DD::Color::blue);
             }
-        );
+        });
     }
     else
     {

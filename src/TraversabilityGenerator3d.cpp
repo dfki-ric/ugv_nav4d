@@ -3,8 +3,8 @@
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/filters/extract_indices.h>
-#include <vizkit3d_debug_drawings/DebugDrawing.h>
-#include <vizkit3d_debug_drawings/DebugDrawingColors.h>
+#include <vizkit3d_debug_drawings/DebugDrawing.hpp>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 
 #include <deque>
 using namespace maps::grid;
@@ -162,7 +162,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
 //         Eigen::Vector3d pos(node.getIndex().x() * config.gridResolution, node.getIndex().y() * config.gridResolution, node.getHeight());
 //         pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
 //         pos.z() += 0.06;
-//         DRAW_TEXT("slope", pos, std::to_string(node.getUserData().slope), 0.01, vizkit3dDebugDrawings::Color::red);
+//         DRAW_TEXT("slope", pos, std::to_string(node.getUserData().slope), 0.01, V3DD::Color::red);
 //     );
         
     return true;
@@ -194,7 +194,8 @@ bool TraversabilityGenerator3d::computeAllowedOrientations(TravGenNode* node)
         //add forward allowed angles
         node->getUserData().allowedOrientations.emplace_back(base::Angle::fromRad(startRad), width);
         
-//         COMPLEX_DRAWING(
+//         V3DD::COMPLEX_DRAWING([&]()
+//         {
 //             Eigen::Vector3d patchPos(node->getIndex().x() * config.gridResolution, node->getIndex().y() * config.gridResolution, node->getHeight());
 //             patchPos.x() += config.gridResolution / 2.0;
 //             patchPos.y() += config.gridResolution / 2.0;
@@ -207,31 +208,32 @@ bool TraversabilityGenerator3d::computeAllowedOrientations(TravGenNode* node)
 //             Eigen::Vector3d end1 = rot1 * Eigen::Vector3d(0.1, 0, 0);
 //             Eigen::Vector3d end2 = rot2 * Eigen::Vector3d(0.1, 0, 0);
 //                     
-//             DRAW_LINE("allowedAngles", patchPos, patchPos + end1, vizkit3dDebugDrawings::Color::magenta);
-//             DRAW_LINE("allowedAngles", patchPos, patchPos + end2, vizkit3dDebugDrawings::Color::magenta);
-//         );
+//             V3DD::DRAW_LINE("ugv_nav4d_allowedAngles", patchPos, patchPos + end1, V3D:::Color::magenta);
+//             V3DD::DRAW_LINE("ugv_nav4d_allowedAngles", patchPos, patchPos + end2, V3DD::Color::magenta);
+//         });
         
         //add backward allowed angles
         if(config.allowForwardDownhill)
         {
             node->getUserData().allowedOrientations.emplace_back(base::Angle::fromRad(startRad - M_PI), width);
             
-            COMPLEX_DRAWING(
-            Eigen::Vector3d patchPos(node->getIndex().x() * config.gridResolution, node->getIndex().y() * config.gridResolution, node->getHeight());
-            patchPos.x() += config.gridResolution / 2.0;
-            patchPos.y() += config.gridResolution / 2.0;
-            patchPos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * patchPos;
-            patchPos.z() += 0.06;
+            V3DD::COMPLEX_DRAWING([&]()
+            {
+                Eigen::Vector3d patchPos(node->getIndex().x() * config.gridResolution, node->getIndex().y() * config.gridResolution, node->getHeight());
+                patchPos.x() += config.gridResolution / 2.0;
+                patchPos.y() += config.gridResolution / 2.0;
+                patchPos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * patchPos;
+                patchPos.z() += 0.06;
 
-            Eigen::AngleAxisd rot1(node->getUserData().allowedOrientations.back().getStart().getRad(), Eigen::Vector3d::UnitZ());
-            Eigen::AngleAxisd rot2(node->getUserData().allowedOrientations.back().getEnd().getRad(), Eigen::Vector3d::UnitZ());
-            
-            Eigen::Vector3d end1 = rot1 * Eigen::Vector3d(0.1, 0, 0);
-            Eigen::Vector3d end2 = rot2 * Eigen::Vector3d(0.1, 0, 0);
-                    
-            DRAW_LINE("allowedAngles", patchPos, patchPos + end1, vizkit3dDebugDrawings::Color::cyan);
-            DRAW_LINE("allowedAngles", patchPos, patchPos + end2, vizkit3dDebugDrawings::Color::cyan);
-        );
+                Eigen::AngleAxisd rot1(node->getUserData().allowedOrientations.back().getStart().getRad(), Eigen::Vector3d::UnitZ());
+                Eigen::AngleAxisd rot2(node->getUserData().allowedOrientations.back().getEnd().getRad(), Eigen::Vector3d::UnitZ());
+                
+                Eigen::Vector3d end1 = rot1 * Eigen::Vector3d(0.1, 0, 0);
+                Eigen::Vector3d end2 = rot2 * Eigen::Vector3d(0.1, 0, 0);
+                        
+                V3DD::DRAW_LINE("ugv_nav4d_allowedAngles", patchPos, patchPos + end1, V3DD::Color::cyan);
+                V3DD::DRAW_LINE("ugv_nav4d_allowedAngles", patchPos, patchPos + end2, V3DD::Color::cyan);
+            });
             
         }
         
@@ -301,7 +303,7 @@ bool TraversabilityGenerator3d::checkForFrontier(const TravGenNode* node)
 //                     pos.y() += config.gridResolution / 2.0;
 //                     pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
 //                     pos.z() += 0.06;
-//                     DRAW_LINE("neighbor connections", pos, neighborPos, vizkit3dDebugDrawings::Color::magenta);
+//                     DRAW_LINE("neighbor connections", pos, neighborPos, V3DD::Color::magenta);
 //                 );
             }
         }
@@ -313,7 +315,7 @@ bool TraversabilityGenerator3d::checkForFrontier(const TravGenNode* node)
 //         pos.y() += config.gridResolution / 2.0;
 //         pos = getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
 //         pos.z() += 0.06;
-//         DRAW_TEXT("missingNeighboursCount", pos, std::to_string(missingNeighbors), 0.02, vizkit3dDebugDrawings::Color::magenta);
+//         DRAW_TEXT("missingNeighboursCount", pos, std::to_string(missingNeighbors), 0.02, V3DD::Color::magenta);
 //     );
     return false;
 }
@@ -721,7 +723,7 @@ TravGenNode *TraversabilityGenerator3d::createTraversabilityPatchAt(maps::grid::
 //             maps::grid::Vector3d pos(globalPos);
 //             trMap.fromGrid(idx, globalPos);
 //             pos.z() = height;
-//             DRAW_RING("neighbor patches", pos, mlsGrid->getResolution().x() / 2.0, 0.4, 0.01, vizkit3dDebugDrawings::Color::blue);
+//             DRAW_RING("neighbor patches", pos, mlsGrid->getResolution().x() / 2.0, 0.4, 0.01, V3DD::Color::blue);
 //         );
     }
     
@@ -789,11 +791,12 @@ void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
         //The new patch is not reachable from the current patch
         if(fabs(localHeight - curHeight) > config.maxStepHeight)
         {
-            COMPLEX_DRAWING(
+            V3DD::COMPLEX_DRAWING([&]()
+            {
                 maps::grid::Vector3d pos;
                 trMap.fromGrid(node->getIndex(), pos, node->getHeight(), false);
-                DRAW_SPHERE("expandFailStepHeight", pos, 0.05, vizkit3dDebugDrawings::Color::carrot_orange);
-            );
+                V3DD::DRAW_SPHERE("expandFailStepHeight", pos, 0.05, V3DD::Color::carrot_orange);
+            });
             
             continue;
         }
