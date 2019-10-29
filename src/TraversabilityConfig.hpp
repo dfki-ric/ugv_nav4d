@@ -40,7 +40,8 @@ public:
         , parallelismEnabled(true)
         , gridResolution(0.0)
         , initialPatchVariance(0.01 * 0.01)
-        , allowForwardDownhill(false)
+        , allowForwardDownhill(true)
+        , enableInclineLimitting(false)
         
     {};
     
@@ -84,6 +85,10 @@ public:
     
     //if true the robot is allowed to drive downhill forward, otherwise it has to drive downhill backwards
     bool allowForwardDownhill;
+    
+    //if true, incline limitting is enabled and the robot motion is restricted when moving on steep hills.
+    bool enableInclineLimitting;
+    
 };
 
 

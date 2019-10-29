@@ -77,10 +77,13 @@ bool ObstacleMapGenerator3D::expandNode(TravGenNode *node)
         return false;
     }
 
-    if(!computeAllowedOrientations(node))
+    if(config.enableInclineLimitting)
     {
-        node->setType(TraversabilityNodeBase::OBSTACLE);
-        return false;
+        if(!computeAllowedOrientations(node))
+        {
+            node->setType(TraversabilityNodeBase::OBSTACLE);
+            return false;
+        }
     }
 
     //add sourounding 
@@ -114,7 +117,7 @@ bool ObstacleMapGenerator3D::obstacleCheck(const TravGenNode* node) const
     
     const Eigen::AlignedBox3d boundingBox(min, max);
     
-//     DRAW_AABB("obstacle map box", boundingBox, vizkit3dDebugDrawings::Color::cyan);
+//     V3DD::DRAW_AABB("obstacle map box", boundingBox, V3DD::Color::cyan);
     size_t numIntersections = 0;
     const View area = mlsGrid->intersectCuboid(Eigen::AlignedBox3d(min, max), numIntersections);
     if(numIntersections > 0)

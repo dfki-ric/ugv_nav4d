@@ -625,17 +625,34 @@ void PlannerGui::plan(const base::Pose& start, const base::Pose& goal)
     
     std::cout << std::endl << std::endl;
     std::cout << "Planning: " << start << " -> " << goal << std::endl;
-    const bool result = planner->plan(base::Time::fromSeconds(time->value()),
-                                      startState, endState, path, beautifiedPath);
-    if(result)
+    const Planner::PLANNING_RESULT result = planner->plan(base::Time::fromSeconds(time->value()),
+                                            startState, endState, path, beautifiedPath);
+    
+    switch(result)
     {
-        std::cout << "DONE" << std::endl;
+        case Planner::GOAL_INVALID:
+            std::cout << "GOAL_INVALID" << std::endl;
+            break;
+        case Planner::START_INVALID:
+            std::cout << "START_INVALID" << std::endl;
+            break; 
+        case Planner::NO_SOLUTION:
+            std::cout << "NO_SOLUTION" << std::endl;
+            break;
+       case Planner::NO_MAP:
+            std::cout << "NO_MAP" << std::endl;
+            break;
+        case Planner::INTERNAL_ERROR:
+            std::cout << "INTERNAL_ERROR" << std::endl;
+            break;
+        case Planner::FOUND_SOLUTION:
+            std::cout << "FOUND_SOLUTION" << std::endl;
+            break;
+        default:
+            std::cout << "ERROR unknown result state" << std::endl;
+            break;
     }
-    else
-    {
-        std::cout << "FAIL" << std::endl;
-    }
-
+    
     emit plannerDone();
 }
 

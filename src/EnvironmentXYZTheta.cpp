@@ -253,10 +253,13 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
         throw StateCreationFailed("Failed to create goal state");
     }
     
-    if(!checkOrientationAllowed(goalXYZNode->getUserData().travNode, theta))
+    if(travConf.enableInclineLimitting)
     {
-        std::cout << "Goal orientation not allowed due to slope" << std::endl;
-        throw OrientationNotAllowed("Goal orientation not allowed due to slope");
+        if(!checkOrientationAllowed(goalXYZNode->getUserData().travNode, theta))
+        {
+            std::cout << "Goal orientation not allowed due to slope" << std::endl;
+            throw OrientationNotAllowed("Goal orientation not allowed due to slope");
+        }
     }
     
     
@@ -596,15 +599,17 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     const Hash &sourceHash(idToHash[SourceStateID]);
     const XYZNode *const sourceNode = sourceHash.node;
     
-//     COMPLEX_DRAWING(
-//         const TravGenNode* node = sourceNode->getUserData().travNode;
-//         Eigen::Vector3d pos((node->getIndex().x() + 0.5) * travConf.gridResolution,
-//                              (node->getIndex().y() + 0.5) * travConf.gridResolution,
-//                               node->getHeight());
-//         pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
-//         DRAW_WIREFRAME_BOX("successors", pos, base::Vector3d(mlsGrid->getResolution().x() / 2.0, mlsGrid->getResolution().y() / 2.0,
-//                            0.05), V3DD::Color::blue);
-//     );
+    V3DD::COMPLEX_DRAWING([&]()
+    {
+        
+        const TravGenNode* node = sourceNode->getUserData().travNode;
+        Eigen::Vector3d pos((node->getIndex().x() + 0.5) * travConf.gridResolution,
+                             (node->getIndex().y() + 0.5) * travConf.gridResolution,
+                              node->getHeight());
+        pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
+        V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_successors", pos, base::Vector3d(mlsGrid->getResolution().x() / 2.0, mlsGrid->getResolution().y() / 2.0,
+                           0.05), V3DD::Color::blue);
+    });
 
     
     
@@ -677,10 +682,13 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 break;
             }
             
-            if(!checkOrientationAllowed(obstNode, diff.pose.orientation))
+            if(travConf.enableInclineLimitting)
             {
-                intermediateStepsOk = false;
-                break;
+                if(!checkOrientationAllowed(obstNode, diff.pose.orientation))
+                {
+                    intermediateStepsOk = false;
+                    break;
+                }
             }
             curObstIdx = newIndex;
         }

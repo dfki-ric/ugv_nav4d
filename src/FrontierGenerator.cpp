@@ -307,14 +307,23 @@ std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const
         
         //check if frontier is allowed, if not use the closest allowed frontier
         bool orientationAllowed = false;
-        for(const base::AngleSegment& allowedOrientation : frontierPatch->getUserData().allowedOrientations)
+        if(travConf.enableInclineLimitting)
         {
-            if(allowedOrientation.isInside(orientation))
+            for(const base::AngleSegment& allowedOrientation : frontierPatch->getUserData().allowedOrientations)
             {
-                orientationAllowed = true;
-                break;
+                if(allowedOrientation.isInside(orientation))
+                {
+                    orientationAllowed = true;
+                    break;
+                }
             }
         }
+        else
+        {
+            //all orientations allowed
+            orientationAllowed = true;
+        }
+        
         if(!orientationAllowed)
         {
             const base::AngleSegment& firstSegment = frontierPatch->getUserData().allowedOrientations[0];

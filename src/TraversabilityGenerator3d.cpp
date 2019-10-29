@@ -640,10 +640,13 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
         return false;
     }
     
-    if(!computeAllowedOrientations(node))
+    if(config.enableInclineLimitting)
     {
-        node->setType(TraversabilityNodeBase::OBSTACLE);
-        return false;
+        if(!computeAllowedOrientations(node))
+        {
+            node->setType(TraversabilityNodeBase::OBSTACLE);
+            return false;
+        }
     }
 
     //add surrounding
