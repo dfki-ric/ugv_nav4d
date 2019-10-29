@@ -12,6 +12,7 @@
 #include <pcl/io/ply_io.h>
 #include <pcl/common/common.h>
 #include <ugv_nav4d/PlannerDump.hpp>
+#include <pcl/common/transforms.h>
 
 using namespace ugv_nav4d;
 
@@ -294,7 +295,7 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     config.cellSkipFactor = 1.0;
     config.generatePointTurnMotions = false;
     config.generateLateralMotions = false;
-//     config.generateBackwardMotions = false;
+    config.generateBackwardMotions = false;
     config.splineOrder = 4;
     
     mobility.mSpeed = 0.2;
@@ -323,7 +324,7 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     conf.costFunctionDist = 0.4;
     conf.distToGround = 0.2;
     conf.minTraversablePercentage = 0.5;
-    conf.allowForwardDownhill = false;
+    conf.allowForwardDownhill = true;
     
     planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
     
@@ -381,17 +382,25 @@ void PlannerGui::loadMls(const std::string& path)
         {
             pcl::PointXYZ mi, ma; 
             pcl::getMinMax3D (*cloud, mi, ma); 
+
+            //transform point cloud to zero (instead we could also use MlsMap::translate later but that seems to be broken?)
+            Eigen::Affine3f pclTf = Eigen::Affine3f::Identity();
+            pclTf.translation() << -mi.x, -mi.y, -mi.z;
+            pcl::transformPointCloud (*cloud, *cloud, pclTf);
             
-            double mls_res = conf.gridResolution;
-            double size_x = std::max(ma.x, -std::min<float>(mi.x, 0.0)) * 2.0;
-            double size_y = std::max(ma.y, -std::min<float>(mi.y, 0.0)) * 2.0;
-            
+            pcl::getMinMax3D (*cloud, mi, ma); 
             std::cout << "MIN: " << mi << ", MAX: " << ma << std::endl;
+        
+            const double mls_res = conf.gridResolution;
+            const double size_x = ma.x;
+            const double size_y = ma.y;
+            
+            const maps::grid::Vector2ui numCells(size_x / mls_res + 1, size_y / mls_res + 1);
+            std::cout << "NUM CELLS: " << numCells << std::endl;
+            
             maps::grid::MLSConfig cfg;
-            mlsMap = maps::grid::MLSMapKalman(maps::grid::Vector2ui(size_x / mls_res, size_y / mls_res), maps::grid::Vector2d(mls_res, mls_res), cfg);
-            mlsMap.translate(base::Vector3d(- size_x / 2.0, - size_y / 2.0, 0));
-            base::Transform3d tf = base::Transform3d::Identity();
-            mlsMap.mergePointCloud(*cloud, tf);
+            mlsMap = maps::grid::MLSMapKalman(numCells, maps::grid::Vector2d(mls_res, mls_res), cfg);
+            mlsMap.mergePointCloud(*cloud, base::Transform3d::Identity());
             mlsViz.updateMLSKalman(mlsMap);
             planner->updateMap(mlsMap);
         }
