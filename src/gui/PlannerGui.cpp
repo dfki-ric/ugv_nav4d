@@ -300,7 +300,7 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     
     mobility.mSpeed = 0.2;
     mobility.mTurningSpeed = 0.6;
-    mobility.mMinTurningRadius = 0.2;
+    mobility.mMinTurningRadius = 0.1; // increase this to reduce the number of available motion primitives
     
     mobility.mMultiplierForward = 1;
     mobility.mMultiplierBackward = 1;
