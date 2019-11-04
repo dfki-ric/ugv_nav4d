@@ -37,9 +37,12 @@ struct Mobility {
     double rotationSpeed; // rad/sec
     // If > 0 allows to specify the minimal turning radius of the system in meter.
     // Without this not valid curves may be created.
-    double minTurningRadius; 
-    // Multipliers: Allows to define multipliers for each movement (used by SBPL).
-    // If a multiplier is set to 0, this movement type will be deactivated.
+    double minTurningRadius;
+    
+    /** The cost of a motion is multiplied by one of the following Multipliers. This allows
+      * the user to penalize some motion types.
+      * Do ***not*** set the multiplier to zero. If you do all motions of that type will have no cost */
+
     unsigned int multiplierForward;
     unsigned int multiplierBackward;
     unsigned int multiplierLateral;
@@ -51,16 +54,16 @@ struct Mobility {
     
     
     Mobility() : 
-           translationSpeed(0.0),
-           rotationSpeed(0.0),
+           translationSpeed(1.0),
+           rotationSpeed(1.0),
            minTurningRadius(0.0),
-           multiplierForward(0),
-           multiplierBackward(0),
-           multiplierLateral(0),
-           multiplierForwardTurn(0),
-           multiplierBackwardTurn(0),
-           multiplierPointTurn(0),
-           multiplierLateralCurve(0) {
+           multiplierForward(1),
+           multiplierBackward(1),
+           multiplierLateral(1),
+           multiplierForwardTurn(1),
+           multiplierBackwardTurn(1),
+           multiplierPointTurn(1),
+           multiplierLateralCurve(1) {
     }
     
     Mobility(double speed, double turning_speed, double min_turning_radius, 
