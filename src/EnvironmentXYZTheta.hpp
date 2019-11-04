@@ -217,6 +217,7 @@ private:
   
     Eigen::AlignedBox3d getRobotBoundingBox() const;
     
+    /** Computes the heuristic */
     void precomputeCost();
     
     /**Return the avg slope of all patches on the given @p path */

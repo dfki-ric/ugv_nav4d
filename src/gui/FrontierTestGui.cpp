@@ -22,7 +22,6 @@ FrontierTestGui::FrontierTestGui(int argc, char** argv)
     conf.robotHeight = 0.5; //incl space below body
     conf.slopeMetricScale = 0.0;
     conf.slopeMetric = SlopeMetric::NONE;
-    conf.heuristicType = HeuristicType::HEURISTIC_2D;
     conf.inclineLimittingMinSlope = 0.35; // 10.0 * M_PI/180.0;
     conf.inclineLimittingLimit = 0.44;// 5.0 * M_PI/180.0;
     conf.parallelismEnabled = false;

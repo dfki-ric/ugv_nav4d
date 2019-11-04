@@ -54,7 +54,6 @@ private slots:
     void replanButtonReleased();
     void expandPressed();
     void slopeMetricComboBoxIndexChanged(int index);
-    void heuristicComboBoxIndexChanged(int index);
     void parallelismCheckBoxStateChanged(int);
     void obstacleDistanceSpinBoxEditingFinished();
     void obstacleFactorSpinBoxEditingFinished();

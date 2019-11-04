@@ -13,12 +13,7 @@ enum SlopeMetric
     NONE
 };
 
-enum HeuristicType
-{
-    HEURISTIC_2D,
-    HEURISTIC_3D
-};
-    
+
 class TraversabilityConfig
 {
 public:
@@ -36,7 +31,6 @@ public:
         , distToGround(0)
         , slopeMetricScale(1.0)
         , slopeMetric(NONE)
-        , heuristicType(HEURISTIC_2D)
         , parallelismEnabled(true)
         , gridResolution(0.0)
         , initialPatchVariance(0.01 * 0.01)
@@ -78,7 +72,6 @@ public:
     double distToGround;
     double slopeMetricScale;
     SlopeMetric slopeMetric;//which metric to use to factor in the slope of a motion
-    HeuristicType heuristicType;
     bool parallelismEnabled; //if true openMP will be used to parallelize the planning
     double gridResolution;
     double initialPatchVariance; //the variance that is set for initially added patches.

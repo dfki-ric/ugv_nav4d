@@ -172,18 +172,6 @@ void PlannerGui::setupUI()
     slopeMetricTypeLayout->addWidget(slopeMetricComboBox);
     layout->addLayout(slopeMetricTypeLayout);
     
-    heuristicComboBox = new QComboBox();
-    heuristicComboBox->addItem("HEURISTIC_2D");
-    heuristicComboBox->addItem("HEURISTIC_3D");
-
-    connect(heuristicComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(heuristicComboBoxIndexChanged(int)));
-    QLabel* heuristicComboLabel = new QLabel();
-    slopeMetricComboLabel->setText("Heuristic Type");
-    QHBoxLayout* heuristicTypeLayout = new QHBoxLayout();
-    heuristicTypeLayout->addWidget(heuristicComboLabel);
-    heuristicTypeLayout->addWidget(heuristicComboBox);
-    layout->addLayout(heuristicTypeLayout);
-    
     
     startOrientatationSlider = new QSlider(Qt::Horizontal);
     startOrientatationSlider->setMinimum(0);
@@ -317,7 +305,6 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     conf.robotHeight = 0.9; //incl space below body
     conf.slopeMetricScale = 0.0;
     conf.slopeMetric = SlopeMetric::NONE;
-    conf.heuristicType = HeuristicType::HEURISTIC_2D;
     conf.inclineLimittingMinSlope = 0.22; // 10.0 * M_PI/180.0;
     conf.inclineLimittingLimit = 0.43;// 5.0 * M_PI/180.0;
     conf.parallelismEnabled = false;
@@ -507,18 +494,6 @@ void PlannerGui::slopeMetricComboBoxIndexChanged(int index)
     }
 }
 
-void PlannerGui::heuristicComboBoxIndexChanged(int index)
-{
-    std::vector<HeuristicType> heuristics = {HeuristicType::HEURISTIC_2D, HeuristicType::HEURISTIC_3D};
-    if(size_t(index) < heuristics.size())
-    {
-        conf.heuristicType = heuristics[index];
-    }
-    else
-    {
-        throw std::runtime_error("unknown heuristic index");
-    }
-}
 
 void PlannerGui::parallelismCheckBoxStateChanged(int)
 {

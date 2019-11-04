@@ -1049,6 +1049,7 @@ void EnvironmentXYZTheta::precomputeCost()
     Dijkstra::computeCost(goalXYZNode->getUserData().travNode, costToEnd, travConf);
     assert(costToStart.size() == costToEnd.size());
     
+    //FIXME this should be a config value?!
     const double maxDist = 99999999; //big enough to never occur in reality. Small enough to not cause overflows when used by accident.
     travNodeIdToDistance.clear();
     travNodeIdToDistance.resize(travGen.getNumNodes(), Distance(maxDist, maxDist));
