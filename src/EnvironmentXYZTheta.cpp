@@ -430,7 +430,7 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     }
 
     const double sourceToGoalDist = travNodeIdToDistance[travNode->getUserData().id].distToGoal;
-    const double timeTranslation = sourceToGoalDist / mobilityConfig.mSpeed;
+    const double timeTranslation = sourceToGoalDist / mobilityConfig.translationSpeed;
     
     //for point turns the translational time is zero, however turning still takes time
     const double timeRotation = sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian() / mobilityConfig.mTurningSpeed;
@@ -441,7 +441,7 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     {
         PRINT_VAR(sourceToGoalDist);
         PRINT_VAR(stateID);
-        PRINT_VAR( mobilityConfig.mSpeed);
+        PRINT_VAR( mobilityConfig.translationSpeed);
         PRINT_VAR(timeTranslation);
         PRINT_VAR(sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian());
         PRINT_VAR(mobilityConfig.mTurningSpeed);
@@ -463,7 +463,7 @@ int EnvironmentXYZTheta::GetStartHeuristic(int stateID)
     const ThetaNode *targetThetaNode = targetHash.thetaNode;
 
     const double startToTargetDist = travNodeIdToDistance[travNode->getUserData().id].distToStart;
-    const double timeTranslation = startToTargetDist / mobilityConfig.mSpeed;
+    const double timeTranslation = startToTargetDist / mobilityConfig.translationSpeed;
     double timeRotation = startThetaNode->theta.shortestDist(targetThetaNode->theta).getRadian() / mobilityConfig.mTurningSpeed;
     
     const int result = floor(std::max(timeTranslation, timeRotation) * Motion::costScaleFactor);
@@ -778,7 +778,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 //not perfect but probably more exact than the slope factors above
                 const double approxMotionLen3D = std::sqrt(std::pow(motion.translationlDist, 2) + std::pow(heightDiff, 2));
                 assert(approxMotionLen3D >= motion.translationlDist);//due to triangle inequality
-                const double translationalVelocity = mobilityConfig.mSpeed;
+                const double translationalVelocity = mobilityConfig.translationSpeed;
                 cost = Motion::calculateCost(approxMotionLen3D, motion.angularDist, translationalVelocity,
                                              mobilityConfig.mTurningSpeed, motion.costMultiplier);
                 break;
@@ -989,7 +989,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             }
         });
         
-        curPart.speed = curMotion.type == Motion::Type::MOV_BACKWARD? -mobilityConfig.mSpeed : mobilityConfig.mSpeed;
+        curPart.speed = curMotion.type == Motion::Type::MOV_BACKWARD? -mobilityConfig.translationSpeed : mobilityConfig.translationSpeed;
         result.emplace_back(curPart);
     }
     
@@ -1241,7 +1241,7 @@ std::shared_ptr<base::Trajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstac
             positions.push_back(pos_Body);
         }
         trajectory.spline.interpolate(positions);
-        trajectory.speed = motions[bestMotionIndex].type == Motion::Type::MOV_BACKWARD? -mobilityConfig.mSpeed : mobilityConfig.mSpeed;
+        trajectory.speed = motions[bestMotionIndex].type == Motion::Type::MOV_BACKWARD? -mobilityConfig.translationSpeed : mobilityConfig.translationSpeed;
         
         V3DD::COMPLEX_DRAWING([&]()
         {

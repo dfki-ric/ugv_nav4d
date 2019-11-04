@@ -31,7 +31,7 @@ struct CostFunctionParameters
 struct Mobility {
     // Defines the forward/backward speed of the system which will be assigned
     // to the trajectory.
-    double mSpeed; // m/sec.
+    double translationSpeed; // m/sec.
     // Used for cost calculations.
     double mTurningSpeed; // rad/sec
     // If > 0 allows to specify the minimal turning radius of the system in meter.
@@ -50,7 +50,7 @@ struct Mobility {
     
     
     Mobility() : 
-           mSpeed(0.0),
+           translationSpeed(0.0),
            mTurningSpeed(0.0),
            mMinTurningRadius(0.0),
            mMultiplierForward(0),
@@ -71,7 +71,7 @@ struct Mobility {
              unsigned int mult_pointturn=0,
              unsigned int mult_lateral_curve=0
             ) :
-            mSpeed(speed), 
+            translationSpeed(speed), 
             mTurningSpeed(turning_speed),
             mMinTurningRadius(min_turning_radius),
             mMultiplierForward(mult_forward), 
