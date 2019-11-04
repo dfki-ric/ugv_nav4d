@@ -38,7 +38,7 @@ struct NodeWithOrientationAndCost
     
     
 FrontierGenerator::FrontierGenerator(const TraversabilityConfig& travConf,
-                                     const CostFunctionParameters& costParams) :
+                                     const FrontierCostFunctionParameters& costParams) :
     costParams(costParams), travConf(travConf), travGen(travConf),
     robotPos(0, 0, 0), goalPos(0, 0, 0)
 {
@@ -558,7 +558,7 @@ double FrontierGenerator::calcExplorablePatches(const TravGenNode* node) const
     return explorablePatches;
 }
 
-void FrontierGenerator::updateCostParameters(const CostFunctionParameters& params)
+void FrontierGenerator::updateCostParameters(const FrontierCostFunctionParameters& params)
 {
     costParams = params;
 }

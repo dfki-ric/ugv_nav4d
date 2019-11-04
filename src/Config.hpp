@@ -2,9 +2,10 @@
 
 namespace ugv_nav4d{
 
-struct CostFunctionParameters
+/** Cost function parameters for frontier exploration */
+struct FrontierCostFunctionParameters
 {
-    CostFunctionParameters() : 
+    FrontierCostFunctionParameters() : 
         distToGoalFactor(1.0),
         distFromStartFactor(1.0),
         explorableFactor(1.0)
@@ -14,8 +15,6 @@ struct CostFunctionParameters
     double distToGoalFactor;
     /** How important is the distance from the start node */
     double distFromStartFactor;
-    
-    //FIXME when is explorableFactor used?
     /**How important is the size of the explorable area around the frontier node */
     double explorableFactor;
 };

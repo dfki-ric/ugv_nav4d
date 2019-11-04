@@ -60,7 +60,7 @@ private:
     base::Vector3d robotPos;
     base::Vector3d goalPos;
     base::Quaterniond boxOrientation;
-    CostFunctionParameters costParams;
+    FrontierCostFunctionParameters costParams;
     QDoubleSpinBox* distToGoalFactorSpinBox;
     QDoubleSpinBox* distFromStartFactorSpinBox;
     QDoubleSpinBox* explorableFactorSpinBox;
