@@ -29,7 +29,7 @@ PlannerGui::PlannerGui(const std::string& dumpName): QObject()
     planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
     
     sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(config);
-    splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.mMinTurningRadius));
+    splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.minTurningRadius));
     splineViz.updateData(primitives);
 
     start = dump.getStart().getPose();
@@ -288,14 +288,14 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     
     mobility.translationSpeed = 0.2;
     mobility.rotationSpeed = 0.6;
-    mobility.mMinTurningRadius = 0.1; // increase this to reduce the number of available motion primitives
+    mobility.minTurningRadius = 0.1; // increase this to reduce the number of available motion primitives
     
-    mobility.mMultiplierForward = 1;
-    mobility.mMultiplierBackward = 1;
-    mobility.mMultiplierLateral = 1;
-    mobility.mMultiplierBackwardTurn = 1;
-    mobility.mMultiplierForwardTurn = 1;
-    mobility.mMultiplierPointTurn = 1;
+    mobility.multiplierForward = 1;
+    mobility.multiplierBackward = 1;
+    mobility.multiplierLateral = 1;
+    mobility.multiplierBackwardTurn = 1;
+    mobility.multiplierForwardTurn = 1;
+    mobility.multiplierPointTurn = 1;
      
     conf.gridResolution = res;
     conf.maxSlope = 0.57; //40.0/180.0 * M_PI;
@@ -317,7 +317,7 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     
     sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(config);
     
-    splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.mMinTurningRadius));
+    splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.minTurningRadius));
     splineViz.updateData(primitives);
     
     if(argc > 1)

@@ -14,6 +14,8 @@ struct CostFunctionParameters
     double distToGoalFactor;
     /** How important is the distance from the start node */
     double distFromStartFactor;
+    
+    //FIXME when is explorableFactor used?
     /**How important is the size of the explorable area around the frontier node */
     double explorableFactor;
 };
@@ -35,30 +37,30 @@ struct Mobility {
     double rotationSpeed; // rad/sec
     // If > 0 allows to specify the minimal turning radius of the system in meter.
     // Without this not valid curves may be created.
-    double mMinTurningRadius; 
+    double minTurningRadius; 
     // Multipliers: Allows to define multipliers for each movement (used by SBPL).
     // If a multiplier is set to 0, this movement type will be deactivated.
-    unsigned int mMultiplierForward;
-    unsigned int mMultiplierBackward;
-    unsigned int mMultiplierLateral;
-    unsigned int mMultiplierForwardTurn;
-    unsigned int mMultiplierBackwardTurn;
-    unsigned int mMultiplierPointTurn;
+    unsigned int multiplierForward;
+    unsigned int multiplierBackward;
+    unsigned int multiplierLateral;
+    unsigned int multiplierForwardTurn;
+    unsigned int multiplierBackwardTurn;
+    unsigned int multiplierPointTurn;
     // Inspect curves are lateral curves circling an object.
-    unsigned int mMultiplierLateralCurve;
+    unsigned int multiplierLateralCurve;
     
     
     Mobility() : 
            translationSpeed(0.0),
            rotationSpeed(0.0),
-           mMinTurningRadius(0.0),
-           mMultiplierForward(0),
-           mMultiplierBackward(0),
-           mMultiplierLateral(0),
-           mMultiplierForwardTurn(0),
-           mMultiplierBackwardTurn(0),
-           mMultiplierPointTurn(0),
-           mMultiplierLateralCurve(0) {
+           minTurningRadius(0.0),
+           multiplierForward(0),
+           multiplierBackward(0),
+           multiplierLateral(0),
+           multiplierForwardTurn(0),
+           multiplierBackwardTurn(0),
+           multiplierPointTurn(0),
+           multiplierLateralCurve(0) {
     }
     
     Mobility(double speed, double turning_speed, double min_turning_radius, 
@@ -72,14 +74,14 @@ struct Mobility {
             ) :
             translationSpeed(speed), 
             rotationSpeed(turning_speed),
-            mMinTurningRadius(min_turning_radius),
-            mMultiplierForward(mult_forward), 
-            mMultiplierBackward(mult_backward),
-            mMultiplierLateral(mult_lateral), 
-            mMultiplierForwardTurn(mult_forward_turn), 
-            mMultiplierBackwardTurn(mult_backward_turn),
-            mMultiplierPointTurn(mult_pointturn),
-            mMultiplierLateralCurve(mult_lateral_curve){
+            minTurningRadius(min_turning_radius),
+            multiplierForward(mult_forward), 
+            multiplierBackward(mult_backward),
+            multiplierLateral(mult_lateral), 
+            multiplierForwardTurn(mult_forward_turn), 
+            multiplierBackwardTurn(mult_backward_turn),
+            multiplierPointTurn(mult_pointturn),
+            multiplierLateralCurve(mult_lateral_curve){
     }
 };
 

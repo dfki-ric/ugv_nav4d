@@ -92,7 +92,7 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
                                               double obstGridResolution, double travGridResolution)
 {
     const int numAngles = primGen.getConfig().numAngles;
-    const double maxCurvature = calculateCurvatureFromRadius(mobilityConfig.mMinTurningRadius);
+    const double maxCurvature = calculateCurvatureFromRadius(mobilityConfig.minTurningRadius);
     
     for(int angle = 0; angle < numAngles; ++angle)
     {
@@ -115,19 +115,19 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
             {
                 case SplinePrimitive::SPLINE_MOVE_FORWARD:
                     motion.type = Motion::Type::MOV_FORWARD;
-                    motion.costMultiplier = mobilityConfig.mMultiplierForwardTurn;
+                    motion.costMultiplier = mobilityConfig.multiplierForwardTurn;
                     break;
                 case SplinePrimitive::SPLINE_MOVE_BACKWARD:
                     motion.type = Motion::Type::MOV_BACKWARD;
-                    motion.costMultiplier = mobilityConfig.mMultiplierBackwardTurn;
+                    motion.costMultiplier = mobilityConfig.multiplierBackwardTurn;
                     break;
                 case SplinePrimitive::SPLINE_MOVE_LATERAL:
                     motion.type = Motion::Type::MOV_LATERAL;
-                    motion.costMultiplier = mobilityConfig.mMultiplierLateral;
+                    motion.costMultiplier = mobilityConfig.multiplierLateral;
                     break;
                 case SplinePrimitive::SPLINE_POINT_TURN:
                     motion.type = Motion::Type::MOV_POINTTURN;
-                    motion.costMultiplier = mobilityConfig.mMultiplierPointTurn;
+                    motion.costMultiplier = mobilityConfig.multiplierPointTurn;
                     break;
                 default:
                     throw std::runtime_error("Got Unsupported movement");
