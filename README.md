@@ -191,3 +191,39 @@ cd build
 cmake -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_PREFIX> -DWITH_PORTS=OFF -DROCK_TEST_ENABLED=ON ..
 make -j install
 ```
+
+### Planning
+How does the planning work, generally.
+* sbpl based
+* Ara*
+
+
+How does obstacle cheking work. Obstacle Map etc.
+How is cost calculated.
+
+#### Heuristic
+
+The heuristic h(a,b) between two cells a and b is the length of the shortest path from a to b. The shortest path is calculated without taking any of the following into account:
+- the robot dimensions
+- collision checks
+- steepness of the terrain
+- motion primitives
+- motion restrictions of the robot
+
+I.e. it is the length of the path that the robot would be able to follow if it was infinitesimal small and could change direction instantly. 
+
+`config.heuristicType` can be used to switch between different heuristics.
+Currently there are two heuristics implemented: `HeuristicType::HEURISTIC_2D` and `HeuristicType::HEURISTIC_3D`. The 3D heuristic uses the real distance between two points while the 2D heuristic ignores the z componente. The 2D heuristic was introduced for testing and does not have any real application. You should always use the 3D heuristic.
+
+The heuristic is computed beforehand for all nodes of the map. This might be a problem for very large maps but for the current maps it is fine. Changing the code to on-demand heuristic calculation is possible. It was not done because it was not needed at the time of writing.
+
+
+
+#### Motion Primitives
+Configuration and how the result looks etc.
+
+
+
+
+
+
