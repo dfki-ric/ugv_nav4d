@@ -287,7 +287,7 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     config.splineOrder = 4;
     
     mobility.translationSpeed = 0.2;
-    mobility.mTurningSpeed = 0.6;
+    mobility.rotationSpeed = 0.6;
     mobility.mMinTurningRadius = 0.1; // increase this to reduce the number of available motion primitives
     
     mobility.mMultiplierForward = 1;

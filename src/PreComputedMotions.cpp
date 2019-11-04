@@ -256,7 +256,7 @@ void PreComputedMotions::computeSplinePrimCost(const SplinePrimitive& prim,
     }
     
     outMotion.baseCost = Motion::calculateCost(linearDist, angularDist, mobilityConfig.translationSpeed,
-                                               mobilityConfig.mTurningSpeed, outMotion.costMultiplier);
+                                               mobilityConfig.rotationSpeed, outMotion.costMultiplier);
     assert(outMotion.baseCost >= 0);
     outMotion.translationlDist = linearDist;
     outMotion.angularDist = angularDist;

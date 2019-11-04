@@ -29,11 +29,10 @@ struct CostFunctionParameters
  * if a multiplier is set to 0 this movement will be deactivated.
  */
 struct Mobility {
-    // Defines the forward/backward speed of the system which will be assigned
-    // to the trajectory.
+    // Defines the forward/backward speed of the robot. Is used for cost calculations
     double translationSpeed; // m/sec.
-    // Used for cost calculations.
-    double mTurningSpeed; // rad/sec
+    // Defines the rotational speed of the robot. Is used for cost calculations.
+    double rotationSpeed; // rad/sec
     // If > 0 allows to specify the minimal turning radius of the system in meter.
     // Without this not valid curves may be created.
     double mMinTurningRadius; 
@@ -51,7 +50,7 @@ struct Mobility {
     
     Mobility() : 
            translationSpeed(0.0),
-           mTurningSpeed(0.0),
+           rotationSpeed(0.0),
            mMinTurningRadius(0.0),
            mMultiplierForward(0),
            mMultiplierBackward(0),
@@ -72,7 +71,7 @@ struct Mobility {
              unsigned int mult_lateral_curve=0
             ) :
             translationSpeed(speed), 
-            mTurningSpeed(turning_speed),
+            rotationSpeed(turning_speed),
             mMinTurningRadius(min_turning_radius),
             mMultiplierForward(mult_forward), 
             mMultiplierBackward(mult_backward),

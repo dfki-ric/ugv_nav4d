@@ -433,7 +433,7 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     const double timeTranslation = sourceToGoalDist / mobilityConfig.translationSpeed;
     
     //for point turns the translational time is zero, however turning still takes time
-    const double timeRotation = sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian() / mobilityConfig.mTurningSpeed;
+    const double timeRotation = sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian() / mobilityConfig.rotationSpeed;
     
     //scale by costScaleFactor to avoid loss of precision before converting to int
     const int result = floor(std::max(timeTranslation, timeRotation) * Motion::costScaleFactor);
@@ -444,7 +444,7 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
         PRINT_VAR( mobilityConfig.translationSpeed);
         PRINT_VAR(timeTranslation);
         PRINT_VAR(sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian());
-        PRINT_VAR(mobilityConfig.mTurningSpeed);
+        PRINT_VAR(mobilityConfig.rotationSpeed);
         PRINT_VAR(timeRotation);
         PRINT_VAR(result);
         PRINT_VAR(travNode->getUserData().id);
@@ -464,7 +464,7 @@ int EnvironmentXYZTheta::GetStartHeuristic(int stateID)
 
     const double startToTargetDist = travNodeIdToDistance[travNode->getUserData().id].distToStart;
     const double timeTranslation = startToTargetDist / mobilityConfig.translationSpeed;
-    double timeRotation = startThetaNode->theta.shortestDist(targetThetaNode->theta).getRadian() / mobilityConfig.mTurningSpeed;
+    double timeRotation = startThetaNode->theta.shortestDist(targetThetaNode->theta).getRadian() / mobilityConfig.rotationSpeed;
     
     const int result = floor(std::max(timeTranslation, timeRotation) * Motion::costScaleFactor);
     oassert(result >= 0);
@@ -780,7 +780,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 assert(approxMotionLen3D >= motion.translationlDist);//due to triangle inequality
                 const double translationalVelocity = mobilityConfig.translationSpeed;
                 cost = Motion::calculateCost(approxMotionLen3D, motion.angularDist, translationalVelocity,
-                                             mobilityConfig.mTurningSpeed, motion.costMultiplier);
+                                             mobilityConfig.rotationSpeed, motion.costMultiplier);
                 break;
             }
             case SlopeMetric::NONE:
