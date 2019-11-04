@@ -46,11 +46,12 @@ void PreComputedMotions::sampleOnResolution(double gridResolution,base::geometry
         std::tie(point,tangent) = spline.getPointAndTangent(param);
         const base::Orientation2D orientation(std::atan2(tangent.y(), tangent.x()));
 
+
+        const base::Pose2D pose(point, orientation);
+        
         //point needs to be offset to the middle of the grid, 
         //as all path computation also starts in the middle
         //if not we would get a wrong diff
-        const base::Pose2D pose(point, orientation);
-        
         point += base::Vector2d(gridResolution /2.0, gridResolution /2.0);
 
         maps::grid::Index diff;
@@ -253,9 +254,8 @@ void PreComputedMotions::computeSplinePrimCost(const SplinePrimitive& prim,
             angularDist += dist / linearDist  * std::abs(curvature);
         }
     }
-        
-    const double translationalVelocity = mobilityConfig.mSpeed;
-    outMotion.baseCost = Motion::calculateCost(linearDist, angularDist, translationalVelocity,
+    
+    outMotion.baseCost = Motion::calculateCost(linearDist, angularDist, mobilityConfig.mSpeed,
                                                mobilityConfig.mTurningSpeed, outMotion.costMultiplier);
     assert(outMotion.baseCost >= 0);
     outMotion.translationlDist = linearDist;
