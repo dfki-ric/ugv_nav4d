@@ -271,7 +271,7 @@ int Motion::calculateCost(double translationalDist, double angularDist, double t
     const double angularTime = angularDist / angularVelocity;
     
     //use ulonglong to catch overflows caused by large cost multipliers
-    unsigned long long cost = ceil(std::max(angularTime, translationTime) * costScaleFactor * costMultiplier);
+    unsigned long long cost = ceil(std::max(angularTime, translationTime) * Motion::costScaleFactor * costMultiplier);
     
     if(cost > std::numeric_limits<int>::max())
     {

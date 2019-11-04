@@ -17,9 +17,6 @@ using namespace sbpl_spline_primitives;
 namespace ugv_nav4d
 {
 
-const double costScaleFactor = 1000;
-
-
 #define oassert(val) \
     if(!(val)) \
     {\
@@ -373,11 +370,8 @@ void EnvironmentXYZTheta::SetAllActionsandAllOutcomes(CMDPSTATE* state)
 
 int EnvironmentXYZTheta::GetFromToHeuristic(int FromStateID, int ToStateID)
 {
+    //sbpl never calls this
     throw std::runtime_error("GetFromToHeuristic not implemented");
-//     const Hash &targetHash(idToHash[ToStateID]);
-//     XYZNode *targetNode = targetHash.node;
-// 
-//     return GetHeuristic(FromStateID, targetHash.thetaNode, targetNode);
 }
 
 maps::grid::Vector3d EnvironmentXYZTheta::getStatePosition(const int stateID) const
@@ -421,6 +415,10 @@ const Motion& EnvironmentXYZTheta::getMotion(const int fromStateID, const int to
 
 int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
 {
+    
+    // the heuristic distance has been calculated beforehand. Here it is just converted to
+    // travel time.
+    
     const Hash &sourceHash(idToHash[stateID]);
     const XYZNode *sourceNode = sourceHash.node;
     const TravGenNode* travNode = sourceNode->getUserData().travNode;
@@ -433,9 +431,12 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
 
     const double sourceToGoalDist = travNodeIdToDistance[travNode->getUserData().id].distToGoal;
     const double timeTranslation = sourceToGoalDist / mobilityConfig.mSpeed;
+    
+    //for point turns the translational time is zero, however turning still takes time
     const double timeRotation = sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian() / mobilityConfig.mTurningSpeed;
     
-    const int result = floor(std::max(timeTranslation, timeRotation) * costScaleFactor);
+    //scale by costScaleFactor to avoid loss of precision before converting to int
+    const int result = floor(std::max(timeTranslation, timeRotation) * Motion::costScaleFactor);
     if(result < 0)
     {
         PRINT_VAR(sourceToGoalDist);
@@ -465,7 +466,7 @@ int EnvironmentXYZTheta::GetStartHeuristic(int stateID)
     const double timeTranslation = startToTargetDist / mobilityConfig.mSpeed;
     double timeRotation = startThetaNode->theta.shortestDist(targetThetaNode->theta).getRadian() / mobilityConfig.mTurningSpeed;
     
-    const int result = floor(std::max(timeTranslation, timeRotation) * costScaleFactor);
+    const int result = floor(std::max(timeTranslation, timeRotation) * Motion::costScaleFactor);
     oassert(result >= 0);
     return result;
 }

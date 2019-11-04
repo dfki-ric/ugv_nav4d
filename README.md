@@ -203,16 +203,18 @@ How is cost calculated.
 
 #### Heuristic
 
-The heuristic h(a,b) between two cells a and b is the length of the shortest path from a to b. The shortest path is calculated without taking any of the following into account:
+The heuristic h(a,b) between two cells a and b is the time it would take the robot to follow the shortest path from a to b. The shortest path is calculated without taking any of the following into account:
 - the robot dimensions
 - collision checks
 - steepness of the terrain
 - motion primitives
 - motion restrictions of the robot
 
-I.e. it is the length of the path that the robot would be able to follow if it was infinitesimal small and could change direction instantly. 
+I.e. it is the path that the robot would be able to follow if it was infinitesimal small and could change direction instantly. 
 
 The heuristic is computed beforehand for all nodes of the map. This might be a problem for very large maps but for the current maps it is fine. Changing the code to on-demand heuristic calculation is possible. It was not done because it was not needed (fast enough) at the time of writing.
+
+SBPL expects the heuristic to be an integer. To avoid losing precision when converting to int the heuristic value is scaled by `Motion::costScaleFactor` (usually 1000) before conversion.
 
 
 

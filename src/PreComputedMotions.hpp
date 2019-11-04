@@ -35,12 +35,13 @@ struct CellWithPoses
 
 
 class Motion
-{
+{    
+public:
+    
     /**used to scale the costs because costs
      * are int but real costs are most likely small doubles*/
     static double costScaleFactor;
     
-public:
     enum Type {
         MOV_FORWARD,
         MOV_BACKWARD,
