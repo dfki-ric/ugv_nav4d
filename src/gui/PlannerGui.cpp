@@ -292,10 +292,10 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     
     mobility.mMultiplierForward = 1;
     mobility.mMultiplierBackward = 1;
-    mobility.mMultiplierLateral = 2;
-    mobility.mMultiplierBackwardTurn = 2;
+    mobility.mMultiplierLateral = 1;
+    mobility.mMultiplierBackwardTurn = 1;
     mobility.mMultiplierForwardTurn = 1;
-    mobility.mMultiplierPointTurn = 8;
+    mobility.mMultiplierPointTurn = 1;
      
     conf.gridResolution = res;
     conf.maxSlope = 0.57; //40.0/180.0 * M_PI;

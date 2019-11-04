@@ -109,7 +109,6 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
             motion.endTheta =  DiscreteTheta(static_cast<int>(prim.endAngle), numAngles);
             motion.startTheta = DiscreteTheta(static_cast<int>(prim.startAngle), numAngles);
             motion.costMultiplier = 1; //is changed in the switch-case below
-            motion.speed = mobilityConfig.mSpeed;
            
             switch(prim.motionType)
             {
@@ -128,7 +127,6 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
                 case SplinePrimitive::SPLINE_POINT_TURN:
                     motion.type = Motion::Type::MOV_POINTTURN;
                     motion.costMultiplier = mobilityConfig.mMultiplierPointTurn;
-                    motion.speed = mobilityConfig.mTurningSpeed;
                     break;
                 default:
                     throw std::runtime_error("Got Unsupported movement");
@@ -256,7 +254,7 @@ void PreComputedMotions::computeSplinePrimCost(const SplinePrimitive& prim,
         }
     }
         
-    const double translationalVelocity = std::min(mobilityConfig.mSpeed, outMotion.speed);
+    const double translationalVelocity = mobilityConfig.mSpeed;
     outMotion.baseCost = Motion::calculateCost(linearDist, angularDist, translationalVelocity,
                                                mobilityConfig.mTurningSpeed, outMotion.costMultiplier);
     assert(outMotion.baseCost >= 0);

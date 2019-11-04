@@ -778,7 +778,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 //not perfect but probably more exact than the slope factors above
                 const double approxMotionLen3D = std::sqrt(std::pow(motion.translationlDist, 2) + std::pow(heightDiff, 2));
                 assert(approxMotionLen3D >= motion.translationlDist);//due to triangle inequality
-                const double translationalVelocity = std::min(mobilityConfig.mSpeed, motion.speed);
+                const double translationalVelocity = mobilityConfig.mSpeed;
                 cost = Motion::calculateCost(approxMotionLen3D, motion.angularDist, translationalVelocity,
                                              mobilityConfig.mTurningSpeed, motion.costMultiplier);
                 break;
@@ -989,8 +989,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             }
         });
         
-        
-        curPart.speed = curMotion.type == Motion::Type::MOV_BACKWARD? -curMotion.speed : curMotion.speed;
+        curPart.speed = curMotion.type == Motion::Type::MOV_BACKWARD? -mobilityConfig.mSpeed : mobilityConfig.mSpeed;
         result.emplace_back(curPart);
     }
     
@@ -1242,7 +1241,7 @@ std::shared_ptr<base::Trajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstac
             positions.push_back(pos_Body);
         }
         trajectory.spline.interpolate(positions);
-        trajectory.speed = motions[bestMotionIndex].type == Motion::Type::MOV_BACKWARD? -motions[bestMotionIndex].speed : motions[bestMotionIndex].speed;
+        trajectory.speed = motions[bestMotionIndex].type == Motion::Type::MOV_BACKWARD? -mobilityConfig.mSpeed : mobilityConfig.mSpeed;
         
         V3DD::COMPLEX_DRAWING([&]()
         {
