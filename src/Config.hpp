@@ -22,13 +22,11 @@ struct CostFunctionParameters
 
 
 //ATTENTION Mobility is copied from motion_planning_libraries to avoid the dependency. Coping a simple struct is better than getting all the dependencies...
+
 /**
  * Describes the mobility of the system.
- * If a speed has been defined it will be used to define the 
- * forward/backward speed for the trajectory.
  * The minimal turning radius is used to create valid curves.
- * The multipliers are used by SBPL during planning. In addition
- * if a multiplier is set to 0 this movement will be deactivated.
+ * The multipliers are used by SBPL during planning.
  */
 struct Mobility {
     // Defines the forward/backward speed of the robot. Is used for cost calculations
@@ -42,14 +40,12 @@ struct Mobility {
     /** The cost of a motion is multiplied by one of the following Multipliers. This allows
       * the user to penalize some motion types.
       * Do ***not*** set the multiplier to zero. If you do all motions of that type will have no cost */
-
     unsigned int multiplierForward;
     unsigned int multiplierBackward;
     unsigned int multiplierLateral;
     unsigned int multiplierForwardTurn;
     unsigned int multiplierBackwardTurn;
     unsigned int multiplierPointTurn;
-    // Inspect curves are lateral curves circling an object.
     unsigned int multiplierLateralCurve;
     
     
