@@ -265,8 +265,43 @@ translationTime = translationalDist / translationVelocity
 rotationTime    = rotationDist / angularVelocity
 travelTime      = max(rotationTime, translationTime)
 costMultiplier  = < the configured multiplier for this particular motion type >
-cost            = ceil(travelTime * 1000 * costMultiplier)
+baseCost        = int(ceil(travelTime * 1000 * costMultiplier))
 ```
+The travelTime is scaled by 1000 to retain precision when converting to integer.
+
+The `baseCost` of each motion is the basis for cost calculation during planning.
+During planning different metrices can be used to factor in the slope of the terrain. Each  metric extends the `baseCost` in a different way:
+
+###### SlopeMetric::NONE
+```
+cost = motion.baseCost;
+```
+
+###### SlopeMetric::AVG_SLOPE
+```
+slopeFactor = < avg slope under spline> * config.slopeMetricScale;
+cost = motion.baseCost + motion.baseCost * slopeFactor;
+```
+
+###### SlopeMetric::MAX_SLOPE
+```
+slopeFactor = < max slope under spline> * config.slopeMetricScale;
+cost = motion.baseCost + motion.baseCost * slopeFactor;
+```
+
+###### SlopeMetric::TRIANGLE_SLOPE
+This one is a littel bit tricky. 
+We take the length of the spline and project it onto the slope between the start and end position. Then we measure the length of the projected line and use that to re-calculate the cost using the base cost formula (see above).
+```
+heightDiff = < height difference between start and end of motion >
+approxMotionLen = sqrt(motion.translationlDist^2 + heightDiff^2)
+cost = calculateCost(approxMotionLen)
+```
+
+
+
+
+
 
 
 
