@@ -269,36 +269,32 @@ baseCost        = int(ceil(travelTime * 1000 * costMultiplier))
 ```
 The travelTime is scaled by 1000 to retain precision when converting to integer.
 
-The `baseCost` of each motion is the basis for cost calculation during planning.
-During planning different metrices can be used to factor in the slope of the terrain. Each  metric extends the `baseCost` in a different way:
-
+The `baseCost` is used for cost calculation during planning.
+However since all primitives are 2-dimensional the `baseCost` is only accurat on perfectly flat terrain. To factor in the slope of the terrain the cost is scaled based on one of the following metrics:
 ###### SlopeMetric::NONE
 ```
 cost = motion.baseCost;
 ```
-
 ###### SlopeMetric::AVG_SLOPE
 ```
 slopeFactor = < avg slope under spline> * config.slopeMetricScale;
 cost = motion.baseCost + motion.baseCost * slopeFactor;
 ```
-
 ###### SlopeMetric::MAX_SLOPE
 ```
 slopeFactor = < max slope under spline> * config.slopeMetricScale;
 cost = motion.baseCost + motion.baseCost * slopeFactor;
 ```
-
 ###### SlopeMetric::TRIANGLE_SLOPE
-This one is a littel bit tricky. 
-We take the length of the spline and project it onto the slope between the start and end position. Then we measure the length of the projected line and use that to re-calculate the cost using the base cost formula (see above).
+This one is a littel tricky. 
+We take the length of the spline and project it onto the slope between the start and end position. Then we measure the length of the projected line and use that to re-calculate the cost using the base cost formula (see above). This should give a good approximation of the real travel time needed to move up (or down) a slope.
 ```
 heightDiff = < height difference between start and end of motion >
 approxMotionLen = sqrt(motion.translationlDist^2 + heightDiff^2)
 cost = calculateCost(approxMotionLen)
 ```
 
-
+None of those metrices captures the real cost of moving up or down a slope. They have been implemented for experimentation. However those experiments have never been done (we ran out of time and there where no slopes in the final demo). Thus the performance of the metrices is unclear.
 
 
 
