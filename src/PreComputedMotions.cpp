@@ -329,6 +329,6 @@ const std::vector< Motion >& PreComputedMotions::getMotionForStartTheta(const Di
 }
 
 
-double Motion::costScaleFactor = 1000.0;
+double Motion::costScaleFactor = 1000.0; //shift by 3 decimals to keep the decimals as int
 
 }

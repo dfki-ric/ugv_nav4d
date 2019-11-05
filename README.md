@@ -252,17 +252,23 @@ The planner filters the primitives by `config.minTurningRadius` (i.e. all primit
 The following animation shows the same primitives as above but filtered with a `minTurningRadius` of `0.2`:
 ![splines](https://git.hb.dfki.de/entern/ugv_nav4d/raw/standalone/doc/splines_filtered.gif)
 
+As you can see all sharp turns have been removed from the splines.
 
-
-
-
-`Motion` adds the cost (and some other boilerplate that makes planning easier) and samples the splines using the planning grid resolution.
+After filtering the splines are sampled using the planning grid resolution and the base cost for each motion is calculated. The sampled positions are later used during planning.
 
 ##### Motion Cost Calculation
+The base cost for each motion is calculated as follows:
+```
+translationDist = < distance that the robot has to travel while following the spline >
+rotationDist    = < amount that the robot has to turn while following the spline >
+translationTime = translationalDist / translationVelocity
+rotationTime    = rotationDist / angularVelocity
+travelTime      = max(rotationTime, translationTime)
+costMultiplier  = < the configured multiplier for this particular motion type >
+cost            = ceil(travelTime * 1000 * costMultiplier)
+```
 
-- was machen CostFunctionParameters?
-- baseCost erklären
-- erklären wie die baseCost erweitert wird beim planen
+
 
 
 
