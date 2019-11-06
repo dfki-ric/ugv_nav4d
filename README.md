@@ -201,6 +201,47 @@ How does the planning work, generally.
 How does obstacle cheking work. Obstacle Map etc.
 How is cost calculated.
 
+
+#### Planner State
+The planner operates on states and cost between states.
+SBPL represents sate simply as an integer. 
+The mapping `idToHash` in `EnvironmentXYZTheta` maps the SBPL state ids to instances of `Hash`.
+```
+struct Hash
+{
+    XYZNode *node;
+    ThetaNode *thetaNode;
+};
+```
+
+The `Hash` represents a complete planner state. It consists of an `XYZNode` and a `ThetaNode`. The `XYZNode` represents a position on the traversability map while the `ThetaNode` holds the discretized orientation.
+
+##### When are new states created?
+- When the goal is set
+- When the start is set
+- During GetSuccs
+  - Only if no state for the given theta and position exists
+
+
+##### How a new State for a given Pose is created
+Note this only happens when setting the start and end poses.
+During Planning states are created differently?! TODO
+
+1. The corresponding `TravGenNode` for the given position is fetched from `TravGen.trMap`. It is created on the map if it did not exist. It can only be created if there are supporting patches in the MLS map. Otherwise it will fail.
+
+2. The `TravGenNode` is expanded if it is not already expanded.
+
+3. A new `XYZNode` is created for the `TravGenNode`. A pointer to the `TravGenNode` is stored in the `XYZNode`. The `XZYNode` is inserted into the `EnvironmentXYZTheta.searchGrid` using the position from the `TravGenNode`.
+
+4. The orientation is discretized and stored in a `ThetaNode`
+
+5. A new State (Hash and state id) is created from the `XYZNode` and `ThetaNode`.
+
+
+
+##### How `TravGenNodes` are expanded
+
+
 #### Heuristic
 
 The heuristic h(a,b) between two cells a and b is the time it would take the robot to follow the shortest path from a to b. The shortest path is calculated ***without*** taking any of the following into account:

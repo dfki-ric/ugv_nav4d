@@ -610,7 +610,7 @@ TravGenNode* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d&
     startNode = createTraversabilityPatchAt(idx, startPos.z());
     if(!startNode)
     {
-        std::cout << "TraversabilityGenerator3d::generateStartNode: Could not create travNode for given start position, no matching / not enough MSL patches" << std::endl;
+        std::cout << "TraversabilityGenerator3d::generateStartNode: Could not create travNode for given start position, no matching / not enough MLS patches" << std::endl;
         return startNode;
     }
 
