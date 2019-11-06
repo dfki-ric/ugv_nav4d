@@ -244,9 +244,14 @@ The planner only operates on the searchGrid.
 
 
 
-##### What is the ObstacleMap good for. 
-Whats the difference to the TravMap?
+##### The `ObstacleMap`
+The `ObstacleMap` is a `traversabilityMap` that is created by the `ObstacleMapGenerator`.
+The generator shares a lot of code with the `traversabilityMapGenerator`. It differs only in how obstacle checks are done, i.e. what patches are marked as obstacles.
 
+Patches are marked as obstacle if there is a patch above the marked patch and below robot height. I.e. if the robot would stand on this patch, the patch above would be inside the robot.
+The only robot dimension needed to generate the obstacle map is the height.
+
+Using the obstacle map, the 3D collision test (that is done during planning) is reduced to a 2D collision test on the obstacle map. This is the only reason for the existence of the obstacle map. It reduces the 3D collison check complexity to 2D. Basically the height check is pre-computed for each patch and stored in the obstacle map. This greatly reduced runtime because it turns repeated 3D oriented-bounding-box-intersections into 2D-oriented-boundingbox-intersections which are much faster.
 
 
 ##### How `TravGenNodes` are expanded
