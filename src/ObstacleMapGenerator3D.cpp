@@ -18,44 +18,47 @@ ObstacleMapGenerator3D::~ObstacleMapGenerator3D()
 }
 
 
-TravGenNode *ObstacleMapGenerator3D::generateStartNode(const Eigen::Vector3d &startPos) 
-{
-    //HACK This method only exists to ensure consistent behavior with the PoseWatchdog 
-    //     for the final entern demo. This should ***NOT*** remain 
-    
-    //if we dont do this check here, expansion will fail silently when expandAll is called
-    //downstream. In that case setStart() would not fail. If setStart does not fail,
-    //the planner does not generate a rescue trajectory, even though it should!
-    
-    
-    TravGenNode* node = TraversabilityGenerator3d::generateStartNode(startPos);
-    
-    //do additional obstacle check to ensure consistent behavior with PoseWatchdog
-    if(node)
-    {
-        //if it is expanded, just do the additional obstacle check
-        if(node->isExpanded() && !obstacleCheck(node))
-        {
-            std::cout << "ObstacleMapGenerator3D: Additional obstaclecheck fail!!" << std::endl;
-            //FIXME probably this never happens because generateStartNode should not return expanded nodes?! Maybe it happens if it returned an already existing node
-            return nullptr;
-        }
-        else
-        {
-            //expansion contains the additional obstacle check that we want
-            const bool expansionOk = expandNode(node);
-            //but we have to return a non-expanded node, otherwise downstream expandAll() calls will fail
-            node->setNotExpanded();
+//NOTE leaving this here for reference, such code once existed and is required if 
+//something similar to the PoseWatchdog ever comes back
 
-            if(!expansionOk)
-            {
-                std::cout << "ObstacleMapGenerator3D: Additional obstaclecheck fail!!" << std::endl;
-                return nullptr;
-            }
-        }
-    }
-    return node;
-}
+// TravGenNode *ObstacleMapGenerator3D::generateStartNode(const Eigen::Vector3d &startPos) 
+// {
+//     //HACK This method only exists to ensure consistent behavior with the PoseWatchdog 
+//     //     for the final entern demo. This should ***NOT*** remain 
+//     
+//     //if we dont do this check here, expansion will fail silently when expandAll is called
+//     //downstream. In that case setStart() would not fail. If setStart does not fail,
+//     //the planner does not generate a rescue trajectory, even though it should!
+//     
+//     
+//     TravGenNode* node = TraversabilityGenerator3d::generateStartNode(startPos);
+//     
+//     //do additional obstacle check to ensure consistent behavior with PoseWatchdog
+//     if(node)
+//     {
+//         //if it is expanded, just do the additional obstacle check
+//         if(node->isExpanded() && !obstacleCheck(node))
+//         {
+//             std::cout << "ObstacleMapGenerator3D: Additional obstaclecheck fail!!" << std::endl;
+//             //FIXME probably this never happens because generateStartNode should not return expanded nodes?! Maybe it happens if it returned an already existing node
+//             return nullptr;
+//         }
+//         else
+//         {
+//             //expansion contains the additional obstacle check that we want
+//             const bool expansionOk = expandNode(node);
+//             //but we have to return a non-expanded node, otherwise downstream expandAll() calls will fail
+//             node->setNotExpanded();
+// 
+//             if(!expansionOk)
+//             {
+//                 std::cout << "ObstacleMapGenerator3D: Additional obstaclecheck fail!!" << std::endl;
+//                 return nullptr;
+//             }
+//         }
+//     }
+//     return node;
+// }
 
     
 bool ObstacleMapGenerator3D::expandNode(TravGenNode *node)

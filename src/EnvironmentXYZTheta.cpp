@@ -536,9 +536,6 @@ TravGenNode *EnvironmentXYZTheta::movementPossible(TravGenNode *fromTravNode, co
 //         std::cout << "movement not possible. targetnode not traversable" << std::endl;
         return nullptr;
     }  
-    
-        
-    //TODO add additionalCosts if something is near this node etc
     return targetNode;
 }
 
@@ -592,6 +589,31 @@ TravGenNode * EnvironmentXYZTheta::checkTraversableHeuristic(const maps::grid::I
     return travNode;
 }
 
+TravGenNode * EnvironmentXYZTheta::getObstNode(const Eigen::Vector3d& sourcePosWorld, const double height)
+{
+    //FIXME this is a 90% duplicate from findObstacleNode()
+    
+    
+    maps::grid::Index startIdxObstMap;
+    obsGen.getTraversabilityMap().toGrid(sourcePosWorld, startIdxObstMap, false);
+    TravGenNode *startNodeObstMap = nullptr;
+
+    double minDist = std::numeric_limits< double >::max();
+    for(TravGenNode *n: obsGen.getTraversabilityMap().at(startIdxObstMap))
+    {
+        double curDist = fabs(n->getHeight() - height);
+        if(curDist > minDist)
+        {
+            //we passed the minimal distance point
+            break;
+        }
+        minDist = curDist;
+        startNodeObstMap = n;
+    }
+    return startNodeObstMap;
+    
+}
+
 void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, vector< int >* CostV, vector< size_t >& motionIdV)
 {
     SuccIDV->clear();
@@ -599,6 +621,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     motionIdV.clear();
     const Hash &sourceHash(idToHash[SourceStateID]);
     const XYZNode *const sourceNode = sourceHash.node;
+    const ThetaNode *const sourceThetaNode = sourceHash.thetaNode;
+    TravGenNode *sourceTravNode = sourceNode->getUserData().travNode;
     
     V3DD::COMPLEX_DRAWING([&]()
     {
@@ -611,71 +635,50 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_successors", pos, base::Vector3d(mlsGrid->getResolution().x() / 2.0, mlsGrid->getResolution().y() / 2.0,
                            0.05), V3DD::Color::blue);
     });
-
-    
-    
-    const ThetaNode *const thetaNode = sourceHash.thetaNode;
-    
-    TravGenNode *curTravNode = sourceNode->getUserData().travNode;
-    if(!curTravNode->isExpanded())
+        
+    if(!sourceTravNode->isExpanded())
     {
-        //current node is not drivable
-        if(!travGen.expandNode(curTravNode))
+        if(!travGen.expandNode(sourceTravNode))
         {
+            //expansion failed, current node is not driveable -> there are not successors to this state
             std::cout << "GetSuccs: current node not expanded and not expandable" << std::endl;
             return;
         }
     }
 
-    Eigen::Vector3d startPosWorld;
-    travGen.getTraversabilityMap().fromGrid(sourceNode->getIndex(), startPosWorld, curTravNode->getHeight(), false);
+    Eigen::Vector3d sourcePosWorld;
+    travGen.getTraversabilityMap().fromGrid(sourceNode->getIndex(), sourcePosWorld, sourceTravNode->getHeight(), false);
     
-    maps::grid::Index startIdxObstMap;
-    obsGen.getTraversabilityMap().toGrid(startPosWorld, startIdxObstMap, false);
-    TravGenNode *startNodeObstMap = nullptr;
-    {
-        double minDist = std::numeric_limits< double >::max();
-        for(TravGenNode *n: obsGen.getTraversabilityMap().at(startIdxObstMap))
-        {
-            double curDist = fabs(n->getHeight() - curTravNode->getHeight());
-            if(curDist > minDist)
-            {
-                //we passed the minimal distance point
-                break;
-            }
-            minDist = curDist;
-            startNodeObstMap = n;
-        }
-    }
-    assert(startNodeObstMap);
+    TravGenNode *sourceObstacleNode = getObstNode(sourcePosWorld, sourceNode->getHeight());
+    assert(sourceObstacleNode);
     
-    const auto& motions = availableMotions.getMotionForStartTheta(thetaNode->theta);
+    const auto& motions = availableMotions.getMotionForStartTheta(sourceThetaNode->theta);
     #pragma omp parallel for schedule(dynamic, 5) if(travConf.parallelismEnabled)
     for(size_t i = 0; i < motions.size(); ++i)
     {
+        //check that the motion is traversable (without collision checks) and find the goal node of the motion
         const ugv_nav4d::Motion &motion(motions[i]);
-        TravGenNode *finalTravNode = checkTraversableHeuristic(sourceNode->getIndex(), sourceNode->getUserData().travNode, motions[i], travGen.getTraversabilityMap());
-        if(!finalTravNode)
+        TravGenNode *goalTravNode = checkTraversableHeuristic(sourceNode->getIndex(), sourceNode->getUserData().travNode, motions[i], travGen.getTraversabilityMap());
+        if(!goalTravNode)
         {
+            //at least one node on the path is not traversable
             continue;
         }
         
-        //get matching obstacle patch
-        
-
+        //check motion path on obstacle map
         std::vector<const TravGenNode*> nodesOnObstPath;
         std::vector<base::Pose2D> posesOnObstPath;
-        maps::grid::Index curObstIdx = startIdxObstMap;
-        TravGenNode *obstNode = startNodeObstMap;
+        maps::grid::Index curObstIdx = sourceObstacleNode->getIndex();
+        TravGenNode *obstNode = sourceObstacleNode;
         bool intermediateStepsOk = true;
         for(const PoseWithCell &diff : motion.intermediateStepsObstMap)
         {
             //diff is always a full offset to the start position
-            const maps::grid::Index newIndex =  startIdxObstMap + diff.cell;
+            const maps::grid::Index newIndex =  sourceObstacleNode->getIndex() + diff.cell;
             obstNode = movementPossible(obstNode, curObstIdx, newIndex);
             nodesOnObstPath.push_back(obstNode);
             base::Pose2D curPose = diff.pose;
-            curPose.position += startPosWorld.head<2>();
+            curPose.position += sourcePosWorld.head<2>();
             posesOnObstPath.push_back(curPose);
             if(!obstNode)
             {
@@ -693,8 +696,9 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             }
             curObstIdx = newIndex;
         }
+        
 
-        //no way from start to end
+        //no way from start to end on obstacle map
         if(!intermediateStepsOk)
             continue;
         
@@ -721,12 +725,12 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         {
             const auto &candidateMap = searchGrid.at(finalPos);
 
-            if(finalTravNode->getIndex() != finalPos)
+            if(goalTravNode->getIndex() != finalPos)
                 throw std::runtime_error("Internal error, indexes do not match");
             
-            XYZNode searchTmp(finalTravNode->getHeight(), finalTravNode->getIndex());
+            XYZNode searchTmp(goalTravNode->getHeight(), goalTravNode->getIndex());
             
-            //note, this works, as the equals check is on the height, not the node itself
+            //this works, as the equals check is on the height, not the node itself
             auto it = candidateMap.find(&searchTmp);
 
             if(it != candidateMap.end())
@@ -736,7 +740,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             }
             else
             {
-                successXYNode = createNewXYZState(finalTravNode); //modifies searchGrid at travNode->getIndex()
+                successXYNode = createNewXYZState(goalTravNode); //modifies searchGrid at travNode->getIndex()
             }
         }
 

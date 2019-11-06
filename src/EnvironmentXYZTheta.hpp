@@ -109,6 +109,10 @@ protected:
     /** Find the obstacle node corresponding to @p travNode */
     TravGenNode* findObstacleNode(const TravGenNode* travNode) const;
     
+        /**Returns the obstacle node for a given position and patch height */
+    TravGenNode * getObstNode(const Eigen::Vector3d& sourcePosWorld, const double height);
+    
+    
 public:
     
     /** @param pos Position in map frame */
@@ -146,6 +150,8 @@ public:
     std::shared_ptr<base::Trajectory> findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
                                                                    const Eigen::Affine3d& ground2Body,
                                                                    base::Vector3d& outNewStart, double& outNewStartTheta);
+    
+
     
      /**
      * \brief heuristic estimate from state FromStateID to state ToStateID
@@ -210,7 +216,9 @@ public:
 
     
 private:
-  
+    
+    /** Check if all nodes on the path from @p sourceNode following @p motion are traversable.
+    /** @return the target node of the motion or nullptr if motion not possible */
     TravGenNode* checkTraversableHeuristic(const maps::grid::Index sourceIndex, ugv_nav4d::TravGenNode* sourceNode, 
                                            const ugv_nav4d::Motion& motion, const maps::grid::TraversabilityMap3d< ugv_nav4d::TravGenNode* >& trMap);
     
@@ -235,10 +243,15 @@ private:
     /**Determines the distance between @p a and @p b depending on travConf.heuristicType */
     double getHeuristicDistance(const Eigen::Vector3d& a, const Eigen::Vector3d& b) const;
     
+    /** Checks if movement from @p fromTravNode to its neighbor at position @p toIdx is possible.
+     *  I.e. if a direct connection exists and if the neighbor is traversable.
+     *  Expands the neighbor if not already expanded.
+     *  @return the neighbor at position @p toIdx*/
     TravGenNode* movementPossible(ugv_nav4d::TravGenNode* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& toIdx);
     
     /** Expands @p node if it needs expansion.
-     *  Thread-safe. */
+     *  Thread-safe.
+     *  @return True if the expansion succeeded */
     bool checkExpandTreadSafe(TravGenNode * node);
     
     TraversabilityConfig travConf;

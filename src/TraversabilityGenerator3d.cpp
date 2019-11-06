@@ -322,7 +322,12 @@ bool TraversabilityGenerator3d::checkForFrontier(const TravGenNode* node)
 
 bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
 {
-    const Eigen::Hyperplane<double, 3> &plane(node->getUserData().plane);
+    
+    /** What this method does:
+     * Check if any of the patches around @p node that the robot might stand on is higher than stepHeight.
+     * I.e. if any of the patches is so high that it would be inside the robots body.
+     */ 
+    
     const double slope = node->getUserData().slope;
     
     if(slope > config.maxSlope)
@@ -347,6 +352,16 @@ bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
     
     View area = mlsGrid->intersectCuboid(Eigen::AlignedBox3d(min, max));
     
+//     V3DD::COMPLEX_DRAWING([&]
+//     {   
+//         static int i = 0;
+//         ++i;
+//         if((i % 30) == 0)
+//             V3DD::DRAW_AABB("ugv_nav4d_trav_obstacle_check_box", Eigen::AlignedBox3d(min, max), V3DD::Color::red);
+//     });
+    
+    
+    const Eigen::Hyperplane<double, 3> &plane(node->getUserData().plane);
     for(size_t y = 0; y < area.getNumCells().y(); y++)
     {
         for(size_t x = 0; x < area.getNumCells().x(); x++)

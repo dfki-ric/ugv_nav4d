@@ -238,8 +238,21 @@ During Planning states are created differently?! TODO
 5. A new State (Hash and state id) is created from the `XYZNode` and `ThetaNode`.
 
 
+##### Why do I need the `searchGrid`?
+The searchGrid is a TravMap, just like the `travGen.trMap` but the nodes contain a different payload. They contain `XYZNodes`.
+The planner only operates on the searchGrid.
+
+
+
+##### What is the ObstacleMap good for. 
+Whats the difference to the TravMap?
+
+
 
 ##### How `TravGenNodes` are expanded
+
+
+
 
 
 #### Heuristic
