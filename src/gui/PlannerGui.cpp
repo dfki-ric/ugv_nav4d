@@ -386,6 +386,7 @@ void PlannerGui::loadMls(const std::string& path)
             std::cout << "NUM CELLS: " << numCells << std::endl;
             
             maps::grid::MLSConfig cfg;
+            cfg.gapSize = 0.1;
             mlsMap = maps::grid::MLSMapKalman(numCells, maps::grid::Vector2d(mls_res, mls_res), cfg);
             mlsMap.mergePointCloud(*cloud, base::Transform3d::Identity());
             mlsViz.updateMLSKalman(mlsMap);
