@@ -344,6 +344,9 @@ bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
     //FIXME this is not the perfect solution because it ignores robot orientation.
     //Further checks down the line are required.
     //If further checks are required anyway, does this make sense at all?
+    
+    //TODO figure out if we need this at all? The 3D obstacle check is optimized anyway, maybe we can 
+    //completely skip this or simplify it?
     const double growSize = std::min(config.robotSizeX, config.robotSizeY) / 2.0 + 1e-5;
     
     Eigen::Vector3d min(-growSize, -growSize, 0);

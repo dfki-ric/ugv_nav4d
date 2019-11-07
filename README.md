@@ -216,11 +216,9 @@ struct Hash
 
 The `Hash` represents a complete planner state. It consists of an `XYZNode` and a `ThetaNode`. The `XYZNode` represents a position on the traversability map while the `ThetaNode` holds the discretized orientation.
 
-##### When are new states created?
-- When the goal is set
-- When the start is set
-- During GetSuccs
-  - Only if no state for the given theta and position exists
+New states are created when the start is set, the goal is set and during planning.
+During planning states are reused when the position and orientation match.
+
 
 
 ##### How a new State for a given Pose is created
@@ -254,7 +252,8 @@ The only robot dimension needed to generate the obstacle map is the height.
 Using the obstacle map, the 3D collision test (that is done during planning) is reduced to a 2D collision test on the obstacle map. This is the only reason for the existence of the obstacle map. It reduces the 3D collison check complexity to 2D. Basically the height check is pre-computed for each patch and stored in the obstacle map. This greatly reduced runtime because it turns repeated 3D oriented-bounding-box-intersections into 2D-oriented-boundingbox-intersections which are much faster.
 
 
-##### How `TravGenNodes` are expanded
+##### The `TraversabilityMap`
+
 
 
 
