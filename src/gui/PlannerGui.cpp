@@ -262,6 +262,7 @@ void PlannerGui::setupUI()
 
     connect(&mlsViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
     connect(&trav3dViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
+    connect(&obstacleMapViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
     connect(this, SIGNAL(plannerDone()), this, SLOT(plannerIsDone()));
     
     maxSlopeSpinBox->setValue(33.23);
@@ -288,7 +289,7 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     
     mobility.translationSpeed = 0.2;
     mobility.rotationSpeed = 0.6;
-//     mobility.minTurningRadius = 0.2; // increase this to reduce the number of available motion primitives
+    mobility.minTurningRadius = 0.2; // increase this to reduce the number of available motion primitives
     
     mobility.multiplierForward = 1;
     mobility.multiplierBackward = 1;
@@ -299,7 +300,7 @@ void PlannerGui::setupPlanner(int argc, char** argv)
      
     conf.gridResolution = res;
     conf.maxSlope = 0.57; //40.0/180.0 * M_PI;
-    conf.maxStepHeight = 0.2; //space below robot
+    conf.maxStepHeight = 0.3; //space below robot
     conf.robotSizeX = 0.9;
     conf.robotSizeY =  0.5;
     conf.robotHeight = 0.9; //incl space below body
