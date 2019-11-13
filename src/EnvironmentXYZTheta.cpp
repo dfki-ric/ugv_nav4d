@@ -986,10 +986,31 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
         
         V3DD::COMPLEX_DRAWING([&]()
         {
+            Eigen::Vector4d color = V3DD::Color::cyan;
+            Eigen::Vector3d size(0.01, 0.01, 0.2);
+            switch(curMotion.type)
+            {
+                case Motion::MOV_BACKWARD:
+                    color = V3DD::Color::magenta;
+                    break;
+                case Motion::MOV_FORWARD:
+                    color = V3DD::Color::cyan;
+                    break;
+                case Motion::MOV_POINTTURN:
+                    color = V3DD::Color::blue;
+                    size.z() = 0.4;
+                    break;
+                case Motion::MOV_LATERAL:
+                    color = V3DD::Color::green;
+                    break;
+                    
+                default:
+                    color =  V3DD::Color::red;
+            }
             for(base::Vector3d pos : positions)
             {
 //                 pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
-                V3DD::DRAW_CYLINDER("ugv_nav4d_trajectory", pos,  base::Vector3d(0.02, 0.02, 0.2), V3DD::Color::cyan);
+                V3DD::DRAW_CYLINDER("ugv_nav4d_trajectory", pos,  size, color);
             }
         });
         
