@@ -61,8 +61,8 @@ void Planner::genTravMap(const base::samples::RigidBodyState& startbody2Mls)
 
 Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls,
                                        const base::samples::RigidBodyState& endbody2Mls,
-                                       std::vector<base::Trajectory>& resultTrajectory,
-                                       std::vector<base::Trajectory>& beautifiedTrajectory, bool dumpOnError)
+                                       std::vector<base::Trajectory>& resultTrajectory2D,
+                                       std::vector<base::Trajectory>& resultTrajectory3D, bool dumpOnError)
 { 
     
     V3DD::CLEAR_DRAWING("ugv_nav4d_successors");
@@ -73,7 +73,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         return NO_MAP;
     }
     
-    resultTrajectory.clear();
+    resultTrajectory2D.clear();
     env->clear();
  
         
@@ -186,8 +186,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
             std::cout << "cost " << s.cost << " time " << s.time << "num childs " << s.expands << std::endl;
         }
         
-        env->getTrajectory(solutionIds, resultTrajectory, true, ground2Body);
-        env->getTrajectory(solutionIds, beautifiedTrajectory, false, ground2Body);
+        env->getTrajectory(solutionIds, resultTrajectory2D, true, ground2Body);
+        env->getTrajectory(solutionIds, resultTrajectory3D, false, ground2Body);
     }
     catch(const SBPL_Exception& ex)
     {
