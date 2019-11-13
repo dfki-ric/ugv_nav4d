@@ -83,10 +83,22 @@ public:
     
     /** Plan a path from @p start to @p end.
      * @param maxTime Maximum processor time to use.
+     * @param resultTrajectory2D The resulting trajectory without z-coordinates (all z-values are set to zero). 
+     *                           This trajectory exists to avoid a bug in spline interpolation. In certain corner 
+     *                           cases (when the z change between two steps is much greater than the xy change) 
+     *                           the spline interpolator will fit an S-curve instead of a straight line between the 
+     *                           two patches. This results in an increase-decrease-increase pattern in xy-direction
+     *                           resulting in a robot motion that stutters. Setting the z-axis to zero was choosen as 
+     *                           a fix because the trajectory follower (at the time of writing) ignores the z-axis anyway.
+     *                           FIXME Further investigation is needed to find a real fix for this!
+     *                           A ticket for this bug exists: https://git.hb.dfki.de/entern/ugv_nav4d/issues/1
+     * 
+     * @param resultTrajectory3D The resulting trajectory. Make sure to read the comment for @p resultTrajectory2D to understand
+     *                           why this exists!
      * */
     PLANNING_RESULT plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls,
-                         const base::samples::RigidBodyState& endbody2Mls, std::vector<base::Trajectory>& resultTrajectory,
-                         std::vector<base::Trajectory>& beautifiedTrajectory, bool dumpOnError = false);
+                         const base::samples::RigidBodyState& endbody2Mls, std::vector<base::Trajectory>& resultTrajectory2D,
+                         std::vector<base::Trajectory>& resultTrajectory3D, bool dumpOnError = false);
 
     void genTravMap(const base::samples::RigidBodyState& startbody2Mls);    
     
