@@ -14,6 +14,18 @@ enum SlopeMetric
 };
 
 
+struct PlannerConfig
+{
+    /**If true the the planner will use all available processors. */
+    bool parallelismEnabled = true;
+    /** The initial epsilon for the internal ARA* algorithm.
+     *  See SBPL documentation for an explantion of this value*/
+    double initialEpsilon = 20.0;
+    /** The epsilon step size for the internal ARA* algoritm.
+     * See SBPL documentation for an explantion of this value*/
+    double epsilonSteps = 2.0;
+};
+
 class TraversabilityConfig
 {
 public:
@@ -31,12 +43,10 @@ public:
         , distToGround(0)
         , slopeMetricScale(1.0)
         , slopeMetric(NONE)
-        , parallelismEnabled(true)
         , gridResolution(0.0)
         , initialPatchVariance(0.01 * 0.01)
         , allowForwardDownhill(true)
-        , enableInclineLimitting(false)
-        
+        , enableInclineLimitting(false)        
     {};
     
     double maxStepHeight;

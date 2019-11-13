@@ -25,8 +25,9 @@ PlannerGui::PlannerGui(const std::string& dumpName): QObject()
     mobility = dump.getMobilityConf();
     conf = dump.getTravConfig();
     config = dump.getSplineConfig();
+    plannerConf = dump.getPlannerConfig();
     
-    planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
+    planner.reset(new ugv_nav4d::Planner(config, conf, mobility, plannerConf));
     
     sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(config);
     splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.minTurningRadius));
@@ -313,8 +314,10 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     conf.distToGround = 0.2;
     conf.minTraversablePercentage = 0.5;
     conf.allowForwardDownhill = true;
+    plannerConf.epsilonSteps = 2.0;
+    plannerConf.initialEpsilon = 20.0;
     
-    planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
+    planner.reset(new ugv_nav4d::Planner(config, conf, mobility, plannerConf));
     
     sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(config);
     

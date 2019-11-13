@@ -16,6 +16,7 @@ ugv_nav4d::PlannerDump::PlannerDump(const std::string& dumpName)
     READ(traversabilityConfig);
     READ(mobility);
     READ(splinePrimitiveConfig);
+    READ(plannerConfig);
     base::Pose tmp;
     READ(tmp);
     start.setPose(tmp);
@@ -35,6 +36,7 @@ ugv_nav4d::PlannerDump::PlannerDump(const ugv_nav4d::Planner& planner, const std
     WRITE(planner.traversabilityConfig);
     WRITE(planner.mobility);
     WRITE(planner.splinePrimitiveConfig);
+    WRITE(planner.plannerConfig);
     base::Pose tmp = startbody2Mls.getPose();
     WRITE(tmp);
     tmp = endbody2Mls.getPose();

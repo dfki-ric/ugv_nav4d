@@ -13,10 +13,10 @@ namespace ugv_nav4d
 {
 
 
-Planner::Planner(const sbpl_spline_primitives::SplinePrimitivesConfig& primitiveConfig, const TraversabilityConfig& traversabilityConfig,
-                const Mobility& mobility) :
+Planner::Planner(const sbpl_spline_primitives::SplinePrimitivesConfig& primitiveConfig, const TraversabilityConfig& traversabilityConfig, const Mobility& mobility, const PlannerConfig& plannerConfig) :
     splinePrimitiveConfig(primitiveConfig),
-    mobility(mobility)
+    mobility(mobility),
+    plannerConfig(plannerConfig)
 {
     setTravConfig(traversabilityConfig);
 }
@@ -91,7 +91,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     previousStartPositions.push_back(startGround2Mls.translation());
     
     env->expandMap(previousStartPositions);
-    
+    if(travMapCallback)
+        travMapCallback();
     try
     {
         env->setStart(startGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())));
@@ -99,17 +100,14 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     catch(const ugv_nav4d::ObstacleCheckFailed& ex)
     {
         std::cout << "Start inside obstacle." << std::endl;
-        return NO_SOLUTION;
+        if(dumpOnError)
+            PlannerDump dump(*this, "start_inside_obstacle", maxTime, startbody2Mls, endbody2Mls);
+        return START_INVALID;
     }
     catch(const std::runtime_error& ex)
     {
-        
-        if(travMapCallback)
-            travMapCallback();
-
         if(dumpOnError)
             PlannerDump dump(*this, "bad_start", maxTime, startbody2Mls, endbody2Mls);
-
         return START_INVALID;
     }
     
@@ -129,10 +127,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     //StateID2IndexMapping which is accessed inside force_planning_from_scratch_and_free_memory().
     try
     {
-        //has to be done before env->setStart and env->setGoal because it resets state ids
-        std::cout << "force from scracts" << std::endl;
         planner->force_planning_from_scratch_and_free_memory();
-        std::cout << "set search mode" << std::endl;
         planner->set_search_mode(false);
     }
     catch(const SBPL_Exception& ex)
@@ -143,17 +138,14 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     
     MDPConfig mdp_cfg;
         
-    if (! env->InitializeMDPCfg(&mdp_cfg)) {
+    if (!env->InitializeMDPCfg(&mdp_cfg)) {
         std::cout << "InitializeMDPCfg failed, start and goal id cannot be requested yet" << std::endl;
         return INTERNAL_ERROR;
     }
-        
-    std::cout << "SBPL: About to set start and goal, startid=" << mdp_cfg.startstateid << std::endl;
     if (planner->set_start(mdp_cfg.startstateid) == 0) {
         std::cout << "Failed to set start state" << std::endl;
         return INTERNAL_ERROR;
     }
-
     if (planner->set_goal(mdp_cfg.goalstateid) == 0) {
         std::cout << "Failed to set goal state" << std::endl;
         return INTERNAL_ERROR;
@@ -161,8 +153,9 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
 
     try
     {
-        planner->set_eps_step(1.0);
-        planner->set_initialsolution_eps(10.0);
+        std::cout << "Initial Epsilon: " << plannerConfig.initialEpsilon << ", steps: " << plannerConfig.epsilonSteps << std::endl;
+        planner->set_eps_step(plannerConfig.epsilonSteps);
+        planner->set_initialsolution_eps(plannerConfig.initialEpsilon);
         
         solutionIds.clear();
         if(!planner->replan(maxTime.toSeconds(), &solutionIds))

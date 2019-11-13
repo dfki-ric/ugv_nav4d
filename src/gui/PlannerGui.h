@@ -99,6 +99,7 @@ private:
     sbpl_spline_primitives::SplinePrimitivesConfig config;
     ugv_nav4d::Mobility mobility;
     ugv_nav4d::TraversabilityConfig conf;
+    ugv_nav4d::PlannerConfig plannerConf;
     std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
     std::vector<base::Trajectory> path;
     std::vector<base::Trajectory> beautifiedPath;
