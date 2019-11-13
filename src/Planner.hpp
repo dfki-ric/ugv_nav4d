@@ -83,6 +83,12 @@ public:
     
     /** Plan a path from @p start to @p end.
      * @param maxTime Maximum processor time to use.
+     * @param startbody2Mls The start position of the body in mls coordinates. This should be the location of the body-frame.
+     *                      The planner assumes that this location is config.distToGround meters above (!!!) the map. 
+     *                      The planner will transform this location to the ground frame using config.distToGround.
+     *                      If this location is not exactly config.distToGround meters above the map, the planner will
+     *                      fail to find the patch that the robot is standing on.
+     * @param endbody2Mls The goal position of the body in mls coordinates. See @p startbody2Mls for more details.
      * @param resultTrajectory2D The resulting trajectory without z-coordinates (all z-values are set to zero). 
      *                           This trajectory exists to avoid a bug in spline interpolation. In certain corner 
      *                           cases (when the z change between two steps is much greater than the xy change) 
@@ -92,9 +98,10 @@ public:
      *                           a fix because the trajectory follower (at the time of writing) ignores the z-axis anyway.
      *                           FIXME Further investigation is needed to find a real fix for this!
      *                           A ticket for this bug exists: https://git.hb.dfki.de/entern/ugv_nav4d/issues/1
-     * 
      * @param resultTrajectory3D The resulting trajectory. Make sure to read the comment for @p resultTrajectory2D to understand
      *                           why this exists!
+     * @param dumpOnError If true a planner dump will be written in case of error. This dump can be loaded and analyzed later
+     *                    using the ugv_nav4d_replay tool.
      * */
     PLANNING_RESULT plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls,
                          const base::samples::RigidBodyState& endbody2Mls, std::vector<base::Trajectory>& resultTrajectory2D,
