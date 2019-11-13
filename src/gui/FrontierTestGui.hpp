@@ -70,5 +70,6 @@ private:
     QDoubleSpinBox* xOrientationSpinbox;
     QDoubleSpinBox* yOrientationSpinbox;
     QDoubleSpinBox* zOrientationSpinbox;
+    double res;
 };
 }

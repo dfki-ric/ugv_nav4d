@@ -6,13 +6,16 @@
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <thread>
+#include <pcl/io/ply_io.h>
+#include <pcl/common/common.h>
+#include <pcl/common/transforms.h>
 #endif
 namespace ugv_nav4d
 {
 
 FrontierTestGui::FrontierTestGui(int argc, char** argv)
 {
-    double res = 0.2; //FIXME parse from argc
+    res = 0.2; //FIXME parse from argc
     TraversabilityConfig conf;
     conf.gridResolution = res;
     conf.maxSlope = 0.58; //40.0/180.0 * M_PI;
@@ -198,7 +201,6 @@ base::Orientation FrontierTestGui::getBoxOrientation() const
 }
 
 
-
 void FrontierTestGui::show()
 {
     widget->show();
@@ -254,6 +256,45 @@ void FrontierTestGui::loadMls()
 void FrontierTestGui::loadMls(const std::string& path)
 {
     std::ifstream fileIn(path);       
+    
+    if(path.find(".ply") != std::string::npos)
+    {
+        std::cout << "Loading PLY" << std::endl;
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
+        pcl::PLYReader plyReader;
+        if(plyReader.read(path, *cloud) >= 0)
+        {
+            pcl::PointXYZ mi, ma; 
+            pcl::getMinMax3D (*cloud, mi, ma); 
+
+            //transform point cloud to zero (instead we could also use MlsMap::translate later but that seems to be broken?)
+            Eigen::Affine3f pclTf = Eigen::Affine3f::Identity();
+            pclTf.translation() << -mi.x, -mi.y, -mi.z;
+            pcl::transformPointCloud (*cloud, *cloud, pclTf);
+            
+            pcl::getMinMax3D (*cloud, mi, ma); 
+            std::cout << "MIN: " << mi << ", MAX: " << ma << std::endl;
+        
+            const double mls_res = res;
+            const double size_x = ma.x;
+            const double size_y = ma.y;
+            
+            const maps::grid::Vector2ui numCells(size_x / mls_res + 1, size_y / mls_res + 1);
+            std::cout << "NUM CELLS: " << numCells << std::endl;
+            
+            maps::grid::MLSConfig cfg;
+            cfg.gapSize = 0.1;
+            maps::grid::MLSMapKalman mlsMap;
+            
+            mlsMap = maps::grid::MLSMapKalman(numCells, maps::grid::Vector2d(mls_res, mls_res), cfg);
+            mlsMap.mergePointCloud(*cloud, base::Transform3d::Identity());
+            mlsViz.updateMLSKalman(mlsMap);
+            frontGen->updateMap(mlsMap);
+        }
+        return;
+    }
+    
+    
     try
     {
         boost::archive::binary_iarchive mlsIn(fileIn);
