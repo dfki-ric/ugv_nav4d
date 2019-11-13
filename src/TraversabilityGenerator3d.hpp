@@ -86,7 +86,7 @@ public:
     
     void expandAll(TravGenNode *startNode);
     
-    /** @param expandDist is ignored if negative. */
+    /** @param expandDist How far should the map be expanded? If negative the whole map will be expanded. */
     void expandAll(TravGenNode *startNode, const double expandDist);
 
     virtual bool expandNode(TravGenNode *node);
