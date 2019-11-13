@@ -35,12 +35,3 @@ rock_executable(frontier_test_bin
    DEPS ugv_nav4d 
    DEPS_PKGCONFIG vizkit3d  maps-viz base-viz sbpl_spline_primitives-viz base-types)
    
-rock_executable(mls_clicker
-    SOURCES
-        MinimalClickGui.cpp
-        MinimalClickMain.cpp
-    HEADERS
-        MinimalClickGui.hpp
-    MOC
-        MinimalClickGui.hpp
-   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz sbpl_spline_primitives-viz base-types vizkit3d_debug_drawings)
