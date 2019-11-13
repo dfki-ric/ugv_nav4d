@@ -283,9 +283,9 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     config.numEndAngles = 12;
     config.destinationCircleRadius = 5;
     config.cellSkipFactor = 1.0;
-    config.generatePointTurnMotions = false;
+    config.generatePointTurnMotions = true;
     config.generateLateralMotions = false;
-    config.generateBackwardMotions = false;
+    config.generateBackwardMotions = true;
     config.splineOrder = 4;
     
     mobility.translationSpeed = 0.2;
@@ -294,10 +294,10 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     
     mobility.multiplierForward = 1;
     mobility.multiplierBackward = 1;
-    mobility.multiplierLateral = 1;
+    mobility.multiplierLateral = 3;
     mobility.multiplierBackwardTurn = 1;
     mobility.multiplierForwardTurn = 1;
-    mobility.multiplierPointTurn = 1;
+    mobility.multiplierPointTurn = 3;
      
     conf.gridResolution = res;
     conf.maxSlope = 0.57; //40.0/180.0 * M_PI;

@@ -320,6 +320,9 @@ As you can see all sharp turns have been removed from the splines.
 
 After filtering the splines are sampled using the planning grid resolution and the base cost for each motion is calculated. The sampled positions are later used during planning.
 
+If your environment contains tight spots it is recommended to enable `generateBackwardMotions`. Otherwise the planner will have a hard time finding solutions to get to the correct end orientation in tight spots.
+
+
 ##### Motion Cost Calculation
 The base cost for each motion is calculated as follows:
 ```
