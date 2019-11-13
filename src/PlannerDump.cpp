@@ -31,7 +31,9 @@ ugv_nav4d::PlannerDump::PlannerDump(const std::string& dumpName)
 
 ugv_nav4d::PlannerDump::PlannerDump(const ugv_nav4d::Planner& planner, const std::string& filePostfix, const base::Time& maxTimeA, const base::samples::RigidBodyState& startbody2Mls, const base::samples::RigidBodyState& endbody2Mls)
 {
-    std::ofstream output(getUnusedFilename(filePostfix), std::ios::binary | std::ios::out|std::ios::trunc);
+    const std::string targetFile = getUnusedFilename(filePostfix);
+    std::cout << "Dumping planner state to: " << targetFile << std::endl;
+    std::ofstream output(targetFile, std::ios::binary | std::ios::out|std::ios::trunc);
 
     WRITE(planner.traversabilityConfig);
     WRITE(planner.mobility);

@@ -247,10 +247,15 @@ void PlannerGui::setupUI()
     
     QPushButton* replanButton = new QPushButton("Plan");
     timeLayout->addWidget(replanButton);
+    
+    QPushButton* dumpButton = new QPushButton("Create PlannerDump");
+    timeLayout->addWidget(dumpButton);
 
     
     connect(replanButton, SIGNAL(released()), this, SLOT(replanButtonReleased()));
     connect(expandButton, SIGNAL(released()), this, SLOT(expandPressed()));
+    connect(dumpButton, SIGNAL(released()), this, SLOT(dumpPressed()));
+    
     
     layout->addWidget(bar);
     
@@ -587,6 +592,22 @@ void PlannerGui::expandPressed()
     obstacleMapViz.updateData((planner->getEnv()->getObstacleMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
     mlsViz.setPluginEnabled(false);
 }
+
+void PlannerGui::dumpPressed()
+{
+    std::cout << "Dumping" << std::endl;
+    
+    base::samples::RigidBodyState startState;
+    startState.position = start.position;
+    startState.orientation = start.orientation;
+    base::samples::RigidBodyState endState;
+    endState.position << goal.position;
+    endState.orientation = goal.orientation;
+    
+    PlannerDump dump(*planner, "created_by_test_gui", base::Time::fromSeconds(time->value()),
+                     startState, endState);
+}
+
 
 
 /* 

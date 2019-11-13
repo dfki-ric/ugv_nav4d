@@ -53,6 +53,7 @@ private slots:
     void timeEditingFinished();
     void replanButtonReleased();
     void expandPressed();
+    void dumpPressed();
     void slopeMetricComboBoxIndexChanged(int index);
     void parallelismCheckBoxStateChanged(int);
     void obstacleDistanceSpinBoxEditingFinished();
