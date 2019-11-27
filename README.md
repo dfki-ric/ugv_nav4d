@@ -238,7 +238,12 @@ During Planning states are created differently?! TODO
 
 ##### Why do I need the `searchGrid`?
 The searchGrid is a TravMap, just like the `travGen.trMap` but the nodes contain a different payload. They contain `XYZNodes`.
-The planner only operates on the searchGrid.
+The planner only operates on the searchGrid. The `searchGrid` represents the planner state space.
+
+
+##### Dumping Planner State
+In case of error the `Planner` dumps its state to a file (this can be enabled using the `dumpOnError` parameter).
+The state can be loaded and analyzed using the `ugv_nav4d_replay` binary. This binary loads the state and executes the planning in a controlled environment. This can be used to debug the planner. 
 
 
 
