@@ -24,6 +24,7 @@ rock_library(ugv_nav4d
         TraversabilityGenerator3d.cpp
         Dijkstra.cpp
         ObstacleMapGenerator3D.cpp
+        DebugDrawingDeclarations.cpp
     HEADERS 
         AreaExplorer.hpp
         Config.hpp
