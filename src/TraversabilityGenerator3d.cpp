@@ -553,6 +553,10 @@ void TraversabilityGenerator3d::expandAll(TravGenNode* startNode, const double e
 
 void TraversabilityGenerator3d::addInitialPatchToMLS()
 {
+    if(patchRadius == 0)
+        return;
+    
+    
     std::cout << "Adding Initial Patch" << std::endl;
     const Vector2d res = mlsGrid->getResolution();
     
