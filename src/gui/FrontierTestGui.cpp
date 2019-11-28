@@ -15,20 +15,23 @@ namespace ugv_nav4d
 
 FrontierTestGui::FrontierTestGui(int argc, char** argv)
 {
-    res = 0.2; //FIXME parse from argc
+    res = 0.1; //FIXME parse from argc
     TraversabilityConfig conf;
     conf.gridResolution = res;
-    conf.maxSlope = 0.58; //40.0/180.0 * M_PI;
-    conf.maxStepHeight = 0.5; //space below robot
-    conf.robotSizeX = 1.0;
-    conf.robotSizeY =  0.7;
-    conf.robotHeight = 0.5; //incl space below body
+    conf.maxSlope = 0.57; //40.0/180.0 * M_PI;
+    conf.maxStepHeight = 0.3; //space below robot
+    conf.robotSizeX = 0.9;
+    conf.robotSizeY =  0.5;
+    conf.robotHeight = 0.9; //incl space below body
     conf.slopeMetricScale = 0.0;
     conf.slopeMetric = SlopeMetric::NONE;
-    conf.inclineLimittingMinSlope = 0.35; // 10.0 * M_PI/180.0;
-    conf.inclineLimittingLimit = 0.44;// 5.0 * M_PI/180.0;
+    conf.inclineLimittingMinSlope = 0.22; // 10.0 * M_PI/180.0;
+    conf.inclineLimittingLimit = 0.43;// 5.0 * M_PI/180.0;
     conf.parallelismEnabled = false;
     conf.costFunctionDist = 0.4;
+    conf.distToGround = 0.2;
+    conf.minTraversablePercentage = 0.5;
+    conf.allowForwardDownhill = true;
     
     frontGen.reset(new FrontierGenerator(conf, costParams));
     areaExplorer.reset(new AreaExplorer(frontGen));
