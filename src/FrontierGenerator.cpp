@@ -150,18 +150,18 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
     //test code:
     
     
-    V3DD::COMPLEX_DRAWING([&]()
-    {
-        V3DD::CLEAR_DRAWING("ugv_nav4d_candidates");
-        for(const auto& node : candidatesWithOrientation)
-        {
-            base::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
-                               node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
-                               node.node->getHeight());
-            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-            V3DD::DRAW_CYLINDER("ugv_nav4d_candidates", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), V3DD::Color::blue);
-        }
-    });
+//     V3DD::COMPLEX_DRAWING([&]()
+//     {
+//         V3DD::CLEAR_DRAWING("ugv_nav4d_candidates");
+//         for(const auto& node : candidatesWithOrientation)
+//         {
+//             base::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
+//                                node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
+//                                node.node->getHeight());
+//             pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+//             V3DD::DRAW_CYLINDER("ugv_nav4d_candidates", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 1), V3DD::Color::blue);
+//         }
+//     });
     
     V3DD::COMPLEX_DRAWING([&]()
     {
@@ -223,19 +223,19 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
 //         }
 //     });
     
-    V3DD::COMPLEX_DRAWING([&]()
-    {
-        V3DD::CLEAR_DRAWING("ugv_nav4d_sortedNodes");
-        for(size_t i = 0; i < sortedNodes.size(); ++i)
-        {
-            const NodeWithOrientationAndCost& node = sortedNodes[i];
-            Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
-            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-            pos.z() += 0.02;
-            
-            V3DD::DRAW_TEXT("ugv_nav4d_sortedNodes", pos, std::to_string(i), 0.3, V3DD::Color::magenta);
-        }
-    });
+//     V3DD::COMPLEX_DRAWING([&]()
+//     {
+//         V3DD::CLEAR_DRAWING("ugv_nav4d_sortedNodes");
+//         for(size_t i = 0; i < sortedNodes.size(); ++i)
+//         {
+//             const NodeWithOrientationAndCost& node = sortedNodes[i];
+//             Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
+//             pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+//             pos.z() += 0.02;
+//             
+//             V3DD::DRAW_TEXT("ugv_nav4d_sortedNodes", pos, std::to_string(i), 0.3, V3DD::Color::magenta);
+//         }
+//     });
      
     
     return std::move(result);
@@ -371,7 +371,7 @@ std::vector<MovedNode> FrontierGenerator::getCollisionFreeNeighbor(const std::ve
                     poses.push_back(pose);
                     stats.calculateStatistics(path, poses, travGen.getTraversabilityMap());
                     
-                    if(!stats.getRobotStats().getNumObstacles() && !stats.getRobotStats().getNumFrontiers())
+                    if(stats.getRobotStats().getNumObstacles() == 0)
                     {
                         //found a patch that the robot can stand on without collision.
                         traversableNeighbor = currentNode;
