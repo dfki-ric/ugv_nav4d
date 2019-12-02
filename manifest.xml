@@ -19,7 +19,6 @@
   <depend package="planning/sbpl" />
   <depend package="planning/sbpl_spline_primitives" />
   <depend package="tools/backward" />
-  <depend package="control/dwa" />
   <depend package="slam/maps" />
   <depend package="slam/pcl" />
   <depend package="envire/envire_core" />
