@@ -245,20 +245,16 @@ The visualizer of the `TraversabilityMap3D` uses color coding to indicate the di
 #### Obstacle Checking
 To ensure that the robot can traverse a certain area, obstacle checks have to be done.
 If we would have infinite resources we could just collide the robot model with the MLS for every possible state and see if it collides or not.
-But since we have very limitted resources we cannot do that. Instead there are several places where obstacle checks occure:
+But since we have very limitted resources we cannot do that. Instead there are several obstacle checking phases:
 
 ##### 1. Obstacle Checks done during Expansion of the `TraversabilityMap3D`
-All obstacle checks in this phase are done using the rotation invariant bounding box of the robot. This is an axis aligned bounding box with side length `a` where `a = min(config.robotSizeX, config.robotSizeY)`. All obstacle checks done with this bounding box underestimate. I.e. when an a patch is an obstacle we are 100% sure that it is. But if it is not we cannot be sure that it is really not.
+All obstacle checks in this phase are done using the rotation invariant bounding box of the robot. This is an axis aligned bounding box with side length `min(config.robotSizeX, config.robotSizeY)`. With this check when an a patch is an obstacle we are 100% sure that it is. But if it is not we cannot be sure that it is really not. This greatly reduces map size and planning time without costing too much a checks are only done once per patch.
 
 - **Step height check**: A patch is an obstacle if the height between the patch and its neighbors is higher than the maximum step height of the robot. If the robot would stand on this patch, the neighboring patch would be inside the robots body. 
 - **Slope check**: A patch is an obstacle if the slope of the patch is above the slope limit.
-- **Map limit check**: A patch is an obstacle if the bounding box of the robot (again just using the smaller side length) leaves the map.
-- 
+- **Map limit check**: A patch is an obstacle if the bounding box of the robot (again just using the smaller side length) leaves the map (maximum possible map, not currently known map).
 
-
-
-
-#### The `ObstacleMap`
+##### 2. The `ObstacleMap`
 The `ObstacleMap` is a `TraversabilityMap3D` and is created by the `ObstacleMapGenerator`.
 The generator shares a lot of code with the `TraversabilityMapGenerator`. It differs only in how obstacle checks are done, i.e. what patches are marked as obstacles.
 
