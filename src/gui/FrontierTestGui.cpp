@@ -1,33 +1,37 @@
 #include "FrontierTestGui.hpp"
-#include "FrontierGenerator.hpp"
+#include <ugv_nav4d/FrontierGenerator.hpp>
 #ifndef Q_MOC_RUN
 #include <vizkit3d/Vizkit3DWidget.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
-#include <envire_core/graph/EnvireGraph.hpp>
-#include <envire_core/items/Item.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 #include <thread>
+#include <pcl/io/ply_io.h>
+#include <pcl/common/common.h>
+#include <pcl/common/transforms.h>
 #endif
 namespace ugv_nav4d
 {
 
 FrontierTestGui::FrontierTestGui(int argc, char** argv)
 {
-    double res = 0.2; //FIXME parse from argc
+    res = 0.1; //FIXME parse from argc
     TraversabilityConfig conf;
     conf.gridResolution = res;
-    conf.maxSlope = 0.58; //40.0/180.0 * M_PI;
-    conf.maxStepHeight = 0.5; //space below robot
-    conf.robotSizeX = 1.0;
-    conf.robotSizeY =  0.7;
-    conf.robotHeight = 0.5; //incl space below body
+    conf.maxSlope = 0.57; //40.0/180.0 * M_PI;
+    conf.maxStepHeight = 0.3; //space below robot
+    conf.robotSizeX = 0.9;
+    conf.robotSizeY =  0.5;
+    conf.robotHeight = 0.9; //incl space below body
     conf.slopeMetricScale = 0.0;
     conf.slopeMetric = SlopeMetric::NONE;
-    conf.heuristicType = HeuristicType::HEURISTIC_2D;
-    conf.inclineLimittingMinSlope = 0.35; // 10.0 * M_PI/180.0;
-    conf.inclineLimittingLimit = 0.44;// 5.0 * M_PI/180.0;
+    conf.inclineLimittingMinSlope = 0.22; // 10.0 * M_PI/180.0;
+    conf.inclineLimittingLimit = 0.43;// 5.0 * M_PI/180.0;
     conf.parallelismEnabled = false;
     conf.costFunctionDist = 0.4;
+    conf.distToGround = 0.2;
+    conf.minTraversablePercentage = 0.5;
+    conf.allowForwardDownhill = true;
     
     frontGen.reset(new FrontierGenerator(conf, costParams));
     areaExplorer.reset(new AreaExplorer(frontGen));
@@ -200,7 +204,6 @@ base::Orientation FrontierTestGui::getBoxOrientation() const
 }
 
 
-
 void FrontierTestGui::show()
 {
     widget->show();
@@ -257,33 +260,54 @@ void FrontierTestGui::loadMls(const std::string& path)
 {
     std::ifstream fileIn(path);       
     
-    if(path.find("graph_mls_kalman") != std::string::npos)
+    if(path.find(".ply") != std::string::npos)
     {
-        try
+        std::cout << "Loading PLY" << std::endl;
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
+        pcl::PLYReader plyReader;
+        if(plyReader.read(path, *cloud) >= 0)
         {
-            envire::core::EnvireGraph g;
-            g.loadFromFile(path);
-            maps::grid::MLSMapKalman mlsMap = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
-            mlsViz.updateMLSKalman(mlsMap);
-            frontGen->updateMap(mlsMap);
-            return;
-        }
-        catch(...) {}   
-    }
-    else
-    {
-        try
-        {
-            boost::archive::binary_iarchive mlsIn(fileIn);
-            maps::grid::MLSMapKalman mlsMap;
-            mlsIn >> mlsMap;
-            mlsViz.updateMLSKalman(mlsMap);
-            frontGen->updateMap(mlsMap);
-            return;
-        }
-        catch(...) {}
-    }
+            pcl::PointXYZ mi, ma; 
+            pcl::getMinMax3D (*cloud, mi, ma); 
 
+            //transform point cloud to zero (instead we could also use MlsMap::translate later but that seems to be broken?)
+            Eigen::Affine3f pclTf = Eigen::Affine3f::Identity();
+            pclTf.translation() << -mi.x, -mi.y, -mi.z;
+            pcl::transformPointCloud (*cloud, *cloud, pclTf);
+            
+            pcl::getMinMax3D (*cloud, mi, ma); 
+            std::cout << "MIN: " << mi << ", MAX: " << ma << std::endl;
+        
+            const double mls_res = res;
+            const double size_x = ma.x;
+            const double size_y = ma.y;
+            
+            const maps::grid::Vector2ui numCells(size_x / mls_res + 1, size_y / mls_res + 1);
+            std::cout << "NUM CELLS: " << numCells << std::endl;
+            
+            maps::grid::MLSConfig cfg;
+            cfg.gapSize = 0.1;
+            maps::grid::MLSMapKalman mlsMap;
+            
+            mlsMap = maps::grid::MLSMapKalman(numCells, maps::grid::Vector2d(mls_res, mls_res), cfg);
+            mlsMap.mergePointCloud(*cloud, base::Transform3d::Identity());
+            mlsViz.updateMLSKalman(mlsMap);
+            frontGen->updateMap(mlsMap);
+        }
+        return;
+    }
+    
+    
+    try
+    {
+        boost::archive::binary_iarchive mlsIn(fileIn);
+        maps::grid::MLSMapKalman mlsMap;
+        mlsIn >> mlsMap;
+        mlsViz.updateMLSKalman(mlsMap);
+        frontGen->updateMap(mlsMap);
+        return;
+    }
+    catch(...) {}
     std::cerr << "Unabled to load mls. Unknown format" << std::endl;
     
 }

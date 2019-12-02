@@ -13,12 +13,19 @@ enum SlopeMetric
     NONE
 };
 
-enum HeuristicType
+
+struct PlannerConfig
 {
-    HEURISTIC_2D,
-    HEURISTIC_3D
+    /**If true the the planner will use all available processors. */
+    bool parallelismEnabled = true;
+    /** The initial epsilon for the internal ARA* algorithm.
+     *  See SBPL documentation for an explantion of this value*/
+    double initialEpsilon = 20.0;
+    /** The epsilon step size for the internal ARA* algoritm.
+     * See SBPL documentation for an explantion of this value*/
+    double epsilonSteps = 2.0;
 };
-    
+
 class TraversabilityConfig
 {
 public:
@@ -36,12 +43,10 @@ public:
         , distToGround(0)
         , slopeMetricScale(1.0)
         , slopeMetric(NONE)
-        , heuristicType(HEURISTIC_2D)
-        , parallelismEnabled(true)
         , gridResolution(0.0)
         , initialPatchVariance(0.01 * 0.01)
-        , allowForwardDownhill(false)
-        
+        , allowForwardDownhill(true)
+        , enableInclineLimitting(false)        
     {};
     
     double maxStepHeight;
@@ -77,13 +82,16 @@ public:
     double distToGround;
     double slopeMetricScale;
     SlopeMetric slopeMetric;//which metric to use to factor in the slope of a motion
-    HeuristicType heuristicType;
     bool parallelismEnabled; //if true openMP will be used to parallelize the planning
     double gridResolution;
     double initialPatchVariance; //the variance that is set for initially added patches.
     
     //if true the robot is allowed to drive downhill forward, otherwise it has to drive downhill backwards
     bool allowForwardDownhill;
+    
+    //if true, incline limitting is enabled and the robot motion is restricted when moving on steep hills.
+    bool enableInclineLimitting;
+    
 };
 
 

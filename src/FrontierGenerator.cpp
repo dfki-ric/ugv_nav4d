@@ -38,7 +38,7 @@ struct NodeWithOrientationAndCost
     
     
 FrontierGenerator::FrontierGenerator(const TraversabilityConfig& travConf,
-                                     const CostFunctionParameters& costParams) :
+                                     const FrontierCostFunctionParameters& costParams) :
     costParams(costParams), travConf(travConf), travGen(travConf),
     robotPos(0, 0, 0), goalPos(0, 0, 0)
 {
@@ -150,18 +150,18 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
     //test code:
     
     
-    V3DD::COMPLEX_DRAWING([&]()
-    {
-        V3DD::CLEAR_DRAWING("ugv_nav4d_candidates");
-        for(const auto& node : candidatesWithOrientation)
-        {
-            base::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
-                               node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
-                               node.node->getHeight());
-            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-            V3DD::DRAW_CYLINDER("ugv_nav4d_candidates", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 2), V3DD::Color::blue);
-        }
-    });
+//     V3DD::COMPLEX_DRAWING([&]()
+//     {
+//         V3DD::CLEAR_DRAWING("ugv_nav4d_candidates");
+//         for(const auto& node : candidatesWithOrientation)
+//         {
+//             base::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x(), 
+//                                node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y(),
+//                                node.node->getHeight());
+//             pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+//             V3DD::DRAW_CYLINDER("ugv_nav4d_candidates", pos + base::Vector3d(travGen.getTraversabilityMap().getResolution().x() / 2.0, travGen.getTraversabilityMap().getResolution().y() / 2.0, travGen.getTraversabilityMap().getResolution().x() / 2.0), base::Vector3d(0.05, 0.05, 1), V3DD::Color::blue);
+//         }
+//     });
     
     V3DD::COMPLEX_DRAWING([&]()
     {
@@ -223,19 +223,19 @@ std::vector<RigidBodyState> FrontierGenerator::getNextFrontiers()
 //         }
 //     });
     
-    V3DD::COMPLEX_DRAWING([&]()
-    {
-        V3DD::CLEAR_DRAWING("ugv_nav4d_sortedNodes");
-        for(size_t i = 0; i < sortedNodes.size(); ++i)
-        {
-            const NodeWithOrientationAndCost& node = sortedNodes[i];
-            Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
-            pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
-            pos.z() += 0.02;
-            
-            V3DD::DRAW_TEXT("ugv_nav4d_sortedNodes", pos, std::to_string(i), 0.3, V3DD::Color::magenta);
-        }
-    });
+//     V3DD::COMPLEX_DRAWING([&]()
+//     {
+//         V3DD::CLEAR_DRAWING("ugv_nav4d_sortedNodes");
+//         for(size_t i = 0; i < sortedNodes.size(); ++i)
+//         {
+//             const NodeWithOrientationAndCost& node = sortedNodes[i];
+//             Eigen::Vector3d pos(node.node->getIndex().x() * travGen.getTraversabilityMap().getResolution().x() + travGen.getTraversabilityMap().getResolution().x() / 2.0, node.node->getIndex().y() * travGen.getTraversabilityMap().getResolution().y() + travGen.getTraversabilityMap().getResolution().y() / 2.0, node.node->getHeight());
+//             pos = travGen.getTraversabilityMap().getLocalFrame().inverse(Eigen::Isometry) * pos;
+//             pos.z() += 0.02;
+//             
+//             V3DD::DRAW_TEXT("ugv_nav4d_sortedNodes", pos, std::to_string(i), 0.3, V3DD::Color::magenta);
+//         }
+//     });
      
     
     return std::move(result);
@@ -307,14 +307,23 @@ std::vector<NodeWithOrientation> FrontierGenerator::getFrontierOrientation(const
         
         //check if frontier is allowed, if not use the closest allowed frontier
         bool orientationAllowed = false;
-        for(const base::AngleSegment& allowedOrientation : frontierPatch->getUserData().allowedOrientations)
+        if(travConf.enableInclineLimitting)
         {
-            if(allowedOrientation.isInside(orientation))
+            for(const base::AngleSegment& allowedOrientation : frontierPatch->getUserData().allowedOrientations)
             {
-                orientationAllowed = true;
-                break;
+                if(allowedOrientation.isInside(orientation))
+                {
+                    orientationAllowed = true;
+                    break;
+                }
             }
         }
+        else
+        {
+            //all orientations allowed
+            orientationAllowed = true;
+        }
+        
         if(!orientationAllowed)
         {
             const base::AngleSegment& firstSegment = frontierPatch->getUserData().allowedOrientations[0];
@@ -362,7 +371,7 @@ std::vector<MovedNode> FrontierGenerator::getCollisionFreeNeighbor(const std::ve
                     poses.push_back(pose);
                     stats.calculateStatistics(path, poses, travGen.getTraversabilityMap());
                     
-                    if(!stats.getRobotStats().getNumObstacles() && !stats.getRobotStats().getNumFrontiers())
+                    if(stats.getRobotStats().getNumObstacles() == 0)
                     {
                         //found a patch that the robot can stand on without collision.
                         traversableNeighbor = currentNode;
@@ -549,7 +558,7 @@ double FrontierGenerator::calcExplorablePatches(const TravGenNode* node) const
     return explorablePatches;
 }
 
-void FrontierGenerator::updateCostParameters(const CostFunctionParameters& params)
+void FrontierGenerator::updateCostParameters(const FrontierCostFunctionParameters& params)
 {
     costParams = params;
 }

@@ -1,18 +1,18 @@
 #include "PlannerGui.h"
-#include <envire_core/graph/EnvireGraph.hpp>
-#include <envire_core/items/Item.hpp>
 #include <QFileDialog>
 #include <QPushButton>
 #include <thread>
-#include "Config.hpp"
-#include "Planner.hpp"
-#include "PreComputedMotions.hpp"
+#include <ugv_nav4d/Config.hpp>
+#include <ugv_nav4d/Planner.hpp>
+#include <ugv_nav4d/PreComputedMotions.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 #include <pcl/io/ply_io.h>
 #include <pcl/common/common.h>
-#include "PlannerDump.hpp"
+#include <ugv_nav4d/PlannerDump.hpp>
+#include <pcl/common/transforms.h>
 
 using namespace ugv_nav4d;
 
@@ -25,11 +25,12 @@ PlannerGui::PlannerGui(const std::string& dumpName): QObject()
     mobility = dump.getMobilityConf();
     conf = dump.getTravConfig();
     config = dump.getSplineConfig();
+    plannerConf = dump.getPlannerConfig();
     
-    planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
+    planner.reset(new ugv_nav4d::Planner(config, conf, mobility, plannerConf));
     
     sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(config);
-    splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.mMinTurningRadius));
+    splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.minTurningRadius));
     splineViz.updateData(primitives);
 
     start = dump.getStart().getPose();
@@ -172,18 +173,6 @@ void PlannerGui::setupUI()
     slopeMetricTypeLayout->addWidget(slopeMetricComboBox);
     layout->addLayout(slopeMetricTypeLayout);
     
-    heuristicComboBox = new QComboBox();
-    heuristicComboBox->addItem("HEURISTIC_2D");
-    heuristicComboBox->addItem("HEURISTIC_3D");
-
-    connect(heuristicComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(heuristicComboBoxIndexChanged(int)));
-    QLabel* heuristicComboLabel = new QLabel();
-    slopeMetricComboLabel->setText("Heuristic Type");
-    QHBoxLayout* heuristicTypeLayout = new QHBoxLayout();
-    heuristicTypeLayout->addWidget(heuristicComboLabel);
-    heuristicTypeLayout->addWidget(heuristicComboBox);
-    layout->addLayout(heuristicTypeLayout);
-    
     
     startOrientatationSlider = new QSlider(Qt::Horizontal);
     startOrientatationSlider->setMinimum(0);
@@ -258,10 +247,15 @@ void PlannerGui::setupUI()
     
     QPushButton* replanButton = new QPushButton("Plan");
     timeLayout->addWidget(replanButton);
+    
+    QPushButton* dumpButton = new QPushButton("Create PlannerDump");
+    timeLayout->addWidget(dumpButton);
 
     
     connect(replanButton, SIGNAL(released()), this, SLOT(replanButtonReleased()));
     connect(expandButton, SIGNAL(released()), this, SLOT(expandPressed()));
+    connect(dumpButton, SIGNAL(released()), this, SLOT(dumpPressed()));
+    
     
     layout->addWidget(bar);
     
@@ -274,6 +268,7 @@ void PlannerGui::setupUI()
 
     connect(&mlsViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
     connect(&trav3dViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
+    connect(&obstacleMapViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
     connect(this, SIGNAL(plannerDone()), this, SLOT(plannerIsDone()));
     
     maxSlopeSpinBox->setValue(33.23);
@@ -293,44 +288,45 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     config.numEndAngles = 12;
     config.destinationCircleRadius = 5;
     config.cellSkipFactor = 1.0;
-    config.generatePointTurnMotions = false;
+    config.generatePointTurnMotions = true;
     config.generateLateralMotions = false;
-//     config.generateBackwardMotions = false;
+    config.generateBackwardMotions = true;
     config.splineOrder = 4;
     
-    mobility.mSpeed = 0.2;
-    mobility.mTurningSpeed = 0.6;
-    mobility.mMinTurningRadius = 0.2;
+    mobility.translationSpeed = 0.2;
+    mobility.rotationSpeed = 0.6;
+    mobility.minTurningRadius = 0.2; // increase this to reduce the number of available motion primitives
     
-    mobility.mMultiplierForward = 1;
-    mobility.mMultiplierBackward = 1;
-    mobility.mMultiplierLateral = 2;
-    mobility.mMultiplierBackwardTurn = 2;
-    mobility.mMultiplierForwardTurn = 1;
-    mobility.mMultiplierPointTurn = 8;
+    mobility.multiplierForward = 1;
+    mobility.multiplierBackward = 1;
+    mobility.multiplierLateral = 3;
+    mobility.multiplierBackwardTurn = 1;
+    mobility.multiplierForwardTurn = 1;
+    mobility.multiplierPointTurn = 3;
      
     conf.gridResolution = res;
     conf.maxSlope = 0.57; //40.0/180.0 * M_PI;
-    conf.maxStepHeight = 0.2; //space below robot
+    conf.maxStepHeight = 0.3; //space below robot
     conf.robotSizeX = 0.9;
     conf.robotSizeY =  0.5;
     conf.robotHeight = 0.9; //incl space below body
     conf.slopeMetricScale = 0.0;
     conf.slopeMetric = SlopeMetric::NONE;
-    conf.heuristicType = HeuristicType::HEURISTIC_2D;
     conf.inclineLimittingMinSlope = 0.22; // 10.0 * M_PI/180.0;
     conf.inclineLimittingLimit = 0.43;// 5.0 * M_PI/180.0;
     conf.parallelismEnabled = false;
     conf.costFunctionDist = 0.4;
     conf.distToGround = 0.2;
     conf.minTraversablePercentage = 0.5;
-    conf.allowForwardDownhill = false;
+    conf.allowForwardDownhill = true;
+    plannerConf.epsilonSteps = 2.0;
+    plannerConf.initialEpsilon = 20.0;
     
-    planner.reset(new ugv_nav4d::Planner(config, conf, mobility));
+    planner.reset(new ugv_nav4d::Planner(config, conf, mobility, plannerConf));
     
     sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(config);
     
-    splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.mMinTurningRadius));
+    splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.minTurningRadius));
     splineViz.updateData(primitives);
     
     if(argc > 1)
@@ -372,35 +368,6 @@ void PlannerGui::loadMls(const std::string& path)
 {
     std::ifstream fileIn(path);       
     
-    if(path.find("graph_mls_kalman") != std::string::npos)
-    {
-        std::cout << "Loading Graph " << std::endl;
-        try
-        {
-            envire::core::EnvireGraph g;
-            g.loadFromFile(path);
-            mlsMap = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
-            mlsViz.updateMLSKalman(mlsMap);
-            planner->updateMap(mlsMap);
-            return;
-        }
-        catch(...) {}
-    }
-    
-    if(path.find(".graph") != std::string::npos)
-    {
-        std::cout << "Loading Map from Graph" << std::endl;
-        try
-        {
-            envire::core::EnvireGraph g;
-            g.loadFromFile(path);
-            mlsMap = (*g.getItem<envire::core::Item<maps::grid::MLSMapKalman>>("mls_map", 0)).getData();
-            mlsViz.updateMLSKalman(mlsMap);
-            planner->updateMap(mlsMap);
-            return;
-        }
-        catch(...) {}
-    }
 
     if(path.find(".ply") != std::string::npos)
     {
@@ -411,17 +378,26 @@ void PlannerGui::loadMls(const std::string& path)
         {
             pcl::PointXYZ mi, ma; 
             pcl::getMinMax3D (*cloud, mi, ma); 
+
+            //transform point cloud to zero (instead we could also use MlsMap::translate later but that seems to be broken?)
+            Eigen::Affine3f pclTf = Eigen::Affine3f::Identity();
+            pclTf.translation() << -mi.x, -mi.y, -mi.z;
+            pcl::transformPointCloud (*cloud, *cloud, pclTf);
             
-            double mls_res = conf.gridResolution;
-            double size_x = std::max(ma.x, -std::min<float>(mi.x, 0.0)) * 2.0;
-            double size_y = std::max(ma.y, -std::min<float>(mi.y, 0.0)) * 2.0;
-            
+            pcl::getMinMax3D (*cloud, mi, ma); 
             std::cout << "MIN: " << mi << ", MAX: " << ma << std::endl;
+        
+            const double mls_res = conf.gridResolution;
+            const double size_x = ma.x;
+            const double size_y = ma.y;
+            
+            const maps::grid::Vector2ui numCells(size_x / mls_res + 1, size_y / mls_res + 1);
+            std::cout << "NUM CELLS: " << numCells << std::endl;
+            
             maps::grid::MLSConfig cfg;
-            mlsMap = maps::grid::MLSMapKalman(maps::grid::Vector2ui(size_x / mls_res, size_y / mls_res), maps::grid::Vector2d(mls_res, mls_res), cfg);
-            mlsMap.translate(base::Vector3d(- size_x / 2.0, - size_y / 2.0, 0));
-            base::Transform3d tf = base::Transform3d::Identity();
-            mlsMap.mergePointCloud(*cloud, tf);
+            cfg.gapSize = 0.1;
+            mlsMap = maps::grid::MLSMapKalman(numCells, maps::grid::Vector2d(mls_res, mls_res), cfg);
+            mlsMap.mergePointCloud(*cloud, base::Transform3d::Identity());
             mlsViz.updateMLSKalman(mlsMap);
             planner->updateMap(mlsMap);
         }
@@ -528,18 +504,6 @@ void PlannerGui::slopeMetricComboBoxIndexChanged(int index)
     }
 }
 
-void PlannerGui::heuristicComboBoxIndexChanged(int index)
-{
-    std::vector<HeuristicType> heuristics = {HeuristicType::HEURISTIC_2D, HeuristicType::HEURISTIC_3D};
-    if(size_t(index) < heuristics.size())
-    {
-        conf.heuristicType = heuristics[index];
-    }
-    else
-    {
-        throw std::runtime_error("unknown heuristic index");
-    }
-}
 
 void PlannerGui::parallelismCheckBoxStateChanged(int)
 {
@@ -599,20 +563,10 @@ void PlannerGui::startPlanThread()
 
 void PlannerGui::plannerIsDone()
 {   
-    std::vector<base::Trajectory> basePath;
-    for(auto& traj : path)
-    {
-        basePath.push_back(traj.toBaseTrajectory());
-    }
-    trajViz.updateTr(basePath);
+    trajViz.updateTr(path);
     trajViz.setLineWidth(8);
 
-    std::vector<base::Trajectory> beautifiedBasePath;
-    for(auto& traj : beautifiedPath)
-    {
-        beautifiedBasePath.push_back(traj.toBaseTrajectory());
-    }
-    trajViz2.updateTr(beautifiedBasePath);
+    trajViz2.updateTr(beautifiedPath);
     trajViz2.setLineWidth(8);    
     
     
@@ -639,6 +593,22 @@ void PlannerGui::expandPressed()
     mlsViz.setPluginEnabled(false);
 }
 
+void PlannerGui::dumpPressed()
+{
+    std::cout << "Dumping" << std::endl;
+    
+    base::samples::RigidBodyState startState;
+    startState.position = start.position;
+    startState.orientation = start.orientation;
+    base::samples::RigidBodyState endState;
+    endState.position << goal.position;
+    endState.orientation = goal.orientation;
+    
+    PlannerDump dump(*planner, "created_by_test_gui", base::Time::fromSeconds(time->value()),
+                     startState, endState);
+}
+
+
 
 /* 
 Start:  5.99972 0.399847 -1.31341d
@@ -656,17 +626,34 @@ void PlannerGui::plan(const base::Pose& start, const base::Pose& goal)
     
     std::cout << std::endl << std::endl;
     std::cout << "Planning: " << start << " -> " << goal << std::endl;
-    const bool result = planner->plan(base::Time::fromSeconds(time->value()),
-                                      startState, endState, path, beautifiedPath);
-    if(result)
+    const Planner::PLANNING_RESULT result = planner->plan(base::Time::fromSeconds(time->value()),
+                                            startState, endState, path, beautifiedPath);
+    
+    switch(result)
     {
-        std::cout << "DONE" << std::endl;
+        case Planner::GOAL_INVALID:
+            std::cout << "GOAL_INVALID" << std::endl;
+            break;
+        case Planner::START_INVALID:
+            std::cout << "START_INVALID" << std::endl;
+            break; 
+        case Planner::NO_SOLUTION:
+            std::cout << "NO_SOLUTION" << std::endl;
+            break;
+       case Planner::NO_MAP:
+            std::cout << "NO_MAP" << std::endl;
+            break;
+        case Planner::INTERNAL_ERROR:
+            std::cout << "INTERNAL_ERROR" << std::endl;
+            break;
+        case Planner::FOUND_SOLUTION:
+            std::cout << "FOUND_SOLUTION" << std::endl;
+            break;
+        default:
+            std::cout << "ERROR unknown result state" << std::endl;
+            break;
     }
-    else
-    {
-        std::cout << "FAIL" << std::endl;
-    }
-
+    
     emit plannerDone();
 }
 

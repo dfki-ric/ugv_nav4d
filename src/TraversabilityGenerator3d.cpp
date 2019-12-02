@@ -59,8 +59,8 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
     
     min += nodePos;
     max += nodePos;
-    
-    View area = mlsGrid->intersectCuboid(Eigen::AlignedBox3d(min, max));
+    const Eigen::AlignedBox3d searchArea(min, max);
+    View area = mlsGrid->intersectCuboid(searchArea);
     
     
     typedef pcl::PointXYZ PointT;
@@ -71,8 +71,8 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
     
     const Eigen::Vector2d& res = mlsGrid->getResolution();
     
-    //FIXME only works if there is only one patch per cell
-    const int patchCntTotal = area.getNumCells().y() * area.getNumCells().x();
+    
+    const int patchCntTotal = area.getNumCells().y() * area.getNumCells().x(); //FIXME only works if there is only one patch per cell
     int patchCnt = 0;
     for(size_t y = 0; y < area.getNumCells().y(); y++)
     {
@@ -110,8 +110,8 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
         return false;
     }
 
-    pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients ());
-    pcl::PointIndices::Ptr inliers (new pcl::PointIndices ());
+    pcl::ModelCoefficients coefficients;
+    pcl::PointIndices inliers;
     // Create the segmentation object
     pcl::SACSegmentation<PointT> seg;
     // Optional
@@ -127,17 +127,17 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
 
     // Segment the largest planar component from the remaining cloud
     seg.setInputCloud (points);
-    seg.segment (*inliers, *coefficients);
-    if (inliers->indices.size () <= 5)
+    seg.segment (inliers, coefficients);
+    if (inliers.indices.size () <= 5)
     {
 //         std::cout << "ransac fail: inliers->indices.size () <= 5" << std::endl;
         return false;
     }
 
 
-    Eigen::Vector3d normal(coefficients->values[0], coefficients->values[1], coefficients->values[2]);
+    Eigen::Vector3d normal(coefficients.values[0], coefficients.values[1], coefficients.values[2]);
     normal.normalize();
-    double distToOrigin = coefficients->values[3];
+    double distToOrigin = coefficients.values[3];
     
     node.getUserData().plane = Eigen::Hyperplane<double, 3>(normal, distToOrigin);
     
@@ -320,9 +320,14 @@ bool TraversabilityGenerator3d::checkForFrontier(const TravGenNode* node)
     return false;
 }
 
-bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
+bool TraversabilityGenerator3d::checkStepHeight(TravGenNode *node)
 {
-    const Eigen::Hyperplane<double, 3> &plane(node->getUserData().plane);
+    
+    /** What this method does:
+     * Check if any of the patches around @p node that the robot might stand on is higher than stepHeight.
+     * I.e. if any of the patches is so high that it would be inside the robots body.
+     */ 
+    
     const double slope = node->getUserData().slope;
     
     if(slope > config.maxSlope)
@@ -330,13 +335,18 @@ bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
         return false;
     }
     
-    //filter out steps that are too steep for the robot
+
     Eigen::Vector3d nodePos;
     if(!trMap.fromGrid(node->getIndex(), nodePos))
         throw std::runtime_error("TraversabilityGenerator3d: Internal error node out of grid");
     nodePos.z() += node->getHeight();
 
-    const double growSize = std::min(config.robotSizeX, config.robotSizeY) / 2.0 + 1e-5;
+    //FIXME this is not the perfect solution because it ignores robot orientation.
+    //Further checks down the line are required.
+    //If further checks are required anyway, does this make sense at all?
+    
+    const double smallerRobotSize = std::min(config.robotSizeX, config.robotSizeY);
+    const double growSize = smallerRobotSize / 2.0 + 1e-5;
     
     Eigen::Vector3d min(-growSize, -growSize, 0);
     Eigen::Vector3d max(-min);
@@ -345,11 +355,52 @@ bool TraversabilityGenerator3d::checkForObstacles(TravGenNode *node)
     min += nodePos;
     max += nodePos;
     
-    View area = mlsGrid->intersectCuboid(Eigen::AlignedBox3d(min, max));
+    const Eigen::AlignedBox3d limitBox(min, max);
+    View area = mlsGrid->intersectCuboid(limitBox);
     
-    for(size_t y = 0; y < area.getNumCells().y(); y++)
+    
+    
+//     V3DD::COMPLEX_DRAWING([&]
+//     {   
+//         static int i = 0;
+//         ++i;
+//         if((i % 30) == 0)
+//             V3DD::DRAW_AABB("ugv_nav4d_trav_obstacle_check_box", limitBox, V3DD::Color::red);
+//     });
+    
+    
+    const Eigen::Hyperplane<double, 3> &plane(node->getUserData().plane);
+    
+
+    Index minIdx;
+    Index maxIdx;
+    
+    
+    if(!mlsGrid->toGrid(limitBox.min(), minIdx))
     {
-        for(size_t x = 0; x < area.getNumCells().x(); x++)
+        //when the robot bounding box leaves the map this patch cannot be traversable
+        return false;
+    }
+    if(!mlsGrid->toGrid(limitBox.max(), maxIdx))
+    {
+        //when the robot bounding box leaves the map this patch cannot be traversable
+        return false;
+    }
+ 
+    Index curIndex = minIdx;
+    Index areaSize(maxIdx-minIdx);
+    
+    //the robot size has been set to a value smaller than one cell. Thus we cannot check anything.
+    if(area.getNumCells().y() <= 0 || area.getNumCells().x() <= 0)
+        return true;
+    
+    //intersectCuboid returns an area that is one patch bigger than requested. I.e.
+    //it interpretes both min and max as inclusive. However, we consider max to be exclusive and
+    //thus reduce the cell count by one
+    for(size_t y = 0; y < area.getNumCells().y() - 1; y++, curIndex.y() += 1)
+    {
+        curIndex.x() = minIdx.x();
+        for(size_t x = 0; x < area.getNumCells().x() - 1; x++, curIndex.x() += 1)
         {
             Eigen::Vector3d pos;
             if(!area.fromGrid(Index(x,y), pos))
@@ -502,6 +553,10 @@ void TraversabilityGenerator3d::expandAll(TravGenNode* startNode, const double e
 
 void TraversabilityGenerator3d::addInitialPatchToMLS()
 {
+    if(patchRadius == 0)
+        return;
+    
+    
     std::cout << "Adding Initial Patch" << std::endl;
     const Vector2d res = mlsGrid->getResolution();
     
@@ -610,7 +665,7 @@ TravGenNode* TraversabilityGenerator3d::generateStartNode(const Eigen::Vector3d&
     startNode = createTraversabilityPatchAt(idx, startPos.z());
     if(!startNode)
     {
-        std::cout << "TraversabilityGenerator3d::generateStartNode: Could not create travNode for given start position, no matching / not enough MSL patches" << std::endl;
+        std::cout << "TraversabilityGenerator3d::generateStartNode: Could not create travNode for given start position, no matching / not enough MLS patches" << std::endl;
         return startNode;
     }
 
@@ -634,16 +689,19 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
         return false;
     }
 
-    if(!checkForObstacles(node))
+    if(!checkStepHeight(node))
     {
         node->setType(TraversabilityNodeBase::OBSTACLE);
         return false;
     }
     
-    if(!computeAllowedOrientations(node))
+    if(config.enableInclineLimitting)
     {
-        node->setType(TraversabilityNodeBase::OBSTACLE);
-        return false;
+        if(!computeAllowedOrientations(node))
+        {
+            node->setType(TraversabilityNodeBase::OBSTACLE);
+            return false;
+        }
     }
 
     //add surrounding

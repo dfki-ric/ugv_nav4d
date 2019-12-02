@@ -5,8 +5,8 @@
 #include <base/Eigen.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
 #include <vizkit3d/TraversabilityMap3dVisualization.hpp>
-#include "FrontierGenerator.hpp"
-#include "AreaExplorer.hpp"
+#include <ugv_nav4d/FrontierGenerator.hpp>
+#include <ugv_nav4d/AreaExplorer.hpp>
 #endif
 
 namespace vizkit3d 
@@ -60,7 +60,7 @@ private:
     base::Vector3d robotPos;
     base::Vector3d goalPos;
     base::Quaterniond boxOrientation;
-    CostFunctionParameters costParams;
+    FrontierCostFunctionParameters costParams;
     QDoubleSpinBox* distToGoalFactorSpinBox;
     QDoubleSpinBox* distFromStartFactorSpinBox;
     QDoubleSpinBox* explorableFactorSpinBox;
@@ -70,5 +70,6 @@ private:
     QDoubleSpinBox* xOrientationSpinbox;
     QDoubleSpinBox* yOrientationSpinbox;
     QDoubleSpinBox* zOrientationSpinbox;
+    double res;
 };
 }
