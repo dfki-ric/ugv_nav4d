@@ -555,6 +555,29 @@ void PlannerGui::startPlanThread()
     bar->setMaximum(0);
     std::thread t([this](){
         V3DD::CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(this->widget);
+        
+        std::cout << "Start: \n";
+        std::cout << "X: " << this->start.position.x() << "\n";
+        std::cout << "Y: " << this->start.position.y() << "\n";
+        std::cout << "Z: " << this->start.position.z() << "\n";
+        std::cout << "qx: " << this->start.orientation.x() << "\n";
+        std::cout << "qy: " << this->start.orientation.y() << "\n";
+        std::cout << "qz: " << this->start.orientation.z() << "\n";
+        std::cout << "qwz: " << this->start.orientation.w() << "\n";
+        std::cout << "End: \n";
+        std::cout << "X: " << this->goal.position.x() << "\n";
+        std::cout << "Y: " << this->goal.position.y() << "\n";
+        std::cout << "Z: " << this->goal.position.z() << "\n";
+        std::cout << "qx: " << this->goal.orientation.x() << "\n";
+        std::cout << "qy: " << this->goal.orientation.y() << "\n";
+        std::cout << "qz: " << this->goal.orientation.z() << "\n";
+        std::cout << "qwz: " << this->goal.orientation.w() << "\n";
+        std::cout << std::endl << std::endl;
+        
+        
+        
+        
+        
         this->plan(this->start, this->goal);
     });
     t.detach(); //needed to avoid destruction of thread at end of method
