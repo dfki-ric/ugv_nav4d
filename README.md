@@ -331,7 +331,11 @@ After filtering the splines are sampled using the planning grid resolution and t
 If your environment contains tight spots it is recommended to enable `generateBackwardMotions`. Otherwise the planner will have a hard time finding solutions to get to the correct end orientation in tight spots.
 
 
-##### Motion Cost Calculation
+##### Motion Base Cost Calculation
+Upon motion generation every motion is asigned a base cost.
+I.e. the cost that would arise when the robot would follow that motion on a horizontal flat surface.
+Factors for steepness and other penalties might be factored later during planning on a case to case basis.
+
 The base cost for each motion is calculated as follows:
 ```
 translationDist = < distance that the robot has to travel while following the spline >
@@ -342,10 +346,12 @@ travelTime      = max(rotationTime, translationTime)
 costMultiplier  = < the configured multiplier for this particular motion type >
 baseCost        = int(ceil(travelTime * 1000 * costMultiplier))
 ```
-The travelTime is scaled by 1000 to retain precision when converting to integer.
+The travelTime is scaled by 1000 to retain three digits of precision when converting to integer.
 
-The `baseCost` is used for cost calculation during planning.
-However since all primitives are 2-dimensional the `baseCost` is only accurat on perfectly flat terrain. To factor in the slope of the terrain the cost is scaled based on one of the following metrics:
+##### Motion Cost Scaling
+
+Since all primitives are 2-dimensional the `baseCost` is only accurat on perfectly flat terrain. To factor in the slope of the terrain the cost is scaled based on one of the following metrics during planning.
+
 ###### SlopeMetric::NONE
 ```
 cost = motion.baseCost;
@@ -361,7 +367,7 @@ slopeFactor = < max slope under spline> * config.slopeMetricScale;
 cost = motion.baseCost + motion.baseCost * slopeFactor;
 ```
 ###### SlopeMetric::TRIANGLE_SLOPE
-This one is a littel tricky. 
+This one is a little tricky. 
 We take the length of the spline and project it onto the slope between the start and end position. Then we measure the length of the projected line and use that to re-calculate the cost using the base cost formula (see above). This should give a good approximation of the real travel time needed to move up (or down) a slope.
 ```
 heightDiff = < height difference between start and end of motion >
