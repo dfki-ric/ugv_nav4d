@@ -248,45 +248,45 @@ If we would have infinite resources we could just collide the robot model with t
 But since we have very limitted resources we cannot do that. Instead there are several obstacle checking phases:
 
 ##### 1. Obstacle Checks done during Expansion of the `TraversabilityMap3D`
-All obstacle checks in this phase are done using the rotation invariant bounding box of the robot. This is an axis aligned bounding box with side length `min(config.robotSizeX, config.robotSizeY)`. With this check when an a patch is an obstacle we are 100% sure that it is. But if it is not we cannot be sure that it is really not. This greatly reduces map size and planning time without costing too much a checks are only done once per patch.
+All obstacle checks in this phase are done using the rotation invariant bounding box of the robot. This is an axis aligned bounding box with side length `min(config.robotSizeX, config.robotSizeY)`. With this check when an a patch is an obstacle we are 100% sure that it is. But if it is not we cannot be sure that it is not. This greatly reduces map size and planning time without costing too much as checks are only done once per patch.
+It also means that a full 3D oriented bounding box check is still necessary during planning to factor in different side lengths and the orientation of the robot.
 
 - **Step height check**: A patch is an obstacle if the height between the patch and its neighbors is higher than the maximum step height of the robot. If the robot would stand on this patch, the neighboring patch would be inside the robots body. 
 - **Slope check**: A patch is an obstacle if the slope of the patch is above the slope limit.
 - **Map limit check**: A patch is an obstacle if the bounding box of the robot (again just using the smaller side length) leaves the map (maximum possible map, not currently known map).
+
+I.e. this step marks patches in the `TraversabilityMap3D` as obstacle if the robot would touch an obstacle when standing (centered) on this patch, or when the slope is too steep.
+
+
 
 ##### 2. The `ObstacleMap`
 The `ObstacleMap` is a `TraversabilityMap3D` and is created by the `ObstacleMapGenerator`.
 The generator shares a lot of code with the `TraversabilityMapGenerator`. It differs only in how obstacle checks are done, i.e. what patches are marked as obstacles.
 
 Patches are marked as obstacle if there is a patch above the marked patch and below robot height. I.e. if the robot would stand on this patch, the patch above would be inside the robot.
-The only robot dimension needed to generate the obstacle map is the height.
+This is a tiny but important difference. It means that, if the robot is on this patch with even a tiny bit of its body, it would touch an obstacle.
 
-Using the obstacle map, the 3D collision test (that is done during planning) is reduced to a 2D collision test on the obstacle map. This is the only reason for the existence of the obstacle map. It reduces the 3D collison check complexity to 2D. Basically the height check is pre-computed for each patch and stored in the obstacle map. This greatly reduced runtime because it turns repeated 3D oriented-bounding-box-intersections into 2D-oriented-boundingbox-intersections which are much faster.
+Using the obstacle map, the 3D collision test (that is necessary during planning) is reduced to a 2D oriented bounding box test. This is the only reason for the existence of the obstacle map. It reduces the complexity of the 3D collison check to 2D. Basically the height check is pre-computed for each patch and stored in the obstacle map. 
 
-The `ObstacleMap` is used during planning to check if successor states are inside an obstacle or not.
-
-
-
-##### Dumping Planner State
-In case of error the `Planner` dumps its state to a file (this can be enabled using the `dumpOnError` parameter).
-The state can be loaded and analyzed using the `ugv_nav4d_replay` binary. This binary loads the state and executes the planning in a controlled environment. This can be used to debug the planner. 
-
+The `ObstacleMap` is used during planning to check if the robot would hit an obstacle when moving to a certain state. 
 
 
 #### Heuristic
+ARA* is a real-timeish version of A*. Thus it needs a heuristic.
 
-The heuristic h(a,b) between two cells a and b is the time it would take the robot to follow the shortest path from a to b. The shortest path is calculated ***without*** taking any of the following into account:
-- the robot dimensions
-- collision checks
-- steepness of the terrain
+The heuristic h(a,b) between two cells a and b is the time it would take the robot to follow the shortest path from a to b on the TraversabilityMap3D. The shortest path is calculated ***without*** taking any of the following into account:
+- the robot dimensions and orientation (The minimum bounding box has already been checked while expanding the map)
+- collision checks on the ObstacleMap
+- steepness of the terrain (i.e. as long as a patch has a steepness below the limit the costs are the same)
 - motion primitives
 - motion restrictions of the robot
 
 I.e. it is the path that the robot would be able to follow if it was infinitesimal small and could change direction instantly. 
 
-The heuristic is computed beforehand for all nodes of the map. Changing the code to on-demand heuristic calculation is possible. It was not done because it was not needed (fast enough for our maps) at the time of writing.
+The heuristic is computed beforehand for all nodes of the map. Changing the code to on-demand heuristic should be possible. It was not done because it was not needed (fast enough for our maps) at the time of writing.
 
 SBPL expects the heuristic to be an integer. To avoid losing precision when converting to int the heuristic value is scaled by `Motion::costScaleFactor` (usually 1000) before conversion. Without the scaling small movements have no cost at all.
+
 
 #### Motion Primitives
 The planner uses motion primitives, a set of pre-defined small motions, to determine how the robot can move from one state to the next.
@@ -372,6 +372,10 @@ cost = calculateCost(approxMotionLen)
 None of those metrices captures the real cost of moving up or down a slope. They have been implemented for experimentation. However those experiments have never been done (we ran out of time and there where no slopes in the final demo). Thus the performance of the metrices is unclear.
 
 
+
+#### Dumping Planner State
+In case of error the `Planner` dumps its state to a file (this can be enabled using the `dumpOnError` parameter).
+The state can be loaded and analyzed using the `ugv_nav4d_replay` binary. This binary loads the state and executes the planning in a controlled environment. This can be used to debug the planner. 
 
 
 
