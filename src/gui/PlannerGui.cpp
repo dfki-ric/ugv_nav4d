@@ -232,17 +232,17 @@ void PlannerGui::setupUI()
     
     
     
-    parallelismCheckBox = new QCheckBox();
-    parallelismCheckBox->setChecked(false);
+    numThreadsSpinBox = new QSpinBox();
+    numThreadsSpinBox->setValue(4);
     QLabel* parallelismLabel = new QLabel();
-    parallelismLabel->setText("Parallel getSuccs()");
+    parallelismLabel->setText("Number of Threads");
     
     QHBoxLayout* parallelismLayout = new QHBoxLayout();
     parallelismLayout->addWidget(parallelismLabel);
-    parallelismLayout->addWidget(parallelismCheckBox);
+    parallelismLayout->addWidget(numThreadsSpinBox);
     
     layout->addLayout(parallelismLayout);
-    connect(parallelismCheckBox, SIGNAL(stateChanged(int)), this, SLOT(parallelismCheckBoxStateChanged(int)));
+    connect(numThreadsSpinBox, SIGNAL(valueChanged(int)), this, SLOT(numThreadsValueChanged(int)));
     
     
     QPushButton* replanButton = new QPushButton("Plan");
@@ -314,13 +314,13 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     conf.slopeMetric = SlopeMetric::NONE;
     conf.inclineLimittingMinSlope = 0.22; // 10.0 * M_PI/180.0;
     conf.inclineLimittingLimit = 0.43;// 5.0 * M_PI/180.0;
-    conf.parallelismEnabled = false;
     conf.costFunctionDist = 0.4;
     conf.distToGround = 0.2;
     conf.minTraversablePercentage = 0.5;
     conf.allowForwardDownhill = true;
     plannerConf.epsilonSteps = 2.0;
     plannerConf.initialEpsilon = 20.0;
+    plannerConf.numThreads = 4;
     
     planner.reset(new ugv_nav4d::Planner(config, conf, mobility, plannerConf));
     
@@ -504,11 +504,14 @@ void PlannerGui::slopeMetricComboBoxIndexChanged(int index)
     }
 }
 
-
-void PlannerGui::parallelismCheckBoxStateChanged(int)
+void PlannerGui::numThreadsValueChanged(int newValue)
 {
-    conf.parallelismEnabled = parallelismCheckBox->isChecked();
+    if(newValue >= 1)
+    {
+        plannerConf.numThreads = newValue; 
+    }
 }
+
 
 void PlannerGui::goalOrientationChanged(int newValue)
 {
@@ -547,6 +550,7 @@ void PlannerGui::timeEditingFinished()
 void PlannerGui::replanButtonReleased()
 {
     planner->setTravConfig(conf);
+    planner->setPlannerConfig(plannerConf);
     startPlanThread();       
 }
 

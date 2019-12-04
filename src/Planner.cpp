@@ -6,6 +6,7 @@
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include <base/Eigen.hpp>
 #include "PlannerDump.hpp"
+#include <omp.h>
 
 using namespace maps::grid;
 
@@ -64,6 +65,10 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
                                        std::vector<base::Trajectory>& resultTrajectory2D,
                                        std::vector<base::Trajectory>& resultTrajectory3D, bool dumpOnError)
 { 
+    
+    std::cout << "Planning with " << plannerConfig.numThreads << " threads" << std::endl;
+    omp_set_num_threads(plannerConfig.numThreads);
+    
     
     V3DD::CLEAR_DRAWING("ugv_nav4d_successors");
     
@@ -218,5 +223,10 @@ void Planner::setTravConfig(const TraversabilityConfig& config)
     if(env)
         env->setTravConfig(config);
 }
+
+ void Planner::setPlannerConfig(const PlannerConfig& config)
+ {
+     plannerConfig = config;
+ }
 
 }

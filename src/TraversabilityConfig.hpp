@@ -16,14 +16,14 @@ enum SlopeMetric
 
 struct PlannerConfig
 {
-    /**If true the the planner will use all available processors. */
-    bool parallelismEnabled = true;
     /** The initial epsilon for the internal ARA* algorithm.
      *  See SBPL documentation for an explantion of this value*/
     double initialEpsilon = 20.0;
     /** The epsilon step size for the internal ARA* algoritm.
      * See SBPL documentation for an explantion of this value*/
     double epsilonSteps = 2.0;
+    /** Number of threads to use during planning */
+    unsigned numThreads = 1;
 };
 
 class TraversabilityConfig
@@ -93,9 +93,6 @@ public:
     
     /** which metric to use to factor in the slope of a motion */
     SlopeMetric slopeMetric;
-
-    /** if true openMP will be used to parallelize the planning */
-    bool parallelismEnabled;
     
     double gridResolution;
     

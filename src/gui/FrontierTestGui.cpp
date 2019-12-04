@@ -27,7 +27,6 @@ FrontierTestGui::FrontierTestGui(int argc, char** argv)
     conf.slopeMetric = SlopeMetric::NONE;
     conf.inclineLimittingMinSlope = 0.22; // 10.0 * M_PI/180.0;
     conf.inclineLimittingLimit = 0.43;// 5.0 * M_PI/180.0;
-    conf.parallelismEnabled = false;
     conf.costFunctionDist = 0.4;
     conf.distToGround = 0.2;
     conf.minTraversablePercentage = 0.5;
