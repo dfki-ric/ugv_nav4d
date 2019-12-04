@@ -49,8 +49,12 @@ public:
         , enableInclineLimitting(false)        
     {};
     
+    /** The maximum step height that the robot can traverse.
+     *  This is used during map expansion. Steps heigher than this become map boundaries */
     double maxStepHeight;
-    double maxSlope; /**[rad] maximum traversable slope. Above this slope no travmap entries will be generated*/
+    
+    /**[rad] maximum traversable slope. Above this slope no travmap entries will be generated*/
+    double maxSlope; 
     
     /** ---- incline limitting -----
      * The orientation at which the path crosses the incline of the terrain is limited. The steeper the terrain, the less is the path allowed to deviate from the steepest direction. I.e. the steeper it gets, the more
@@ -76,14 +80,17 @@ public:
     double robotHeight;
     double robotSizeX;
     double robotSizeY;
+    
     /* Distance from body frame to ground
      * start and goal position are expected in body frame
      */
     double distToGround;
+    
     double slopeMetricScale;
     SlopeMetric slopeMetric;//which metric to use to factor in the slope of a motion
     bool parallelismEnabled; //if true openMP will be used to parallelize the planning
     double gridResolution;
+    
     double initialPatchVariance; //the variance that is set for initially added patches.
     
     //if true the robot is allowed to drive downhill forward, otherwise it has to drive downhill backwards
