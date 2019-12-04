@@ -224,7 +224,7 @@ public:
 private:
     
     /** Check if all nodes on the path from @p sourceNode following @p motion are traversable.
-    /** @return the target node of the motion or nullptr if motion not possible */
+     * @return the target node of the motion or nullptr if motion not possible */
     TravGenNode* checkTraversableHeuristic(const maps::grid::Index sourceIndex, ugv_nav4d::TravGenNode* sourceNode, 
                                            const ugv_nav4d::Motion& motion, const maps::grid::TraversabilityMap3d< ugv_nav4d::TravGenNode* >& trMap);
     

@@ -23,7 +23,7 @@ protected:
     const sbpl_spline_primitives::SplinePrimitivesConfig splinePrimitiveConfig; 
     const Mobility mobility;
     TraversabilityConfig traversabilityConfig;
-    const PlannerConfig plannerConfig;
+    PlannerConfig plannerConfig;
     std::vector<int> solutionIds;
     
     std::function<void ()> travMapCallback;
@@ -120,6 +120,8 @@ public:
     void genTravMap(const base::samples::RigidBodyState& startbody2Mls);    
     
     void setTravConfig(const TraversabilityConfig& config);
+    
+    void setPlannerConfig(const PlannerConfig& config);
     
     const maps::grid::TraversabilityMap3d<TravGenNode*> &getTraversabilityMap() const;
     

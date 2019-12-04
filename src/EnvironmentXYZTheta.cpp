@@ -658,7 +658,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     //due to the different sanity checks
     //the chunk size (5) was chosen to reduce dynamic scheduling overhead.
     //**No** tests have been done to verify whether 5 is a good value or not!
-    #pragma omp parallel for schedule(dynamic, 5) if(travConf.parallelismEnabled)
+    #pragma omp parallel for schedule(dynamic, 5)
     for(size_t i = 0; i < motions.size(); ++i)
     {
         //check that the motion is traversable (without collision checks) and find the goal node of the motion

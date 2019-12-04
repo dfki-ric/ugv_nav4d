@@ -390,12 +390,12 @@ The state can be loaded and analyzed using the `ugv_nav4d_replay` binary. This b
 Two user interfaces can be found in `src/gui`. They are intended for testing and debugging.
 
 ##### PlannerGui
-
 The `PlannerGui` is the main testing gui. It is designed to experiment with differen planner parameters on a static map.
 It can load point clouds from ply or serialized mls maps. 
 A left click sets the start location, a right click sets the end location.
 
 In addition the `PlannerGui` can also be used to load and analyze planner dumps.
+
 
 ##### FrontierTestGui
 This gui was developed to test and debug the `AreaExplorer`. 
