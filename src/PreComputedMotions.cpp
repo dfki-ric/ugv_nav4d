@@ -1,6 +1,5 @@
 #include "PreComputedMotions.hpp"
 #include <maps/grid/GridMap.hpp>
-#include <dwa/SubTrajectory.hpp>
 #include <cmath>
 #include <base/Angle.hpp>
 
@@ -47,11 +46,12 @@ void PreComputedMotions::sampleOnResolution(double gridResolution,base::geometry
         std::tie(point,tangent) = spline.getPointAndTangent(param);
         const base::Orientation2D orientation(std::atan2(tangent.y(), tangent.x()));
 
+
+        const base::Pose2D pose(point, orientation);
+        
         //point needs to be offset to the middle of the grid, 
         //as all path computation also starts in the middle
         //if not we would get a wrong diff
-        const base::Pose2D pose(point, orientation);
-        
         point += base::Vector2d(gridResolution /2.0, gridResolution /2.0);
 
         maps::grid::Index diff;
@@ -92,7 +92,7 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
                                               double obstGridResolution, double travGridResolution)
 {
     const int numAngles = primGen.getConfig().numAngles;
-    const double maxCurvature = calculateCurvatureFromRadius(mobilityConfig.mMinTurningRadius);
+    const double maxCurvature = calculateCurvatureFromRadius(mobilityConfig.minTurningRadius);
     
     for(int angle = 0; angle < numAngles; ++angle)
     {
@@ -110,26 +110,24 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
             motion.endTheta =  DiscreteTheta(static_cast<int>(prim.endAngle), numAngles);
             motion.startTheta = DiscreteTheta(static_cast<int>(prim.startAngle), numAngles);
             motion.costMultiplier = 1; //is changed in the switch-case below
-            motion.speed = mobilityConfig.mSpeed;
            
             switch(prim.motionType)
             {
                 case SplinePrimitive::SPLINE_MOVE_FORWARD:
                     motion.type = Motion::Type::MOV_FORWARD;
-                    motion.costMultiplier = mobilityConfig.mMultiplierForwardTurn;
+                    motion.costMultiplier = mobilityConfig.multiplierForwardTurn;
                     break;
                 case SplinePrimitive::SPLINE_MOVE_BACKWARD:
                     motion.type = Motion::Type::MOV_BACKWARD;
-                    motion.costMultiplier = mobilityConfig.mMultiplierBackwardTurn;
+                    motion.costMultiplier = mobilityConfig.multiplierBackwardTurn;
                     break;
                 case SplinePrimitive::SPLINE_MOVE_LATERAL:
                     motion.type = Motion::Type::MOV_LATERAL;
-                    motion.costMultiplier = mobilityConfig.mMultiplierLateral;
+                    motion.costMultiplier = mobilityConfig.multiplierLateral;
                     break;
                 case SplinePrimitive::SPLINE_POINT_TURN:
                     motion.type = Motion::Type::MOV_POINTTURN;
-                    motion.costMultiplier = mobilityConfig.mMultiplierPointTurn;
-                    motion.speed = mobilityConfig.mTurningSpeed;
+                    motion.costMultiplier = mobilityConfig.multiplierPointTurn;
                     break;
                 default:
                     throw std::runtime_error("Got Unsupported movement");
@@ -256,10 +254,9 @@ void PreComputedMotions::computeSplinePrimCost(const SplinePrimitive& prim,
             angularDist += dist / linearDist  * std::abs(curvature);
         }
     }
-        
-    const double translationalVelocity = std::min(mobilityConfig.mSpeed, outMotion.speed);
-    outMotion.baseCost = Motion::calculateCost(linearDist, angularDist, translationalVelocity,
-                                               mobilityConfig.mTurningSpeed, outMotion.costMultiplier);
+    
+    outMotion.baseCost = Motion::calculateCost(linearDist, angularDist, mobilityConfig.translationSpeed,
+                                               mobilityConfig.rotationSpeed, outMotion.costMultiplier);
     assert(outMotion.baseCost >= 0);
     outMotion.translationlDist = linearDist;
     outMotion.angularDist = angularDist;
@@ -272,7 +269,7 @@ int Motion::calculateCost(double translationalDist, double angularDist, double t
     const double angularTime = angularDist / angularVelocity;
     
     //use ulonglong to catch overflows caused by large cost multipliers
-    unsigned long long cost = ceil(std::max(angularTime, translationTime) * costScaleFactor * costMultiplier);
+    unsigned long long cost = ceil(std::max(angularTime, translationTime) * Motion::costScaleFactor * costMultiplier);
     
     if(cost > std::numeric_limits<int>::max())
     {
@@ -332,6 +329,6 @@ const std::vector< Motion >& PreComputedMotions::getMotionForStartTheta(const Di
 }
 
 
-double Motion::costScaleFactor = 1000.0;
+double Motion::costScaleFactor = 1000.0; //shift by 3 decimals to keep the decimals as int
 
 }

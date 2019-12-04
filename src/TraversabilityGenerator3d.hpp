@@ -37,7 +37,7 @@ protected:
     double computeSlope(const Eigen::Hyperplane< double, int(3) >& plane) const;
     Eigen::Vector3d computeSlopeDirection(const Eigen::Hyperplane< double, int(3) >& plane) const;
     
-    bool checkForObstacles(TravGenNode* node);
+    bool checkStepHeight(TravGenNode* node);
     
     /** @return false if no allowed orientation was found (e.g. due to extreme slope)*/
     bool computeAllowedOrientations(TravGenNode* node);
@@ -86,7 +86,7 @@ public:
     
     void expandAll(TravGenNode *startNode);
     
-    /** @param expandDist is ignored if negative. */
+    /** @param expandDist How far should the map be expanded? If negative the whole map will be expanded. */
     void expandAll(TravGenNode *startNode, const double expandDist);
 
     virtual bool expandNode(TravGenNode *node);

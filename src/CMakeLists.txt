@@ -9,7 +9,6 @@ if(OPENMP_FOUND)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-
 rock_library(ugv_nav4d
     SOURCES 
         AreaExplorer.cpp
@@ -25,6 +24,7 @@ rock_library(ugv_nav4d
         TraversabilityGenerator3d.cpp
         Dijkstra.cpp
         ObstacleMapGenerator3D.cpp
+        DebugDrawingDeclarations.cpp
     HEADERS 
         AreaExplorer.hpp
         Config.hpp
@@ -44,11 +44,10 @@ rock_library(ugv_nav4d
     DEPS_PKGCONFIG 
         base-types 
         sbpl
-        backward
         sbpl_spline_primitives
         maps
-        envire_core
-        trajectory_follower
         pcl_segmentation-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
         vizkit3d_debug_drawings
 )
+
+add_subdirectory(gui)

@@ -6,6 +6,7 @@
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include <base/Eigen.hpp>
 #include "PlannerDump.hpp"
+#include <omp.h>
 
 using namespace maps::grid;
 
@@ -13,10 +14,10 @@ namespace ugv_nav4d
 {
 
 
-Planner::Planner(const sbpl_spline_primitives::SplinePrimitivesConfig& primitiveConfig, const TraversabilityConfig& traversabilityConfig,
-                const Mobility& mobility) :
+Planner::Planner(const sbpl_spline_primitives::SplinePrimitivesConfig& primitiveConfig, const TraversabilityConfig& traversabilityConfig, const Mobility& mobility, const PlannerConfig& plannerConfig) :
     splinePrimitiveConfig(primitiveConfig),
-    mobility(mobility)
+    mobility(mobility),
+    plannerConfig(plannerConfig)
 {
     setTravConfig(traversabilityConfig);
 }
@@ -61,9 +62,13 @@ void Planner::genTravMap(const base::samples::RigidBodyState& startbody2Mls)
 
 Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls,
                                        const base::samples::RigidBodyState& endbody2Mls,
-                                       std::vector<trajectory_follower::SubTrajectory>& resultTrajectory,
-                                       std::vector<trajectory_follower::SubTrajectory>& beautifiedTrajectory, bool dumpOnError)
+                                       std::vector<base::Trajectory>& resultTrajectory2D,
+                                       std::vector<base::Trajectory>& resultTrajectory3D, bool dumpOnError)
 { 
+    
+    std::cout << "Planning with " << plannerConfig.numThreads << " threads" << std::endl;
+    omp_set_num_threads(plannerConfig.numThreads);
+    
     
     V3DD::CLEAR_DRAWING("ugv_nav4d_successors");
     
@@ -73,7 +78,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         return NO_MAP;
     }
     
-    resultTrajectory.clear();
+    resultTrajectory2D.clear();
     env->clear();
  
         
@@ -91,63 +96,23 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     previousStartPositions.push_back(startGround2Mls.translation());
     
     env->expandMap(previousStartPositions);
-    
-    std::vector<trajectory_follower::SubTrajectory> moveOutOfObstacleTrajectory;
-    
+    if(travMapCallback)
+        travMapCallback();
     try
     {
         env->setStart(startGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())));
     }
     catch(const ugv_nav4d::ObstacleCheckFailed& ex)
     {
-        std::cout << "Start inside obstacle. Trying to move out of obstacle" << std::endl;
-        
-        //env->setStart might have partially initialized the environment, clear it in case of error
-        //if we dont do this, sbpl sometimes breaks with strange errors...
-        env->clear(); 
-        
-        //Try to find the path of least resistance out of the obstacle
-        base::Vector3d newStart;
-        double newStartTheta;
-        
-        V3DD::DRAW_CYLINDER("ugv_nav4d_rescue", startGround2Mls.translation(), base::Vector3d(0.05, 0.05, 0.7), V3DD::Color::pink_orange);
-        
-        std::shared_ptr<trajectory_follower::SubTrajectory> traj = env->findTrajectoryOutOfObstacle(startGround2Mls.translation(),
-                                                                                                    base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())),
-                                                                                                    ground2Body, newStart, newStartTheta);
-        if(traj)
-        {
-            moveOutOfObstacleTrajectory.push_back(*traj);
-            
-            try
-            {
-                previousStartPositions.push_back(newStart);
-                env->expandMap(previousStartPositions);//FIXME reexpanding is kinda stupid. This is only neccessary because we call env->clear() above. Which is only neded due to sbpl bugs... fix them to remove this!
-                env->setStart(newStart, newStartTheta);
-            }
-            catch(const std::runtime_error& ex)
-            {
-                //new start is also not valid for some reason
-                std::cout << "Tried to move start out of obstacle but failed\n";
-                return NO_SOLUTION;
-            }
-            
-        }
-        else
-        {
-            //no way out of obstacle
-            return NO_SOLUTION;
-        }
+        std::cout << "Start inside obstacle." << std::endl;
+        if(dumpOnError)
+            PlannerDump dump(*this, "start_inside_obstacle", maxTime, startbody2Mls, endbody2Mls);
+        return START_INVALID;
     }
     catch(const std::runtime_error& ex)
     {
-        
-        if(travMapCallback)
-            travMapCallback();
-
         if(dumpOnError)
             PlannerDump dump(*this, "bad_start", maxTime, startbody2Mls, endbody2Mls);
-
         return START_INVALID;
     }
     
@@ -167,10 +132,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     //StateID2IndexMapping which is accessed inside force_planning_from_scratch_and_free_memory().
     try
     {
-        //has to be done before env->setStart and env->setGoal because it resets state ids
-        std::cout << "force from scracts" << std::endl;
         planner->force_planning_from_scratch_and_free_memory();
-        std::cout << "set search mode" << std::endl;
         planner->set_search_mode(false);
     }
     catch(const SBPL_Exception& ex)
@@ -181,17 +143,14 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     
     MDPConfig mdp_cfg;
         
-    if (! env->InitializeMDPCfg(&mdp_cfg)) {
+    if (!env->InitializeMDPCfg(&mdp_cfg)) {
         std::cout << "InitializeMDPCfg failed, start and goal id cannot be requested yet" << std::endl;
         return INTERNAL_ERROR;
     }
-        
-    std::cout << "SBPL: About to set start and goal, startid=" << mdp_cfg.startstateid << std::endl;
     if (planner->set_start(mdp_cfg.startstateid) == 0) {
         std::cout << "Failed to set start state" << std::endl;
         return INTERNAL_ERROR;
     }
-
     if (planner->set_goal(mdp_cfg.goalstateid) == 0) {
         std::cout << "Failed to set goal state" << std::endl;
         return INTERNAL_ERROR;
@@ -199,8 +158,9 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
 
     try
     {
-        planner->set_eps_step(1.0);
-        planner->set_initialsolution_eps(10.0);
+        std::cout << "Initial Epsilon: " << plannerConfig.initialEpsilon << ", steps: " << plannerConfig.epsilonSteps << std::endl;
+        planner->set_eps_step(plannerConfig.epsilonSteps);
+        planner->set_initialsolution_eps(plannerConfig.initialEpsilon);
         
         solutionIds.clear();
         if(!planner->replan(maxTime.toSeconds(), &solutionIds))
@@ -224,8 +184,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
             std::cout << "cost " << s.cost << " time " << s.time << "num childs " << s.expands << std::endl;
         }
         
-        env->getTrajectory(solutionIds, resultTrajectory, true, ground2Body);
-        env->getTrajectory(solutionIds, beautifiedTrajectory, false, ground2Body);
+        env->getTrajectory(solutionIds, resultTrajectory2D, true, ground2Body);
+        env->getTrajectory(solutionIds, resultTrajectory3D, false, ground2Body);
     }
     catch(const SBPL_Exception& ex)
     {
@@ -236,12 +196,6 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         return NO_SOLUTION;
     }
     
-    
-    //have to move out of obstacle before the trajectory can be executed
-    if(moveOutOfObstacleTrajectory.size() > 0)
-    {
-        resultTrajectory.insert(resultTrajectory.begin(), moveOutOfObstacleTrajectory.begin(), moveOutOfObstacleTrajectory.end());
-    }
     return FOUND_SOLUTION;
 }
 
@@ -269,5 +223,10 @@ void Planner::setTravConfig(const TraversabilityConfig& config)
     if(env)
         env->setTravConfig(config);
 }
+
+ void Planner::setPlannerConfig(const PlannerConfig& config)
+ {
+     plannerConfig = config;
+ }
 
 }

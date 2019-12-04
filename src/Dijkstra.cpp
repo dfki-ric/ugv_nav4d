@@ -60,15 +60,7 @@ void Dijkstra::computeCost(const TraversabilityNodeBase* source,
 double Dijkstra::getHeuristicDistance(const Eigen::Vector3d& a, const Eigen::Vector3d& b,
                             const TraversabilityConfig& config)
 {
-    switch(config.heuristicType)
-    {
-        case HeuristicType::HEURISTIC_2D:
-            return (a.topRows(2) - b.topRows(2)).norm();
-        case HeuristicType::HEURISTIC_3D:
-            return (a - b).norm();
-        default:
-            throw std::runtime_error("unknown heuristic type");
-    }    
+    return (a - b).norm();
 }
 
     
