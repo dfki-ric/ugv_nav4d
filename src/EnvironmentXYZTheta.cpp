@@ -653,6 +653,11 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     assert(sourceObstacleNode);
     
     const auto& motions = availableMotions.getMotionForStartTheta(sourceThetaNode->theta);
+
+    //dynamic scheduling is choosen because the iterations have vastly different runtime
+    //due to the different sanity checks
+    //the chunk size (5) was chosen to reduce dynamic scheduling overhead.
+    //**No** tests have been done to verify whether 5 is a good value or not!
     #pragma omp parallel for schedule(dynamic, 5) if(travConf.parallelismEnabled)
     for(size_t i = 0; i < motions.size(); ++i)
     {
