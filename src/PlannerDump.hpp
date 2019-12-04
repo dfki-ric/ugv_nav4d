@@ -15,6 +15,7 @@ class PlannerDump
     sbpl_spline_primitives::SplinePrimitivesConfig splinePrimitiveConfig; 
     Mobility mobility;
     TraversabilityConfig traversabilityConfig;
+    PlannerConfig plannerConfig;
     
     base::samples::RigidBodyState start;
     base::samples::RigidBodyState goal;
@@ -46,6 +47,11 @@ public:
     const TraversabilityConfig &getTravConfig() const
     {
         return traversabilityConfig;
+    }
+    
+    const PlannerConfig &getPlannerConfig() const
+    {
+        return plannerConfig;
     }
     
     const base::samples::RigidBodyState &getStart() const

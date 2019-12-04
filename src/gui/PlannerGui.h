@@ -10,10 +10,9 @@
 #include <vizkit3d/RigidBodyStateVisualization.hpp>
 #include <maps/grid/MLSMap.hpp>
 #include <base/Eigen.hpp>
-#include "Planner.hpp"
-#include "FrontierGenerator.hpp"
-#include "trajectory_follower/SubTrajectory.hpp"
-#include "Config.hpp"
+#include <ugv_nav4d/Planner.hpp>
+#include <ugv_nav4d/FrontierGenerator.hpp>
+#include <ugv_nav4d/Config.hpp>
 #endif
 
 
@@ -54,9 +53,9 @@ private slots:
     void timeEditingFinished();
     void replanButtonReleased();
     void expandPressed();
+    void dumpPressed();
     void slopeMetricComboBoxIndexChanged(int index);
-    void heuristicComboBoxIndexChanged(int index);
-    void parallelismCheckBoxStateChanged(int);
+    void numThreadsValueChanged(int newValue);
     void obstacleDistanceSpinBoxEditingFinished();
     void obstacleFactorSpinBoxEditingFinished();
     
@@ -79,7 +78,7 @@ private:
     QPushButton* expandButton;
     QComboBox* slopeMetricComboBox;
     QComboBox* heuristicComboBox;
-    QCheckBox* parallelismCheckBox;
+    QSpinBox* numThreadsSpinBox;
     QProgressBar* bar;
     QWidget window;
     vizkit3d::MotionPlanningLibrariesSbplSplineVisualization splineViz;
@@ -101,9 +100,10 @@ private:
     sbpl_spline_primitives::SplinePrimitivesConfig config;
     ugv_nav4d::Mobility mobility;
     ugv_nav4d::TraversabilityConfig conf;
+    ugv_nav4d::PlannerConfig plannerConf;
     std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
-    std::vector<trajectory_follower::SubTrajectory> path;
-    std::vector<trajectory_follower::SubTrajectory> beautifiedPath;
+    std::vector<base::Trajectory> path;
+    std::vector<base::Trajectory> beautifiedPath;
     std::shared_ptr<ugv_nav4d::FrontierGenerator> frontierGenerator;
     
 };

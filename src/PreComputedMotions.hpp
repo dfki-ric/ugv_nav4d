@@ -35,12 +35,13 @@ struct CellWithPoses
 
 
 class Motion
-{
+{    
+public:
+    
     /**used to scale the costs because costs
      * are int but real costs are most likely small doubles*/
     static double costScaleFactor;
     
-public:
     enum Type {
         MOV_FORWARD,
         MOV_BACKWARD,
@@ -56,8 +57,6 @@ public:
     int yDiff;
     DiscreteTheta endTheta;
     DiscreteTheta startTheta;
-    
-    double speed; //FIXME is this used?
     
     Type type;
     
@@ -79,14 +78,14 @@ public:
      * This vector contains a full resolution
      * sample of the motion primitive, together
      * with the cell the poses are supposed to 
-     * be in. Poses are relative to (0/0), wile
+     * be in. Poses are relative to (0/0), while
      * the cellIndex is computed relative to the 
      * center of the start cell.
      * */
     std::vector<CellWithPoses> fullSplineSamples;
     
     int baseCost; //time the robot needs to follow the primivite scaled by some factors
-    int costMultiplier;//is used to scale the baseCost
+    int costMultiplier;//is used to scale the baseCost (can be used to punish certain motions)
     double translationlDist; //translational length of the motion
     double angularDist; //angular length of the motion
     

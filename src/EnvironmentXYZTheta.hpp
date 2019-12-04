@@ -1,13 +1,13 @@
 #pragma once
 
 #include <sbpl/discrete_space_information/environment.h>
+#undef DEBUG //sbpl defines DEBUG 0 but the word debug is also used in base-logging which is included from TraversabilityGenerator3d
 #include "TraversabilityGenerator3d.hpp"
 #include "ObstacleMapGenerator3D.hpp"
 #include <maps/grid/TraversabilityMap3d.hpp>
 #include <base/Pose.hpp>
 #include "DiscreteTheta.hpp"
 #include "PreComputedMotions.hpp"
-#include <trajectory_follower/SubTrajectory.hpp>
 
 std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle);
 
@@ -41,7 +41,8 @@ protected:
       const std::string msg;
     };
      
-
+    
+    /** A discretized orientation */
     struct ThetaNode
     {
             ThetaNode(const DiscreteTheta &t) :theta(t) {};
@@ -49,16 +50,21 @@ protected:
             DiscreteTheta theta;
     };
     
+    /**PlannerData is the userdata inside the XYZNode. */
     struct PlannerData
     {
         PlannerData() : travNode(nullptr) {};
         
+        /**This is the node that was used to create this XYZNode.*/
         TravGenNode *travNode;
         
-        ///contains all nodes sorted by theta
+        /**An XYZNode is associated with every ThetaNode that it 
+         * shares a state with. This map links to all of them,
+         * sorted by theta. */
         std::map<DiscreteTheta, ThetaNode *> thetaToNodes; 
     };
     
+    /** The distance from somewhere to start-node and goal-node.*/
     struct Distance
     {
         double distToStart = 0;
@@ -66,30 +72,35 @@ protected:
         Distance(double toStart, double toGoal) : distToStart(toStart), distToGoal(toGoal){}
     };
     
+    /** A position on the traversability map */
     typedef maps::grid::TraversabilityNode<PlannerData> XYZNode;
     
+    //search space without theta
     maps::grid::TraversabilityMap3d<XYZNode *> searchGrid;
     
+    /** Represents one state in the search space */
     struct Hash 
     {
         Hash(XYZNode *node, ThetaNode *thetaNode) : node(node), thetaNode(thetaNode)
         {
         }
-        XYZNode *node;
-        ThetaNode *thetaNode;
+        XYZNode *node; /**< xyz position of the state and meta data */
+        ThetaNode *thetaNode;/** < angle of the state and additional meta data */
     };
     
+    /**maps sbpl state ids to internal planner state (Hash). */
     std::vector<Hash> idToHash;
-    /**Contains the distance from each travNode to start and goal
+    
+    /**Contains the distance from each travNode to start-node and goal-node
      * Stored in real-world coordinates (i.e. do NOT scale with gridResolution before use)*/
     std::vector<Distance> travNodeIdToDistance;
     
     PreComputedMotions availableMotions;
     
     ThetaNode *startThetaNode;
-    XYZNode *startXYZNode;
+    XYZNode *startXYZNode; //part of the start state
     ThetaNode *goalThetaNode;
-    XYZNode *goalXYZNode;
+    XYZNode *goalXYZNode; //part of the goal state
     
     /**Start node in obstacle map */
     TravGenNode* obstacleStartNode;
@@ -103,6 +114,10 @@ protected:
     
     /** Find the obstacle node corresponding to @p travNode */
     TravGenNode* findObstacleNode(const TravGenNode* travNode) const;
+    
+        /**Returns the obstacle node for a given position and patch height */
+    TravGenNode * getObstNode(const Eigen::Vector3d& sourcePosWorld, const double height);
+    
     
 public:
     
@@ -138,9 +153,11 @@ public:
      * @param[out] outNewStart The new start position of the robot after it has moved out of the obstacle in the map frame
      * @return the best trajectory that gets the robot out of the obstacle.
      *         Or an empty trajectory if no way out can be found*/
-    std::shared_ptr<trajectory_follower::SubTrajectory> findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
+    std::shared_ptr<base::Trajectory> findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
                                                                    const Eigen::Affine3d& ground2Body,
                                                                    base::Vector3d& outNewStart, double& outNewStartTheta);
+    
+
     
      /**
      * \brief heuristic estimate from state FromStateID to state ToStateID
@@ -188,7 +205,7 @@ public:
     
     std::vector<Motion> getMotions(const std::vector<int> &stateIDPath);
     
-    void getTrajectory(const std::vector<int> &stateIDPath, std::vector<trajectory_follower::SubTrajectory> &result,
+    void getTrajectory(const std::vector<int> &stateIDPath, std::vector<base::Trajectory> &result,
                        bool setZToZero, const Eigen::Affine3d &plan2Body = Eigen::Affine3d::Identity());
     
     const PreComputedMotions& getAvailableMotions() const;
@@ -205,7 +222,9 @@ public:
 
     
 private:
-  
+    
+    /** Check if all nodes on the path from @p sourceNode following @p motion are traversable.
+     * @return the target node of the motion or nullptr if motion not possible */
     TravGenNode* checkTraversableHeuristic(const maps::grid::Index sourceIndex, ugv_nav4d::TravGenNode* sourceNode, 
                                            const ugv_nav4d::Motion& motion, const maps::grid::TraversabilityMap3d< ugv_nav4d::TravGenNode* >& trMap);
     
@@ -217,6 +236,7 @@ private:
   
     Eigen::AlignedBox3d getRobotBoundingBox() const;
     
+    /** Computes the heuristic */
     void precomputeCost();
     
     /**Return the avg slope of all patches on the given @p path */
@@ -229,10 +249,15 @@ private:
     /**Determines the distance between @p a and @p b depending on travConf.heuristicType */
     double getHeuristicDistance(const Eigen::Vector3d& a, const Eigen::Vector3d& b) const;
     
+    /** Checks if movement from @p fromTravNode to its neighbor at position @p toIdx is possible.
+     *  I.e. if a direct connection exists and if the neighbor is traversable.
+     *  Expands the neighbor if not already expanded.
+     *  @return the neighbor at position @p toIdx*/
     TravGenNode* movementPossible(ugv_nav4d::TravGenNode* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& toIdx);
     
     /** Expands @p node if it needs expansion.
-     *  Thread-safe. */
+     *  Thread-safe.
+     *  @return True if the expansion succeeded */
     bool checkExpandTreadSafe(TravGenNode * node);
     
     TraversabilityConfig travConf;
