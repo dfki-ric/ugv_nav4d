@@ -9,8 +9,8 @@ A 4D (X,Y,Z, Theta) Planner for unmaned ground vehicles (UGVs).
 See the `manifest.xml` for an up to date list of dependencies.
 
 #### Compiling inside a ROCK environment
-
-The easiest way to build and install this package is to use Rock’s build system. See http://rock-robotics.org/documentation/installation.html for addional information.
+Buidling inside ROCK works as usual.
+Currently the package can be found in the ENTERN package set: https://git.hb.dfki.de/entern/package_set
 
 
 #### Compiling standalone
@@ -381,14 +381,21 @@ cost = calculateCost(approxMotionLen)
 None of those metrices captures the real cost of moving up or down a slope. They have been implemented for experimentation. However those experiments have never been done (we ran out of time and there where no slopes in the final demo). Thus the performance of the metrices is unclear.
 
 
-
 #### Dumping Planner State
 In case of error the `Planner` dumps its state to a file (this can be enabled using the `dumpOnError` parameter).
 The state can be loaded and analyzed using the `ugv_nav4d_replay` binary. This binary loads the state and executes the planning in a controlled environment. This can be used to debug the planner. 
 
 
+#### User Interfaces
+Two user interfaces can be found in `src/gui`. They are intended for testing and debugging.
 
+##### PlannerGui
 
+The `PlannerGui` is the main testing gui. It is designed to experiment with differen planner parameters on a static map.
+It can load point clouds from ply or serialized mls maps. 
+A left click sets the start location, a right click sets the end location.
 
+In addition the `PlannerGui` can also be used to load and analyze planner dumps.
 
-
+##### FrontierTestGui
+This gui was developed to test and debug the `AreaExplorer`. 

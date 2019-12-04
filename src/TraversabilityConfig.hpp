@@ -77,6 +77,7 @@ public:
      * */
     double minTraversablePercentage;
     
+    //dimensions of the robot bounding box.
     double robotHeight;
     double robotSizeX;
     double robotSizeY;
@@ -86,17 +87,27 @@ public:
      */
     double distToGround;
     
+    /** Defines how strong the slope is factored into the 
+     *  motion cost.*/
     double slopeMetricScale;
-    SlopeMetric slopeMetric;//which metric to use to factor in the slope of a motion
-    bool parallelismEnabled; //if true openMP will be used to parallelize the planning
+    
+    /** which metric to use to factor in the slope of a motion */
+    SlopeMetric slopeMetric;
+
+    /** if true openMP will be used to parallelize the planning */
+    bool parallelismEnabled;
+    
     double gridResolution;
     
-    double initialPatchVariance; //the variance that is set for initially added patches.
+    /** The variance that "initial patches" should have.
+     *  @see Planner::setInitialPatch() */
+    double initialPatchVariance; 
     
-    //if true the robot is allowed to drive downhill forward, otherwise it has to drive downhill backwards
+    /**if true the robot is allowed to drive downhill forward, otherwise
+     * it has to drive downhill backwards */
     bool allowForwardDownhill;
     
-    //if true, incline limitting is enabled and the robot motion is restricted when moving on steep hills.
+    /** if true, incline limitting is enabled and the robot motion is restricted when moving on steep hills. */
     bool enableInclineLimitting;
     
 };
