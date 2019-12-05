@@ -49,7 +49,10 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
 {
     Eigen::Vector3d nodePos;
     if(!trMap.fromGrid(node.getIndex(), nodePos, node.getHeight()))
-        throw std::runtime_error("TraversabilityGenerator3d: Internal error node out of grid");
+    {
+        std::cout << "TraversabilityGenerator3d: Internal error node out of grid" << std::endl;
+        return false;
+    }
 
     const double growSize = std::min(config.robotSizeX, config.robotSizeY) / 2.0;
 
@@ -146,7 +149,10 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
     Vector3d newPos =  line.intersectionPoint(node.getUserData().plane);
     
     if(newPos.x() > 0.0001 || newPos.y() > 0.0001)
-        throw std::runtime_error("TraversabilityGenerator3d: Error, adjustement height calculation is weird");
+    {
+        std::cout << "TraversabilityGenerator3d: Error, adjustement height calculation is weird" << std::endl;
+        return false;
+    }
 
     if(newPos.allFinite())
     {
@@ -338,7 +344,10 @@ bool TraversabilityGenerator3d::checkStepHeight(TravGenNode *node)
 
     Eigen::Vector3d nodePos;
     if(!trMap.fromGrid(node->getIndex(), nodePos))
-        throw std::runtime_error("TraversabilityGenerator3d: Internal error node out of grid");
+    {
+        std::cout << "TraversabilityGenerator3d: Internal error node out of grid" << std::endl;
+        return false;
+    }
     nodePos.z() += node->getHeight();
 
     //FIXME this is not the perfect solution because it ignores robot orientation.
@@ -405,7 +414,7 @@ bool TraversabilityGenerator3d::checkStepHeight(TravGenNode *node)
             Eigen::Vector3d pos;
             if(!area.fromGrid(Index(x,y), pos))
             {
-                throw std::runtime_error("WTF");
+                std::cout << "this should never happen" << std::endl;
             }
 
             for(const SurfacePatch<MLSConfig::KALMAN> *p : area.at(x, y))
@@ -842,8 +851,13 @@ void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
         const Eigen::ParametrizedLine<double, 3> line(patchPosPlane, Eigen::Vector3d::UnitZ());
         const Vector3d newPos =  line.intersectionPoint(node->getUserData().plane);
         
+        //this happend at some point because of a bug somewhere else.
+        //not sure if this can still happen.
         if((patchPosPlane.head(2) - newPos.head(2)).norm() > 0.001)
-            throw std::runtime_error("TraversabilityGenerator3d: Error, adjustment height calculation is weird");
+        {
+            std::cout << "TraversabilityGenerator3d: FATAL ERROR, adjustment height calculation is weird" << std::endl;
+            return;
+        }
 
         const double localHeight = newPos.z();
         //The new patch is not reachable from the current patch
