@@ -350,10 +350,6 @@ bool TraversabilityGenerator3d::checkStepHeight(TravGenNode *node)
     }
     nodePos.z() += node->getHeight();
 
-    //FIXME this is not the perfect solution because it ignores robot orientation.
-    //Further checks down the line are required.
-    //If further checks are required anyway, does this make sense at all?
-    
     const double smallerRobotSize = std::min(config.robotSizeX, config.robotSizeY);
     const double growSize = smallerRobotSize / 2.0 + 1e-5;
     

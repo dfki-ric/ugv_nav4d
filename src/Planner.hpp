@@ -105,7 +105,6 @@ public:
      *                           two patches. This results in an increase-decrease-increase pattern in xy-direction
      *                           resulting in a robot motion that stutters. Setting the z-axis to zero was choosen as 
      *                           a fix because the trajectory follower (at the time of writing) ignores the z-axis anyway.
-     *                           FIXME Further investigation is needed to find a real fix for this!
      *                           A ticket for this bug exists: https://git.hb.dfki.de/entern/ugv_nav4d/issues/1
      * @param resultTrajectory3D The resulting trajectory. Make sure to read the comment for @p resultTrajectory2D to understand
      *                           why this exists!
