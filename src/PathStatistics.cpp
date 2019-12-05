@@ -7,9 +7,19 @@ ugv_nav4d::PathStatistic::Stats::Stats() :
     obstacles(0), 
     frontiers(0)
 {
-    //FIXME this is going to break if FRONTIER is no longer the last entry in the enum
-    //      or someone starts attaching different values to the enums.
+    //check that all patch types (that we use in here) are valid array indices
+    //otherwise we might access the array out of bounds
+    static_assert(maps::grid::TraversabilityNodeBase::OBSTACLE < maps::grid::TraversabilityNodeBase::FRONTIER + 1, "");
+    static_assert(maps::grid::TraversabilityNodeBase::TRAVERSABLE < maps::grid::TraversabilityNodeBase::FRONTIER + 1, "");
+    static_assert(maps::grid::TraversabilityNodeBase::UNKNOWN < maps::grid::TraversabilityNodeBase::FRONTIER + 1, "");
+    static_assert(maps::grid::TraversabilityNodeBase::HOLE < maps::grid::TraversabilityNodeBase::FRONTIER + 1, "");
+    static_assert(maps::grid::TraversabilityNodeBase::UNSET < maps::grid::TraversabilityNodeBase::FRONTIER + 1, "");
+    static_assert(maps::grid::TraversabilityNodeBase::FRONTIER < maps::grid::TraversabilityNodeBase::FRONTIER + 1, "");
+    
+    
     minDistance.resize(maps::grid::TraversabilityNodeBase::FRONTIER + 1, std::numeric_limits< double >::max());
+    
+    
     minDistToObstacle = std::numeric_limits< double >::max();
 }
 
