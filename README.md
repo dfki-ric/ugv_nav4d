@@ -240,7 +240,7 @@ The visualizer of the `TraversabilityMap3D` uses color coding to indicate the di
 - **Traversable**: The robot can stand (with its center) on this patch in at least one orientation without hitting an obstacle.
 - **Not Traversable**: There is no way that the robot can stand (with its center) on this patch.
 - **Frontier**: Borders to the end of the map. Should be traversable (I am not 100% sure about this. check the code!)
-- **Unknown**: This is a virtual patch that serves as boundary for algorithms. This patch does not exist in reality.
+- **Unknown**: This is a virtual patch that serves as boundary for algorithms. This patch does not exist in reality. Patches also become unknown if there is not enough support in the MLS to be sure that a patch exists in this location.
 - **Hole**: This is part of the map specification but is not used by ugv_nav4d. It might be used elsewhere but the planner cannot handle it.
 - **Unset**: This is the starting state of a new patch. It should not be visible in a fully explored map. If you see a yellow patch after map expansion is done, you have found a bug in the `TraversabilityMapGenerator` and should investigate.
 
