@@ -19,7 +19,7 @@ class FrontierGenerator
     
 public:
     FrontierGenerator(const TraversabilityConfig& travConf,
-                      const FrontierCostFunctionParameters& costParams);
+                      const FrontierGeneratorParameters& costParams);
     
     template <maps::grid::MLSConfig::update_model SurfacePatch>
     void updateMap(const maps::grid::MLSMap<SurfacePatch>& mls, const maps::grid::MLSMapBase* coverage_map = nullptr)
@@ -35,7 +35,7 @@ public:
     /** @param goalPos in mls coordinates */
     void updateGoalPos(const base::Vector3d& goalPos);
     
-    void updateCostParameters(const FrontierCostFunctionParameters& params);
+    void updateCostParameters(const FrontierGeneratorParameters& params);
     
     /** Adds traversable patches to the mls below the robot.
      * @param body2Mls Location of the body in mls coordinates
@@ -94,7 +94,7 @@ private:
 
     
 private:
-    FrontierCostFunctionParameters costParams;
+    FrontierGeneratorParameters costParams;
     TraversabilityConfig travConf;
     TraversabilityGenerator3d travGen;
     std::shared_ptr<TraversabilityGenerator3d::MLGrid> mlsMap;
