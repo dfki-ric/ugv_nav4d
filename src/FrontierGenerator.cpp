@@ -2,7 +2,6 @@
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include "TravMapBfsVisitor.hpp"
-#include "CollisionCheck.hpp"
 #include "Dijkstra.hpp"
 #include <Eigen/Geometry>
 #include "PathStatistics.hpp"

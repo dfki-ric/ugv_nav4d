@@ -12,7 +12,6 @@ endif()
 rock_library(ugv_nav4d
     SOURCES 
         AreaExplorer.cpp
-        CollisionCheck.cpp
         DiscreteTheta.cpp
         EnvironmentXYZTheta.cpp
         FrontierGenerator.cpp
@@ -28,7 +27,6 @@ rock_library(ugv_nav4d
     HEADERS 
         AreaExplorer.hpp
         Config.hpp
-        CollisionCheck.hpp
         DiscreteTheta.hpp
         FrontierGenerator.hpp
         EnvironmentXYZTheta.hpp
