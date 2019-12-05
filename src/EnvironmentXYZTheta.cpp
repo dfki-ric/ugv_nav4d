@@ -551,8 +551,6 @@ bool EnvironmentXYZTheta::checkExpandTreadSafe(TravGenNode * node)
     {
         if(!node->isExpanded())
         {
-            //FIXME if expandNode throws an exeception we may never unlock
-            //directly returning from insde omp critical is forbidden
             result = travGen.expandNode(node);
         }
     }    
