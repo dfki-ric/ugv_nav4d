@@ -234,7 +234,6 @@ private:
     bool checkOrientationAllowed(const TravGenNode* node,
                                  const base::Orientation2D& orientation) const;
   
-    Eigen::AlignedBox3d getRobotBoundingBox() const;
     
     /** Computes the heuristic */
     void precomputeCost();

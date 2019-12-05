@@ -3,20 +3,16 @@
 namespace ugv_nav4d{
 
 /** Cost function parameters for frontier exploration */
-struct FrontierCostFunctionParameters
+struct FrontierGeneratorParameters
 {
-    FrontierCostFunctionParameters() : 
-        distToGoalFactor(1.0),
-        distFromStartFactor(1.0),
-        explorableFactor(1.0)
-    {
-    }
     /** How important is the distance from the node to the goal position  */
-    double distToGoalFactor;
+    double distToGoalFactor = 1.0;
     /** How important is the distance from the start node */
-    double distFromStartFactor;
+    double distFromStartFactor = 1.0;
     /**How important is the size of the explorable area around the frontier node */
-    double explorableFactor;
+    double explorableFactor = 1.0;
+    /**The radius of patches that will be visited when calculating the number of explorable patches in the vicinity of a patch */
+    unsigned visitRadius = 3;
 };
 
 

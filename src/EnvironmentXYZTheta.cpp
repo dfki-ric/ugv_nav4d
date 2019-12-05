@@ -517,10 +517,10 @@ TravGenNode *EnvironmentXYZTheta::movementPossible(TravGenNode *fromTravNode, co
     TravGenNode *targetNode = fromTravNode->getConnectedNode(toIdx);
     if(!targetNode)
     {
-//         std::cout << "movement not possible. nodes not conncted" << std::endl;
+        //FIXME this should never happen but it did happen in the past and I have no idea why
+        //      needs investigation!
+        std::cout << "movement not possible. nodes not conncted" << std::endl;
         return nullptr;
-        //FIXME this should never happen but it does on the garage map with 0.5 resolution
-        throw std::runtime_error("should not happen");
     }
     
     if(!checkExpandTreadSafe(targetNode))
@@ -588,9 +588,6 @@ TravGenNode * EnvironmentXYZTheta::checkTraversableHeuristic(const maps::grid::I
 
 TravGenNode * EnvironmentXYZTheta::getObstNode(const Eigen::Vector3d& sourcePosWorld, const double height)
 {
-    //FIXME this is a 90% duplicate from findObstacleNode()
-    
-    
     maps::grid::Index startIdxObstMap;
     obsGen.getTraversabilityMap().toGrid(sourcePosWorld, startIdxObstMap, false);
     TravGenNode *startNodeObstMap = nullptr;
@@ -865,13 +862,6 @@ bool EnvironmentXYZTheta::checkOrientationAllowed(const TravGenNode* node,
     return isInside;
 }
 
-Eigen::AlignedBox3d EnvironmentXYZTheta::getRobotBoundingBox() const
-{
-    //FIXME implement
-    const Eigen::Vector3d min(0, 0, 0);
-    const Eigen::Vector3d max(0.5, 1.0, 0.2);
-    return Eigen::AlignedBox3d(min, max);
-}
 
 void EnvironmentXYZTheta::GetPreds(int TargetStateID, vector< int >* PredIDV, vector< int >* CostV)
 {

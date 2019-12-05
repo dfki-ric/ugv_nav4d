@@ -37,7 +37,7 @@ struct NodeWithOrientationAndCost
     
     
 FrontierGenerator::FrontierGenerator(const TraversabilityConfig& travConf,
-                                     const FrontierCostFunctionParameters& costParams) :
+                                     const FrontierGeneratorParameters& costParams) :
     costParams(costParams), travConf(travConf), travGen(travConf),
     robotPos(0, 0, 0), goalPos(0, 0, 0)
 {
@@ -414,7 +414,6 @@ std::vector<MovedNode> FrontierGenerator::getCollisionFreeNeighbor(const std::ve
 
 std::vector<MovedNode> FrontierGenerator::removeDuplicates(const std::vector<MovedNode>& nodes) const
 {
-    //FIXME probably performance could be improved a lot
     std::vector<MovedNode> result;
     std::unordered_set<const TravGenNode*> set;
     for(const MovedNode& node : nodes)
@@ -523,18 +522,17 @@ double FrontierGenerator::distToPoint(const TravGenNode* node, const base::Vecto
 double FrontierGenerator::calcExplorablePatches(const TravGenNode* node) const
 {
     std::size_t visited = 0;
-    const size_t visitRadius = 3; //FIXME should be parameter
     /* Since the grid is a square we can calculate the number of visitable nodes using odd square*/
-    const std::size_t maxVisitable = std::pow(2 * visitRadius + 1, 2);
+    const std::size_t maxVisitable = std::pow(2 * costParams.visitRadius + 1, 2);
     TravMapBfsVisitor::visit(node, 
-        [&visited] (const TravGenNode* currentNode, bool& visitChildren, bool& abort, std::size_t distToRoot)
+        [&visited, this] (const TravGenNode* currentNode, bool& visitChildren, bool& abort, std::size_t distToRoot)
         {
             if(currentNode->getType() != TraversabilityNodeBase::UNKNOWN && currentNode->getType() != TraversabilityNodeBase::UNSET
                && currentNode->getType() != TraversabilityNodeBase::FRONTIER)
                 ++visited;
             
             abort = false;
-            if(distToRoot >= visitRadius)
+            if(distToRoot >= costParams.visitRadius)
                 visitChildren = false;
             else
                 visitChildren = true;
@@ -557,7 +555,7 @@ double FrontierGenerator::calcExplorablePatches(const TravGenNode* node) const
     return explorablePatches;
 }
 
-void FrontierGenerator::updateCostParameters(const FrontierCostFunctionParameters& params)
+void FrontierGenerator::updateCostParameters(const FrontierGeneratorParameters& params)
 {
     costParams = params;
 }
