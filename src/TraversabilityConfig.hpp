@@ -65,8 +65,7 @@ public:
      * from the direction of the steepest slope */
     double inclineLimittingLimit;
     
-    /**Objects within a corridor of width costFunctionDist around a trajectory
-     * will influence the cost function. */
+    /**Objects within a corridor of width costFunctionDist around a trajectory will influence the cost function. */
     double costFunctionDist;
     
     /**
