@@ -15,7 +15,7 @@ namespace ugv_nav4d
 
 FrontierTestGui::FrontierTestGui(int argc, char** argv)
 {
-    res = 0.1; //FIXME parse from argc
+    res = 0.1; 
     TraversabilityConfig conf;
     conf.gridResolution = res;
     conf.maxSlope = 0.57; //40.0/180.0 * M_PI;
