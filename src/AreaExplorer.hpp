@@ -16,7 +16,7 @@ public:
     void setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadius);
 
         
-    /** Get a list of all frontiers sorted by how good they are to explore @p area
+    /** Get a list of all frontiers sorted by how 'good' they are to explore @p area.
      * @param body2Mls current position of the robot in mls coordinates
      * @param areaToExplore in mls coordinates
      * @param[out] outFrontiers A list of possible frontiers that can be explored.
@@ -29,12 +29,11 @@ public:
                       const OrientedBox& areaToExplore,
                       std::vector<base::samples::RigidBodyState>& outFrontiers);
     
+private:
+    
     void generateFrontiers(std::vector<Eigen::Vector3d> starts,
                            const OrientedBox& areaToExplore,
                            std::vector<base::samples::RigidBodyState>& outFrontiers);
-    
-    
-private:
     
     bool isAreaExplored(const OrientedBox& areaToExplore, const std::vector<base::samples::RigidBodyState>& frontiers) const;
     
