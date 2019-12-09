@@ -398,4 +398,6 @@ In addition the `PlannerGui` can also be used to load and analyze planner dumps.
 
 
 ##### FrontierTestGui
-This gui was developed to test and debug the `AreaExplorer`. 
+This gui was developed to test and debug the `AreaExplorer`.
+It allows for experimentation with the different parameters of the area explorer.
+A left click sets the robot position, a right click sets the goal position.
