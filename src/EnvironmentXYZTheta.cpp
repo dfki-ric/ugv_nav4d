@@ -763,13 +763,34 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         {
             case SlopeMetric::AVG_SLOPE:
             {
-                const double slopeFactor = getAvgSlope(nodesOnObstPath) * travConf.slopeMetricScale;
+                double avgSlope = 0;
+                if(nodesOnObstPath.size() > 0)
+                {
+                    avgSlope = getAvgSlope(nodesOnObstPath);
+                }
+                else
+                {
+                    //This happens on point turns as they have no intermediate steps
+                    avgSlope = sourceTravNode->getUserData().slope;
+                }
+                const double slopeFactor = avgSlope * travConf.slopeMetricScale;
                 cost = motion.baseCost + motion.baseCost * slopeFactor;
+                std::cout << "cost: " << cost << ", baseCost: " << motion.baseCost << ", slopeFactor: " << slopeFactor << std::endl;
                 break;
             }
             case SlopeMetric::MAX_SLOPE:
             {
-                const double slopeFactor = getMaxSlope(nodesOnObstPath) * travConf.slopeMetricScale;
+                double maxSlope = 0;
+                if(nodesOnObstPath.size() > 0)
+                {
+                    maxSlope = getMaxSlope(nodesOnObstPath);
+                }
+                else
+                {
+                    //This happens on point turns as they have no intermediate steps
+                    maxSlope = sourceTravNode->getUserData().slope;
+                }
+                const double slopeFactor = maxSlope * travConf.slopeMetricScale;
                 cost = motion.baseCost + motion.baseCost * slopeFactor;
                 break;
             }
@@ -1037,6 +1058,11 @@ const PreComputedMotions& EnvironmentXYZTheta::getAvailableMotions() const
 
 double EnvironmentXYZTheta::getAvgSlope(std::vector<const TravGenNode*> path) const
 {
+    if(path.size() <= 0)
+    {
+        throw std::runtime_error("Requested slope of path with length zero.");
+        return 0;
+    }
     double slopeSum = 0;
     for(const TravGenNode* node : path)
     {
