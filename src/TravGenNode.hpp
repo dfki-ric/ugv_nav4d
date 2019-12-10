@@ -10,11 +10,21 @@ namespace ugv_nav4d
 /**Node struct for TraversabilityMap3d */
 struct TravGenTrackingData
 {
+    /** The plane that has been fitted to the mls at the location of this node */
     Eigen::Hyperplane<double, 3> plane;
+    
+    /** slope of the plane */
     double slope;
-    Eigen::Vector3d slopeDirection; //normalized direction of the maximum slope. Only valid if slope > 0
-    double slopeDirectionAtan2; // = atan2(slopeDirection.y(), slopeDirection.x()), i.e. angle of slopeDirection projected on the xy plane.
-    size_t id; //continuous unique id  that can be used as index for additional metadata
+    
+    /** normalized direction of the slope. Only valid if slope > 0 */
+    Eigen::Vector3d slopeDirection;
+    
+    /** The atan2(slopeDirection.y(), slopeDirection.x()), i.e. angle of slopeDirection projected on the xy plane.
+     * Precomputed for performance reasons */
+    double slopeDirectionAtan2; 
+    
+    /** continuous unique id  that can be used as index for additional metadata */
+    size_t id; 
     /**Some orientations might be forbidden on this patch (e.g. due to slope). This vector
      * contains all orientations that are allowed*/
     std::vector<base::AngleSegment> allowedOrientations;
