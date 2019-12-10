@@ -6,8 +6,7 @@ using namespace maps::grid;
 
 namespace ugv_nav4d
 {
- 
-//TODO REMOVE MAXDIST
+
     
 void Dijkstra::computeCost(const TraversabilityNodeBase* source,
                            std::unordered_map<const TraversabilityNodeBase*, double>& outDistances,
