@@ -69,7 +69,11 @@ private:
         
     std::vector<MovedNode> removeDuplicates(const std::vector<MovedNode>& nodes) const;
     
-    /** TODO describe what cost contains and what is a good/bad value */
+    /** Cost is calculated as follows:
+     * cost = costParams.distToGoalFactor * distToGoal +  costParams.explorableFactor * explorableFactor +
+              ostParams.distFromStartFactor * travelDist
+     * explorableFactor = How many nodes are unexplored in the vicinity of the goal node.
+     */
     std::vector<NodeWithOrientationAndCost> calculateCost(const TravGenNode* startNode,
                                                           const base::Vector3d& goalPos,
                                                           const std::vector<MovedNode>& nodes) const;
