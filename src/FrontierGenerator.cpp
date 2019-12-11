@@ -573,7 +573,8 @@ const TraversabilityConfig& FrontierGenerator::getConfig() const
 bool FrontierGenerator::patchesInBox(const OrientedBox& box) const
 {
     size_t numIntersections = 0;
-    travGen.getTraversabilityMap().intersectCuboid(box.getBox(), numIntersections);
+    //FIXME this ignores box orientation
+    travGen.getTraversabilityMap().intersectCuboid(box.getBoxWithoutOrientation(), numIntersections);
     return numIntersections > 0;
 }
 

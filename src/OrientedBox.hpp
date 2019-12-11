@@ -28,17 +28,19 @@ public:
         return orientation;
     }
     
-    const Eigen::AlignedBox3d& getBox() const
+    /** @return the box without orientation */
+    const Eigen::AlignedBox3d& getBoxWithoutOrientation() const
     {
         return box;
     }
 
+    /** @p point in same coordinate system as center */
     bool isInside(base::Vector3d point) const;
 
 private:    
     Eigen::Vector3d halfSize; /**< (size of box) / 2.0 */
     Eigen::AlignedBox3d box; /**< Box without orientation*/
-    Eigen::Vector3d center;
-    Eigen::Quaterniond orientation;
+    Eigen::Vector3d center; /** < Center position of the box */
+    Eigen::Quaterniond orientation; /** Rotation around center point */
 };
 }
