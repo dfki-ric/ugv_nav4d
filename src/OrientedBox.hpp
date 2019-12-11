@@ -36,7 +36,8 @@ public:
     bool isInside(base::Vector3d point) const;
 
 private:    
-    Eigen::AlignedBox3d box;
+    Eigen::Vector3d halfSize; /**< (size of box) / 2.0 */
+    Eigen::AlignedBox3d box; /**< Box without orientation*/
     Eigen::Vector3d center;
     Eigen::Quaterniond orientation;
 };

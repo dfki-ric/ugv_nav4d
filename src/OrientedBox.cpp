@@ -5,7 +5,7 @@ namespace ugv_nav4d {
 OrientedBox::OrientedBox(const base::Vector3d& center, const base::Vector3d& dimensions, const base::Quaterniond& orientation) : 
     center(center), orientation(orientation)
 {
-    const base::Vector3d halfSize = dimensions / 2.0;
+    halfSize = dimensions / 2.0;
     Eigen::Vector3d min = -halfSize + center;
     Eigen::Vector3d max = halfSize + center;
     
@@ -26,11 +26,11 @@ OrientedBox::OrientedBox(const OrientedBoxConfig& config) :
 
 bool OrientedBox::isInside(base::Vector3d p) const
 {
-    //move p to box coorindate system 
+    //move p to box coorindate system and rotate it
     p = p - center;
     p = orientation.inverse() * p;
-    
-    return box.contains(p);
+    const Eigen::AlignedBox3d localBox(-halfSize, halfSize);
+    return localBox.contains(p);
 }
 
 
