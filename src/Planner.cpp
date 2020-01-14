@@ -14,10 +14,23 @@ namespace ugv_nav4d
 {
 
 
-Planner::Planner(const sbpl_spline_primitives::SplinePrimitivesConfig& primitiveConfig, const TraversabilityConfig& traversabilityConfig, const Mobility& mobility, const PlannerConfig& plannerConfig) :
+Planner::Planner(const sbpl_spline_primitives::SplinePrimitivesConfig& primitiveConfig, const TraversabilityConfig& traversabilityConfig, 
+        const Mobility& mobility, const PlannerConfig& plannerConfig) :
     splinePrimitiveConfig(primitiveConfig),
     mobility(mobility),
-    plannerConfig(plannerConfig)
+    plannerConfig(plannerConfig),
+    mls2Ground(Eigen::Affine3d::Identity())
+{
+    setTravConfig(traversabilityConfig);
+}
+
+
+Planner::Planner(const sbpl_spline_primitives::SplinePrimitivesConfig& primitiveConfig, const TraversabilityConfig& traversabilityConfig, 
+        const Mobility& mobility, const PlannerConfig& plannerConfig, const Eigen::Affine3d& mls2Ground) :
+    splinePrimitiveConfig(primitiveConfig),
+    mobility(mobility),
+    plannerConfig(plannerConfig),
+    mls2Ground(mls2Ground)
 {
     setTravConfig(traversabilityConfig);
 }
@@ -27,7 +40,7 @@ void Planner::setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadiu
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
     
-    env->setInitialPatch(body2Mls * ground2Body , patchRadius);
+    env->setInitialPatch(body2Mls * mls2Ground * ground2Body , patchRadius);
 }
 
 void Planner::setTravMapCallback(const std::function< void ()>& callback)
@@ -35,7 +48,7 @@ void Planner::setTravMapCallback(const std::function< void ()>& callback)
     travMapCallback = callback;
 }
 
-void Planner::genTravMap(const base::samples::RigidBodyState& startbody2Mls)
+void Planner::genTravMap(const base::samples::RigidBodyState& start_pose)
 {
     if(!env)
     {
@@ -49,6 +62,9 @@ void Planner::genTravMap(const base::samples::RigidBodyState& startbody2Mls)
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
     
+    base::samples::RigidBodyState startbody2Mls = start_pose;
+    startbody2Mls.setTransform(startbody2Mls.getTransform() * mls2Ground);
+
     const Eigen::Affine3d startGround2Mls(startbody2Mls.getTransform() * ground2Body);
     
     previousStartPositions.push_back(startGround2Mls.translation());
@@ -60,10 +76,11 @@ void Planner::genTravMap(const base::samples::RigidBodyState& startbody2Mls)
 }
 
 
-Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls,
-                                       const base::samples::RigidBodyState& endbody2Mls,
+Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& start_pose,
+                                       const base::samples::RigidBodyState& end_pose,
                                        std::vector<base::Trajectory>& resultTrajectory2D,
-                                       std::vector<base::Trajectory>& resultTrajectory3D, bool dumpOnError)
+                                       std::vector<base::Trajectory>& resultTrajectory3D, 
+                                       bool dumpOnError, bool dumpOnSuccess)
 { 
     
     std::cout << "Planning with " << plannerConfig.numThreads << " threads" << std::endl;
@@ -79,8 +96,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     }
     
     resultTrajectory2D.clear();
+    resultTrajectory3D.clear();
     env->clear();
- 
         
     if(!planner)
         planner.reset(new ARAPlanner(env.get(), true));
@@ -89,8 +106,14 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
     
+    base::samples::RigidBodyState startbody2Mls = start_pose;
+    base::samples::RigidBodyState endbody2Mls = end_pose;
+
+    startbody2Mls.setTransform(startbody2Mls.getTransform() * mls2Ground);
+    endbody2Mls.setTransform(endbody2Mls.getTransform() * mls2Ground);
+
     const Eigen::Affine3d startGround2Mls(startbody2Mls.getTransform() * ground2Body);
-    const Eigen::Affine3d endGround2Mls(endbody2Mls.getTransform() * ground2Body);
+    const Eigen::Affine3d endGround2Mls(endbody2Mls.getTransform() *ground2Body);
     
     //TODO maybe use a deque and limit to last 30 starts?
     previousStartPositions.push_back(startGround2Mls.translation());
@@ -184,8 +207,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
             std::cout << "cost " << s.cost << " time " << s.time << "num childs " << s.expands << std::endl;
         }
         
-        env->getTrajectory(solutionIds, resultTrajectory2D, true, ground2Body);
-        env->getTrajectory(solutionIds, resultTrajectory3D, false, ground2Body);
+        env->getTrajectory(solutionIds, resultTrajectory2D, true, mls2Ground * ground2Body);
+        env->getTrajectory(solutionIds, resultTrajectory3D, false, mls2Ground * ground2Body);
     }
     catch(const SBPL_Exception& ex)
     {
@@ -195,7 +218,10 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
             PlannerDump dump(*this, "no_solution", maxTime, startbody2Mls, endbody2Mls);
         return NO_SOLUTION;
     }
-    
+
+    if(dumpOnSuccess)
+        PlannerDump dump(*this, "success", maxTime, startbody2Mls, endbody2Mls); 
+
     return FOUND_SOLUTION;
 }
 
