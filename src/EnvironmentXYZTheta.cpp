@@ -285,6 +285,7 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
             
             V3DD::DRAW_CYLINDER("ugv_nav4d_greedyPath", pos, base::Vector3d(0.03, 0.03, 0.3), V3DD::Color::yellow);
             double minCost = std::numeric_limits< double >::max();
+            bool foundNextNode = false;
             for(maps::grid::TraversabilityNodeBase* node : nextNode->getConnections())
             {
                 TravGenNode* travNode = static_cast<TravGenNode*>(node);
@@ -293,7 +294,12 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
                 {
                     minCost = cost;
                     nextNode = travNode;
+                    foundNextNode = true;
                 }
+            }
+            if (!foundNextNode) {
+                std::cout << "nextNode has no connection" << std::endl;
+                break;
             }
         }
     });
