@@ -63,9 +63,9 @@ void Planner::genTravMap(const base::samples::RigidBodyState& start_pose)
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
     
     base::samples::RigidBodyState startbody2Mls = start_pose;
-    startbody2Mls.setTransform(mls2Ground * startbody2Mls.getTransform());
+    startbody2Mls.setTransform(startbody2Mls.getTransform() * mls2Ground);
 
-    const Eigen::Affine3d startGround2Mls(startbody2Mls.getTransform() * mls2Ground * ground2Body);
+    const Eigen::Affine3d startGround2Mls(startbody2Mls.getTransform() * ground2Body);
     
     previousStartPositions.push_back(startGround2Mls.translation());
     
@@ -96,8 +96,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     }
     
     resultTrajectory2D.clear();
+    resultTrajectory3D.clear();
     env->clear();
- 
         
     if(!planner)
         planner.reset(new ARAPlanner(env.get(), true));
