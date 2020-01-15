@@ -40,7 +40,7 @@ void Planner::setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadiu
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
     
-    env->setInitialPatch(body2Mls * mls2Ground * ground2Body , patchRadius);
+    env->setInitialPatch(mls2Ground * body2Mls * ground2Body , patchRadius);
 }
 
 void Planner::setTravMapCallback(const std::function< void ()>& callback)
@@ -63,7 +63,7 @@ void Planner::genTravMap(const base::samples::RigidBodyState& start_pose)
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
     
     base::samples::RigidBodyState startbody2Mls = start_pose;
-    startbody2Mls.setTransform(startbody2Mls.getTransform() * mls2Ground);
+    startbody2Mls.setTransform(mls2Ground * startbody2Mls.getTransform());
 
     const Eigen::Affine3d startGround2Mls(startbody2Mls.getTransform() * ground2Body);
     
@@ -109,8 +109,11 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     base::samples::RigidBodyState startbody2Mls = start_pose;
     base::samples::RigidBodyState endbody2Mls = end_pose;
 
-    startbody2Mls.setTransform(startbody2Mls.getTransform() * mls2Ground);
-    endbody2Mls.setTransform(endbody2Mls.getTransform() * mls2Ground);
+    startbody2Mls.setTransform(mls2Ground * startbody2Mls.getTransform());
+    endbody2Mls.setTransform(mls2Ground * endbody2Mls.getTransform());
+
+    std::cout << "start_pose position (raw): " << start_pose.position.transpose() << std::endl;
+    std::cout << "end_pose position (raw): " << end_pose.position.transpose() << std::endl;
 
     const Eigen::Affine3d startGround2Mls(startbody2Mls.getTransform() * ground2Body);
     const Eigen::Affine3d endGround2Mls(endbody2Mls.getTransform() *ground2Body);
