@@ -6,7 +6,7 @@
 #include <vizkit3d/TrajectoryVisualization.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
 #include <vizkit3d/TraversabilityMap3dVisualization.hpp>
-#include <vizkit3d/MotionPlanningLibrariesSbplSplineVisualization.hpp>
+#include <vizkit3d/SbplSplineVisualization.hpp>
 #include <vizkit3d/RigidBodyStateVisualization.hpp>
 #include <maps/grid/MLSMap.hpp>
 #include <base/Eigen.hpp>
@@ -81,7 +81,7 @@ private:
     QSpinBox* numThreadsSpinBox;
     QProgressBar* bar;
     QWidget window;
-    vizkit3d::MotionPlanningLibrariesSbplSplineVisualization splineViz;
+    vizkit3d::SbplSplineVisualization splineViz;
     vizkit3d::TrajectoryVisualization trajViz;
     vizkit3d::TrajectoryVisualization trajViz2;
     vizkit3d::MLSMapVisualization mlsViz;
