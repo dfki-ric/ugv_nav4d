@@ -325,7 +325,7 @@ void EnvironmentXYZTheta::expandMap(const std::vector<Eigen::Vector3d>& position
 
 void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta)
 {
-    V3DD::CLEAR_DRAWING("env_startPos""ugv_nav4d_env_startPos");
+    V3DD::CLEAR_DRAWING("ugv_nav4d_env_startPos");
     V3DD::DRAW_ARROW("ugv_nav4d_env_startPos", startPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
                      base::Vector3d(1,1,1), V3DD::Color::blue);
     
