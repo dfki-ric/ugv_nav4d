@@ -12,12 +12,6 @@
 #include <base/Trajectory.hpp>
 
 
-
-namespace sbpl_spline_primitives
-{
-    class MotionPrimitivesConfig;
-};
-
 namespace ugv_nav4d
 {
 
