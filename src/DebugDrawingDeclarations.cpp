@@ -6,7 +6,7 @@ V3DD_DECLARE_DEBUG_DRAWING_CHANNEL("ugv_nav4d_env_goalPos");
 V3DD_DECLARE_DEBUG_DRAWING_CHANNEL("ugv_nav4d_expandStarts");
 V3DD_DECLARE_DEBUG_DRAWING_CHANNEL("ugv_nav4d_successors");
 V3DD_DECLARE_DEBUG_DRAWING_CHANNEL("ugv_nav4d_allowedAngles");
-V3DD_DECLARE_DEBUG_DRAWING_CHANNEL("env_startPosugv_nav4d_env_startPos");
+V3DD_DECLARE_DEBUG_DRAWING_CHANNEL("ugv_nav4d_expandFailStepHeight");
 V3DD_DECLARE_DEBUG_DRAWING_CHANNEL("ugv_nav4d_env_startPos");
 V3DD_DECLARE_DEBUG_DRAWING_CHANNEL("ugv_nav4d_check_start_goal_start");
 V3DD_DECLARE_DEBUG_DRAWING_CHANNEL("ugv_nav4d_obst_map");
