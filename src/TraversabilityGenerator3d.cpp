@@ -863,7 +863,7 @@ void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
             {
                 maps::grid::Vector3d pos;
                 trMap.fromGrid(node->getIndex(), pos, node->getHeight(), false);
-                V3DD::DRAW_SPHERE("expandFailStepHeight", pos, 0.05, V3DD::Color::carrot_orange);
+                V3DD::DRAW_SPHERE("ugv_nav4d_expandFailStepHeight", pos, 0.05, V3DD::Color::carrot_orange);
             });
             
             continue;

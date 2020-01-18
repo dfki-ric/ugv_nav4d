@@ -194,7 +194,7 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
     DiscreteTheta discTheta(theta, splineConf.numAngles);
     
     poses.push_back(base::Pose2D(centeredPos.topRows(2), discTheta.getRadian()));
-    stats.calculateStatistics(path, poses, obsGen.getTraversabilityMap(), nodeName + "Box");
+    stats.calculateStatistics(path, poses, obsGen.getTraversabilityMap(), "ugv_nav4d_" + nodeName + "Box");
     
     if(stats.getRobotStats().getNumObstacles() || stats.getRobotStats().getNumFrontiers())
     {
