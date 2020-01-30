@@ -1034,7 +1034,8 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
         });
         
         curPart.speed = curMotion.type == Motion::Type::MOV_BACKWARD? -mobilityConfig.translationSpeed : mobilityConfig.translationSpeed;
-        result.emplace_back(curPart);
+        if (curMotion.type != Motion::Type::MOV_POINTTURN)
+            result.emplace_back(curPart);
     }
     
 }

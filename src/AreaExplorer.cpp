@@ -30,8 +30,8 @@ bool AreaExplorer::getFrontiers(const Eigen::Vector3d& body2Mls,
         size.x() = std::abs(areaToExplore.getBoxWithoutOrientation().max().x() - areaToExplore.getBoxWithoutOrientation().min().x());
         size.y() = std::abs(areaToExplore.getBoxWithoutOrientation().max().y() - areaToExplore.getBoxWithoutOrientation().min().y());
         size.z() = std::abs(areaToExplore.getBoxWithoutOrientation().max().z() - areaToExplore.getBoxWithoutOrientation().min().z());
-        V3DD::CLEAR_DRAWING("area_explore_Exploration_Area");
-        V3DD::DRAW_WIREFRAME_BOX("area_explore_Exploration_Area", areaToExplore.getCenter(),
+        V3DD::CLEAR_DRAWING("area_explorer_Exploration_Area");
+        V3DD::DRAW_WIREFRAME_BOX("area_explorer_Exploration_Area", areaToExplore.getCenter(),
                                  areaToExplore.getOrientation(), size, V3DD::Color::amber);
     });
     
