@@ -431,7 +431,8 @@ bool TraversabilityGenerator3d::checkStepHeight(TravGenNode *node)
 
 void TraversabilityGenerator3d::growNodes()
 {
-    const double growRadiusSquared = std::pow(std::min(config.robotSizeX, config.robotSizeY) / 2.0, 2);
+    //const double growRadiusSquared = std::pow(std::max(config.robotSizeX, config.robotSizeY) / 2.0, 2);
+    const double growRadiusSquared = std::pow(std::sqrt(config.robotSizeX * config.robotSizeX + config.robotSizeY * config.robotSizeY) / 2.0, 2);
     
     for(TravGenNode *n : growList)
     {
