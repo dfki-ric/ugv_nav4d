@@ -196,7 +196,8 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
     poses.push_back(base::Pose2D(centeredPos.topRows(2), discTheta.getRadian()));
     stats.calculateStatistics(path, poses, obsGen.getTraversabilityMap(), "ugv_nav4d_" + nodeName + "Box");
     
-    if(stats.getRobotStats().getNumObstacles() || stats.getRobotStats().getNumFrontiers())
+
+    if(stats.getRobotStats().getNumObstacles() /* || stats.getRobotStats().getNumFrontiers()) */ )
     {
         V3DD::COMPLEX_DRAWING([&]()
         {
@@ -205,6 +206,7 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
             V3DD::DRAW_WIREFRAME_BOX(drawName, pos, Eigen::Quaterniond(Eigen::AngleAxisd(discTheta.getRadian(), Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), V3DD::Color::red);
         });
         
+        std::cout << "Num obstacles: " << stats.getRobotStats().getNumObstacles() << std::endl;
         std::cout << "Error: " << nodeName << " inside obstacle" << std::endl;
         return false;
     }
