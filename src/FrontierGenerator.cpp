@@ -560,6 +560,12 @@ void FrontierGenerator::updateCostParameters(const FrontierGeneratorParameters& 
     costParams = params;
 }
 
+const FrontierGeneratorParameters &FrontierGenerator::getCostParameters() const
+{
+    return costParams;
+}
+
+
 const maps::grid::TraversabilityMap3d< TravGenNode* >& FrontierGenerator::getTraversabilityMap() const
 {
     return travGen.getTraversabilityMap();
@@ -570,12 +576,12 @@ const TraversabilityConfig& FrontierGenerator::getConfig() const
     return travConf;
 }
 
-bool FrontierGenerator::patchesInBox(const OrientedBox& box) const
+size_t FrontierGenerator::patchesInBox(const OrientedBox& box) const
 {
     size_t numIntersections = 0;
     //FIXME this ignores box orientation
     travGen.getTraversabilityMap().intersectCuboid(box.getBoxWithoutOrientation(), numIntersections);
-    return numIntersections > 0;
+    return numIntersections;
 }
 
 
