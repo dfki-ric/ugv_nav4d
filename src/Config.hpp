@@ -13,6 +13,8 @@ struct FrontierGeneratorParameters
     double explorableFactor = 1.0;
     /**The radius of patches that will be visited when calculating the number of explorable patches in the vicinity of a patch */
     unsigned visitRadius = 3;
+
+    double maxBoxCoverageThresholdForScaling = 0.0;
 };
 
 

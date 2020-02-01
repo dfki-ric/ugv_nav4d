@@ -54,12 +54,23 @@ bool AreaExplorer::getFrontiers(const Eigen::Vector3d& body2Mls,
 
 bool AreaExplorer::isAreaExplored(const OrientedBox& areaToExplore, const std::vector<base::samples::RigidBodyState>& frontiers) const
 {
-    if(frontGen->patchesInBox(areaToExplore))
+    size_t numberOfPatchesInBox = frontGen->patchesInBox(areaToExplore);
+    double gridRes = frontGen->getConfig().gridResolution;
+    double sizeOfBox = (areaToExplore.getHalfSize().x() * 2.0 / gridRes + 1) * (areaToExplore.getHalfSize().y() * 2.0 / gridRes + 1);
+    double percentageOfBoxCovered = numberOfPatchesInBox / sizeOfBox;
+
+    std::cout << "number of patches in box " << numberOfPatchesInBox << std::endl;
+    std::cout << percentageOfBoxCovered << " percentage of box covered by patches" << std::endl;
+    if(percentageOfBoxCovered > 0.0)
     {
-        std::cout << "Patches in box\n";
+        double scaling = 1.0;
+        if (percentageOfBoxCovered <  frontGen->getCostParameters().maxBoxCoverageThresholdForScaling) {
+            scaling = 1.0 + frontGen->getCostParameters().maxBoxCoverageThresholdForScaling - percentageOfBoxCovered;
+            std::cout << "Box coverage is small. Scale box by " << scaling << " to find frontiers." << std::endl;
+        }
         for(const base::samples::RigidBodyState& frontier : frontiers)
         {
-            if(areaToExplore.isInside(frontier.position))
+            if(areaToExplore.isInside(frontier.position, scaling))
             {
                 std::cout << "Still some frontiers in box, continue exploration\n";
                 return false;
