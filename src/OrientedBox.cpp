@@ -24,12 +24,12 @@ OrientedBox::OrientedBox(const OrientedBoxConfig& config) :
 }
 
 
-bool OrientedBox::isInside(base::Vector3d p) const
+bool OrientedBox::isInside(base::Vector3d p, double scaling) const
 {
     //move p to box coorindate system and rotate it
     p = p - center;
     p = orientation.inverse() * p;
-    const Eigen::AlignedBox3d localBox(-halfSize, halfSize);
+    const Eigen::AlignedBox3d localBox(-(halfSize * scaling), (halfSize * scaling));
     return localBox.contains(p);
 }
 

@@ -37,6 +37,8 @@ public:
     
     void updateCostParameters(const FrontierGeneratorParameters& params);
     
+    const FrontierGeneratorParameters &getCostParameters() const;
+
     /** Adds traversable patches to the mls below the robot.
      * @param body2Mls Location of the body in mls coordinates
      * @param patchRadius Radius of a circle around the robot which will be filled with traversable patches*/
@@ -51,7 +53,8 @@ public:
     const TraversabilityConfig& getConfig() const;
     
     /** Returns true if there are any travMap patches inside @p box */
-    bool patchesInBox(const OrientedBox& box) const;
+    std::size_t patchesInBox(const OrientedBox& box) const;
+    
     
 private:
 
