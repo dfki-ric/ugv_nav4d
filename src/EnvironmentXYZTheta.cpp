@@ -434,7 +434,7 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     const TravGenNode* travNode = sourceNode->getUserData().travNode;
     const ThetaNode *sourceThetaNode = sourceHash.thetaNode;
     
-    if(travNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+    if(travNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE && travNode->getType() != maps::grid::TraversabilityNodeBase::FRONTIER)
     {
         throw std::runtime_error("tried to get heuristic for non-traversable patch. StateID: " + std::to_string(stateID));
     }
