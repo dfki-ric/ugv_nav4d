@@ -10,6 +10,7 @@
 #include "PathStatistics.hpp"
 #include "Dijkstra.hpp"
 #include <trajectory_follower/SubTrajectory.hpp>
+#include <limits>
 
 using namespace std;
 using namespace sbpl_spline_primitives;
@@ -436,7 +437,14 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     
     if(travNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE && travNode->getType() != maps::grid::TraversabilityNodeBase::FRONTIER)
     {
-        throw std::runtime_error("tried to get heuristic for non-traversable patch. StateID: " + std::to_string(stateID));
+        std::map<int, std::string> numToTravType;
+        numToTravType[maps::grid::TraversabilityNodeBase::OBSTACLE] = "OBSTACLE";
+        numToTravType[maps::grid::TraversabilityNodeBase::TRAVERSABLE] = "TRAVERSABLE";
+        numToTravType[maps::grid::TraversabilityNodeBase::UNKNOWN] = "UNKNOWN";
+        numToTravType[maps::grid::TraversabilityNodeBase::HOLE] = "HOLE";
+        numToTravType[maps::grid::TraversabilityNodeBase::UNSET] = "UNSET";
+        numToTravType[maps::grid::TraversabilityNodeBase::FRONTIER] = "FRONTIER";
+        throw std::runtime_error("tried to get heuristic for " + numToTravType[travNode->getType()] + " patch. StateID: " + std::to_string(stateID));
     }
 
     const double sourceToGoalDist = travNodeIdToDistance[travNode->getUserData().id].distToGoal;
@@ -446,7 +454,7 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     const double timeRotation = sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian() / mobilityConfig.rotationSpeed;
     
     //scale by costScaleFactor to avoid loss of precision before converting to int
-    const int result = floor(std::max(timeTranslation, timeRotation) * Motion::costScaleFactor);
+    int result = floor(std::max(timeTranslation, timeRotation) * Motion::costScaleFactor);
     if(result < 0)
     {
         PRINT_VAR(sourceToGoalDist);
@@ -459,7 +467,9 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
         PRINT_VAR(result);
         PRINT_VAR(travNode->getUserData().id);
         PRINT_VAR(travNode->getType());
-        throw std::runtime_error("Goal heuristic < 0");
+        //throw std::runtime_error("Goal heuristic < 0");
+        std::cout << "Overflow while computing goal heuristic!" << std::endl;
+        result = std::numeric_limits<int>::max();
     }
     oassert(result >= 0);
     return result;
