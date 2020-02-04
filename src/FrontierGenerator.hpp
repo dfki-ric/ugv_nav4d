@@ -53,7 +53,7 @@ public:
     const TraversabilityConfig& getConfig() const;
     
     /** Returns true if there are any travMap patches inside @p box */
-    std::size_t patchesInBox(const OrientedBox& box) const;
+    std::pair<std::size_t, std::size_t> patchesInBox(const OrientedBox& box) const;
     
     
 private:
