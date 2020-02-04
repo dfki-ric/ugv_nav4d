@@ -54,30 +54,35 @@ bool AreaExplorer::getFrontiers(const Eigen::Vector3d& body2Mls,
 
 bool AreaExplorer::isAreaExplored(const OrientedBox& areaToExplore, const std::vector<base::samples::RigidBodyState>& frontiers) const
 {
-    size_t numberOfPatchesInBox = frontGen->patchesInBox(areaToExplore);
-    double gridRes = frontGen->getConfig().gridResolution;
-    double sizeOfBox = (areaToExplore.getHalfSize().x() * 2.0 / gridRes + 1) * (areaToExplore.getHalfSize().y() * 2.0 / gridRes + 1);
-    double percentageOfBoxCovered = numberOfPatchesInBox / sizeOfBox;
+    std::pair<size_t, size_t> numIntersectionPair = frontGen->patchesInBox(areaToExplore);
+    size_t numIntersections = numIntersectionPair.first;
+    size_t numFrontierIntersections = numIntersectionPair.second;
 
-    std::cout << "number of patches in box " << numberOfPatchesInBox << std::endl;
-    std::cout << percentageOfBoxCovered << " percentage of box covered by patches" << std::endl;
-    if(percentageOfBoxCovered > 0.0)
+    if(numIntersections > 0)
     {
-        double scaling = 1.0;
-        if (percentageOfBoxCovered <  frontGen->getCostParameters().maxBoxCoverageThresholdForScaling) {
-            scaling = 1.0 + frontGen->getCostParameters().maxBoxCoverageThresholdForScaling - percentageOfBoxCovered;
-            std::cout << "Box coverage is small. Scale box by " << scaling << " to find frontiers." << std::endl;
-        }
+        std::cout << "There are " << numIntersections << " patches in box." << std::endl;
         for(const base::samples::RigidBodyState& frontier : frontiers)
         {
-            if(areaToExplore.isInside(frontier.position, scaling))
+            if(areaToExplore.isInside(frontier.position, 1.0))
             {
-                std::cout << "Still some frontiers in box, continue exploration\n";
+                std::cout << "Still some frontier goals in box, continue exploration\n";
                 return false;
             }
         }
-        std::cout << "No frontiers remaining in box, stop exploration\n";
-        return true;
+        std::cout << "There are no frontier goals remaining in box\n";
+        if (numFrontierIntersections > 0) {
+            std::cout << "There are " << numFrontierIntersections << " frontier patches in box" << std::endl;
+            if (frontiers.empty()) {
+                std::cout << "There are no more frontier goals available. Stop exploration" << std::endl;
+                return true;
+            } else {
+                std::cout << "There are still frontier goals available. Continue exploration" << std::endl;
+                return false;
+            }
+        } else {
+            std::cout << "There are no frontier patches in box. Stop exploration" << std::endl;
+            return true;
+        }
     }
     if(frontiers.empty())
     {

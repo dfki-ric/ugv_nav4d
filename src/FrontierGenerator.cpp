@@ -576,12 +576,22 @@ const TraversabilityConfig& FrontierGenerator::getConfig() const
     return travConf;
 }
 
-size_t FrontierGenerator::patchesInBox(const OrientedBox& box) const
+std::pair<size_t, size_t> FrontierGenerator::patchesInBox(const OrientedBox& box) const
 {
     size_t numIntersections = 0;
+    size_t numFrontierNodes = 0;
     //FIXME this ignores box orientation
-    travGen.getTraversabilityMap().intersectCuboid(box.getBoxWithoutOrientation(), numIntersections);
-    return numIntersections;
+    maps::grid::TraversabilityMap3d< TravGenNode* >::View view = travGen.getTraversabilityMap().intersectCuboid(box.getBoxWithoutOrientation(), numIntersections);
+    std::vector<TravGenNode*> nodes;
+    for (const auto &levelList : view) {
+        for (const auto cell: levelList) {
+            if ((*cell)->getType() == maps::grid::TraversabilityNodeBase::FRONTIER) {
+                numFrontierNodes++;
+            }
+        }
+    }
+
+    return std::pair<size_t, size_t>(numIntersections, numFrontierNodes); 
 }
 
 
