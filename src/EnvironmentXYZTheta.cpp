@@ -11,6 +11,7 @@
 #include "Dijkstra.hpp"
 #include <trajectory_follower/SubTrajectory.hpp>
 #include <limits>
+#include <trajectory_follower/SubTrajectory.hpp>
 
 using namespace std;
 using namespace sbpl_spline_primitives;
