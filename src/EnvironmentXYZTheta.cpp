@@ -9,9 +9,12 @@
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include "PathStatistics.hpp"
 #include "Dijkstra.hpp"
+#include <trajectory_follower/SubTrajectory.hpp>
 
 using namespace std;
 using namespace sbpl_spline_primitives;
+using trajectory_follower::SubTrajectory;
+using trajectory_follower::DriveMode;
 
 namespace ugv_nav4d
 {
@@ -938,7 +941,7 @@ vector<Motion> EnvironmentXYZTheta::getMotions(const vector< int >& stateIDPath)
 
 
 void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
-                                        vector<base::Trajectory>& result,
+                                        vector<SubTrajectory>& result,
                                         bool setZToZero, const Eigen::Affine3d &plan2Body)
 {
     if(stateIDPath.size() < 2)
@@ -1035,9 +1038,24 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             }
         });
         
-        curPart.speed = curMotion.type == Motion::Type::MOV_BACKWARD? -mobilityConfig.translationSpeed : mobilityConfig.translationSpeed;
-        if (curMotion.type != Motion::Type::MOV_POINTTURN)
-            result.emplace_back(curPart);
+        curPart.speed = mobilityConfig.translationSpeed;
+        SubTrajectory curPartSub(curPart);
+        switch (curMotion.type) {
+            case Motion::Type::MOV_FORWARD:
+                curPartSub.driveMode = DriveMode::ModeAckermann;
+                break;
+            case Motion::Type::MOV_BACKWARD:
+                curPartSub.driveMode = DriveMode::ModeAckermann;
+                break;
+            case Motion::Type::MOV_POINTTURN:
+                curPartSub.driveMode = DriveMode::ModeTurnOnTheSpot;
+                break;
+            case Motion::Type::MOV_LATERAL:
+                curPartSub.driveMode = DriveMode::ModeSideways;
+                break;
+        }
+
+        result.push_back(curPartSub);
     }
     
 }

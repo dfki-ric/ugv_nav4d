@@ -9,6 +9,7 @@
 #include <omp.h>
 
 using namespace maps::grid;
+using trajectory_follower::SubTrajectory;
 
 namespace ugv_nav4d
 {
@@ -78,8 +79,8 @@ void Planner::genTravMap(const base::samples::RigidBodyState& start_pose)
 
 Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& start_pose,
                                        const base::samples::RigidBodyState& end_pose,
-                                       std::vector<base::Trajectory>& resultTrajectory2D,
-                                       std::vector<base::Trajectory>& resultTrajectory3D, 
+                                       std::vector<SubTrajectory>& resultTrajectory2D,
+                                       std::vector<SubTrajectory>& resultTrajectory3D, 
                                        bool dumpOnError, bool dumpOnSuccess)
 { 
     
