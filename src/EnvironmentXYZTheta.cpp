@@ -1193,11 +1193,11 @@ TravGenNode* EnvironmentXYZTheta::findObstacleNode(const TravGenNode* travNode) 
     
 }
 
-std::shared_ptr<base::Trajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
-                                                                                    double theta,
-                                                                                    const Eigen::Affine3d& ground2Body,
-                                                                                    base::Vector3d& outNewStart,
-                                                                                    double& outNewStartTheta)
+std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
+                                                                                double theta,
+                                                                                const Eigen::Affine3d& ground2Body,
+                                                                                base::Vector3d& outNewStart,
+                                                                                double& outNewStartTheta)
 {
     TravGenNode* startTravNode = travGen.generateStartNode(start);
     
@@ -1341,7 +1341,8 @@ std::shared_ptr<base::Trajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstac
         return nullptr;
     }
 
-    std::shared_ptr<base::Trajectory> subTraj(new base::Trajectory(trajectory));
+    std::shared_ptr<SubTrajectory> subTraj(new SubTrajectory(trajectory));
+    subTraj->kind = trajectory_follower::TRAJECTORY_KIND_RESCUE;
     return subTraj;
 }
 
