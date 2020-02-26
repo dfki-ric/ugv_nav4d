@@ -154,10 +154,9 @@ public:
      * @param[out] outNewStart The new start position of the robot after it has moved out of the obstacle in the map frame
      * @return the best trajectory that gets the robot out of the obstacle.
      *         Or an empty trajectory if no way out can be found*/
-    std::shared_ptr<base::Trajectory> findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
-                                                                   const Eigen::Affine3d& ground2Body,
-                                                                   base::Vector3d& outNewStart, double& outNewStartTheta);
-    
+    std::shared_ptr<trajectory_follower::SubTrajectory> findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
+            const Eigen::Affine3d& ground2Body,
+            base::Vector3d& outNewStart, double& outNewStartTheta);
 
     
      /**
