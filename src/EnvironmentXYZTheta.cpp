@@ -1056,6 +1056,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 curPartSub.driveMode = DriveMode::ModeAckermann;
                 break;
             case Motion::Type::MOV_BACKWARD:
+                curPart.speed = -mobilityConfig.translationSpeed;
                 curPartSub.driveMode = DriveMode::ModeAckermann;
                 break;
             case Motion::Type::MOV_POINTTURN:
@@ -1066,7 +1067,8 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 break;
         }
 
-        result.push_back(curPartSub);
+        if (curMotion.type != Motion::Type::MOV_POINTTURN)
+            result.push_back(curPart);
     }
     
 }
