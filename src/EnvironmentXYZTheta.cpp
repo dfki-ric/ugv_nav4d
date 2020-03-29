@@ -1049,14 +1049,25 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             }
         });
         
-        curPart.speed = mobilityConfig.translationSpeed;
+        if (curMotion.type == Motion::Type::MOV_POINTTURN) {
+            continue;
+        }
+
+        if (curMotion.type == Motion::Type::MOV_BACKWARD) {
+            curPart.speed = -mobilityConfig.translationSpeed;
+        } else {
+            curPart.speed = mobilityConfig.translationSpeed;
+        }
+        std::cout << "build subtrajectory..." << std::endl;
+        std::cout << "motion type:  " << curMotion.type << std::endl;
+        curPart.spline.printCurveProperties(std::cout);
+        std::cout << "positions count: " << positions.size() << std::endl;
         SubTrajectory curPartSub(curPart);
         switch (curMotion.type) {
             case Motion::Type::MOV_FORWARD:
                 curPartSub.driveMode = DriveMode::ModeAckermann;
                 break;
             case Motion::Type::MOV_BACKWARD:
-                curPart.speed = -mobilityConfig.translationSpeed;
                 curPartSub.driveMode = DriveMode::ModeAckermann;
                 break;
             case Motion::Type::MOV_POINTTURN:
@@ -1066,11 +1077,9 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 curPartSub.driveMode = DriveMode::ModeSideways;
                 break;
         }
-
-        if (curMotion.type != Motion::Type::MOV_POINTTURN)
-            result.push_back(curPart);
+        std::cout << "finished building subtrajectory!" << std::endl;
+        result.push_back(curPartSub);
     }
-    
 }
 
 
