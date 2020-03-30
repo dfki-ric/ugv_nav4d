@@ -119,6 +119,9 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     const Eigen::Affine3d startGround2Mls(startbody2Mls.getTransform() * ground2Body);
     const Eigen::Affine3d endGround2Mls(endbody2Mls.getTransform() *ground2Body);
     
+    startbody2Mls.setTransform(startGround2Mls);
+    endbody2Mls.setTransform(endGround2Mls);
+
     //TODO maybe use a deque and limit to last 30 starts?
     previousStartPositions.push_back(startGround2Mls.translation());
     
