@@ -1058,10 +1058,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
         } else {
             curPart.speed = mobilityConfig.translationSpeed;
         }
-        std::cout << "build subtrajectory..." << std::endl;
-        std::cout << "motion type:  " << curMotion.type << std::endl;
-        curPart.spline.printCurveProperties(std::cout);
-        std::cout << "positions count: " << positions.size() << std::endl;
         SubTrajectory curPartSub(curPart);
         switch (curMotion.type) {
             case Motion::Type::MOV_FORWARD:
@@ -1077,7 +1073,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 curPartSub.driveMode = DriveMode::ModeSideways;
                 break;
         }
-        std::cout << "finished building subtrajectory!" << std::endl;
         result.push_back(curPartSub);
     }
 }
