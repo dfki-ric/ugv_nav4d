@@ -568,10 +568,10 @@ void PlannerGui::startPlanThread()
 
 void PlannerGui::plannerIsDone()
 {   
-    trajViz.updateTr(path);
+    trajViz.updateData(path);
     trajViz.setLineWidth(8);
 
-    trajViz2.updateTr(beautifiedPath);
+    trajViz2.updateData(beautifiedPath);
     trajViz2.setLineWidth(8);    
     
     

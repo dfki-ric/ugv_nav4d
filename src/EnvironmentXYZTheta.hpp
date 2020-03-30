@@ -8,6 +8,7 @@
 #include <base/Pose.hpp>
 #include "DiscreteTheta.hpp"
 #include "PreComputedMotions.hpp"
+#include <trajectory_follower/SubTrajectory.hpp>
 
 std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle);
 
@@ -153,10 +154,9 @@ public:
      * @param[out] outNewStart The new start position of the robot after it has moved out of the obstacle in the map frame
      * @return the best trajectory that gets the robot out of the obstacle.
      *         Or an empty trajectory if no way out can be found*/
-    std::shared_ptr<base::Trajectory> findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
-                                                                   const Eigen::Affine3d& ground2Body,
-                                                                   base::Vector3d& outNewStart, double& outNewStartTheta);
-    
+    std::shared_ptr<trajectory_follower::SubTrajectory> findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
+            const Eigen::Affine3d& ground2Body,
+            base::Vector3d& outNewStart, double& outNewStartTheta);
 
     
      /**
@@ -205,7 +205,7 @@ public:
     
     std::vector<Motion> getMotions(const std::vector<int> &stateIDPath);
     
-    void getTrajectory(const std::vector<int> &stateIDPath, std::vector<base::Trajectory> &result,
+    void getTrajectory(const std::vector<int> &stateIDPath, std::vector<trajectory_follower::SubTrajectory> &result,
                        bool setZToZero, const Eigen::Affine3d &plan2Body = Eigen::Affine3d::Identity());
     
     const PreComputedMotions& getAvailableMotions() const;

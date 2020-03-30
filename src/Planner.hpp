@@ -4,6 +4,7 @@
 #include <boost/shared_ptr.hpp>
 #include <sbpl_spline_primitives/SbplSplineMotionPrimitives.hpp>
 #include "EnvironmentXYZTheta.hpp"
+#include <trajectory_follower/SubTrajectory.hpp>
 
 class ARAPlanner;
 
@@ -126,8 +127,8 @@ public:
      * @return An enum indicating the planner state
      * */
     PLANNING_RESULT plan(const base::Time& maxTime, const base::samples::RigidBodyState& start_pose,
-                         const base::samples::RigidBodyState& end_pose, std::vector<base::Trajectory>& resultTrajectory2D,
-                         std::vector<base::Trajectory>& resultTrajectory3D, bool dumpOnError = false, bool dumpOnSuccess = false);
+                         const base::samples::RigidBodyState& end_pose, std::vector<trajectory_follower::SubTrajectory>& resultTrajectory2D,
+                         std::vector<trajectory_follower::SubTrajectory>& resultTrajectory3D, bool dumpOnError = false, bool dumpOnSuccess = false);
 
     void genTravMap(const base::samples::RigidBodyState& startbody2Mls);    
     
