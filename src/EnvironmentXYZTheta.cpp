@@ -276,7 +276,7 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     std::cout << "Heuristic computed" << std::endl;
     
     //draw greedy path
-    V3DD::COMPLEX_DRAWING([&]()
+    /*V3DD::COMPLEX_DRAWING([&]()
     {
         V3DD::CLEAR_DRAWING("ugv_nav4d_greedyPath");
         TravGenNode* nextNode = startXYZNode->getUserData().travNode;
@@ -305,7 +305,7 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
                 break;
             }
         }
-    });
+    });*/
 }
 
 void EnvironmentXYZTheta::expandMap(const std::vector<Eigen::Vector3d>& positions)
