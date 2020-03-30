@@ -9,13 +9,9 @@
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include "PathStatistics.hpp"
 #include "Dijkstra.hpp"
-<<<<<<< HEAD
 #include <trajectory_follower/SubTrajectory.hpp>
 #include <limits>
 #include <trajectory_follower/SubTrajectory.hpp>
-=======
-#include <limits>
->>>>>>> master
 
 using namespace std;
 using namespace sbpl_spline_primitives;
