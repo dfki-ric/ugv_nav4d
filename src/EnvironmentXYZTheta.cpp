@@ -9,10 +9,14 @@
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include "PathStatistics.hpp"
 #include "Dijkstra.hpp"
+#include <trajectory_follower/SubTrajectory.hpp>
 #include <limits>
+#include <trajectory_follower/SubTrajectory.hpp>
 
 using namespace std;
 using namespace sbpl_spline_primitives;
+using trajectory_follower::SubTrajectory;
+using trajectory_follower::DriveMode;
 
 namespace ugv_nav4d
 {
@@ -948,7 +952,7 @@ vector<Motion> EnvironmentXYZTheta::getMotions(const vector< int >& stateIDPath)
 
 
 void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
-                                        vector<base::Trajectory>& result,
+                                        vector<SubTrajectory>& result,
                                         bool setZToZero, const Eigen::Affine3d &plan2Body)
 {
     if(stateIDPath.size() < 2)
@@ -1045,11 +1049,32 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             }
         });
         
-        curPart.speed = curMotion.type == Motion::Type::MOV_BACKWARD? -mobilityConfig.translationSpeed : mobilityConfig.translationSpeed;
-        if (curMotion.type != Motion::Type::MOV_POINTTURN)
-            result.emplace_back(curPart);
+        if (curMotion.type == Motion::Type::MOV_POINTTURN) {
+            continue;
+        }
+
+        if (curMotion.type == Motion::Type::MOV_BACKWARD) {
+            curPart.speed = -mobilityConfig.translationSpeed;
+        } else {
+            curPart.speed = mobilityConfig.translationSpeed;
+        }
+        SubTrajectory curPartSub(curPart);
+        switch (curMotion.type) {
+            case Motion::Type::MOV_FORWARD:
+                curPartSub.driveMode = DriveMode::ModeAckermann;
+                break;
+            case Motion::Type::MOV_BACKWARD:
+                curPartSub.driveMode = DriveMode::ModeAckermann;
+                break;
+            case Motion::Type::MOV_POINTTURN:
+                curPartSub.driveMode = DriveMode::ModeTurnOnTheSpot;
+                break;
+            case Motion::Type::MOV_LATERAL:
+                curPartSub.driveMode = DriveMode::ModeSideways;
+                break;
+        }
+        result.push_back(curPartSub);
     }
-    
 }
 
 
@@ -1174,11 +1199,11 @@ TravGenNode* EnvironmentXYZTheta::findObstacleNode(const TravGenNode* travNode) 
     
 }
 
-std::shared_ptr<base::Trajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
-                                                                                    double theta,
-                                                                                    const Eigen::Affine3d& ground2Body,
-                                                                                    base::Vector3d& outNewStart,
-                                                                                    double& outNewStartTheta)
+std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
+                                                                                double theta,
+                                                                                const Eigen::Affine3d& ground2Body,
+                                                                                base::Vector3d& outNewStart,
+                                                                                double& outNewStartTheta)
 {
     TravGenNode* startTravNode = travGen.generateStartNode(start);
     
@@ -1322,7 +1347,8 @@ std::shared_ptr<base::Trajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstac
         return nullptr;
     }
 
-    std::shared_ptr<base::Trajectory> subTraj(new base::Trajectory(trajectory));
+    std::shared_ptr<SubTrajectory> subTraj(new SubTrajectory(trajectory));
+    subTraj->kind = trajectory_follower::TRAJECTORY_KIND_RESCUE;
     return subTraj;
 }
 
