@@ -455,7 +455,10 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     const double timeRotation = sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian() / mobilityConfig.rotationSpeed;
     
     //scale by costScaleFactor to avoid loss of precision before converting to int
-    int result = floor(std::max(timeTranslation, timeRotation) * Motion::costScaleFactor);
+    const double maxTime = std::max(timeTranslation, timeRotation);
+    
+    // try to avoid overflow by skipping scaling for already large values (scaling is only useful for small values)
+    int result = maxTime >= 10000000 ? maxTime : maxTime * Motion::costScaleFactor;
     if(result < 0)
     {
         PRINT_VAR(sourceToGoalDist);
