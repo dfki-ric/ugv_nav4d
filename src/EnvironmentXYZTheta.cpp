@@ -256,8 +256,8 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
         throw StateCreationFailed("Failed to create goal state");
     }
     const auto nodeType = goalXYZNode->getUserData().travNode->getType();
-    if(nodeType != maps::grid::TraversabilityNodeBase::TRAVERSABLE && nodeType != maps::grid::TraversabilityNodeBase::FRONTIER) {
-        throw std::runtime_error("Error, goal has to be a traversable or frontier patch");
+    if(nodeType != maps::grid::TraversabilityNodeBase::TRAVERSABLE) {
+        throw std::runtime_error("Error, goal has to be a traversable patch");
     }
     
     
