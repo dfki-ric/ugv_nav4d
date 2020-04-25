@@ -7,6 +7,8 @@
 #include <base/Eigen.hpp>
 #include "PlannerDump.hpp"
 #include <omp.h>
+#include <cmath>
+#include "Logger.hpp"
 
 using namespace maps::grid;
 using trajectory_follower::SubTrajectory;
@@ -59,7 +61,6 @@ void Planner::genTravMap(const base::samples::RigidBodyState& start_pose)
     
     env->clear();
  
-        
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
     
@@ -76,6 +77,85 @@ void Planner::genTravMap(const base::samples::RigidBodyState& start_pose)
         travMapCallback();
 }
 
+
+bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& translation, const double yaw) noexcept
+{
+    static constexpr double theta_step = EIGEN_PI / 10.;
+    if(mobility.searchRadius < std::numeric_limits<double>::epsilon()) {
+        return tryGoal(translation, yaw);
+    } else {
+        bool is_invalid = true;
+        const double start_angle = std::atan2(start_translation.y() - translation.y(), start_translation.x() - translation.x());
+        LOG_PLAN("start_angle", start_angle);
+        LOG_PLAN("goal", translation);
+
+        double current_radius = mobility.searchProgressSteps;
+        double theta = start_angle;
+        double theta_pi = 0;
+        int multiplier = 1;
+        Eigen::Vector2d pos(0, 0);
+        while(is_invalid) {
+            LOG_PLAN("translation change", pos.x(), pos.y());
+            Eigen::Vector3d temp = translation;
+            temp.x() += pos.x();
+            temp.y() += pos.y();
+            temp.z() = [&]{
+                double z;
+                if(env->getMlsMap().getClosestSurfacePos(temp, z)) {
+                    return z;
+                    LOG_PLAN("z" , z);
+                }
+                return temp.z();
+            }();
+            
+            if(tryGoal(temp, yaw)) {
+                translation = temp; // for future use by calling function
+                return true; 
+            }
+
+           
+            // if the circle is completed and still no valid goal is found, increase the radius and try again
+            if(std::abs(theta_pi - EIGEN_PI) < std::numeric_limits<double>::epsilon()) {
+                current_radius += mobility.searchProgressSteps;
+                theta_pi = 0;
+                LOG_PLAN("reset theta", theta_pi);
+
+                // do we have reached our max. search radius?
+                if(current_radius > mobility.searchRadius) {
+                    return false;
+                }
+            } 
+            // only add a new value if we are positive, so we can explore on both sides.
+            if(multiplier == 1) {
+                theta_pi += theta_step;
+                theta = std::remainder(start_angle + theta_pi, 2 * EIGEN_PI);
+                multiplier = -1;
+            } else {
+                theta = std::remainder(start_angle - theta_pi, 2 * EIGEN_PI);
+                multiplier = 1;
+            }
+            LOG_PLAN("Calc pos", current_radius, theta);
+            // calculate new position
+            pos.y() = current_radius * std::sin(theta);
+            pos.x() = current_radius * std::cos(theta);
+        }
+    }
+    return false;
+}
+
+
+bool Planner::tryGoal(const Eigen::Vector3d& translation, const double yaw) noexcept
+{
+    try
+    {
+        env->setGoal(translation, yaw);
+    }
+    catch(const std::runtime_error& ex)
+    {
+        return false;
+    }
+    return true;
+}
 
 Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& start_pose,
                                        const base::samples::RigidBodyState& end_pose,
@@ -146,17 +226,13 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         return START_INVALID;
     }
     
-    try
-    {
-        env->setGoal(endGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(endGround2Mls.linear())));
-    }
-    catch(const std::runtime_error& ex)
-    {
-        if(dumpOnError)
+    Eigen::Vector3d goal_translation = endGround2Mls.translation();
+    if(!calculateGoal(startGround2Mls.translation(), goal_translation, base::getYaw(Eigen::Quaterniond(endGround2Mls.linear())))) {
+        if(dumpOnError) {
             PlannerDump dump(*this, "bad_goal", maxTime, startbody2Mls, endbody2Mls);
+        }
         return GOAL_INVALID;
     }
-    
     
     //this has to happen after env->setStart and env->setGoal because those methods initialize the 
     //StateID2IndexMapping which is accessed inside force_planning_from_scratch_and_free_memory().
@@ -170,6 +246,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         std::cout << "caught sbpl exception: " << ex.what() << std::endl;
         return NO_SOLUTION;
     }
+
     
     MDPConfig mdp_cfg;
         
