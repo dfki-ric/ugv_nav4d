@@ -255,6 +255,11 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     {
         throw StateCreationFailed("Failed to create goal state");
     }
+    const auto nodeType = goalXYZNode->getUserData().travNode->getType();
+    if(nodeType != maps::grid::TraversabilityNodeBase::TRAVERSABLE && nodeType != maps::grid::TraversabilityNodeBase::FRONTIER) {
+        throw std::runtime_error("Error, goal has to be a traversable or frontier patch");
+    }
+    
     
     if(travConf.enableInclineLimitting)
     {
@@ -278,9 +283,9 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     
     precomputeCost();
     std::cout << "Heuristic computed" << std::endl;
-    
     //draw greedy path
-    /*V3DD::COMPLEX_DRAWING([&]()
+#if false
+    V3DD::COMPLEX_DRAWING([&]()
     {
         V3DD::CLEAR_DRAWING("ugv_nav4d_greedyPath");
         TravGenNode* nextNode = startXYZNode->getUserData().travNode;
@@ -309,7 +314,8 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
                 break;
             }
         }
-    });*/
+    });
+#endif
 }
 
 void EnvironmentXYZTheta::expandMap(const std::vector<Eigen::Vector3d>& positions)
@@ -445,7 +451,8 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
         numToTravType[maps::grid::TraversabilityNodeBase::HOLE] = "HOLE";
         numToTravType[maps::grid::TraversabilityNodeBase::UNSET] = "UNSET";
         numToTravType[maps::grid::TraversabilityNodeBase::FRONTIER] = "FRONTIER";
-        throw std::runtime_error("tried to get heuristic for " + numToTravType[travNode->getType()] + " patch. StateID: " + std::to_string(stateID));
+        //throw std::runtime_error("tried to get heuristic for " + numToTravType[travNode->getType()] + " patch. StateID: " + std::to_string(stateID));
+        return std::numeric_limits<int>::max();
     }
 
     const double sourceToGoalDist = travNodeIdToDistance[travNode->getUserData().id].distToGoal;
