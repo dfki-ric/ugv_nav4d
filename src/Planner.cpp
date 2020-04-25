@@ -103,7 +103,6 @@ bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vec
                 double z;
                 if(env->getMlsMap().getClosestSurfacePos(temp, z)) {
                     return z;
-                    LOG_PLAN("z" , z);
                 }
                 return temp.z();
             }();

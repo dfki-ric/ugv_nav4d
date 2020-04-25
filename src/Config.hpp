@@ -45,7 +45,7 @@ struct Mobility {
 
     // If > 0 a new goal would be searched, if the choosen goal is invalid
     double searchRadius;
-    // A new goal is search inside a circle around the choosen goal. This option determines the step size between two search radii.
+    // The search circle is increased by this value after each unsuccessful case. This option determines the step size between two search radii.
     double searchProgressSteps;
     
     
