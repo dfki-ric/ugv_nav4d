@@ -769,7 +769,11 @@ TravGenNode *TraversabilityGenerator3d::createTraversabilityPatchAt(maps::grid::
         //there is a neighboring patch in the mls that has a reachable hight
         if(!computePlaneRansac(*ret))
         {
-            ret->setType(TraversabilityNodeBase::UNKNOWN);
+            if(mlsIdx.x() == 1 || mlsIdx.y() == 1) {
+                ret->setType(TraversabilityNodeBase::OBSTACLE);
+            } else {
+                ret->setType(TraversabilityNodeBase::UNKNOWN);
+            }
         }
 
         if((ret->getHeight() - config.maxStepHeight) <= curHeight && (ret->getHeight() + config.maxStepHeight) >= curHeight)
