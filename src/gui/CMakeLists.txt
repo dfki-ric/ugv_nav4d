@@ -23,15 +23,3 @@ rock_executable(ugv_nav4d_replay
         PlannerGui.h        
    DEPS ugv_nav4d 
    DEPS_PKGCONFIG vizkit3d  maps-viz base-viz sbpl_spline_primitives-viz base-types trajectory_follower-viz)
-
-rock_executable(frontier_test_bin
-    SOURCES
-        FrontierTest.cpp
-        FrontierTestGui.cpp
-    HEADERS
-        FrontierTestGui.hpp
-    MOC
-        FrontierTestGui.hpp      
-   DEPS ugv_nav4d 
-   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz sbpl_spline_primitives-viz base-types)
-   

@@ -1358,7 +1358,6 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
     }
 
     std::shared_ptr<SubTrajectory> subTraj(new SubTrajectory(trajectory));
-    subTraj->kind = trajectory_follower::TRAJECTORY_KIND_RESCUE;
     return subTraj;
 }
 

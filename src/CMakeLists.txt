@@ -11,11 +11,8 @@ endif()
 
 rock_library(ugv_nav4d
     SOURCES 
-        AreaExplorer.cpp
         DiscreteTheta.cpp
         EnvironmentXYZTheta.cpp
-        FrontierGenerator.cpp
-        OrientedBox.cpp
         PathStatistics.cpp
         Planner.cpp
         PlannerDump.cpp
@@ -25,12 +22,9 @@ rock_library(ugv_nav4d
         ObstacleMapGenerator3D.cpp
         DebugDrawingDeclarations.cpp
     HEADERS 
-        AreaExplorer.hpp
         Config.hpp
         DiscreteTheta.hpp
-        FrontierGenerator.hpp
         EnvironmentXYZTheta.hpp
-        OrientedBox.hpp
         Planner.hpp
         PreComputedMotions.hpp
         TraversabilityGenerator3d.hpp
