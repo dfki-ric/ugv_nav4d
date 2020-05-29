@@ -30,8 +30,8 @@ bool AreaExplorer::getFrontiers(const Eigen::Vector3d& body2Mls,
         size.x() = std::abs(areaToExplore.getBoxWithoutOrientation().max().x() - areaToExplore.getBoxWithoutOrientation().min().x());
         size.y() = std::abs(areaToExplore.getBoxWithoutOrientation().max().y() - areaToExplore.getBoxWithoutOrientation().min().y());
         size.z() = std::abs(areaToExplore.getBoxWithoutOrientation().max().z() - areaToExplore.getBoxWithoutOrientation().min().z());
-        V3DD::CLEAR_DRAWING("area_explore_Exploration_Area");
-        V3DD::DRAW_WIREFRAME_BOX("area_explore_Exploration_Area", areaToExplore.getCenter(),
+        V3DD::CLEAR_DRAWING("area_explorer_Exploration_Area");
+        V3DD::DRAW_WIREFRAME_BOX("area_explorer_Exploration_Area", areaToExplore.getCenter(),
                                  areaToExplore.getOrientation(), size, V3DD::Color::amber);
     });
     
@@ -54,19 +54,35 @@ bool AreaExplorer::getFrontiers(const Eigen::Vector3d& body2Mls,
 
 bool AreaExplorer::isAreaExplored(const OrientedBox& areaToExplore, const std::vector<base::samples::RigidBodyState>& frontiers) const
 {
-    if(frontGen->patchesInBox(areaToExplore))
+    std::pair<size_t, size_t> numIntersectionPair = frontGen->patchesInBox(areaToExplore);
+    size_t numIntersections = numIntersectionPair.first;
+    size_t numFrontierIntersections = numIntersectionPair.second;
+
+    if(numIntersections > 0)
     {
-        std::cout << "Patches in box\n";
+        std::cout << "There are " << numIntersections << " patches in box." << std::endl;
         for(const base::samples::RigidBodyState& frontier : frontiers)
         {
-            if(areaToExplore.isInside(frontier.position))
+            if(areaToExplore.isInside(frontier.position, 1.0))
             {
-                std::cout << "Still some frontiers in box, continue exploration\n";
+                std::cout << "Still some frontier goals in box, continue exploration\n";
                 return false;
             }
         }
-        std::cout << "No frontiers remaining in box, stop exploration\n";
-        return true;
+        std::cout << "There are no frontier goals remaining in box\n";
+        if (numFrontierIntersections > 0) {
+            std::cout << "There are " << numFrontierIntersections << " frontier patches in box" << std::endl;
+            if (frontiers.empty()) {
+                std::cout << "There are no more frontier goals available. Stop exploration" << std::endl;
+                return true;
+            } else {
+                std::cout << "There are still frontier goals available. Continue exploration" << std::endl;
+                return false;
+            }
+        } else {
+            std::cout << "There are no frontier patches in box. Stop exploration" << std::endl;
+            return true;
+        }
     }
     if(frontiers.empty())
     {

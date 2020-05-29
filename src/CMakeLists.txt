@@ -46,6 +46,7 @@ rock_library(ugv_nav4d
         maps
         pcl_segmentation-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
         vizkit3d_debug_drawings
+        trajectory_follower
 )
 
 add_subdirectory(gui)

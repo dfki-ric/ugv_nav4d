@@ -22,6 +22,11 @@ public:
     {
         return center;
     }
+
+    const Eigen::Vector3d &getHalfSize() const 
+    {
+        return halfSize;
+    }
     
     const Eigen::Quaterniond& getOrientation() const
     {
@@ -35,7 +40,7 @@ public:
     }
 
     /** @p point in same coordinate system as center */
-    bool isInside(base::Vector3d point) const;
+    bool isInside(base::Vector3d point, double scaling) const;
 
 private:    
     Eigen::Vector3d halfSize; /**< (size of box) / 2.0 */
