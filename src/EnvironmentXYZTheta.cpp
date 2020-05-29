@@ -9,9 +9,14 @@
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include "PathStatistics.hpp"
 #include "Dijkstra.hpp"
+#include <trajectory_follower/SubTrajectory.hpp>
+#include <limits>
+#include <trajectory_follower/SubTrajectory.hpp>
 
 using namespace std;
 using namespace sbpl_spline_primitives;
+using trajectory_follower::SubTrajectory;
+using trajectory_follower::DriveMode;
 
 namespace ugv_nav4d
 {
@@ -194,9 +199,10 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
     DiscreteTheta discTheta(theta, splineConf.numAngles);
     
     poses.push_back(base::Pose2D(centeredPos.topRows(2), discTheta.getRadian()));
-    stats.calculateStatistics(path, poses, obsGen.getTraversabilityMap(), nodeName + "Box");
+    stats.calculateStatistics(path, poses, obsGen.getTraversabilityMap(), "ugv_nav4d_" + nodeName + "Box");
     
-    if(stats.getRobotStats().getNumObstacles() || stats.getRobotStats().getNumFrontiers())
+
+    if(stats.getRobotStats().getNumObstacles() /* || stats.getRobotStats().getNumFrontiers()) */ )
     {
         V3DD::COMPLEX_DRAWING([&]()
         {
@@ -205,6 +211,7 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
             V3DD::DRAW_WIREFRAME_BOX(drawName, pos, Eigen::Quaterniond(Eigen::AngleAxisd(discTheta.getRadian(), Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), V3DD::Color::red);
         });
         
+        std::cout << "Num obstacles: " << stats.getRobotStats().getNumObstacles() << std::endl;
         std::cout << "Error: " << nodeName << " inside obstacle" << std::endl;
         return false;
     }
@@ -248,6 +255,11 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     {
         throw StateCreationFailed("Failed to create goal state");
     }
+    const auto nodeType = goalXYZNode->getUserData().travNode->getType();
+    if(nodeType != maps::grid::TraversabilityNodeBase::TRAVERSABLE) {
+        throw std::runtime_error("Error, goal has to be a traversable patch");
+    }
+    
     
     if(travConf.enableInclineLimitting)
     {
@@ -271,8 +283,8 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     
     precomputeCost();
     std::cout << "Heuristic computed" << std::endl;
-    
     //draw greedy path
+#if false
     V3DD::COMPLEX_DRAWING([&]()
     {
         V3DD::CLEAR_DRAWING("ugv_nav4d_greedyPath");
@@ -285,6 +297,7 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
             
             V3DD::DRAW_CYLINDER("ugv_nav4d_greedyPath", pos, base::Vector3d(0.03, 0.03, 0.3), V3DD::Color::yellow);
             double minCost = std::numeric_limits< double >::max();
+            bool foundNextNode = false;
             for(maps::grid::TraversabilityNodeBase* node : nextNode->getConnections())
             {
                 TravGenNode* travNode = static_cast<TravGenNode*>(node);
@@ -293,10 +306,16 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
                 {
                     minCost = cost;
                     nextNode = travNode;
+                    foundNextNode = true;
                 }
+            }
+            if (!foundNextNode) {
+                std::cout << "nextNode has no connection" << std::endl;
+                break;
             }
         }
     });
+#endif
 }
 
 void EnvironmentXYZTheta::expandMap(const std::vector<Eigen::Vector3d>& positions)
@@ -319,7 +338,7 @@ void EnvironmentXYZTheta::expandMap(const std::vector<Eigen::Vector3d>& position
 
 void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta)
 {
-    V3DD::CLEAR_DRAWING("env_startPos""ugv_nav4d_env_startPos");
+    V3DD::CLEAR_DRAWING("ugv_nav4d_env_startPos");
     V3DD::DRAW_ARROW("ugv_nav4d_env_startPos", startPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
                      base::Vector3d(1,1,1), V3DD::Color::blue);
     
@@ -423,9 +442,17 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     const TravGenNode* travNode = sourceNode->getUserData().travNode;
     const ThetaNode *sourceThetaNode = sourceHash.thetaNode;
     
-    if(travNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+    if(travNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE && travNode->getType() != maps::grid::TraversabilityNodeBase::FRONTIER)
     {
-        throw std::runtime_error("tried to get heuristic for non-traversable patch. StateID: " + std::to_string(stateID));
+        std::map<int, std::string> numToTravType;
+        numToTravType[maps::grid::TraversabilityNodeBase::OBSTACLE] = "OBSTACLE";
+        numToTravType[maps::grid::TraversabilityNodeBase::TRAVERSABLE] = "TRAVERSABLE";
+        numToTravType[maps::grid::TraversabilityNodeBase::UNKNOWN] = "UNKNOWN";
+        numToTravType[maps::grid::TraversabilityNodeBase::HOLE] = "HOLE";
+        numToTravType[maps::grid::TraversabilityNodeBase::UNSET] = "UNSET";
+        numToTravType[maps::grid::TraversabilityNodeBase::FRONTIER] = "FRONTIER";
+        //throw std::runtime_error("tried to get heuristic for " + numToTravType[travNode->getType()] + " patch. StateID: " + std::to_string(stateID));
+        return std::numeric_limits<int>::max();
     }
 
     const double sourceToGoalDist = travNodeIdToDistance[travNode->getUserData().id].distToGoal;
@@ -435,7 +462,10 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     const double timeRotation = sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian() / mobilityConfig.rotationSpeed;
     
     //scale by costScaleFactor to avoid loss of precision before converting to int
-    const int result = floor(std::max(timeTranslation, timeRotation) * Motion::costScaleFactor);
+    const double maxTime = std::max(timeTranslation, timeRotation);
+    
+    // try to avoid overflow by skipping scaling for already large values (scaling is only useful for small values)
+    int result = maxTime >= 10000000 ? maxTime : maxTime * Motion::costScaleFactor;
     if(result < 0)
     {
         PRINT_VAR(sourceToGoalDist);
@@ -448,7 +478,9 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
         PRINT_VAR(result);
         PRINT_VAR(travNode->getUserData().id);
         PRINT_VAR(travNode->getType());
-        throw std::runtime_error("Goal heuristic < 0");
+        //throw std::runtime_error("Goal heuristic < 0");
+        std::cout << "Overflow while computing goal heuristic!" << std::endl;
+        result = std::numeric_limits<int>::max();
     }
     oassert(result >= 0);
     return result;
@@ -930,7 +962,7 @@ vector<Motion> EnvironmentXYZTheta::getMotions(const vector< int >& stateIDPath)
 
 
 void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
-                                        vector<base::Trajectory>& result,
+                                        vector<SubTrajectory>& result,
                                         bool setZToZero, const Eigen::Affine3d &plan2Body)
 {
     if(stateIDPath.size() < 2)
@@ -1027,10 +1059,32 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             }
         });
         
-        curPart.speed = curMotion.type == Motion::Type::MOV_BACKWARD? -mobilityConfig.translationSpeed : mobilityConfig.translationSpeed;
-        result.emplace_back(curPart);
+        if (curMotion.type == Motion::Type::MOV_POINTTURN) {
+            continue;
+        }
+
+        if (curMotion.type == Motion::Type::MOV_BACKWARD) {
+            curPart.speed = -mobilityConfig.translationSpeed;
+        } else {
+            curPart.speed = mobilityConfig.translationSpeed;
+        }
+        SubTrajectory curPartSub(curPart);
+        switch (curMotion.type) {
+            case Motion::Type::MOV_FORWARD:
+                curPartSub.driveMode = DriveMode::ModeAckermann;
+                break;
+            case Motion::Type::MOV_BACKWARD:
+                curPartSub.driveMode = DriveMode::ModeAckermann;
+                break;
+            case Motion::Type::MOV_POINTTURN:
+                curPartSub.driveMode = DriveMode::ModeTurnOnTheSpot;
+                break;
+            case Motion::Type::MOV_LATERAL:
+                curPartSub.driveMode = DriveMode::ModeSideways;
+                break;
+        }
+        result.push_back(curPartSub);
     }
-    
 }
 
 
@@ -1155,11 +1209,11 @@ TravGenNode* EnvironmentXYZTheta::findObstacleNode(const TravGenNode* travNode) 
     
 }
 
-std::shared_ptr<base::Trajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
-                                                                                    double theta,
-                                                                                    const Eigen::Affine3d& ground2Body,
-                                                                                    base::Vector3d& outNewStart,
-                                                                                    double& outNewStartTheta)
+std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
+                                                                                double theta,
+                                                                                const Eigen::Affine3d& ground2Body,
+                                                                                base::Vector3d& outNewStart,
+                                                                                double& outNewStartTheta)
 {
     TravGenNode* startTravNode = travGen.generateStartNode(start);
     
@@ -1303,7 +1357,8 @@ std::shared_ptr<base::Trajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstac
         return nullptr;
     }
 
-    std::shared_ptr<base::Trajectory> subTraj(new base::Trajectory(trajectory));
+    std::shared_ptr<SubTrajectory> subTraj(new SubTrajectory(trajectory));
+    subTraj->kind = trajectory_follower::TRAJECTORY_KIND_RESCUE;
     return subTraj;
 }
 
