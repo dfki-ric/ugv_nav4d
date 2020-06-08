@@ -7,7 +7,7 @@
 #include <fstream>
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
-#include "PathStatistics.hpp"
+#include "PathStatistic.hpp"
 #include "Dijkstra.hpp"
 #include <trajectory_follower/SubTrajectory.hpp>
 #include <limits>
