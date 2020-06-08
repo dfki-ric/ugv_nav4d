@@ -13,7 +13,7 @@ rock_library(ugv_nav4d
     SOURCES 
         DiscreteTheta.cpp
         EnvironmentXYZTheta.cpp
-        PathStatistics.cpp
+        PathStatistic.cpp
         Planner.cpp
         PlannerDump.cpp
         PreComputedMotions.cpp
@@ -25,6 +25,7 @@ rock_library(ugv_nav4d
         Mobility.hpp
         DiscreteTheta.hpp
         EnvironmentXYZTheta.hpp
+        PathStatistic.hpp
         Planner.hpp
         PreComputedMotions.hpp
         TraversabilityGenerator3d.hpp
