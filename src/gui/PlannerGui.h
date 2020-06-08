@@ -11,8 +11,6 @@
 #include <maps/grid/MLSMap.hpp>
 #include <base/Eigen.hpp>
 #include <ugv_nav4d/Planner.hpp>
-#include <ugv_nav4d/FrontierGenerator.hpp>
-#include <ugv_nav4d/Config.hpp>
 #include <trajectory_follower/SubTrajectory.hpp>
 #endif
 
@@ -93,7 +91,6 @@ private:
     maps::grid::MLSMapKalman mlsMap;
     base::Pose start;
     base::Pose goal;
-    base::Vector3d frontier;
     bool pickStart = true;
     bool startPicked = false;
     bool goalPicked = false;
@@ -105,6 +102,5 @@ private:
     std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
     std::vector<trajectory_follower::SubTrajectory> path;
     std::vector<trajectory_follower::SubTrajectory> beautifiedPath;
-    std::shared_ptr<ugv_nav4d::FrontierGenerator> frontierGenerator;
     
 };
