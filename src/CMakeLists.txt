@@ -22,7 +22,7 @@ rock_library(ugv_nav4d
         ObstacleMapGenerator3D.cpp
         DebugDrawingDeclarations.cpp
     HEADERS 
-        Config.hpp
+        Mobility.hpp
         DiscreteTheta.hpp
         EnvironmentXYZTheta.hpp
         Planner.hpp

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "DiscreteTheta.hpp"
-#include "Config.hpp"
+#include "Mobility.hpp"
 #include <limits>
 #include <stdexcept>
 #include <iostream>
