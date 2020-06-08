@@ -2,8 +2,6 @@
 #include <QFileDialog>
 #include <QPushButton>
 #include <thread>
-#include <ugv_nav4d/Config.hpp>
-#include <ugv_nav4d/Planner.hpp>
 #include <ugv_nav4d/PreComputedMotions.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>

@@ -2,20 +2,6 @@
 
 namespace ugv_nav4d{
 
-/** Cost function parameters for frontier exploration */
-struct FrontierGeneratorParameters
-{
-    /** How important is the distance from the node to the goal position  */
-    double distToGoalFactor = 1.0;
-    /** How important is the distance from the start node */
-    double distFromStartFactor = 1.0;
-    /**How important is the size of the explorable area around the frontier node */
-    double explorableFactor = 1.0;
-    /**The radius of patches that will be visited when calculating the number of explorable patches in the vicinity of a patch */
-    unsigned visitRadius = 3;
-};
-
-
 //ATTENTION Mobility is copied from motion_planning_libraries to avoid the dependency. Coping a simple struct is better than getting all the dependencies...
 
 /**
