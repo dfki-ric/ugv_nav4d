@@ -11,12 +11,9 @@ endif()
 
 rock_library(ugv_nav4d
     SOURCES 
-        AreaExplorer.cpp
         DiscreteTheta.cpp
         EnvironmentXYZTheta.cpp
-        FrontierGenerator.cpp
-        OrientedBox.cpp
-        PathStatistics.cpp
+        PathStatistic.cpp
         Planner.cpp
         PlannerDump.cpp
         PreComputedMotions.cpp
@@ -25,12 +22,10 @@ rock_library(ugv_nav4d
         ObstacleMapGenerator3D.cpp
         DebugDrawingDeclarations.cpp
     HEADERS 
-        AreaExplorer.hpp
-        Config.hpp
+        Mobility.hpp
         DiscreteTheta.hpp
-        FrontierGenerator.hpp
         EnvironmentXYZTheta.hpp
-        OrientedBox.hpp
+        PathStatistic.hpp
         Planner.hpp
         PreComputedMotions.hpp
         TraversabilityGenerator3d.hpp
@@ -46,6 +41,7 @@ rock_library(ugv_nav4d
         maps
         pcl_segmentation-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
         vizkit3d_debug_drawings
+        trajectory_follower
 )
 
 add_subdirectory(gui)

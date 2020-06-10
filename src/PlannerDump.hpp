@@ -3,7 +3,7 @@
 #include <sbpl_spline_primitives/SplinePrimitivesConfig.hpp>
 #include "TraversabilityConfig.hpp"
 #include "TraversabilityGenerator3d.hpp"
-#include "Config.hpp"
+#include "Mobility.hpp"
 #include <base/samples/RigidBodyState.hpp>
 
 namespace ugv_nav4d {
