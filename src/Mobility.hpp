@@ -2,20 +2,6 @@
 
 namespace ugv_nav4d{
 
-/** Cost function parameters for frontier exploration */
-struct FrontierGeneratorParameters
-{
-    /** How important is the distance from the node to the goal position  */
-    double distToGoalFactor = 1.0;
-    /** How important is the distance from the start node */
-    double distFromStartFactor = 1.0;
-    /**How important is the size of the explorable area around the frontier node */
-    double explorableFactor = 1.0;
-    /**The radius of patches that will be visited when calculating the number of explorable patches in the vicinity of a patch */
-    unsigned visitRadius = 3;
-};
-
-
 //ATTENTION Mobility is copied from motion_planning_libraries to avoid the dependency. Coping a simple struct is better than getting all the dependencies...
 
 /**
@@ -42,6 +28,11 @@ struct Mobility {
     unsigned int multiplierBackwardTurn;
     unsigned int multiplierPointTurn;
     unsigned int multiplierLateralCurve;
+
+    // If > 0 a new goal would be searched, if the choosen goal is invalid
+    double searchRadius;
+    // The search circle is increased by this value after each unsuccessful case. This option determines the step size between two search radii.
+    double searchProgressSteps;
     
     
     Mobility() : 
@@ -54,7 +45,10 @@ struct Mobility {
            multiplierForwardTurn(1),
            multiplierBackwardTurn(1),
            multiplierPointTurn(1),
-           multiplierLateralCurve(1) {
+           multiplierLateralCurve(1),
+           searchRadius(2.0),
+           searchProgressSteps(0.1)
+    {
     }
     
     Mobility(double speed, double turning_speed, double min_turning_radius, 
@@ -64,7 +58,9 @@ struct Mobility {
              unsigned int mult_forward_turn=0, 
              unsigned int mult_backward_turn=0, 
              unsigned int mult_pointturn=0,
-             unsigned int mult_lateral_curve=0
+             unsigned int mult_lateral_curve=0,
+             double search_radius = 0,
+             double search_progress_steps = 0
             ) :
             translationSpeed(speed), 
             rotationSpeed(turning_speed),
@@ -75,7 +71,10 @@ struct Mobility {
             multiplierForwardTurn(mult_forward_turn), 
             multiplierBackwardTurn(mult_backward_turn),
             multiplierPointTurn(mult_pointturn),
-            multiplierLateralCurve(mult_lateral_curve){
+            multiplierLateralCurve(mult_lateral_curve),
+            searchRadius(search_radius),
+            searchProgressSteps(search_progress_steps)
+    {
     }
 };
 

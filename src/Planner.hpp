@@ -4,6 +4,7 @@
 #include <boost/shared_ptr.hpp>
 #include <sbpl_spline_primitives/SbplSplineMotionPrimitives.hpp>
 #include "EnvironmentXYZTheta.hpp"
+#include <trajectory_follower/SubTrajectory.hpp>
 
 class ARAPlanner;
 
@@ -30,6 +31,8 @@ protected:
     
     /**are buffered and reused for a more robust map generation */
     std::vector<Eigen::Vector3d> previousStartPositions;
+
+    Eigen::Affine3d mls2Ground;
     
 public:
     enum PLANNING_RESULT {
@@ -41,7 +44,16 @@ public:
         FOUND_SOLUTION,
     };
     
-    Planner(const sbpl_spline_primitives::SplinePrimitivesConfig &primitiveConfig, const TraversabilityConfig &traversabilityConfig,const Mobility& mobility, const PlannerConfig& plannerConfig);
+    Planner(const sbpl_spline_primitives::SplinePrimitivesConfig &primitiveConfig, 
+        const TraversabilityConfig &traversabilityConfig,
+        const Mobility& mobility, 
+        const PlannerConfig& plannerConfig);
+
+    Planner(const sbpl_spline_primitives::SplinePrimitivesConfig &primitiveConfig, 
+        const TraversabilityConfig &traversabilityConfig,
+        const Mobility& mobility, 
+        const PlannerConfig& plannerConfig,
+        const Eigen::Affine3d& mls2Ground);
     
     template <maps::grid::MLSConfig::update_model SurfacePatch>
     void updateMap(const maps::grid::MLSMap<SurfacePatch>& mls)
@@ -110,11 +122,13 @@ public:
      *                           why this exists!
      * @param dumpOnError If true a planner dump will be written in case of error. This dump can be loaded and analyzed later
      *                    using the ugv_nav4d_replay tool.
+     * @param dumpOnSuccess If true a planner dump will be written in case of successful planning. This dump can be loaded and analyzed later
+     *                    using the ugv_nav4d_replay tool.
      * @return An enum indicating the planner state
      * */
-    PLANNING_RESULT plan(const base::Time& maxTime, const base::samples::RigidBodyState& startbody2Mls,
-                         const base::samples::RigidBodyState& endbody2Mls, std::vector<base::Trajectory>& resultTrajectory2D,
-                         std::vector<base::Trajectory>& resultTrajectory3D, bool dumpOnError = false);
+    PLANNING_RESULT plan(const base::Time& maxTime, const base::samples::RigidBodyState& start_pose,
+                         const base::samples::RigidBodyState& end_pose, std::vector<trajectory_follower::SubTrajectory>& resultTrajectory2D,
+                         std::vector<trajectory_follower::SubTrajectory>& resultTrajectory3D, bool dumpOnError = false, bool dumpOnSuccess = false);
 
     void genTravMap(const base::samples::RigidBodyState& startbody2Mls);    
     
@@ -125,6 +139,10 @@ public:
     const maps::grid::TraversabilityMap3d<TravGenNode*> &getTraversabilityMap() const;
     
     boost::shared_ptr<EnvironmentXYZTheta> getEnv() const;
+
+    private:
+    bool calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& translation, const double yaw) noexcept;
+    bool tryGoal(const Eigen::Vector3d& translation, const double yaw) noexcept;
 
 };
 

@@ -431,7 +431,7 @@ bool TraversabilityGenerator3d::checkStepHeight(TravGenNode *node)
 
 void TraversabilityGenerator3d::growNodes()
 {
-    const double growRadiusSquared = std::pow(std::min(config.robotSizeX, config.robotSizeY) / 2.0, 2);
+    const double growRadiusSquared = std::pow(std::sqrt(config.robotSizeX * config.robotSizeX + config.robotSizeY * config.robotSizeY) / 2.0, 2);
     
     for(TravGenNode *n : growList)
     {
@@ -769,7 +769,11 @@ TravGenNode *TraversabilityGenerator3d::createTraversabilityPatchAt(maps::grid::
         //there is a neighboring patch in the mls that has a reachable hight
         if(!computePlaneRansac(*ret))
         {
-            ret->setType(TraversabilityNodeBase::UNKNOWN);
+            if(mlsIdx.x() == 1 || mlsIdx.y() == 1) {
+                ret->setType(TraversabilityNodeBase::OBSTACLE);
+            } else {
+                ret->setType(TraversabilityNodeBase::UNKNOWN);
+            }
         }
 
         if((ret->getHeight() - config.maxStepHeight) <= curHeight && (ret->getHeight() + config.maxStepHeight) >= curHeight)
@@ -859,12 +863,12 @@ void TraversabilityGenerator3d::addConnectedPatches(TravGenNode *  node)
         //The new patch is not reachable from the current patch
         if(fabs(localHeight - curHeight) > config.maxStepHeight)
         {
-//          V3DD::COMPLEX_DRAWING([&]()
-//          {
-//              maps::grid::Vector3d pos;
-//              trMap.fromGrid(node->getIndex(), pos, node->getHeight(), false);
-//              V3DD::DRAW_SPHERE("ugv_nav4d_expandFailStepHeight", pos, 0.05, V3DD::Color::carrot_orange);
-//          });
+            V3DD::COMPLEX_DRAWING([&]()
+            {
+                maps::grid::Vector3d pos;
+                trMap.fromGrid(node->getIndex(), pos, node->getHeight(), false);
+                V3DD::DRAW_SPHERE("ugv_nav4d_expandFailStepHeight", pos, 0.05, V3DD::Color::carrot_orange);
+            });
             
             continue;
         }

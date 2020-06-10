@@ -1,7 +1,7 @@
 #pragma once
 
 #include "DiscreteTheta.hpp"
-#include "Config.hpp"
+#include "Mobility.hpp"
 #include <limits>
 #include <stdexcept>
 #include <iostream>
@@ -11,12 +11,6 @@
 #include <sbpl_spline_primitives/SbplSplineMotionPrimitives.hpp>
 #include <base/Trajectory.hpp>
 
-
-
-namespace sbpl_spline_primitives
-{
-    class MotionPrimitivesConfig;
-};
 
 namespace ugv_nav4d
 {

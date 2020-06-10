@@ -3,7 +3,7 @@
 
 #ifndef Q_MOC_RUN
 #include <vizkit3d/Vizkit3DWidget.hpp>
-#include <vizkit3d/TrajectoryVisualization.hpp>
+#include <vizkit3d/SubTrajectoryVisualization.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
 #include <vizkit3d/TraversabilityMap3dVisualization.hpp>
 #include <vizkit3d/SbplSplineVisualization.hpp>
@@ -11,8 +11,7 @@
 #include <maps/grid/MLSMap.hpp>
 #include <base/Eigen.hpp>
 #include <ugv_nav4d/Planner.hpp>
-#include <ugv_nav4d/FrontierGenerator.hpp>
-#include <ugv_nav4d/Config.hpp>
+#include <trajectory_follower/SubTrajectory.hpp>
 #endif
 
 
@@ -82,8 +81,8 @@ private:
     QProgressBar* bar;
     QWidget window;
     vizkit3d::SbplSplineVisualization splineViz;
-    vizkit3d::TrajectoryVisualization trajViz;
-    vizkit3d::TrajectoryVisualization trajViz2;
+    vizkit3d::SubTrajectoryVisualization trajViz;
+    vizkit3d::SubTrajectoryVisualization trajViz2;
     vizkit3d::MLSMapVisualization mlsViz;
     vizkit3d::TraversabilityMap3dVisualization trav3dViz;
     vizkit3d::TraversabilityMap3dVisualization obstacleMapViz;
@@ -92,7 +91,6 @@ private:
     maps::grid::MLSMapKalman mlsMap;
     base::Pose start;
     base::Pose goal;
-    base::Vector3d frontier;
     bool pickStart = true;
     bool startPicked = false;
     bool goalPicked = false;
@@ -102,8 +100,7 @@ private:
     ugv_nav4d::TraversabilityConfig conf;
     ugv_nav4d::PlannerConfig plannerConf;
     std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
-    std::vector<base::Trajectory> path;
-    std::vector<base::Trajectory> beautifiedPath;
-    std::shared_ptr<ugv_nav4d::FrontierGenerator> frontierGenerator;
+    std::vector<trajectory_follower::SubTrajectory> path;
+    std::vector<trajectory_follower::SubTrajectory> beautifiedPath;
     
 };

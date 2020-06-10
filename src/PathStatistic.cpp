@@ -1,4 +1,4 @@
-#include "PathStatistics.hpp"
+#include "PathStatistic.hpp"
 #include <unordered_set>
 #include <deque>
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
