@@ -21,19 +21,7 @@ Planner::Planner(const sbpl_spline_primitives::SplinePrimitivesConfig& primitive
         const Mobility& mobility, const PlannerConfig& plannerConfig) :
     splinePrimitiveConfig(primitiveConfig),
     mobility(mobility),
-    plannerConfig(plannerConfig),
-    mls2Ground(Eigen::Affine3d::Identity())
-{
-    setTravConfig(traversabilityConfig);
-}
-
-
-Planner::Planner(const sbpl_spline_primitives::SplinePrimitivesConfig& primitiveConfig, const TraversabilityConfig& traversabilityConfig, 
-        const Mobility& mobility, const PlannerConfig& plannerConfig, const Eigen::Affine3d& mls2Ground) :
-    splinePrimitiveConfig(primitiveConfig),
-    mobility(mobility),
-    plannerConfig(plannerConfig),
-    mls2Ground(mls2Ground)
+    plannerConfig(plannerConfig)
 {
     setTravConfig(traversabilityConfig);
 }
@@ -43,7 +31,7 @@ void Planner::setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadiu
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
     
-    env->setInitialPatch(mls2Ground * body2Mls * ground2Body , patchRadius);
+    env->setInitialPatch(body2Mls * ground2Body , patchRadius);
 }
 
 void Planner::setTravMapCallback(const std::function< void ()>& callback)
@@ -63,11 +51,8 @@ void Planner::genTravMap(const base::samples::RigidBodyState& start_pose)
  
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
-    
-    base::samples::RigidBodyState startbody2Mls = start_pose;
-    startbody2Mls.setTransform(mls2Ground * startbody2Mls.getTransform());
 
-    const Eigen::Affine3d startGround2Mls(startbody2Mls.getTransform() * ground2Body);
+    const Eigen::Affine3d startGround2Mls(start_pose.getTransform() * ground2Body);
     
     previousStartPositions.push_back(startGround2Mls.translation());
     
@@ -189,8 +174,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     base::samples::RigidBodyState startbody2Mls = start_pose;
     base::samples::RigidBodyState endbody2Mls = end_pose;
 
-    startbody2Mls.setTransform(mls2Ground * startbody2Mls.getTransform());
-    endbody2Mls.setTransform(mls2Ground * endbody2Mls.getTransform());
+    startbody2Mls.setTransform(startbody2Mls.getTransform());
+    endbody2Mls.setTransform(endbody2Mls.getTransform());
 
     std::cout << "start_pose position (raw): " << start_pose.position.transpose() << std::endl;
     std::cout << "end_pose position (raw): " << end_pose.position.transpose() << std::endl;
@@ -290,8 +275,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
             std::cout << "cost " << s.cost << " time " << s.time << "num childs " << s.expands << std::endl;
         }
         
-        env->getTrajectory(solutionIds, resultTrajectory2D, true, mls2Ground * ground2Body);
-        env->getTrajectory(solutionIds, resultTrajectory3D, false, mls2Ground * ground2Body);
+        env->getTrajectory(solutionIds, resultTrajectory2D, true, ground2Body);
+        env->getTrajectory(solutionIds, resultTrajectory3D, false, ground2Body);
     }
     catch(const SBPL_Exception& ex)
     {

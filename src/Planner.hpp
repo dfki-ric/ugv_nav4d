@@ -31,8 +31,6 @@ protected:
     
     /**are buffered and reused for a more robust map generation */
     std::vector<Eigen::Vector3d> previousStartPositions;
-
-    Eigen::Affine3d mls2Ground;
     
 public:
     enum PLANNING_RESULT {
@@ -48,12 +46,6 @@ public:
         const TraversabilityConfig &traversabilityConfig,
         const Mobility& mobility, 
         const PlannerConfig& plannerConfig);
-
-    Planner(const sbpl_spline_primitives::SplinePrimitivesConfig &primitiveConfig, 
-        const TraversabilityConfig &traversabilityConfig,
-        const Mobility& mobility, 
-        const PlannerConfig& plannerConfig,
-        const Eigen::Affine3d& mls2Ground);
     
     template <maps::grid::MLSConfig::update_model SurfacePatch>
     void updateMap(const maps::grid::MLSMap<SurfacePatch>& mls)
