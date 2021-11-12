@@ -86,7 +86,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
             bool hasPatch = false;
             for(const MLGrid::PatchType *p : area.at(x, y))
             {
-                PointT pclP(pos.x(), pos.y(), p->getMean());
+                PointT pclP(pos.x(), pos.y(), (p->getTop()+p->getBottom())/2.);
                 points->push_back(pclP);
                 hasPatch = true;
             }
@@ -413,9 +413,9 @@ bool TraversabilityGenerator3d::checkStepHeight(TravGenNode *node)
                 std::cout << "this should never happen" << std::endl;
             }
 
-            for(const SurfacePatch<MLSConfig::KALMAN> *p : area.at(x, y))
+            for(const SurfacePatch<MLSConfig::SLOPE> *p : area.at(x, y))
             {
-                pos.z() = p->getMean();
+                pos.z() = (p->getTop()+p->getBottom())/2.;
                 float dist = plane.absDistance(pos);
                 //bounding box already checks height of robot
                 if(dist > config.maxStepHeight)
@@ -605,7 +605,7 @@ void TraversabilityGenerator3d::addInitialPatchToMLS()
             if(hasPatch)
                 continue;
                         
-            MLGrid::PatchType newPatch(posMLS.z(), config.initialPatchVariance);
+            MLGrid::PatchType newPatch(posMLS.cast<float>(), config.initialPatchVariance);
 //             std::cout << "Adding Patch at " << posMLS.transpose() << std::endl;
             
             ll.insert(newPatch);
@@ -740,10 +740,10 @@ TravGenNode *TraversabilityGenerator3d::createTraversabilityPatchAt(maps::grid::
     
     std::vector<double> candidates;
     
-    for(const SurfacePatch<MLSConfig::KALMAN>& patch : patches)
+    for(const SurfacePatch<MLSConfig::SLOPE>& patch : patches)
     {
         //We use top, as we drive on the surface
-        const double height = patch.getMean();
+        const double height = (patch.getTop()+patch.getBottom())/2.;
 
         if((height - config.maxStepHeight) <= curHeight && (height + config.maxStepHeight) >= curHeight)
         {

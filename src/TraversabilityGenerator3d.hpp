@@ -13,7 +13,7 @@ class TraversabilityGenerator3d
 public:
     // TODO use MLSMapPrecalculated and actually use slope information?
 //    typedef maps::grid::MultiLevelGridMap< maps::grid::SurfacePatchBase > MLGrid;
-    typedef maps::grid::MLSMapKalman MLGrid;
+    typedef maps::grid::MLSMapSloped MLGrid;
     
 protected:
     
