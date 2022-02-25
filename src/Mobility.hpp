@@ -63,7 +63,8 @@ struct Mobility {
              unsigned int mult_pointturn=0,
              unsigned int mult_lateral_curve=0,
              double search_radius = 0,
-             double search_progress_steps = 0
+             double search_progress_steps = 0,
+             double max_motion_curve_length = 0
             ) :
             translationSpeed(speed), 
             rotationSpeed(turning_speed),
@@ -76,7 +77,8 @@ struct Mobility {
             multiplierPointTurn(mult_pointturn),
             multiplierLateralCurve(mult_lateral_curve),
             searchRadius(search_radius),
-            searchProgressSteps(search_progress_steps)
+            searchProgressSteps(search_progress_steps),
+            maxMotionCurveLength(max_motion_curve_length)
     {
     }
 };
