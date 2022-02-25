@@ -33,6 +33,8 @@ struct Mobility {
     double searchRadius;
     // The search circle is increased by this value after each unsuccessful case. This option determines the step size between two search radii.
     double searchProgressSteps;
+
+    double maxMotionCurveLength;
     
     
     Mobility() : 
@@ -47,7 +49,8 @@ struct Mobility {
            multiplierPointTurn(1),
            multiplierLateralCurve(1),
            searchRadius(2.0),
-           searchProgressSteps(0.1)
+           searchProgressSteps(0.1),
+           maxMotionCurveLength(1.2)
     {
     }
     
