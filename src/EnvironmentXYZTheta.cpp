@@ -60,7 +60,6 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(std::shared_ptr<MLGrid> mlsGrid,
     {
         availableMotions.computeMotions(mlsGrid->getResolution().x(), travConf.gridResolution);
     }
-    
 }
 
 void EnvironmentXYZTheta::clear()
@@ -684,7 +683,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     //due to the different sanity checks
     //the chunk size (5) was chosen to reduce dynamic scheduling overhead.
     //**No** tests have been done to verify whether 5 is a good value or not!
-    #pragma omp parallel for schedule(dynamic, 5)
+    //#pragma omp parallel for schedule(dynamic, 5)
+    #pragma omp parallel for schedule(auto)    
     for(size_t i = 0; i < motions.size(); ++i)
     {
         //check that the motion is traversable (without collision checks) and find the goal node of the motion
@@ -735,13 +735,10 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         
         PathStatistic statistic(travConf);
         
-        statistic.calculateStatistics(nodesOnObstPath, posesOnObstPath, getObstacleMap());
-        
-        if(statistic.getRobotStats().getNumObstacles() || statistic.getRobotStats().getNumFrontiers())
+        if(!statistic.isPathFeasible(nodesOnObstPath, posesOnObstPath, getObstacleMap()))
         {
             continue;
         }
-        
         
         //goal from source to the end of the motion was valid
         XYZNode *successXYNode = nullptr;
@@ -789,7 +786,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 successthetaNode = createNewState(motion.endTheta, successXYNode);
             }
         }
-               
+        /*       
         double cost = 0;
         switch(travConf.slopeMetric)
         {
@@ -845,8 +842,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             default:
                 throw std::runtime_error("unknown slope metric selected");
         }
-
-        
+        /*
+        /*
         if(statistic.getBoundaryStats().getNumObstacles())
         {
             const double outer_radius = travConf.costFunctionDist;
@@ -872,8 +869,9 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         oassert(cost <= std::numeric_limits<int>::max() && cost >= std::numeric_limits< int >::min());
         oassert(int(cost) >= motion.baseCost);
         oassert(motion.baseCost > 0);
-        
-        const int iCost = (int)cost;
+        */
+       
+        const int iCost = motion.baseCost;
         #pragma omp critical(updateData)
         {
             SuccIDV->push_back(successthetaNode->id);
