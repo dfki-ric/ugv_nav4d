@@ -865,11 +865,11 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
             cost += cost * impactFactor;
         }
-        
+        */
         oassert(cost <= std::numeric_limits<int>::max() && cost >= std::numeric_limits< int >::min());
         oassert(int(cost) >= motion.baseCost);
         oassert(motion.baseCost > 0);
-        */
+        
        
         const int iCost = (int)cost;
         #pragma omp critical(updateData)
