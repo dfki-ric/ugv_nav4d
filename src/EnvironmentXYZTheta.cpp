@@ -786,7 +786,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 successthetaNode = createNewState(motion.endTheta, successXYNode);
             }
         }
-        /*       
+             
         double cost = 0;
         switch(travConf.slopeMetric)
         {
@@ -842,7 +842,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             default:
                 throw std::runtime_error("unknown slope metric selected");
         }
-        /*
+        
         /*
         if(statistic.getBoundaryStats().getNumObstacles())
         {
@@ -871,7 +871,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         oassert(motion.baseCost > 0);
         */
        
-        const int iCost = motion.baseCost;
+        const int iCost = (int)cost;
         #pragma omp critical(updateData)
         {
             SuccIDV->push_back(successthetaNode->id);
