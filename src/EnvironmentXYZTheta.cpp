@@ -732,13 +732,14 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         //no way from start to end on obstacle map
         if(!intermediateStepsOk)
             continue;
-        
+        /*
         PathStatistic statistic(travConf);
         
         if(!statistic.isPathFeasible(nodesOnObstPath, posesOnObstPath, getObstacleMap()))
         {
             continue;
         }
+        */
         
         //goal from source to the end of the motion was valid
         XYZNode *successXYNode = nullptr;
