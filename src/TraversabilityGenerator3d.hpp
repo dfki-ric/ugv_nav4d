@@ -27,6 +27,8 @@ protected:
     bool addInitialPatch;
     Eigen::Affine3d initialPatch2Mls;
     double patchRadius;
+
+    std::vector<TravGenNode*> obstacleNodes;
     
     maps::grid::TraversabilityMap3d<TravGenNode*> trMap;
     int currentNodeId = 0; //used while expanding
@@ -53,6 +55,8 @@ protected:
     TravGenNode *createTraversabilityPatchAt(maps::grid::Index idx, const double curHeight);
 
     void growNodes();
+
+    void inflateObstacles();
     
     TraversabilityConfig config;
     
