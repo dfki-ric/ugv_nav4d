@@ -8,7 +8,7 @@ namespace ugv_nav4d
     public:
         ObstacleMapGenerator3D(const TraversabilityConfig &config);
         virtual ~ObstacleMapGenerator3D();
-     //   virtual bool expandNode(TravGenNode *node) override;
+        virtual bool expandNode(TravGenNode *node) override;
 //         virtual TravGenNode *generateStartNode(const Eigen::Vector3d &startPos) override;
         
     private:

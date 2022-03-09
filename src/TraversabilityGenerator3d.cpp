@@ -433,7 +433,7 @@ void TraversabilityGenerator3d::growNodes()
 {
     const double growRadiusSquared = std::pow(std::sqrt(config.robotSizeX * config.robotSizeX + config.robotSizeY * config.robotSizeY) / 2.0, 2);
     
-    for(TravGenNode *n : growList)
+    for(TravGenNode *n : frontierNodesGrowList)
     {
         Eigen::Vector3d nodePos = n ->getPosition(trMap);
         
@@ -466,7 +466,7 @@ void TraversabilityGenerator3d::growNodes()
         });
     }
     
-    growList.clear();
+    frontierNodesGrowList.clear();
 }
 
 void TraversabilityGenerator3d::setConfig(const TraversabilityConfig &config)
@@ -487,8 +487,6 @@ void TraversabilityGenerator3d::expandAll(const std::vector<Eigen::Vector3d>& po
     {
         expandAll(pos);
     }
-    //grow obstacle nodes
-    inflateObstacles();
 }
 
 
@@ -555,48 +553,38 @@ void TraversabilityGenerator3d::expandAll(TravGenNode* startNode, const double e
     
     //grow frontier nodes
     growNodes();
+    //grow obstacle nodes
+    inflateObstacles();
    
     std::cout << "Expanded " << cnd << " nodes" << std::endl;
 }
 
 void TraversabilityGenerator3d::inflateObstacles()
 {
-	const double halfSize = std::min(config.robotSizeX, config.robotSizeY) / 2.0;
-	const int inflRadius = (halfSize / config.gridResolution);
-    for (std::vector<TravGenNode*>::iterator obItr{obstacleNodes.begin()}; obItr != obstacleNodes.end(); ++obItr)
+    const double halfRobotSizeX = config.robotSizeX / 2;
+    const double halfRobotSizeY = config.robotSizeY / 2;
+	const double inflRadius = std::sqrt((halfRobotSizeX * halfRobotSizeX) + (halfRobotSizeY * halfRobotSizeY)) + 1e-5;
+
+    for (TravGenNode *n : obstacleNodesGrowList)
     {
-        TravGenNode* startNode = *obItr;
-
-        std::cout << "Obstacle node count: " << obstacleNodes.size() << std::endl;
-
-        startNode->eachConnectedNode([&] (maps::grid::TraversabilityNodeBase *neighbor, bool &explandNode, bool &stop)
+        n->eachConnectedNode([&] (maps::grid::TraversabilityNodeBase *neighbor, bool &expandNode, bool &stop)
         {
-            if (!neighbor->isExpanded())
-            {
-                explandNode = false;
-                return;    
-            }
-            double dist = (startNode->getPosition(trMap) - neighbor->getPosition(trMap)).norm();
-            std::cout << "Distance :" << dist << std::endl;
-            if (dist <= inflRadius)
+            if ((n->getPosition(trMap) - neighbor->getPosition(trMap)).norm() < inflRadius)
             {
                 if(neighbor->getType() == TraversabilityNodeBase::TRAVERSABLE)
                 {
                     neighbor->setType(TraversabilityNodeBase::OBSTACLE);
                 }    
-                explandNode = false;   
+                expandNode = true;   
             }
             else 
             {
-                explandNode = false;
                 return;
             }
-
         }
         );        
     }
-
-    obstacleNodes.clear();
+    obstacleNodesGrowList.clear();
 }
 
 void TraversabilityGenerator3d::addInitialPatchToMLS()
@@ -740,7 +728,7 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
     if(!checkStepHeight(node))
     {
         node->setType(TraversabilityNodeBase::OBSTACLE);
-        obstacleNodes.push_back(node);
+        obstacleNodesGrowList.push_back(node);
         return false;
     }
     
@@ -749,7 +737,7 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
         if(!computeAllowedOrientations(node))
         {
             node->setType(TraversabilityNodeBase::OBSTACLE);
-            obstacleNodes.push_back(node);
+            obstacleNodesGrowList.push_back(node);
             return false;
         }
     }
@@ -760,7 +748,7 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
     if(checkForFrontier(node))
     {
         node->setType(TraversabilityNodeBase::FRONTIER);
-        //growList.push_back(node);
+        frontierNodesGrowList.push_back(node);
         return false;
     }
 

@@ -28,12 +28,12 @@ protected:
     Eigen::Affine3d initialPatch2Mls;
     double patchRadius;
 
-    std::vector<TravGenNode*> obstacleNodes;
+    std::vector<TravGenNode*> obstacleNodesGrowList;
     
     maps::grid::TraversabilityMap3d<TravGenNode*> trMap;
     int currentNodeId = 0; //used while expanding
     
-    std::vector<TravGenNode *> growList;
+    std::vector<TravGenNode *> frontierNodesGrowList;
     
     bool computePlaneRansac(TravGenNode &node);
     double computeSlope(const Eigen::Hyperplane< double, int(3) >& plane) const;
