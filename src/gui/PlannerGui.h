@@ -12,6 +12,7 @@
 #include <base/Eigen.hpp>
 #include <ugv_nav4d/Planner.hpp>
 #include <trajectory_follower/SubTrajectory.hpp>
+#include <QtWidgets>
 #endif
 
 
