@@ -1041,8 +1041,10 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                     color = V3DD::Color::cyan;
                     break;
                 case Motion::MOV_POINTTURN:
-                    color = V3DD::Color::blue;
-                    size.z() = 0.4;
+                    color = V3DD::Color::red;
+                    size.z() = 1;
+                    std::cout << "PT" << std::endl;
+                    V3DD::DRAW_CYLINDER("ugv_nav4d_trajectory", getStatePosition(stateIDPath[i]),  size, color);
                     break;
                 case Motion::MOV_LATERAL:
                     color = V3DD::Color::green;
@@ -1058,31 +1060,55 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             }
         });
         
-        if (curMotion.type == Motion::Type::MOV_POINTTURN) {
-            continue;
-        }
+        if (curMotion.type == Motion::Type::MOV_POINTTURN) 
+        {
+            SubTrajectory subtraj;
+            subtraj.driveMode = DriveMode::ModeTurnOnTheSpot;
+            
+            std::vector<base::Angle> angles;
+            angles.emplace_back(base::Angle::fromRad(curMotion.startTheta.getRadian()));
+            angles.emplace_back(base::Angle::fromRad(curMotion.endTheta.getRadian()));
 
-        if (curMotion.type == Motion::Type::MOV_BACKWARD) {
-            curPart.speed = -mobilityConfig.translationSpeed;
-        } else {
-            curPart.speed = mobilityConfig.translationSpeed;
+            base::Pose2D startPose;
+            startPose.position.x() = getStatePosition(stateIDPath[i]).x();
+            startPose.position.y() = getStatePosition(stateIDPath[i]).y();
+            startPose.orientation  = curMotion.startTheta.getRadian();
+
+            subtraj.interpolate(startPose,angles);
+
+            base::Pose2D goalPose;
+            goalPose.position.x() = getStatePosition(stateIDPath[i+1]).x();
+            goalPose.position.y() = getStatePosition(stateIDPath[i+1]).y();
+            goalPose.orientation  = curMotion.endTheta.getRadian();
+
+            subtraj.startPose     = startPose;
+            subtraj.goalPose      = goalPose; 
+            result.push_back(subtraj);
         }
-        SubTrajectory curPartSub(curPart);
-        switch (curMotion.type) {
-            case Motion::Type::MOV_FORWARD:
-                curPartSub.driveMode = DriveMode::ModeAckermann;
-                break;
-            case Motion::Type::MOV_BACKWARD:
-                curPartSub.driveMode = DriveMode::ModeAckermann;
-                break;
-            case Motion::Type::MOV_POINTTURN:
-                curPartSub.driveMode = DriveMode::ModeTurnOnTheSpot;
-                break;
-            case Motion::Type::MOV_LATERAL:
-                curPartSub.driveMode = DriveMode::ModeSideways;
-                break;
+        else
+        {
+            if (curMotion.type == Motion::Type::MOV_BACKWARD) 
+            {
+                curPart.speed = -mobilityConfig.translationSpeed;
+            } 
+            else 
+            {
+                curPart.speed = mobilityConfig.translationSpeed;
+            }
+            SubTrajectory curPartSub(curPart);
+            switch (curMotion.type) {
+                case Motion::Type::MOV_FORWARD:
+                    curPartSub.driveMode = DriveMode::ModeAckermann;
+                    break;
+                case Motion::Type::MOV_BACKWARD:
+                    curPartSub.driveMode = DriveMode::ModeAckermann;
+                    break;
+                case Motion::Type::MOV_LATERAL:
+                    curPartSub.driveMode = DriveMode::ModeSideways;
+                    break;
+            }
+            result.push_back(curPartSub);
         }
-        result.push_back(curPartSub);
     }
 }
 
