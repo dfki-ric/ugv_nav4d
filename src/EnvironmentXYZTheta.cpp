@@ -617,28 +617,6 @@ TravGenNode * EnvironmentXYZTheta::checkTraversableHeuristic(const maps::grid::I
     return travNode;
 }
 
-TravGenNode * EnvironmentXYZTheta::getObstNode(const Eigen::Vector3d& sourcePosWorld, const double height)
-{
-    maps::grid::Index startIdxObstMap;
-    obsGen.getTraversabilityMap().toGrid(sourcePosWorld, startIdxObstMap, false);
-    TravGenNode *startNodeObstMap = nullptr;
-
-    double minDist = std::numeric_limits< double >::max();
-    for(TravGenNode *n: obsGen.getTraversabilityMap().at(startIdxObstMap))
-    {
-        double curDist = fabs(n->getHeight() - height);
-        if(curDist > minDist)
-        {
-            //we passed the minimal distance point
-            break;
-        }
-        minDist = curDist;
-        startNodeObstMap = n;
-    }
-    return startNodeObstMap;
-    
-}
-
 void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, vector< int >* CostV, vector< size_t >& motionIdV)
 {
     SuccIDV->clear();
@@ -674,7 +652,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     Eigen::Vector3d sourcePosWorld;
     travGen.getTraversabilityMap().fromGrid(sourceNode->getIndex(), sourcePosWorld, sourceTravNode->getHeight(), false);
     
-    TravGenNode *sourceObstacleNode = getObstNode(sourcePosWorld, sourceNode->getHeight());
+    TravGenNode *sourceObstacleNode = findObstacleNode(sourceTravNode);
     assert(sourceObstacleNode);
     
     const auto& motions = availableMotions.getMotionForStartTheta(sourceThetaNode->theta);
@@ -1222,13 +1200,13 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
         //this node should be expanded
         throw std::runtime_error("cannot find trajectory out of obstacle, map not expanded");
     }
-    
+
+    Eigen::Vector3d startPosWorld;
+    travGen.getTraversabilityMap().fromGrid(startTravNode->getIndex(), startPosWorld, startTravNode->getHeight(), false);    
+
     DiscreteTheta thetaD(theta, numAngles);
     TravGenNode* startNodeObstMap = findObstacleNode(startTravNode);
     const maps::grid::Index startIdxObstMap =  startNodeObstMap->getIndex();
-
-    Eigen::Vector3d startPosWorld;
-    travGen.getTraversabilityMap().fromGrid(startTravNode->getIndex(), startPosWorld, startTravNode->getHeight(), false);
 
     if(!startNodeObstMap)
     {
