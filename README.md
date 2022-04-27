@@ -10,7 +10,7 @@ See the `manifest.xml` for an up to date list of dependencies.
 
 #### Compiling inside a ROCK environment
 Buidling inside ROCK works as usual.
-Currently the package can be found in the ENTERN package set: https://git.hb.dfki.de/entern/package_set
+The package can be found in the backbone package set: https://git.hb.dfki.de/sw-backbone/package_sets
 
 
 #### Compiling standalone
