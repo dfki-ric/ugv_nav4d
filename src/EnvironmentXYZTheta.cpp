@@ -960,7 +960,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
         maps::grid::Index lastIndex = startIndex;
         TravGenNode *curNode = startHash.node->getUserData().travNode;     
         
-        size_t pwcIdx = 0;
         std::vector<base::Vector3d> positions;
         for(const CellWithPoses &cwp : curMotion.fullSplineSamples)
         {
