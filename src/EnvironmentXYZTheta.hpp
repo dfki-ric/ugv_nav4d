@@ -116,10 +116,6 @@ protected:
     /** Find the obstacle node corresponding to @p travNode */
     TravGenNode* findObstacleNode(const TravGenNode* travNode) const;
     
-        /**Returns the obstacle node for a given position and patch height */
-    TravGenNode * getObstNode(const Eigen::Vector3d& sourcePosWorld, const double height);
-    
-    
 public:
     
     /** @param pos Position in map frame */
