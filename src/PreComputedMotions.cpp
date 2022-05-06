@@ -118,11 +118,11 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
             {
                 case SplinePrimitive::SPLINE_MOVE_FORWARD:
                     motion.type = Motion::Type::MOV_FORWARD;
-                    motion.costMultiplier = mobilityConfig.multiplierForwardTurn;
+                    motion.costMultiplier = mobilityConfig.multiplierForward;
                     break;
                 case SplinePrimitive::SPLINE_MOVE_BACKWARD:
                     motion.type = Motion::Type::MOV_BACKWARD;
-                    motion.costMultiplier = mobilityConfig.multiplierBackwardTurn;
+                    motion.costMultiplier = mobilityConfig.multiplierBackward;
                     break;
                 case SplinePrimitive::SPLINE_MOVE_LATERAL:
                     motion.type = Motion::Type::MOV_LATERAL;
