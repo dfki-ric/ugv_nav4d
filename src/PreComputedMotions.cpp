@@ -118,15 +118,39 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
             {
                 case SplinePrimitive::SPLINE_MOVE_FORWARD:
                     motion.type = Motion::Type::MOV_FORWARD;
-                    motion.costMultiplier = mobilityConfig.multiplierForward;
+                    if (const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() > -0.1 && 
+                        const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() < 0.1)
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierForward;
+                    } 
+                    else
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierForwardTurn;
+                    }
                     break;
                 case SplinePrimitive::SPLINE_MOVE_BACKWARD:
                     motion.type = Motion::Type::MOV_BACKWARD;
-                    motion.costMultiplier = mobilityConfig.multiplierBackward;
+                    if (const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() > -0.1 && 
+                        const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() < 0.1)
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierBackward;
+                    } 
+                    else
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierBackwardTurn;
+                    }
                     break;
                 case SplinePrimitive::SPLINE_MOVE_LATERAL:
                     motion.type = Motion::Type::MOV_LATERAL;
-                    motion.costMultiplier = mobilityConfig.multiplierLateral;
+                    if (const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() > -0.1 && 
+                        const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() < 0.1)
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierLateral;
+                    } 
+                    else
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierLateralCurve;
+                    }
                     break;
                 case SplinePrimitive::SPLINE_POINT_TURN:
                     motion.type = Motion::Type::MOV_POINTTURN;
