@@ -1,7 +1,14 @@
 #include "PlannerGui.h"
 #include <QFileDialog>
+#include <QSpinBox>
 #include <QPushButton>
+#include <QProgressBar>
+#include <QLabel>
+#include <QSlider>
+#include <QComboBox>
+#include <QHBoxLayout>
 #include <thread>
+#include <vizkit3d/Vizkit3DWidget.hpp>
 #include <ugv_nav4d/PreComputedMotions.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
