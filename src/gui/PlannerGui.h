@@ -1,8 +1,8 @@
 #pragma once
 #include <QObject>
+#include <QWidget>
 
 #ifndef Q_MOC_RUN
-#include <vizkit3d/Vizkit3DWidget.hpp>
 #include <vizkit3d/SubTrajectoryVisualization.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
 #include <vizkit3d/TraversabilityMap3dVisualization.hpp>
@@ -12,10 +12,18 @@
 #include <base/Eigen.hpp>
 #include <ugv_nav4d/Planner.hpp>
 #include <trajectory_follower/SubTrajectory.hpp>
-#include <QtWidgets>
 #endif
 
+class QDoubleSpinBox;
+class QSpinBox;
+class QSlider;
+class QPushButton;
+class QComboBox;
+class QProgressBar;
 
+namespace vizkit3d {
+    class Vizkit3DWidget;
+}
 
 class PlannerGui : public QObject
 {
