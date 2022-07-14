@@ -70,6 +70,9 @@ public:
      */
     void calculateStatistics(const std::vector<const TravGenNode*> &path, const std::vector<base::Pose2D> &poses, 
                              const maps::grid::TraversabilityMap3d<TravGenNode *> &trMap, const std::string &debugObstacleName = std::string());
+
+    bool isPathFeasible(const std::vector<const TravGenNode*> &path, const std::vector<base::Pose2D> &poses, 
+                             const maps::grid::TraversabilityMap3d<TravGenNode *> &trMap);                             
     
     const Stats &getRobotStats() const
     {

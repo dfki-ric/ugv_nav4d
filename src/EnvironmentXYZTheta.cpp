@@ -60,7 +60,6 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(std::shared_ptr<MLGrid> mlsGrid,
     {
         availableMotions.computeMotions(mlsGrid->getResolution().x(), travConf.gridResolution);
     }
-    
 }
 
 void EnvironmentXYZTheta::clear()
@@ -618,28 +617,6 @@ TravGenNode * EnvironmentXYZTheta::checkTraversableHeuristic(const maps::grid::I
     return travNode;
 }
 
-TravGenNode * EnvironmentXYZTheta::getObstNode(const Eigen::Vector3d& sourcePosWorld, const double height)
-{
-    maps::grid::Index startIdxObstMap;
-    obsGen.getTraversabilityMap().toGrid(sourcePosWorld, startIdxObstMap, false);
-    TravGenNode *startNodeObstMap = nullptr;
-
-    double minDist = std::numeric_limits< double >::max();
-    for(TravGenNode *n: obsGen.getTraversabilityMap().at(startIdxObstMap))
-    {
-        double curDist = fabs(n->getHeight() - height);
-        if(curDist > minDist)
-        {
-            //we passed the minimal distance point
-            break;
-        }
-        minDist = curDist;
-        startNodeObstMap = n;
-    }
-    return startNodeObstMap;
-    
-}
-
 void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, vector< int >* CostV, vector< size_t >& motionIdV)
 {
     SuccIDV->clear();
@@ -675,7 +652,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     Eigen::Vector3d sourcePosWorld;
     travGen.getTraversabilityMap().fromGrid(sourceNode->getIndex(), sourcePosWorld, sourceTravNode->getHeight(), false);
     
-    TravGenNode *sourceObstacleNode = getObstNode(sourcePosWorld, sourceNode->getHeight());
+    TravGenNode *sourceObstacleNode = findObstacleNode(sourceTravNode);
     assert(sourceObstacleNode);
     
     const auto& motions = availableMotions.getMotionForStartTheta(sourceThetaNode->theta);
@@ -684,7 +661,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     //due to the different sanity checks
     //the chunk size (5) was chosen to reduce dynamic scheduling overhead.
     //**No** tests have been done to verify whether 5 is a good value or not!
-    #pragma omp parallel for schedule(dynamic, 5)
+    //#pragma omp parallel for schedule(dynamic, 5)
+    #pragma omp parallel for schedule(auto)    
     for(size_t i = 0; i < motions.size(); ++i)
     {
         //check that the motion is traversable (without collision checks) and find the goal node of the motion
@@ -732,16 +710,14 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         //no way from start to end on obstacle map
         if(!intermediateStepsOk)
             continue;
-        
+        /*
         PathStatistic statistic(travConf);
         
-        statistic.calculateStatistics(nodesOnObstPath, posesOnObstPath, getObstacleMap());
-        
-        if(statistic.getRobotStats().getNumObstacles() || statistic.getRobotStats().getNumFrontiers())
+        if(!statistic.isPathFeasible(nodesOnObstPath, posesOnObstPath, getObstacleMap()))
         {
             continue;
         }
-        
+        */
         
         //goal from source to the end of the motion was valid
         XYZNode *successXYNode = nullptr;
@@ -789,7 +765,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 successthetaNode = createNewState(motion.endTheta, successXYNode);
             }
         }
-               
+             
         double cost = 0;
         switch(travConf.slopeMetric)
         {
@@ -845,8 +821,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             default:
                 throw std::runtime_error("unknown slope metric selected");
         }
-
         
+        /*
         if(statistic.getBoundaryStats().getNumObstacles())
         {
             const double outer_radius = travConf.costFunctionDist;
@@ -868,11 +844,12 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
             cost += cost * impactFactor;
         }
-        
+        */
         oassert(cost <= std::numeric_limits<int>::max() && cost >= std::numeric_limits< int >::min());
         oassert(int(cost) >= motion.baseCost);
         oassert(motion.baseCost > 0);
         
+       
         const int iCost = (int)cost;
         #pragma omp critical(updateData)
         {
@@ -983,7 +960,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
         maps::grid::Index lastIndex = startIndex;
         TravGenNode *curNode = startHash.node->getUserData().travNode;     
         
-        size_t pwcIdx = 0;
         std::vector<base::Vector3d> positions;
         for(const CellWithPoses &cwp : curMotion.fullSplineSamples)
         {
@@ -1042,8 +1018,10 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                     color = V3DD::Color::cyan;
                     break;
                 case Motion::MOV_POINTTURN:
-                    color = V3DD::Color::blue;
-                    size.z() = 0.4;
+                    color = V3DD::Color::red;
+                    size.z() = 1;
+                    std::cout << "PT" << std::endl;
+                    V3DD::DRAW_CYLINDER("ugv_nav4d_trajectory", getStatePosition(stateIDPath[i]),  size, color);
                     break;
                 case Motion::MOV_LATERAL:
                     color = V3DD::Color::green;
@@ -1059,31 +1037,55 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             }
         });
         
-        if (curMotion.type == Motion::Type::MOV_POINTTURN) {
-            continue;
-        }
+        if (curMotion.type == Motion::Type::MOV_POINTTURN) 
+        {
+            SubTrajectory subtraj;
+            subtraj.driveMode = DriveMode::ModeTurnOnTheSpot;
+            
+            std::vector<base::Angle> angles;
+            angles.emplace_back(base::Angle::fromRad(curMotion.startTheta.getRadian()));
+            angles.emplace_back(base::Angle::fromRad(curMotion.endTheta.getRadian()));
 
-        if (curMotion.type == Motion::Type::MOV_BACKWARD) {
-            curPart.speed = -mobilityConfig.translationSpeed;
-        } else {
-            curPart.speed = mobilityConfig.translationSpeed;
+            base::Pose2D startPose;
+            startPose.position.x() = getStatePosition(stateIDPath[i]).x();
+            startPose.position.y() = getStatePosition(stateIDPath[i]).y();
+            startPose.orientation  = curMotion.startTheta.getRadian();
+
+            subtraj.interpolate(startPose,angles);
+
+            base::Pose2D goalPose;
+            goalPose.position.x() = getStatePosition(stateIDPath[i+1]).x();
+            goalPose.position.y() = getStatePosition(stateIDPath[i+1]).y();
+            goalPose.orientation  = curMotion.endTheta.getRadian();
+
+            subtraj.startPose     = startPose;
+            subtraj.goalPose      = goalPose; 
+            result.push_back(subtraj);
         }
-        SubTrajectory curPartSub(curPart);
-        switch (curMotion.type) {
-            case Motion::Type::MOV_FORWARD:
-                curPartSub.driveMode = DriveMode::ModeAckermann;
-                break;
-            case Motion::Type::MOV_BACKWARD:
-                curPartSub.driveMode = DriveMode::ModeAckermann;
-                break;
-            case Motion::Type::MOV_POINTTURN:
-                curPartSub.driveMode = DriveMode::ModeTurnOnTheSpot;
-                break;
-            case Motion::Type::MOV_LATERAL:
-                curPartSub.driveMode = DriveMode::ModeSideways;
-                break;
+        else
+        {
+            if (curMotion.type == Motion::Type::MOV_BACKWARD) 
+            {
+                curPart.speed = -mobilityConfig.translationSpeed;
+            } 
+            else 
+            {
+                curPart.speed = mobilityConfig.translationSpeed;
+            }
+            SubTrajectory curPartSub(curPart);
+            switch (curMotion.type) {
+                case Motion::Type::MOV_FORWARD:
+                    curPartSub.driveMode = DriveMode::ModeAckermann;
+                    break;
+                case Motion::Type::MOV_BACKWARD:
+                    curPartSub.driveMode = DriveMode::ModeAckermann;
+                    break;
+                case Motion::Type::MOV_LATERAL:
+                    curPartSub.driveMode = DriveMode::ModeSideways;
+                    break;
+            }
+            result.push_back(curPartSub);
         }
-        result.push_back(curPartSub);
     }
 }
 
@@ -1223,13 +1225,13 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
         //this node should be expanded
         throw std::runtime_error("cannot find trajectory out of obstacle, map not expanded");
     }
-    
+
+    Eigen::Vector3d startPosWorld;
+    travGen.getTraversabilityMap().fromGrid(startTravNode->getIndex(), startPosWorld, startTravNode->getHeight(), false);    
+
     DiscreteTheta thetaD(theta, numAngles);
     TravGenNode* startNodeObstMap = findObstacleNode(startTravNode);
     const maps::grid::Index startIdxObstMap =  startNodeObstMap->getIndex();
-
-    Eigen::Vector3d startPosWorld;
-    travGen.getTraversabilityMap().fromGrid(startTravNode->getIndex(), startPosWorld, startTravNode->getHeight(), false);
 
     if(!startNodeObstMap)
     {

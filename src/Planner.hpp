@@ -129,6 +129,8 @@ public:
     void setPlannerConfig(const PlannerConfig& config);
     
     const maps::grid::TraversabilityMap3d<TravGenNode*> &getTraversabilityMap() const;
+
+    const maps::grid::TraversabilityMap3d<TravGenNode*> &getObstacleMap() const;
     
     boost::shared_ptr<EnvironmentXYZTheta> getEnv() const;
 
