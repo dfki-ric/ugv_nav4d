@@ -303,6 +303,12 @@ const maps::grid::TraversabilityMap3d<TravGenNode*> &Planner::getTraversabilityM
     return env->getTraversabilityMap();
 }
 
+const maps::grid::TraversabilityMap3d<TravGenNode*> &Planner::getObstacleMap() const
+{
+    return env->getObstacleMap();
+}
+
+
 boost::shared_ptr< EnvironmentXYZTheta > Planner::getEnv() const
 {
     return env;

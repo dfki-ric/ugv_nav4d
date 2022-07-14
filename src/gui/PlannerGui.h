@@ -88,7 +88,7 @@ private:
     vizkit3d::TraversabilityMap3dVisualization obstacleMapViz;
     vizkit3d::RigidBodyStateVisualization startViz;
     vizkit3d::RigidBodyStateVisualization goalViz;
-    maps::grid::MLSMapKalman mlsMap;
+    maps::grid::MLSMapSloped mlsMap;
     base::Pose start;
     base::Pose goal;
     bool pickStart = true;
