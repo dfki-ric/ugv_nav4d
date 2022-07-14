@@ -12,6 +12,7 @@
 #include <base/Eigen.hpp>
 #include <ugv_nav4d/Planner.hpp>
 #include <trajectory_follower/SubTrajectory.hpp>
+#include <QtWidgets>
 #endif
 
 class QDoubleSpinBox;
@@ -97,7 +98,7 @@ private:
     vizkit3d::TraversabilityMap3dVisualization obstacleMapViz;
     vizkit3d::RigidBodyStateVisualization startViz;
     vizkit3d::RigidBodyStateVisualization goalViz;
-    maps::grid::MLSMapKalman mlsMap;
+    maps::grid::MLSMapSloped mlsMap;
     base::Pose start;
     base::Pose goal;
     bool pickStart = true;

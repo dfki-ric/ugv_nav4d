@@ -86,7 +86,7 @@ bool TraversabilityGenerator3d::computePlaneRansac(TravGenNode& node)
             bool hasPatch = false;
             for(const MLGrid::PatchType *p : area.at(x, y))
             {
-                PointT pclP(pos.x(), pos.y(), p->getMean());
+                PointT pclP(pos.x(), pos.y(), (p->getTop()+p->getBottom())/2.);
                 points->push_back(pclP);
                 hasPatch = true;
             }
@@ -413,9 +413,9 @@ bool TraversabilityGenerator3d::checkStepHeight(TravGenNode *node)
                 std::cout << "this should never happen" << std::endl;
             }
 
-            for(const SurfacePatch<MLSConfig::KALMAN> *p : area.at(x, y))
+            for(const SurfacePatch<MLSConfig::SLOPE> *p : area.at(x, y))
             {
-                pos.z() = p->getMean();
+                pos.z() = (p->getTop()+p->getBottom())/2.;
                 float dist = plane.absDistance(pos);
                 //bounding box already checks height of robot
                 if(dist > config.maxStepHeight)
@@ -433,7 +433,7 @@ void TraversabilityGenerator3d::growNodes()
 {
     const double growRadiusSquared = std::pow(std::sqrt(config.robotSizeX * config.robotSizeX + config.robotSizeY * config.robotSizeY) / 2.0, 2);
     
-    for(TravGenNode *n : growList)
+    for(TravGenNode *n : frontierNodesGrowList)
     {
         Eigen::Vector3d nodePos = n ->getPosition(trMap);
         
@@ -466,7 +466,7 @@ void TraversabilityGenerator3d::growNodes()
         });
     }
     
-    growList.clear();
+    frontierNodesGrowList.clear();
 }
 
 void TraversabilityGenerator3d::setConfig(const TraversabilityConfig &config)
@@ -529,6 +529,7 @@ void TraversabilityGenerator3d::expandAll(TravGenNode* startNode, const double e
         
         if(!expandNode(node))
         {
+
             continue;
         }
 
@@ -552,8 +553,38 @@ void TraversabilityGenerator3d::expandAll(TravGenNode* startNode, const double e
     
     //grow frontier nodes
     growNodes();
-    
+    //grow obstacle nodes
+    inflateObstacles();
+   
     std::cout << "Expanded " << cnd << " nodes" << std::endl;
+}
+
+void TraversabilityGenerator3d::inflateObstacles()
+{
+    const double halfRobotSizeX = config.robotSizeX / 2;
+    const double halfRobotSizeY = config.robotSizeY / 2;
+	const double inflRadius = std::sqrt((halfRobotSizeX * halfRobotSizeX) + (halfRobotSizeY * halfRobotSizeY)) + 1e-5;
+
+    for (TravGenNode *n : obstacleNodesGrowList)
+    {
+        n->eachConnectedNode([&] (maps::grid::TraversabilityNodeBase *neighbor, bool &expandNode, bool &stop)
+        {
+            if ((n->getPosition(trMap) - neighbor->getPosition(trMap)).norm() < inflRadius)
+            {
+                if(neighbor->getType() == TraversabilityNodeBase::TRAVERSABLE)
+                {
+                    neighbor->setType(TraversabilityNodeBase::OBSTACLE);
+                }    
+                expandNode = true;   
+            }
+            else 
+            {
+                return;
+            }
+        }
+        );        
+    }
+    obstacleNodesGrowList.clear();
 }
 
 void TraversabilityGenerator3d::addInitialPatchToMLS()
@@ -605,7 +636,7 @@ void TraversabilityGenerator3d::addInitialPatchToMLS()
             if(hasPatch)
                 continue;
                         
-            MLGrid::PatchType newPatch(posMLS.z(), config.initialPatchVariance);
+            MLGrid::PatchType newPatch(posMLS.cast<float>(), config.initialPatchVariance);
 //             std::cout << "Adding Patch at " << posMLS.transpose() << std::endl;
             
             ll.insert(newPatch);
@@ -690,13 +721,14 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
 
     if(node->getType() == TraversabilityNodeBase::UNKNOWN
         || node->getType() == TraversabilityNodeBase::OBSTACLE)
-    {
+    {        
         return false;
     }
 
     if(!checkStepHeight(node))
     {
         node->setType(TraversabilityNodeBase::OBSTACLE);
+        obstacleNodesGrowList.push_back(node);
         return false;
     }
     
@@ -705,6 +737,7 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
         if(!computeAllowedOrientations(node))
         {
             node->setType(TraversabilityNodeBase::OBSTACLE);
+            obstacleNodesGrowList.push_back(node);
             return false;
         }
     }
@@ -715,7 +748,7 @@ bool TraversabilityGenerator3d::expandNode(TravGenNode * node)
     if(checkForFrontier(node))
     {
         node->setType(TraversabilityNodeBase::FRONTIER);
-        growList.push_back(node);
+        frontierNodesGrowList.push_back(node);
         return false;
     }
 
@@ -740,10 +773,10 @@ TravGenNode *TraversabilityGenerator3d::createTraversabilityPatchAt(maps::grid::
     
     std::vector<double> candidates;
     
-    for(const SurfacePatch<MLSConfig::KALMAN>& patch : patches)
+    for(const SurfacePatch<MLSConfig::SLOPE>& patch : patches)
     {
         //We use top, as we drive on the surface
-        const double height = patch.getMean();
+        const double height = (patch.getTop()+patch.getBottom())/2.;
 
         if((height - config.maxStepHeight) <= curHeight && (height + config.maxStepHeight) >= curHeight)
         {

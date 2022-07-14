@@ -15,6 +15,7 @@ PreComputedMotions::PreComputedMotions(const SplinePrimitivesConfig& primitiveCo
 {
 }
 
+
 void PreComputedMotions::computeMotions(double obstGridResolution, double travGridResolution)
 {
     if(fabs(primitives.getConfig().gridSize - travGridResolution) > 1E-5)
@@ -93,7 +94,7 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
 {
     const int numAngles = primGen.getConfig().numAngles;
     const double maxCurvature = calculateCurvatureFromRadius(mobilityConfig.minTurningRadius);
-    
+
     for(int angle = 0; angle < numAngles; ++angle)
     {
         for(const SplinePrimitive& prim : primGen.getPrimitiveForAngle(angle))
@@ -101,8 +102,10 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
             //NOTE the const cast is only here because for some reason getCurvatureMax() is non-const (but shouldnt be)
             if(prim.motionType != SplinePrimitive::SPLINE_POINT_TURN && //cannot call getCurvatureMax on point turns cause spl ne is not initalized
                const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() > maxCurvature)
-                continue;
-            
+               {
+                   continue;
+               }   
+         
             Motion motion(numAngles);
 
             motion.xDiff = prim.endPosition[0];
@@ -141,6 +144,9 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
                 sampleOnResolution(obstGridResolution, prim.spline, motion.intermediateStepsObstMap, dummy);
             }
             computeSplinePrimCost(prim, mobilityConfig, motion);
+            
+            if (motion.translationlDist > mobilityConfig.maxMotionCurveLength) //1.3 is slower but trajectories are curvy , 1.0 is faster with more linear trajectories
+            continue;
             
             //orientations for backward motions need to be inverted
             if(motion.type == Motion::Type::MOV_BACKWARD)

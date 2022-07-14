@@ -103,7 +103,7 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
             trMap.fromGrid(neighbor->getIndex(), neighborPos, neighbor->getHeight(), false);
             
             bool isInsideRobot = false;
-            bool isInsideBoundary = false;
+            bool isInsideOuterBox = false;
             
             for(const Eigen::Vector2d &ep : edgePositions)
             {
@@ -116,7 +116,7 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
                 
                 if(costFunctionBoundingBox.contains(tp))
                 {
-                    isInsideBoundary = true;
+                    isInsideOuterBox = true;
                     
                     //it is only inside the robot
                     if(robotBoundingBox.contains(tp))
@@ -132,7 +132,7 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
                 }
             }
                 
-            if(!isInsideBoundary)
+            if(!isInsideOuterBox)
             {
                 return;
             }
@@ -198,3 +198,94 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
 
 }
 
+bool ugv_nav4d::PathStatistic::isPathFeasible(const std::vector<const ugv_nav4d::TravGenNode* >& path, 
+                                                   const std::vector< base::Pose2D >& poses, 
+                                                   const maps::grid::TraversabilityMap3d<TravGenNode *> &trMap)
+{    
+    assert(path.size() == poses.size());
+ 
+    const Eigen::Vector2d travGridResolution(config.gridResolution, config.gridResolution);
+
+    Eigen::Vector2d halfRobotDimension(config.robotSizeX / 2.0, config.robotSizeY/2.0);
+    Eigen::Vector2d halfOuterBoxDimension(halfRobotDimension + Eigen::Vector2d::Constant(config.costFunctionDist));
+    
+    std::vector<Eigen::Vector2d> edgePositions = {
+        Eigen::Vector2d(- config.gridResolution /2.0, - config.gridResolution / 2.0),
+        Eigen::Vector2d(- config.gridResolution / 2.0, config.gridResolution / 2.0),
+        Eigen::Vector2d(config.gridResolution / 2.0, config.gridResolution / 2.0),
+        Eigen::Vector2d(config.gridResolution / 2.0, -config.gridResolution / 2.0)
+    };
+    
+    Eigen::AlignedBox<double, 2> robotBoundingBox(- halfRobotDimension, halfRobotDimension);
+    Eigen::AlignedBox<double, 2> costFunctionBoundingBox(- halfOuterBoxDimension, halfOuterBoxDimension);
+
+    std::unordered_set<const maps::grid::TraversabilityNodeBase*> inRobot;
+    std::unordered_set<const maps::grid::TraversabilityNodeBase*> inBoundary;
+
+    for(size_t i = 0; i < path.size(); i++)
+    {
+        const TravGenNode *node(path[i]);
+        const base::Pose2D curPose(poses[i]);
+
+        const Eigen::Rotation2D<double> yawInverse(Eigen::Rotation2D<double>(curPose.orientation).inverse());
+
+        maps::grid::Vector3d nodePos3 = node->getPosition(trMap);
+        const maps::grid::Vector2d nodePos(nodePos3.head<2>());
+
+        bool hasObstacle = false;
+ 
+        node->eachConnectedNode([&] (const maps::grid::TraversabilityNodeBase *neighbor, bool &explandNode, bool &stop){
+            //we need to compute the four edges of a cell and check if any is inside of the robot
+            maps::grid::Vector3d neighborPos;
+            trMap.fromGrid(neighbor->getIndex(), neighborPos, neighbor->getHeight(), false);
+            
+            bool isInsideRobot = false;
+            bool isInsideOuterBox = false;
+            
+            for(const Eigen::Vector2d &ep : edgePositions)
+            {
+                const Eigen::Vector2d edgePos(neighborPos.head<2>() + ep);
+                
+                //translate to center
+                Eigen::Vector2d tp = edgePos - curPose.position;
+                //rotate invers to orientation of robot
+                tp = yawInverse * tp;
+                
+                if(costFunctionBoundingBox.contains(tp))
+                {
+                    isInsideOuterBox = true;
+                    
+                    //it is only inside the robot
+                    if(robotBoundingBox.contains(tp))
+                    {
+                        isInsideRobot = true;
+                        break;
+                    }
+                }
+            }
+                
+            if(!isInsideOuterBox)
+            {
+                return;
+            }
+
+            //further expand node
+            explandNode = true;
+
+            if(isInsideRobot)
+            {
+               if(neighbor->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+                {
+                    hasObstacle = true;
+                    stop = true;
+                }
+                
+                return;
+            }
+         
+        });
+        if(hasObstacle)
+            return false;
+    }
+    return true;
+}

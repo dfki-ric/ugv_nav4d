@@ -17,7 +17,7 @@ ObstacleMapGenerator3D::~ObstacleMapGenerator3D()
 
 }
 
-    
+   
 bool ObstacleMapGenerator3D::expandNode(TravGenNode *node)
 {
     node->setExpanded();
@@ -34,6 +34,7 @@ bool ObstacleMapGenerator3D::expandNode(TravGenNode *node)
     if(!obstacleCheck(node))
     {
         node->setType(TraversabilityNodeBase::OBSTACLE);
+        obstacleNodesGrowList.push_back(node);
         return false;
     }
 
@@ -42,6 +43,7 @@ bool ObstacleMapGenerator3D::expandNode(TravGenNode *node)
         if(!computeAllowedOrientations(node))
         {
             node->setType(TraversabilityNodeBase::OBSTACLE);
+            obstacleNodesGrowList.push_back(node);
             return false;
         }
     }
