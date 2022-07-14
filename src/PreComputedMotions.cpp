@@ -15,6 +15,7 @@ PreComputedMotions::PreComputedMotions(const SplinePrimitivesConfig& primitiveCo
 {
 }
 
+
 void PreComputedMotions::computeMotions(double obstGridResolution, double travGridResolution)
 {
     if(fabs(primitives.getConfig().gridSize - travGridResolution) > 1E-5)
@@ -93,7 +94,7 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
 {
     const int numAngles = primGen.getConfig().numAngles;
     const double maxCurvature = calculateCurvatureFromRadius(mobilityConfig.minTurningRadius);
-    
+
     for(int angle = 0; angle < numAngles; ++angle)
     {
         for(const SplinePrimitive& prim : primGen.getPrimitiveForAngle(angle))
@@ -101,8 +102,10 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
             //NOTE the const cast is only here because for some reason getCurvatureMax() is non-const (but shouldnt be)
             if(prim.motionType != SplinePrimitive::SPLINE_POINT_TURN && //cannot call getCurvatureMax on point turns cause spl ne is not initalized
                const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() > maxCurvature)
-                continue;
-            
+               {
+                   continue;
+               }   
+         
             Motion motion(numAngles);
 
             motion.xDiff = prim.endPosition[0];
@@ -115,15 +118,39 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
             {
                 case SplinePrimitive::SPLINE_MOVE_FORWARD:
                     motion.type = Motion::Type::MOV_FORWARD;
-                    motion.costMultiplier = mobilityConfig.multiplierForwardTurn;
+                    if (const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() > -0.1 && 
+                        const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() < 0.1)
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierForward;
+                    } 
+                    else
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierForwardTurn;
+                    }
                     break;
                 case SplinePrimitive::SPLINE_MOVE_BACKWARD:
                     motion.type = Motion::Type::MOV_BACKWARD;
-                    motion.costMultiplier = mobilityConfig.multiplierBackwardTurn;
+                    if (const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() > -0.1 && 
+                        const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() < 0.1)
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierBackward;
+                    } 
+                    else
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierBackwardTurn;
+                    }
                     break;
                 case SplinePrimitive::SPLINE_MOVE_LATERAL:
                     motion.type = Motion::Type::MOV_LATERAL;
-                    motion.costMultiplier = mobilityConfig.multiplierLateral;
+                    if (const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() > -0.1 && 
+                        const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() < 0.1)
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierLateral;
+                    } 
+                    else
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierLateralCurve;
+                    }
                     break;
                 case SplinePrimitive::SPLINE_POINT_TURN:
                     motion.type = Motion::Type::MOV_POINTTURN;
@@ -141,6 +168,9 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
                 sampleOnResolution(obstGridResolution, prim.spline, motion.intermediateStepsObstMap, dummy);
             }
             computeSplinePrimCost(prim, mobilityConfig, motion);
+            
+            if (motion.translationlDist > mobilityConfig.maxMotionCurveLength) //1.3 is slower but trajectories are curvy , 1.0 is faster with more linear trajectories
+            continue;
             
             //orientations for backward motions need to be inverted
             if(motion.type == Motion::Type::MOV_BACKWARD)

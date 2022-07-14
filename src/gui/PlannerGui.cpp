@@ -394,9 +394,9 @@ void PlannerGui::loadMls(const std::string& path)
             
             maps::grid::MLSConfig cfg;
             cfg.gapSize = 0.1;
-            mlsMap = maps::grid::MLSMapKalman(numCells, maps::grid::Vector2d(mls_res, mls_res), cfg);
+            mlsMap = maps::grid::MLSMapSloped(numCells, maps::grid::Vector2d(mls_res, mls_res), cfg);
             mlsMap.mergePointCloud(*cloud, base::Transform3d::Identity());
-            mlsViz.updateMLSKalman(mlsMap);
+            mlsViz.updateMLSSloped(mlsMap);
             planner->updateMap(mlsMap);
         }
         return;
@@ -409,7 +409,7 @@ void PlannerGui::loadMls(const std::string& path)
         std::cout << "Loading MLS" << std::endl;
         boost::archive::binary_iarchive mlsIn(fileIn);
         mlsIn >> mlsMap;
-        mlsViz.updateMLSKalman(mlsMap);
+        mlsViz.updateMLSSloped(mlsMap);
         planner->updateMap(mlsMap);
         return;
     }

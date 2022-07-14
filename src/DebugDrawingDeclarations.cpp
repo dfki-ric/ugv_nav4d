@@ -19,7 +19,7 @@ V3DD_DECLARE_DEBUG_DRAWING_CHANNEL("ugv_nav4d_check_fail_start");
 V3DD_DECLARE_DEBUG_DRAWING_CHANNEL("ugv_nav4d_obs_check_fail_start");
 V3DD_DECLARE_DEBUG_DRAWING_CHANNEL("ugv_nav4d_goalBox");
 V3DD_DECLARE_DEBUG_DRAWING_CHANNEL("ugv_nav4d_startBox");
-
+V3DD_DECLARE_DEBUG_DRAWING_CHANNEL("ugv_nav4d_primitives");
 // area explorer debug channels
 V3DD_DECLARE_DEBUG_DRAWING_CHANNEL("area_explorer_Exploration_Area");
 V3DD_DECLARE_DEBUG_DRAWING_CHANNEL("area_explorer_frontierWithOrientation");
