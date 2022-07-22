@@ -43,7 +43,7 @@ public:
         , distToGround(0)
         , slopeMetricScale(1.0)
         , slopeMetric(NONE)
-        , gridResolution(0.0)
+        , gridResolution(0.3)
         , initialPatchVariance(0.01 * 0.01)
         , allowForwardDownhill(true)
         , enableInclineLimitting(false)        
