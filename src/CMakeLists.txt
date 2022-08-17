@@ -1,7 +1,3 @@
-find_package(PCL 1.7 REQUIRED COMPONENTS segmentation)
-
-# add_definitions(-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
-
 find_package(OpenMP REQUIRED)
 if(OPENMP_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -17,7 +13,6 @@ rock_library(ugv_nav4d
         Planner.cpp
         PlannerDump.cpp
         PreComputedMotions.cpp
-        TraversabilityGenerator3d.cpp
         Dijkstra.cpp
         ObstacleMapGenerator3D.cpp
         DebugDrawingDeclarations.cpp
@@ -27,19 +22,15 @@ rock_library(ugv_nav4d
         EnvironmentXYZTheta.hpp
         PathStatistic.hpp
         Planner.hpp
+        PlannerConfig.hpp
         PreComputedMotions.hpp
-        TraversabilityGenerator3d.hpp
-        TravGenNode.hpp
-        TraversabilityConfig.hpp
-        TravMapBfsVisitor.hpp
         Dijkstra.hpp
         ObstacleMapGenerator3D.hpp
     DEPS_PKGCONFIG 
         base-types 
         sbpl
         sbpl_spline_primitives
-        maps
-        pcl_segmentation-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
+        traversability_generator3d
         vizkit3d_debug_drawings
         trajectory_follower
 )

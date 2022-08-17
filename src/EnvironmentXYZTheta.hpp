@@ -2,7 +2,7 @@
 
 #include <sbpl/discrete_space_information/environment.h>
 #undef DEBUG //sbpl defines DEBUG 0 but the word debug is also used in base-logging which is included from TraversabilityGenerator3d
-#include "TraversabilityGenerator3d.hpp"
+#include <traversability_generator3d/TraversabilityGenerator3d.hpp>
 #include "ObstacleMapGenerator3D.hpp"
 #include <maps/grid/TraversabilityMap3d.hpp>
 #include <base/Pose.hpp>
@@ -24,9 +24,9 @@ namespace ugv_nav4d
 class EnvironmentXYZTheta : public DiscreteSpaceInformation
 {
 public:
-    typedef TraversabilityGenerator3d::MLGrid MLGrid;
+    typedef traversability_generator3d::TraversabilityGenerator3d::MLGrid MLGrid;
 protected:
-    TraversabilityGenerator3d travGen;
+    traversability_generator3d::TraversabilityGenerator3d travGen;
     ObstacleMapGenerator3D obsGen;
     std::shared_ptr<MLGrid > mlsGrid;
 
@@ -57,7 +57,7 @@ protected:
         PlannerData() : travNode(nullptr) {};
         
         /**This is the node that was used to create this XYZNode.*/
-        TravGenNode *travNode;
+        traversability_generator3d::TravGenNode *travNode;
         
         /**An XYZNode is associated with every ThetaNode that it 
          * shares a state with. This map links to all of them,
@@ -104,23 +104,23 @@ protected:
     XYZNode *goalXYZNode; //part of the goal state
     
     /**Start node in obstacle map */
-    TravGenNode* obstacleStartNode;
+    traversability_generator3d::TravGenNode* obstacleStartNode;
     
     ThetaNode *createNewState(const DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
-    XYZNode *createNewXYZState(TravGenNode* travNode);
+    XYZNode *createNewXYZState(traversability_generator3d::TravGenNode* travNode);
     ThetaNode *createNewStateFromPose(const std::string& name, const Eigen::Vector3d& pos, double theta, ugv_nav4d::EnvironmentXYZTheta::XYZNode** xyzBackNode);
     
-    bool checkStartGoalNode(const std::string& name, ugv_nav4d::TravGenNode* node, double theta);
+    bool checkStartGoalNode(const std::string& name, traversability_generator3d::TravGenNode* node, double theta);
     
     
     /** Find the obstacle node corresponding to @p travNode */
-    TravGenNode* findObstacleNode(const TravGenNode* travNode) const;
+    traversability_generator3d::TravGenNode* findObstacleNode(const traversability_generator3d::TravGenNode* travNode) const;
     
 public:
     
     /** @param pos Position in map frame */
     static bool obstacleCheck(const maps::grid::Vector3d& pos, double theta, const ObstacleMapGenerator3D& obsGen,
-                              const ugv_nav4d::TraversabilityConfig& travConf,
+                              const traversability_generator3d::TraversabilityConfig& travConf,
                               const sbpl_spline_primitives::SplinePrimitivesConfig& splineConf,
                               const std::string& nodeName="node");
     Eigen::Vector3d robotHalfSize;
@@ -128,7 +128,7 @@ public:
     /** @param generateDebugData If true, lots of debug information will becollected
      *                           and stored in members starting with debug*/
     EnvironmentXYZTheta(std::shared_ptr<MLGrid > mlsGrid,
-                        const TraversabilityConfig &travConf,
+                        const traversability_generator3d::TraversabilityConfig &travConf,
                         const sbpl_spline_primitives::SplinePrimitivesConfig &primitiveConfig,
                         const Mobility& mobilityConfig);
     
@@ -190,11 +190,11 @@ public:
      * @throw std::runtime_error if no matching motion exists*/
     const Motion& getMotion(const int fromStateID, const int toStateID);
     
-    const maps::grid::TraversabilityMap3d<TravGenNode *> &getTraversabilityMap() const;
-    const maps::grid::TraversabilityMap3d<TravGenNode *> &getObstacleMap() const;
+    const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode *> &getTraversabilityMap() const;
+    const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode *> &getObstacleMap() const;
     
-    TraversabilityGenerator3d& getTravGen();
-    TraversabilityGenerator3d& getObstacleGen();
+    traversability_generator3d::TraversabilityGenerator3d& getTravGen();
+    traversability_generator3d::TraversabilityGenerator3d& getObstacleGen();
 
     const MLGrid &getMlsMap() const;
     
@@ -208,11 +208,11 @@ public:
     /**Clears the state of the environment. Clears everything except the mls map. */
     void clear();
     
-    void setTravConfig(const TraversabilityConfig& cfg);
+    void setTravConfig(const traversability_generator3d::TraversabilityConfig& cfg);
     
     /** @param maxDist The value that should be used as maximum distance. This value is used for
      *                 non-traversable nodes and for initialization.*/ 
-    void dijkstraComputeCost(const TravGenNode* source, std::vector<double> &outDistances,
+    void dijkstraComputeCost(const traversability_generator3d::TravGenNode* source, std::vector<double> &outDistances,
                              const double maxDist) const;
 
     
@@ -220,13 +220,13 @@ private:
     
     /** Check if all nodes on the path from @p sourceNode following @p motion are traversable.
      * @return the target node of the motion or nullptr if motion not possible */
-    TravGenNode* checkTraversableHeuristic(const maps::grid::Index sourceIndex, ugv_nav4d::TravGenNode* sourceNode, 
-                                           const ugv_nav4d::Motion& motion, const maps::grid::TraversabilityMap3d< ugv_nav4d::TravGenNode* >& trMap);
+    traversability_generator3d::TravGenNode* checkTraversableHeuristic(const maps::grid::Index sourceIndex, traversability_generator3d::TravGenNode* sourceNode, 
+                                           const ugv_nav4d::Motion& motion, const maps::grid::TraversabilityMap3d< traversability_generator3d::TravGenNode* >& trMap);
     
     /** Some movement directions are not allowed depending on the slope of the patch.
      *  @return true if the movement direction is allowed on that patch
      */
-    bool checkOrientationAllowed(const TravGenNode* node,
+    bool checkOrientationAllowed(const traversability_generator3d::TravGenNode* node,
                                  const base::Orientation2D& orientation) const;
   
     
@@ -234,10 +234,10 @@ private:
     void precomputeCost();
     
     /**Return the avg slope of all patches on the given @p path */
-    double getAvgSlope(std::vector<const TravGenNode*> path) const;
+    double getAvgSlope(std::vector<const traversability_generator3d::TravGenNode*> path) const;
     
     /**Returns the max slope of all patches on the given @p path */
-    double getMaxSlope(std::vector<const TravGenNode*> path) const;
+    double getMaxSlope(std::vector<const traversability_generator3d::TravGenNode*> path) const;
     
     
     /**Determines the distance between @p a and @p b depending on travConf.heuristicType */
@@ -246,15 +246,15 @@ private:
     /** Checks if movement from @p fromTravNode to its neighbor at position @p toIdx is possible.
      *  I.e. if a direct connection exists and if the neighbor is traversable.
      *  Expands the neighbor if not already expanded.
-     *  @return the neighbor at position @p toIdx*/
-    TravGenNode* movementPossible(ugv_nav4d::TravGenNode* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& toIdx);
+     *  @return the neighbor at position @p toIdx */
+    traversability_generator3d::TravGenNode* movementPossible(traversability_generator3d::TravGenNode* fromTravNode, const maps::grid::Index& fromIdx, const maps::grid::Index& toIdx);
     
     /** Expands @p node if it needs expansion.
      *  Thread-safe.
      *  @return True if the expansion succeeded */
-    bool checkExpandTreadSafe(TravGenNode * node);
+    bool checkExpandTreadSafe(traversability_generator3d::TravGenNode * node);
     
-    TraversabilityConfig travConf;
+    traversability_generator3d::TraversabilityConfig travConf;
     sbpl_spline_primitives::SplinePrimitivesConfig primitiveConfig;
     
     unsigned int numAngles;

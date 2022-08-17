@@ -17,7 +17,7 @@ namespace ugv_nav4d
 {
 
 
-Planner::Planner(const sbpl_spline_primitives::SplinePrimitivesConfig& primitiveConfig, const TraversabilityConfig& traversabilityConfig, 
+Planner::Planner(const sbpl_spline_primitives::SplinePrimitivesConfig& primitiveConfig, const traversability_generator3d::TraversabilityConfig& traversabilityConfig, 
         const Mobility& mobility, const PlannerConfig& plannerConfig) :
     splinePrimitiveConfig(primitiveConfig),
     mobility(mobility),
@@ -298,12 +298,12 @@ std::vector< Motion > Planner::getMotions() const
     return env->getMotions(solutionIds);
 }
 
-const maps::grid::TraversabilityMap3d<TravGenNode*> &Planner::getTraversabilityMap() const
+const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &Planner::getTraversabilityMap() const
 {
     return env->getTraversabilityMap();
 }
 
-const maps::grid::TraversabilityMap3d<TravGenNode*> &Planner::getObstacleMap() const
+const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &Planner::getObstacleMap() const
 {
     return env->getObstacleMap();
 }
@@ -314,7 +314,7 @@ boost::shared_ptr< EnvironmentXYZTheta > Planner::getEnv() const
     return env;
 }
 
-void Planner::setTravConfig(const TraversabilityConfig& config)
+void Planner::setTravConfig(const traversability_generator3d::TraversabilityConfig& config)
 {
     if(config.gridResolution != splinePrimitiveConfig.gridSize)
         throw std::runtime_error("Planner::Planner : Configuration error, grid resolution of Primitives and TraversabilityGenerator3d differ");
