@@ -309,7 +309,7 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     conf.robotSizeY =  0.5;
     conf.robotHeight = 0.9; //incl space below body
     conf.slopeMetricScale = 0.0;
-    conf.slopeMetric = SlopeMetric::NONE;
+    conf.slopeMetric = traversability_generator3d::SlopeMetric::NONE;
     conf.inclineLimittingMinSlope = 0.22; // 10.0 * M_PI/180.0;
     conf.inclineLimittingLimit = 0.43;// 5.0 * M_PI/180.0;
     conf.costFunctionDist = 0.4;
@@ -490,8 +490,10 @@ void PlannerGui::slopeMetricScaleSpinBoxEditingFinished()
 
 void PlannerGui::slopeMetricComboBoxIndexChanged(int index)
 {
-    std::vector<SlopeMetric> metrics = {SlopeMetric::NONE, SlopeMetric::AVG_SLOPE, SlopeMetric::MAX_SLOPE,
-                                        SlopeMetric::TRIANGLE_SLOPE};
+    std::vector<traversability_generator3d::SlopeMetric> metrics = {traversability_generator3d::SlopeMetric::NONE, 
+                                        traversability_generator3d::SlopeMetric::AVG_SLOPE, 
+                                        traversability_generator3d::SlopeMetric::MAX_SLOPE,
+                                        traversability_generator3d::SlopeMetric::TRIANGLE_SLOPE};
     if(size_t(index) < metrics.size())
     {
         conf.slopeMetric = metrics[index];

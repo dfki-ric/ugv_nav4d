@@ -18,10 +18,8 @@
   <depend package="base/cmake" />
   <depend package="planning/sbpl" />
   <depend package="planning/sbpl_spline_primitives" />
+  <depend package="planning/traversability_generator3d" />
   <depend package="tools/backward" />
-  <depend package="slam/maps" />
-  <depend package="slam/pcl" />
-  <depend package="envire/envire_core" />
   <depend package="gui/vizkit3d_debug_drawings" />
   <depend package="control/trajectory_follower" />
   <tags>needs_opt</tags>
