@@ -5,6 +5,7 @@
 #include <sbpl_spline_primitives/SbplSplineMotionPrimitives.hpp>
 #include "EnvironmentXYZTheta.hpp"
 #include <trajectory_follower/SubTrajectory.hpp>
+#include "PlannerConfig.hpp"
 
 class ARAPlanner;
 
@@ -23,7 +24,7 @@ protected:
     
     const sbpl_spline_primitives::SplinePrimitivesConfig splinePrimitiveConfig; 
     const Mobility mobility;
-    TraversabilityConfig traversabilityConfig;
+    traversability_generator3d::TraversabilityConfig traversabilityConfig;
     PlannerConfig plannerConfig;
     std::vector<int> solutionIds;
     
@@ -43,7 +44,7 @@ public:
     };
     
     Planner(const sbpl_spline_primitives::SplinePrimitivesConfig &primitiveConfig, 
-        const TraversabilityConfig &traversabilityConfig,
+        const traversability_generator3d::TraversabilityConfig &traversabilityConfig,
         const Mobility& mobility, 
         const PlannerConfig& plannerConfig);
     
@@ -124,18 +125,18 @@ public:
 
     void genTravMap(const base::samples::RigidBodyState& startbody2Mls);    
     
-    void setTravConfig(const TraversabilityConfig& config);
+    void setTravConfig(const traversability_generator3d::TraversabilityConfig& config);
     
     void setPlannerConfig(const PlannerConfig& config);
     
-    const maps::grid::TraversabilityMap3d<TravGenNode*> &getTraversabilityMap() const;
+    const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &getTraversabilityMap() const;
 
-    const maps::grid::TraversabilityMap3d<TravGenNode*> &getObstacleMap() const;
+    const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &getObstacleMap() const;
     
     boost::shared_ptr<EnvironmentXYZTheta> getEnv() const;
 
     private:
-    bool calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& translation, const double yaw) noexcept;
+    bool calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& goal_translation, const double yaw) noexcept;
     bool tryGoal(const Eigen::Vector3d& translation, const double yaw) noexcept;
 
 };

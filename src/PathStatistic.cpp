@@ -3,6 +3,7 @@
 #include <deque>
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
+
 ugv_nav4d::PathStatistic::Stats::Stats() :
     obstacles(0), 
     frontiers(0)
@@ -54,14 +55,14 @@ double ugv_nav4d::PathStatistic::Stats::getMinDistToObstacles() const
     return minDistToObstacle;
 }
 
-ugv_nav4d::PathStatistic::PathStatistic(const ugv_nav4d::TraversabilityConfig& config) : 
+ugv_nav4d::PathStatistic::PathStatistic(const traversability_generator3d::TraversabilityConfig& config) : 
         config(config)
 {
 }
 
-void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_nav4d::TravGenNode* >& path, 
+void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const traversability_generator3d::TravGenNode* >& path, 
                                                    const std::vector< base::Pose2D >& poses, 
-                                                   const maps::grid::TraversabilityMap3d<TravGenNode *> &trMap,
+                                                   const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode *> &trMap,
                                                    const std::string &debugObstacleName)
 {
     assert(path.size() == poses.size());
@@ -87,7 +88,7 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
 
     for(size_t i = 0; i < path.size(); i++)
     {
-        const TravGenNode *node(path[i]);
+        const traversability_generator3d::TravGenNode *node(path[i]);
         const base::Pose2D curPose(poses[i]);
 
         const Eigen::Rotation2D<double> yawInverse(Eigen::Rotation2D<double>(curPose.orientation).inverse());
@@ -198,9 +199,9 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const ugv_n
 
 }
 
-bool ugv_nav4d::PathStatistic::isPathFeasible(const std::vector<const ugv_nav4d::TravGenNode* >& path, 
+bool ugv_nav4d::PathStatistic::isPathFeasible(const std::vector<const traversability_generator3d::TravGenNode* >& path, 
                                                    const std::vector< base::Pose2D >& poses, 
-                                                   const maps::grid::TraversabilityMap3d<TravGenNode *> &trMap)
+                                                   const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode *> &trMap)
 {    
     assert(path.size() == poses.size());
  
@@ -224,7 +225,7 @@ bool ugv_nav4d::PathStatistic::isPathFeasible(const std::vector<const ugv_nav4d:
 
     for(size_t i = 0; i < path.size(); i++)
     {
-        const TravGenNode *node(path[i]);
+        const traversability_generator3d::TravGenNode *node(path[i]);
         const base::Pose2D curPose(poses[i]);
 
         const Eigen::Rotation2D<double> yawInverse(Eigen::Rotation2D<double>(curPose.orientation).inverse());

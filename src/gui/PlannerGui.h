@@ -11,6 +11,7 @@
 #include <maps/grid/MLSMap.hpp>
 #include <base/Eigen.hpp>
 #include <ugv_nav4d/Planner.hpp>
+#include <traversability_generator3d/TraversabilityConfig.hpp>
 #include <trajectory_follower/SubTrajectory.hpp>
 #endif
 
@@ -97,7 +98,7 @@ private:
     bool threadRunning = false;
     sbpl_spline_primitives::SplinePrimitivesConfig config;
     ugv_nav4d::Mobility mobility;
-    ugv_nav4d::TraversabilityConfig conf;
+    traversability_generator3d::TraversabilityConfig conf;
     ugv_nav4d::PlannerConfig plannerConf;
     std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
     std::vector<trajectory_follower::SubTrajectory> path;
