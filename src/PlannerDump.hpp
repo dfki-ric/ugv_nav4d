@@ -1,10 +1,11 @@
 #pragma once
 
 #include <sbpl_spline_primitives/SplinePrimitivesConfig.hpp>
-#include "TraversabilityConfig.hpp"
-#include "TraversabilityGenerator3d.hpp"
+#include <traversability_generator3d/TraversabilityConfig.hpp>
+#include <traversability_generator3d/TraversabilityGenerator3d.hpp>
 #include "Mobility.hpp"
 #include <base/samples/RigidBodyState.hpp>
+#include "Planner.hpp"
 
 namespace ugv_nav4d {
 
@@ -14,14 +15,14 @@ class PlannerDump
 {
     sbpl_spline_primitives::SplinePrimitivesConfig splinePrimitiveConfig; 
     Mobility mobility;
-    TraversabilityConfig traversabilityConfig;
+    traversability_generator3d::TraversabilityConfig traversabilityConfig;
     PlannerConfig plannerConfig;
     
     base::samples::RigidBodyState start;
     base::samples::RigidBodyState goal;
     base::Time maxTime;
     
-    typedef TraversabilityGenerator3d::MLGrid MLSBase;
+    typedef traversability_generator3d::TraversabilityGenerator3d::MLGrid MLSBase;
     std::string getUnusedFilename(const std::string& filePostfix) const;
 
     MLSBase mlsMap;
@@ -44,7 +45,7 @@ public:
         return mobility;
     }
     
-    const TraversabilityConfig &getTravConfig() const
+    const traversability_generator3d::TraversabilityConfig &getTravConfig() const
     {
         return traversabilityConfig;
     }

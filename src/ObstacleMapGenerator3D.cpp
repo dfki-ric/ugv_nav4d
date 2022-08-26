@@ -7,7 +7,7 @@ using namespace maps::grid;
 namespace ugv_nav4d
 {
     
-ObstacleMapGenerator3D::ObstacleMapGenerator3D(const TraversabilityConfig& config): TraversabilityGenerator3d(config)
+ObstacleMapGenerator3D::ObstacleMapGenerator3D(const traversability_generator3d::TraversabilityConfig& config): TraversabilityGenerator3d(config)
 {
 
 }
@@ -18,7 +18,7 @@ ObstacleMapGenerator3D::~ObstacleMapGenerator3D()
 }
 
    
-bool ObstacleMapGenerator3D::expandNode(TravGenNode *node)
+bool ObstacleMapGenerator3D::expandNode(traversability_generator3d::TravGenNode *node)
 {
     node->setExpanded();
 
@@ -63,7 +63,7 @@ bool ObstacleMapGenerator3D::expandNode(TravGenNode *node)
 }
 
 
-bool ObstacleMapGenerator3D::obstacleCheck(const TravGenNode* node) const
+bool ObstacleMapGenerator3D::obstacleCheck(const traversability_generator3d::TravGenNode* node) const
 {
     //check if there is an mls patch above the ground
     Eigen::Vector3d nodePos;
