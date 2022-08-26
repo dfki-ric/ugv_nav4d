@@ -63,16 +63,17 @@ void Planner::genTravMap(const base::samples::RigidBodyState& start_pose)
 }
 
 
-bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& translation, const double yaw) noexcept
+bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& goal_translation, const double yaw) noexcept
 {
     static constexpr double theta_step = EIGEN_PI / 10.;
     if(mobility.searchRadius < std::numeric_limits<double>::epsilon()) {
-        return tryGoal(translation, yaw);
-    } else {
+        return tryGoal(goal_translation, yaw);
+    } 
+    else {
         bool is_invalid = true;
-        const double start_angle = std::atan2(start_translation.y() - translation.y(), start_translation.x() - translation.x());
+        const double start_angle = std::atan2(start_translation.y() - goal_translation.y(), start_translation.x() - goal_translation.x());
         LOG_PLAN("start_angle", start_angle);
-        LOG_PLAN("goal", translation);
+        LOG_PLAN("goal", goal_translation);
 
         double current_radius = mobility.searchProgressSteps;
         double theta = start_angle;
@@ -81,7 +82,7 @@ bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vec
         Eigen::Vector2d pos(0, 0);
         while(is_invalid) {
             LOG_PLAN("translation change", pos.x(), pos.y());
-            Eigen::Vector3d temp = translation;
+            Eigen::Vector3d temp = goal_translation;
             temp.x() += pos.x();
             temp.y() += pos.y();
             temp.z() = [&]{
@@ -93,7 +94,7 @@ bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vec
             }();
             
             if(tryGoal(temp, yaw)) {
-                translation = temp; // for future use by calling function
+                goal_translation = temp; // for future use by calling function
                 return true; 
             }
 
