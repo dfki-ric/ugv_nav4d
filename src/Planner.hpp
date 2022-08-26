@@ -136,7 +136,7 @@ public:
     boost::shared_ptr<EnvironmentXYZTheta> getEnv() const;
 
     private:
-    bool calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& translation, const double yaw) noexcept;
+    bool calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& goal_translation, const double yaw) noexcept;
     bool tryGoal(const Eigen::Vector3d& translation, const double yaw) noexcept;
 
 };

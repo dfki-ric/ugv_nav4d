@@ -170,8 +170,8 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
                                         const SplinePrimitivesConfig& splineConf,
                                         const std::string& nodeName)
 {
-    PathStatistic stats(travConf);    
-    std::vector<base::Pose2D> poses;
+    //PathStatistic stats(travConf);    
+    //std::vector<base::Pose2D> poses;
     
     maps::grid::Index idxObstNode;
     if(!obsGen.getTraversabilityMap().toGrid(pos, idxObstNode))
@@ -185,6 +185,16 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
         std::cout << "Error, could not find matching obstacle node for " << nodeName << std::endl;
         return false;
     }
+
+    if (obstacleNode->getType() != ::maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+    {
+        return false;
+    }
+
+    return true;
+    
+    /*
+    //DISABLED STATS CALCULATED 26.08.2022 by modhi
     
     std::vector<const traversability_generator3d::TravGenNode*> path;
     path.push_back(obstacleNode);
@@ -198,10 +208,10 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
     DiscreteTheta discTheta(theta, splineConf.numAngles);
     
     poses.push_back(base::Pose2D(centeredPos.topRows(2), discTheta.getRadian()));
+    
     stats.calculateStatistics(path, poses, obsGen.getTraversabilityMap(), "ugv_nav4d_" + nodeName + "Box");
     
-
-    if(stats.getRobotStats().getNumObstacles() /* || stats.getRobotStats().getNumFrontiers()) */ )
+    if(stats.getRobotStats().getNumObstacles() ) // || stats.getRobotStats().getNumFrontiers())  )
     {
         V3DD::COMPLEX_DRAWING([&]()
         {
@@ -214,8 +224,10 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
         std::cout << "Error: " << nodeName << " inside obstacle" << std::endl;
         return false;
     }
+   
     
     return true;
+    */
 }
 
 bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, traversability_generator3d::TravGenNode *node, double theta)
