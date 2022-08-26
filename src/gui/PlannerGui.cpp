@@ -11,6 +11,7 @@
 #include <pcl/common/common.h>
 #include <ugv_nav4d/PlannerDump.hpp>
 #include <pcl/common/transforms.h>
+#include <base-logging/Logging.hpp>
 
 using namespace ugv_nav4d;
 
@@ -344,7 +345,7 @@ void PlannerGui::setupPlanner(int argc, char** argv)
         startViz.setTranslation(pos);
 
         
-        std::cout << "Start: " << start.position.transpose() << std::endl;
+        LOG_INFO_S << "Start: " << start.position.transpose();
         pickStart = false;
         expandButton->setEnabled(true);
     }
@@ -369,7 +370,7 @@ void PlannerGui::loadMls(const std::string& path)
 
     if(path.find(".ply") != std::string::npos)
     {
-        std::cout << "Loading PLY" << std::endl;
+        LOG_INFO_S << "Loading PLY";
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
         pcl::PLYReader plyReader;
         if(plyReader.read(path, *cloud) >= 0)
@@ -383,14 +384,14 @@ void PlannerGui::loadMls(const std::string& path)
             pcl::transformPointCloud (*cloud, *cloud, pclTf);
             
             pcl::getMinMax3D (*cloud, mi, ma); 
-            std::cout << "MIN: " << mi << ", MAX: " << ma << std::endl;
+            LOG_INFO_S << "MIN: " << mi << ", MAX: " << ma;
         
             const double mls_res = conf.gridResolution;
             const double size_x = ma.x;
             const double size_y = ma.y;
             
             const maps::grid::Vector2ui numCells(size_x / mls_res + 1, size_y / mls_res + 1);
-            std::cout << "NUM CELLS: " << numCells << std::endl;
+            LOG_INFO_S << "NUM CELLS: " << numCells;
             
             maps::grid::MLSConfig cfg;
             cfg.gapSize = 0.1;
@@ -406,7 +407,7 @@ void PlannerGui::loadMls(const std::string& path)
     
     try
     {
-        std::cout << "Loading MLS" << std::endl;
+        LOG_INFO_S << "Loading MLS";
         boost::archive::binary_iarchive mlsIn(fileIn);
         mlsIn >> mlsMap;
         mlsViz.updateMLSSloped(mlsMap);
@@ -416,7 +417,7 @@ void PlannerGui::loadMls(const std::string& path)
     catch(...) {}
     
 
-    std::cerr << "Unabled to load mls. Unknown format" << std::endl;
+    std::cerr << "Unabled to load mls. Unknown format";
     
 }
 
@@ -443,7 +444,7 @@ void PlannerGui::picked(float x, float y, float z, int buttonMask, int modifierM
             
             QVector3D pos(start.position.x(), start.position.y(), start.position.z());
             startViz.setTranslation(pos);
-            std::cout << "Start: " << start.position.transpose() << std::endl;
+            LOG_INFO_S << "Start: " << start.position.transpose();
             startPicked = true;
             expandButton->setEnabled(true);
         }
@@ -454,7 +455,7 @@ void PlannerGui::picked(float x, float y, float z, int buttonMask, int modifierM
             goal.position.z() += conf.distToGround;
             QVector3D pos(goal.position.x(), goal.position.y(), goal.position.z());
             goalViz.setTranslation(pos);
-            std::cout << "goal: " << goal.position.transpose() << std::endl;
+            LOG_INFO_S << "goal: " << goal.position.transpose();
             goalPicked = true;
         }
             break;
@@ -600,7 +601,7 @@ void PlannerGui::expandPressed()
 
 void PlannerGui::dumpPressed()
 {
-    std::cout << "Dumping" << std::endl;
+    LOG_INFO_S << "Dumping";
     
     base::samples::RigidBodyState startState;
     startState.position = start.position;
@@ -628,34 +629,33 @@ void PlannerGui::plan(const base::Pose& start, const base::Pose& goal)
     base::samples::RigidBodyState endState;
     endState.position << goal.position;
     endState.orientation = goal.orientation;
-    
-    std::cout << std::endl << std::endl;
-    std::cout << "Planning: " << start << " -> " << goal << std::endl;
+
+    LOG_INFO_S << "Planning: " << start << " -> " << goal;
     const Planner::PLANNING_RESULT result = planner->plan(base::Time::fromSeconds(time->value()),
                                             startState, endState, path, beautifiedPath);
     
     switch(result)
     {
         case Planner::GOAL_INVALID:
-            std::cout << "GOAL_INVALID" << std::endl;
+            LOG_INFO_S << "GOAL_INVALID";
             break;
         case Planner::START_INVALID:
-            std::cout << "START_INVALID" << std::endl;
+            LOG_INFO_S << "START_INVALID";
             break; 
         case Planner::NO_SOLUTION:
-            std::cout << "NO_SOLUTION" << std::endl;
+            LOG_INFO_S << "NO_SOLUTION";
             break;
        case Planner::NO_MAP:
-            std::cout << "NO_MAP" << std::endl;
+            LOG_INFO_S << "NO_MAP";
             break;
         case Planner::INTERNAL_ERROR:
-            std::cout << "INTERNAL_ERROR" << std::endl;
+            LOG_INFO_S << "INTERNAL_ERROR";
             break;
         case Planner::FOUND_SOLUTION:
-            std::cout << "FOUND_SOLUTION" << std::endl;
+            LOG_INFO_S << "FOUND_SOLUTION";
             break;
         default:
-            std::cout << "ERROR unknown result state" << std::endl;
+            LOG_INFO_S << "ERROR unknown result state";
             break;
     }
     

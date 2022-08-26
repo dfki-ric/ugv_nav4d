@@ -2,6 +2,7 @@
 #include <maps/grid/GridMap.hpp>
 #include <cmath>
 #include <base/Angle.hpp>
+#include <base-logging/Logging.hpp>
 
 namespace ugv_nav4d
 {
@@ -20,7 +21,7 @@ void PreComputedMotions::computeMotions(double obstGridResolution, double travGr
 {
     if(fabs(primitives.getConfig().gridSize - travGridResolution) > 1E-5)
     {
-        std::cout << "PreComputedMotions::computeMotions: Error grid size and trav size do not match" << std::endl;
+        LOG_ERROR_S << "PreComputedMotions::computeMotions: Error grid size and trav size do not match";
         throw std::runtime_error("PreComputedMotions::computeMotions: Error grid size and trav size do not match");
     }
     
@@ -211,7 +212,7 @@ void PreComputedMotions::setMotionForTheta(const Motion& motion, const DiscreteT
                     throw std::runtime_error("ERROR: motion without valid type: ");
                     
             }
-            std::cout << "WARNING: motion already exists (skipping): " <<  m.xDiff << ", " << m.yDiff << ", " << m.endTheta << type << std::endl;
+            LOG_WARN_S << "WARNING: motion already exists (skipping): " <<  m.xDiff << ", " << m.yDiff << ", " << m.endTheta << type;
             //TODO add check if intermediate poses are similar
             return;
         }

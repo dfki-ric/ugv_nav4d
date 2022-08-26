@@ -8,6 +8,7 @@
 #include "PlannerDump.hpp"
 #include <omp.h>
 #include <cmath>
+#include <base-logging/Logging.hpp>
 #include "Logger.hpp"
 
 using namespace maps::grid;
@@ -43,7 +44,7 @@ void Planner::genTravMap(const base::samples::RigidBodyState& start_pose)
 {
     if(!env)
     {
-        std::cout << "Planner::genTravMap : Error : No map was set" << std::endl;
+        LOG_ERROR_S << "Planner::genTravMap : Error : No map was set";
         return;
     }
     
@@ -149,7 +150,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
                                        bool dumpOnError, bool dumpOnSuccess)
 { 
     
-    std::cout << "Planning with " << plannerConfig.numThreads << " threads" << std::endl;
+    LOG_INFO_S << "Planning with " << plannerConfig.numThreads << " threads";
     omp_set_num_threads(plannerConfig.numThreads);
     
     
@@ -157,7 +158,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     
     if(!env)
     {
-        std::cout << "Planner::plan : Error : No map was set" << std::endl;
+        LOG_ERROR_S << "Planner::plan : Error : No map was set";
         return NO_MAP;
     }
     
@@ -178,8 +179,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     startbody2Mls.setTransform(startbody2Mls.getTransform());
     endbody2Mls.setTransform(endbody2Mls.getTransform());
 
-    std::cout << "start_pose position (raw): " << start_pose.position.transpose() << std::endl;
-    std::cout << "end_pose position (raw): " << end_pose.position.transpose() << std::endl;
+    LOG_INFO_S << "start_pose position (raw): " << start_pose.position.transpose();
+    LOG_INFO_S << "end_pose position (raw): " << end_pose.position.transpose();
 
     const Eigen::Affine3d startGround2Mls(startbody2Mls.getTransform() * ground2Body);
     const Eigen::Affine3d endGround2Mls(endbody2Mls.getTransform() *ground2Body);
@@ -199,7 +200,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     }
     catch(const ugv_nav4d::ObstacleCheckFailed& ex)
     {
-        std::cout << "Start inside obstacle." << std::endl;
+        LOG_INFO_S << "Start inside obstacle.";
         if(dumpOnError)
             PlannerDump dump(*this, "start_inside_obstacle", maxTime, startbody2Mls, endbody2Mls);
         return START_INVALID;
@@ -228,7 +229,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     }
     catch(const SBPL_Exception& ex)
     {
-        std::cout << "caught sbpl exception: " << ex.what() << std::endl;
+        LOG_ERROR_S << "caught sbpl exception: " << ex.what();
         return NO_SOLUTION;
     }
 
@@ -236,44 +237,44 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     MDPConfig mdp_cfg;
         
     if (!env->InitializeMDPCfg(&mdp_cfg)) {
-        std::cout << "InitializeMDPCfg failed, start and goal id cannot be requested yet" << std::endl;
+        LOG_ERROR_S << "InitializeMDPCfg failed, start and goal id cannot be requested yet";
         return INTERNAL_ERROR;
     }
     if (planner->set_start(mdp_cfg.startstateid) == 0) {
-        std::cout << "Failed to set start state" << std::endl;
+        LOG_ERROR_S << "Failed to set start state";
         return INTERNAL_ERROR;
     }
     if (planner->set_goal(mdp_cfg.goalstateid) == 0) {
-        std::cout << "Failed to set goal state" << std::endl;
+        LOG_ERROR_S << "Failed to set goal state";
         return INTERNAL_ERROR;
     }
 
     try
     {
-        std::cout << "Initial Epsilon: " << plannerConfig.initialEpsilon << ", steps: " << plannerConfig.epsilonSteps << std::endl;
+        LOG_INFO_S << "Initial Epsilon: " << plannerConfig.initialEpsilon << ", steps: " << plannerConfig.epsilonSteps;
         planner->set_eps_step(plannerConfig.epsilonSteps);
         planner->set_initialsolution_eps(plannerConfig.initialEpsilon);
         
         solutionIds.clear();
         if(!planner->replan(maxTime.toSeconds(), &solutionIds))
         {
-            std::cout << "num expands: " << planner->get_n_expands() << std::endl;
+            LOG_INFO_S << "num expands: " << planner->get_n_expands();
             if(dumpOnError)
                 PlannerDump dump(*this, "no_solution", maxTime, startbody2Mls, endbody2Mls);
             return NO_SOLUTION;
         }
             
-        std::cout << "num expands: " << planner->get_n_expands() << std::endl;
-        std::cout << "Epsilon is " << planner->get_final_epsilon() << std::endl;
+        LOG_INFO_S << "num expands: " << planner->get_n_expands();
+        LOG_INFO_S << "Epsilon is " << planner->get_final_epsilon();
 
         std::vector<PlannerStats> stats;
         
         planner->get_search_stats(&stats);
         
-        std::cout << std::endl << "Stats" << std::endl;
+        LOG_INFO_S << "Stats";
         for(const PlannerStats &s: stats)
         {
-            std::cout << "cost " << s.cost << " time " << s.time << "num childs " << s.expands << std::endl;
+            LOG_INFO_S << "cost " << s.cost << " time " << s.time << "num childs " << s.expands;
         }
         
         env->getTrajectory(solutionIds, resultTrajectory2D, true, ground2Body);
@@ -281,8 +282,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     }
     catch(const SBPL_Exception& ex)
     {
-        std::cout << "caught sbpl exception: " << ex.what() << std::endl;
-        std::cout << "dumping state" << std::endl;
+        LOG_ERROR_S << "caught sbpl exception: " << ex.what();
+        LOG_ERROR_S << "dumping state";
         if(dumpOnError)
             PlannerDump dump(*this, "no_solution", maxTime, startbody2Mls, endbody2Mls);
         return NO_SOLUTION;
