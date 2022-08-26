@@ -1,7 +1,7 @@
 #include <QApplication>
 #include <execinfo.h> //gcc only
 #include "PlannerGui.h"
-
+#include <base-logging/Logging.hpp>
 
 class Application : public QApplication {
 public:
@@ -14,15 +14,14 @@ public:
             return QApplication::notify(receiver, e);
         } catch (std::exception &ex) 
         {
-            std::cerr << "CAUGHT exception in qt event loop:\n" <<
-            ex.what() << std::endl;
+            LOG_ERROR_S << "CAUGHT exception in qt event loop:\n" << ex.what();
             const int traceLen = 40;
             void *symbols[traceLen];
             const size_t size = backtrace(symbols, traceLen);
             backtrace_symbols_fd(symbols, size, STDERR_FILENO);
 
         } catch (...) {
-            std::cerr << "CAUGHT unknown exception in qt event loop" << std::endl;
+            LOG_ERROR_S << "CAUGHT unknown exception in qt event loop";
         }        
          return false;
      }
@@ -32,7 +31,7 @@ int main(int argc, char** argv)
 {
     if(argc < 2)
     {
-        std::cout << argv[0] << " [dumpName]" << std::endl;
+        LOG_INFO_S << argv[0] << " [dumpName]";
         return -1;
     }
     

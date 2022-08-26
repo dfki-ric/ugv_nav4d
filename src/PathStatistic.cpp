@@ -3,6 +3,7 @@
 #include <deque>
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
+
 ugv_nav4d::PathStatistic::Stats::Stats() :
     obstacles(0), 
     frontiers(0)
