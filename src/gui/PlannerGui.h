@@ -6,6 +6,7 @@
 #include <vizkit3d/SubTrajectoryVisualization.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
 #include <vizkit3d/TraversabilityMap3dVisualization.hpp>
+#include <vizkit3d/GridVisualization.hpp>
 #include <vizkit3d/SbplSplineVisualization.hpp>
 #include <vizkit3d/RigidBodyStateVisualization.hpp>
 #include <maps/grid/MLSMap.hpp>
@@ -89,6 +90,7 @@ private:
     vizkit3d::TraversabilityMap3dVisualization obstacleMapViz;
     vizkit3d::RigidBodyStateVisualization startViz;
     vizkit3d::RigidBodyStateVisualization goalViz;
+    vizkit3d::GridVisualization gridViz;
     maps::grid::MLSMapSloped mlsMap;
     base::Pose start;
     base::Pose goal;

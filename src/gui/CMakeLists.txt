@@ -10,6 +10,7 @@ rock_library(ugv_nav4d_gui
         PlannerGui.h        
    DEPS ugv_nav4d 
    DEPS_PKGCONFIG vizkit3d  
+                  vizkit3d-viz  
                   maps-viz 
                   base-viz 
                   sbpl_spline_primitives-viz 
