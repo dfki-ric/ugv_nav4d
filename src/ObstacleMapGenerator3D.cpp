@@ -21,9 +21,16 @@ ObstacleMapGenerator3D::~ObstacleMapGenerator3D()
 bool ObstacleMapGenerator3D::expandNode(traversability_generator3d::TravGenNode *node)
 {    
     node->setExpanded();
-    if(node->getType() == TraversabilityNodeBase::UNKNOWN
-        || node->getType() == TraversabilityNodeBase::OBSTACLE)
-    {        return false;
+    
+    if(node->getType() == TraversabilityNodeBase::UNKNOWN)
+    {       
+        return false;
+    }
+
+    if(node->getType() == TraversabilityNodeBase::OBSTACLE)
+    {   
+        obstacleNodesGrowList.push_back(node);       
+        return false;
     }
     
     if(node->getUserData().slope > config.maxSlope)
