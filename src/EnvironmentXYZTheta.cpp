@@ -251,9 +251,9 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     V3DD::CLEAR_DRAWING("ugv_nav4d_env_goalPos");
     V3DD::DRAW_ARROW("ugv_nav4d_env_goalPos", goalPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
                base::Vector3d(1,1,1), V3DD::Color::red);
-    
-    LOG_INFO_S << "GOAL IS: " << goalPos.transpose();
 
+    LOG_INFO_S << "GOAL IS: " << goalPos.transpose();
+    
     if(!startXYZNode)
         throw std::runtime_error("Error, start needs to be set before goal");
     
@@ -681,7 +681,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             //at least one node on the path is not traversable
             continue;
         }
-        
+      
         //check motion path on obstacle map
         std::vector<const traversability_generator3d::TravGenNode*> nodesOnObstPath;
         std::vector<base::Pose2D> posesOnObstPath;
@@ -948,7 +948,7 @@ vector<Motion> EnvironmentXYZTheta::getMotions(const vector< int >& stateIDPath)
 
 void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                                         vector<SubTrajectory>& result,
-                                        bool setZToZero, const Eigen::Affine3d &plan2Body)
+                                        bool setZToZero, const base::samples::RigidBodyState &goalPos, const Eigen::Affine3d &plan2Body)
 {
     if(stateIDPath.size() < 2)
         return;
@@ -1010,7 +1010,20 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 }
             }
         }
-        
+
+        if (i == stateIDPath.size()-2 && curMotion.type != Motion::Type::MOV_POINTTURN  && !positions.empty() && positions.size() > 1)
+        {
+            LOG_INFO_S << "Spline end position: " << positions[positions.size()-1];
+            double goal_offset_x = (goalPos.position.x() - positions[positions.size()-1].x()) / (positions.size()-1);
+            double goal_offset_y = (goalPos.position.y() - positions[positions.size()-1].y()) / (positions.size()-1);
+
+            for (int j{0}; j < positions.size(); j++){
+                positions[j].x() += j*goal_offset_x;    
+                positions[j].y() += j*goal_offset_y;   
+            }
+            LOG_INFO_S << "Updated spline end position: " << positions[positions.size()-1];
+        }
+
         curPart.spline.interpolate(positions);
         
         V3DD::COMPLEX_DRAWING([&]()
@@ -1028,7 +1041,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 case Motion::MOV_POINTTURN:
                     color = V3DD::Color::red;
                     size.z() = 1;
-                    LOG_INFO_S<< "PT";
                     V3DD::DRAW_CYLINDER("ugv_nav4d_trajectory", getStatePosition(stateIDPath[i]),  size, color);
                     break;
                 case Motion::MOV_LATERAL:
