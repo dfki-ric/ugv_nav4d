@@ -958,6 +958,14 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
     base::Trajectory curPart;
     
     V3DD::CLEAR_DRAWING("ugv_nav4d_trajectory");
+
+    int indexOfMotionToUpdate{stateIDPath.size()-2};
+
+    const Motion& finalMotion = getMotion(stateIDPath[stateIDPath.size()-2], stateIDPath[stateIDPath.size()-1]);
+
+    if (finalMotion.type == Motion::Type::MOV_POINTTURN && stateIDPath.size() > 2){ //assuming that there are no consecutive point turns motion at the end of a planned trajectory
+        indexOfMotionToUpdate = stateIDPath.size()-3;
+    }
     
     for(size_t i = 0; i < stateIDPath.size() - 1; ++i)
     {
@@ -1011,7 +1019,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             }
         }
 
-        if (i == stateIDPath.size()-2 && curMotion.type != Motion::Type::MOV_POINTTURN  && !positions.empty() && positions.size() > 1)
+        if (i == indexOfMotionToUpdate && curMotion.type != Motion::Type::MOV_POINTTURN  && !positions.empty() && positions.size() > 1)
         {
             LOG_INFO_S << "Spline end position: " << positions[positions.size()-1];
             double goal_offset_x = (goalPos.position.x() - positions[positions.size()-1].x()) / (positions.size()-1);
