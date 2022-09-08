@@ -68,7 +68,12 @@ bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vec
 {
     static constexpr double theta_step = EIGEN_PI / 10.;
     if(mobility.searchRadius < std::numeric_limits<double>::epsilon()) {
-        return tryGoal(goal_translation, yaw);
+        double z{0.0};
+        Eigen::Vector3d temp = goal_translation;
+        if (env->getMlsMap().getClosestSurfacePos(temp, z)){
+            temp.z() = z;
+        }
+        return tryGoal(temp, yaw);
     } 
     else {
         bool is_invalid = true;
