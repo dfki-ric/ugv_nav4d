@@ -948,7 +948,7 @@ vector<Motion> EnvironmentXYZTheta::getMotions(const vector< int >& stateIDPath)
 
 void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                                         vector<SubTrajectory>& result,
-                                        bool setZToZero, const base::samples::RigidBodyState &goalPos, const Eigen::Affine3d &plan2Body)
+                                        bool setZToZero, const Eigen::Vector3d &goalPos, const Eigen::Affine3d &plan2Body)
 {
     if(stateIDPath.size() < 2)
         return;
@@ -1022,8 +1022,8 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
         if (i == indexOfMotionToUpdate && curMotion.type != Motion::Type::MOV_POINTTURN  && !positions.empty() && positions.size() > 1)
         {
             LOG_INFO_S << "Spline end position: " << positions[positions.size()-1];
-            double goal_offset_x = (goalPos.position.x() - positions[positions.size()-1].x()) / (positions.size()-1);
-            double goal_offset_y = (goalPos.position.y() - positions[positions.size()-1].y()) / (positions.size()-1);
+            double goal_offset_x = (goalPos.x() - positions[positions.size()-1].x()) / (positions.size()-1);
+            double goal_offset_y = (goalPos.y() - positions[positions.size()-1].y()) / (positions.size()-1);
 
             for (int j{0}; j < positions.size(); j++){
                 positions[j].x() += j*goal_offset_x;    
