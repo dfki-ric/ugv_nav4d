@@ -282,8 +282,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
             LOG_INFO_S << "cost " << s.cost << " time " << s.time << "num childs " << s.expands;
         }
         
-        env->getTrajectory(solutionIds, resultTrajectory2D, true, end_pose, ground2Body);
-        env->getTrajectory(solutionIds, resultTrajectory3D, false, end_pose, ground2Body);
+        env->getTrajectory(solutionIds, resultTrajectory2D, true, goal_translation, ground2Body);
+        env->getTrajectory(solutionIds, resultTrajectory3D, false, goal_translation, ground2Body);
     }
     catch(const SBPL_Exception& ex)
     {
