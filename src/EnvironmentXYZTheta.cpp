@@ -1263,6 +1263,7 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
 
     if(!startNodeObstMap)
     {
+        LOG_INFO_S<< "Unable to find obstacle node corresponding to trav node";
         throw std::runtime_error("unable to find obstacle node corresponding to trav node");
     }
     
@@ -1271,10 +1272,10 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
     std::vector<base::Pose2D> bestPosesOnObstPath;
     int bestMotionObstacleCount = std::numeric_limits<int>::max();
     
-    bool abort = false;
+    bool intermediateStepsOk = true;
     const auto& motions = availableMotions.getMotionForStartTheta(thetaD);
     for(size_t i = 0; i < motions.size(); ++i)
-    {
+    {     
         const ugv_nav4d::Motion &motion(motions[i]);
         const traversability_generator3d::TravGenNode* currentObstNode = startNodeObstMap;
         std::vector<const traversability_generator3d::TravGenNode*> nodesOnPath;
@@ -1282,11 +1283,19 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
         
         nodesOnPath.push_back(currentObstNode);
         
-        base::Pose2D firstPose = motion.intermediateStepsObstMap[0].pose;
-        firstPose.position += startPosWorld.head<2>();
-        posesOnObstPath.push_back(firstPose);
-        
-        abort = false;
+        base::Pose2D firstPose;
+
+        //Currently the function only selects a single motion so the pointturn will not help us.
+        //TODO: If multiple motions are agreegated to get the final recovery trajectory then pointturns can be used.
+        //NOTE: Pointturns have no intermediateStepsObstMap, so are skipped at the moment.
+        if (motion.type == ugv_nav4d::Motion::MOV_POINTTURN){
+             continue;    
+        }
+        firstPose = motion.intermediateStepsObstMap[0].pose;
+        firstPose.position += startPosWorld.head<2>();      
+        posesOnObstPath.push_back(firstPose);       
+
+        intermediateStepsOk = true;
         for(size_t j = 1; j < motion.intermediateStepsObstMap.size(); ++j)
         {
             const PoseWithCell& pwc = motion.intermediateStepsObstMap[j];
@@ -1295,7 +1304,7 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
             currentObstNode = currentObstNode->getConnectedNode(newIndex);
             if(currentObstNode == nullptr)
             {
-                abort = true;
+                intermediateStepsOk = false;
                 break;
             }
             nodesOnPath.push_back(currentObstNode);
@@ -1306,7 +1315,7 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
             
         }
 
-        if(abort)
+        if(!intermediateStepsOk)
         {
             continue;
         }
