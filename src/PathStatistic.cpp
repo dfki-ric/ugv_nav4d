@@ -3,7 +3,7 @@
 #include <deque>
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
-#define ENABLE_V3DD_DRAWINGS false
+//#define ENABLE_V3DD_DRAWINGS 
 
 ugv_nav4d::PathStatistic::Stats::Stats() :
     obstacles(0), 
@@ -148,7 +148,7 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const trave
                 
                 if(neighbor->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
                 {
-#if ENABLE_V3DD_DRAWINGS                    
+#ifdef ENABLE_V3DD_DRAWINGS                    
                     V3DD::COMPLEX_DRAWING([&]()
                     {
                         if(!debugObstacleName.empty())

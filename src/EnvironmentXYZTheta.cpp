@@ -19,7 +19,7 @@ using namespace sbpl_spline_primitives;
 using trajectory_follower::SubTrajectory;
 using trajectory_follower::DriveMode;
 
-#define ENABLE_V3DD_DRAWINGS false
+//#define ENABLE_V3DD_DRAWINGS 
 
 namespace ugv_nav4d
 {
@@ -211,12 +211,14 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
     
     if(stats.getRobotStats().getNumObstacles() ) // || stats.getRobotStats().getNumFrontiers())  )
     {
+#ifdef ENABLE_V3DD_DRAWINGS        
         V3DD::COMPLEX_DRAWING([&]()
         {
             const std::string drawName("ugv_nav4d_obs_check_fail_" + nodeName);
             V3DD::CLEAR_DRAWING(drawName);
             V3DD::DRAW_WIREFRAME_BOX(drawName, pos, Eigen::Quaterniond(Eigen::AngleAxisd(discTheta.getRadian(), Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), V3DD::Color::red);
         });
+#endif        
         
         LOG_INFO_S << "Num obstacles: " << stats.getRobotStats().getNumObstacles();
         LOG_INFO_S << "Error: " << nodeName << " inside obstacle";
@@ -234,7 +236,7 @@ bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, traversability_
 
     maps::grid::Vector3d nodePos;
     travGen.getTraversabilityMap().fromGrid(node->getIndex(), nodePos, node->getHeight(), false);
-#if ENABLE_V3DD_DRAWINGS
+#ifdef ENABLE_V3DD_DRAWINGS
         V3DD::COMPLEX_DRAWING([&]()
         {
             const std::string drawName("ugv_nav4d_check_start_goal_" + name);
@@ -251,7 +253,7 @@ bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, traversability_
 void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
 {
 
-#if ENABLE_V3DD_DRAWINGS
+#ifdef ENABLE_V3DD_DRAWINGS
     V3DD::CLEAR_DRAWING("ugv_nav4d_env_goalPos");
     V3DD::DRAW_ARROW("ugv_nav4d_env_goalPos", goalPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
             base::Vector3d(1,1,1), V3DD::Color::red);
@@ -296,7 +298,7 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     precomputeCost();
     LOG_INFO_S << "Heuristic computed";
     //draw greedy path
-#if ENABLE_V3DD_DRAWINGS
+#ifdef ENABLE_V3DD_DRAWINGS
     V3DD::COMPLEX_DRAWING([&]()
     {
         V3DD::CLEAR_DRAWING("ugv_nav4d_greedyPath");
@@ -332,7 +334,7 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
 
 void EnvironmentXYZTheta::expandMap(const std::vector<Eigen::Vector3d>& positions)
 {
-#if ENABLE_V3DD_DRAWINGS    
+#ifdef ENABLE_V3DD_DRAWINGS    
     V3DD::COMPLEX_DRAWING([&]()
     {
         V3DD::CLEAR_DRAWING("ugv_nav4d_expandStarts");
@@ -351,7 +353,7 @@ void EnvironmentXYZTheta::expandMap(const std::vector<Eigen::Vector3d>& position
 
 void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta)
 {
-#if ENABLE_V3DD_DRAWINGS
+#ifdef ENABLE_V3DD_DRAWINGS
         V3DD::CLEAR_DRAWING("ugv_nav4d_env_startPos");
         V3DD::DRAW_ARROW("ugv_nav4d_env_startPos", startPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
                      base::Vector3d(1,1,1), V3DD::Color::blue);
@@ -643,7 +645,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     const ThetaNode *const sourceThetaNode = sourceHash.thetaNode;
     traversability_generator3d::TravGenNode *sourceTravNode = sourceNode->getUserData().travNode;
 
-#if ENABLE_V3DD_DRAWINGS
+#ifdef ENABLE_V3DD_DRAWINGS
         V3DD::COMPLEX_DRAWING([&]()
         {
             
@@ -967,7 +969,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
 
     base::Trajectory curPart;
 
-#if ENABLE_V3DD_DRAWINGS
+#ifdef ENABLE_V3DD_DRAWINGS
         V3DD::CLEAR_DRAWING("ugv_nav4d_trajectory");
 #endif
 
@@ -1046,7 +1048,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
 
         curPart.spline.interpolate(positions);
         
-#if ENABLE_V3DD_DRAWINGS
+#ifdef ENABLE_V3DD_DRAWINGS
             V3DD::COMPLEX_DRAWING([&]()
             {
                 Eigen::Vector4d color = V3DD::Color::cyan;
@@ -1392,7 +1394,7 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
         }
         trajectory.spline.interpolate(positions);
         trajectory.speed = motions[bestMotionIndex].type == Motion::Type::MOV_BACKWARD? -mobilityConfig.translationSpeed : mobilityConfig.translationSpeed;
-#if ENABLE_V3DD_DRAWINGS
+#ifdef ENABLE_V3DD_DRAWINGS
             V3DD::COMPLEX_DRAWING([&]()
             {
                 for(base::Vector3d pos : positions)
