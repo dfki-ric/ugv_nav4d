@@ -17,7 +17,9 @@ struct Mobility {
     // If > 0 allows to specify the minimal turning radius of the system in meter.
     // Without this not valid curves may be created.
     double minTurningRadius;
-    
+    // Resolution used to sample the motion primitive spline
+    double spline_sampling_resolution;
+
     /** The cost of a motion is multiplied by one of the following Multipliers. This allows
       * the user to penalize some motion types.
       * Do ***not*** set the multiplier to zero. If you do all motions of that type will have no cost */
@@ -35,12 +37,13 @@ struct Mobility {
     double searchProgressSteps;
 
     double maxMotionCurveLength;
-    
-    
-    Mobility() : 
+
+
+    Mobility() :
            translationSpeed(1.0),
            rotationSpeed(1.0),
            minTurningRadius(0.0),
+           spline_sampling_resolution(0.01),
            multiplierForward(1),
            multiplierBackward(1),
            multiplierLateral(1),
@@ -53,26 +56,30 @@ struct Mobility {
            maxMotionCurveLength(1.2)
     {
     }
-    
-    Mobility(double speed, double turning_speed, double min_turning_radius, 
-             unsigned int mult_forward=0, 
-             unsigned int mult_backward=0, 
-             unsigned int mult_lateral=0, 
-             unsigned int mult_forward_turn=0, 
-             unsigned int mult_backward_turn=0, 
+
+    Mobility(double speed,
+             double turning_speed,
+             double min_turning_radius,
+             double sampling_resolution,
+             unsigned int mult_forward=0,
+             unsigned int mult_backward=0,
+             unsigned int mult_lateral=0,
+             unsigned int mult_forward_turn=0,
+             unsigned int mult_backward_turn=0,
              unsigned int mult_pointturn=0,
              unsigned int mult_lateral_curve=0,
              double search_radius = 0,
              double search_progress_steps = 0,
              double max_motion_curve_length = 0
             ) :
-            translationSpeed(speed), 
+            translationSpeed(speed),
             rotationSpeed(turning_speed),
             minTurningRadius(min_turning_radius),
-            multiplierForward(mult_forward), 
+            spline_sampling_resolution(sampling_resolution),
+            multiplierForward(mult_forward),
             multiplierBackward(mult_backward),
-            multiplierLateral(mult_lateral), 
-            multiplierForwardTurn(mult_forward_turn), 
+            multiplierLateral(mult_lateral),
+            multiplierForwardTurn(mult_forward_turn),
             multiplierBackwardTurn(mult_backward_turn),
             multiplierPointTurn(mult_pointturn),
             multiplierLateralCurve(mult_lateral_curve),
