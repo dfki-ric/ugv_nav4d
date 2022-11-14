@@ -14,13 +14,13 @@
 using namespace maps::grid;
 using trajectory_follower::SubTrajectory;
 
-//#define ENABLE_V3DD_DRAWINGS 
+//#define ENABLE_V3DD_DRAWINGS
 
 namespace ugv_nav4d
 {
 
 
-Planner::Planner(const sbpl_spline_primitives::SplinePrimitivesConfig& primitiveConfig, const traversability_generator3d::TraversabilityConfig& traversabilityConfig, 
+Planner::Planner(const sbpl_spline_primitives::SplinePrimitivesConfig& primitiveConfig, const traversability_generator3d::TraversabilityConfig& traversabilityConfig,
         const Mobility& mobility, const PlannerConfig& plannerConfig) :
     splinePrimitiveConfig(primitiveConfig),
     mobility(mobility),
@@ -33,7 +33,7 @@ void Planner::setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadiu
 {
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
-    
+
     env->setInitialPatch(body2Mls * ground2Body , patchRadius);
 }
 
@@ -49,16 +49,16 @@ void Planner::genTravMap(const base::samples::RigidBodyState& start_pose)
         LOG_ERROR_S << "Planner::genTravMap : Error : No map was set";
         return;
     }
-    
+
     env->clear();
- 
+
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
 
     const Eigen::Affine3d startGround2Mls(start_pose.getTransform() * ground2Body);
-    
+
     previousStartPositions.push_back(startGround2Mls.translation());
-    
+
     env->expandMap(previousStartPositions);
 
     if(travMapCallback)
@@ -76,7 +76,7 @@ bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vec
             temp.z() = z;
         }
         return tryGoal(temp, yaw);
-    } 
+    }
     else {
         bool is_invalid = true;
         const double start_angle = std::atan2(start_translation.y() - goal_translation.y(), start_translation.x() - goal_translation.x());
@@ -100,13 +100,13 @@ bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vec
                 }
                 return temp.z();
             }();
-            
+
             if(tryGoal(temp, yaw)) {
                 goal_translation = temp; // for future use by calling function
-                return true; 
+                return true;
             }
 
-           
+
             // if the circle is completed and still no valid goal is found, increase the radius and try again
             if(std::abs(theta_pi - EIGEN_PI) < std::numeric_limits<double>::epsilon()) {
                 current_radius += mobility.searchProgressSteps;
@@ -117,7 +117,7 @@ bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vec
                 if(current_radius > mobility.searchRadius) {
                     return false;
                 }
-            } 
+            }
             // only add a new value if we are positive, so we can explore on both sides.
             if(multiplier == 1) {
                 theta_pi += theta_step;
@@ -153,13 +153,13 @@ bool Planner::tryGoal(const Eigen::Vector3d& translation, const double yaw) noex
 Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& start_pose,
                                        const base::samples::RigidBodyState& end_pose,
                                        std::vector<SubTrajectory>& resultTrajectory2D,
-                                       std::vector<SubTrajectory>& resultTrajectory3D, 
+                                       std::vector<SubTrajectory>& resultTrajectory3D,
                                        bool dumpOnError, bool dumpOnSuccess)
-{ 
-    
+{
+
     LOG_INFO_S << "Planning with " << plannerConfig.numThreads << " threads";
     omp_set_num_threads(plannerConfig.numThreads);
-#ifdef ENABLE_V3DD_DRAWINGS    
+#ifdef ENABLE_V3DD_DRAWINGS
     V3DD::CLEAR_DRAWING("ugv_nav4d_successors");
 #endif
     if(!env)
@@ -167,18 +167,18 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         LOG_ERROR_S << "Planner::plan : Error : No map was set";
         return NO_MAP;
     }
-    
+
     resultTrajectory2D.clear();
     resultTrajectory3D.clear();
     env->clear();
-        
+
     if(!planner)
         planner.reset(new ARAPlanner(env.get(), true));
-    
-    
+
+
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
-    
+
     base::samples::RigidBodyState startbody2Mls = start_pose;
     base::samples::RigidBodyState endbody2Mls = end_pose;
 
@@ -190,13 +190,13 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
 
     const Eigen::Affine3d startGround2Mls(startbody2Mls.getTransform() * ground2Body);
     const Eigen::Affine3d endGround2Mls(endbody2Mls.getTransform() *ground2Body);
-    
+
     startbody2Mls.setTransform(startGround2Mls);
     endbody2Mls.setTransform(endGround2Mls);
 
     //TODO maybe use a deque and limit to last 30 starts?
     previousStartPositions.push_back(startGround2Mls.translation());
-    
+
     env->expandMap(previousStartPositions);
     if(travMapCallback)
         travMapCallback();
@@ -217,16 +217,18 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
             PlannerDump dump(*this, "bad_start", maxTime, startbody2Mls, endbody2Mls);
         return START_INVALID;
     }
-    
+
+    Eigen::Vector3d start_translation = startGround2Mls.translation();
     Eigen::Vector3d goal_translation = endGround2Mls.translation();
+
     if(!calculateGoal(startGround2Mls.translation(), goal_translation, base::getYaw(Eigen::Quaterniond(endGround2Mls.linear())))) {
         if(dumpOnError) {
             PlannerDump dump(*this, "bad_goal", maxTime, startbody2Mls, endbody2Mls);
         }
         return GOAL_INVALID;
     }
-    
-    //this has to happen after env->setStart and env->setGoal because those methods initialize the 
+
+    //this has to happen after env->setStart and env->setGoal because those methods initialize the
     //StateID2IndexMapping which is accessed inside force_planning_from_scratch_and_free_memory().
     try
     {
@@ -239,9 +241,9 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         return NO_SOLUTION;
     }
 
-    
+
     MDPConfig mdp_cfg;
-        
+
     if (!env->InitializeMDPCfg(&mdp_cfg)) {
         LOG_ERROR_S << "InitializeMDPCfg failed, start and goal id cannot be requested yet";
         return INTERNAL_ERROR;
@@ -260,7 +262,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         LOG_INFO_S << "Initial Epsilon: " << plannerConfig.initialEpsilon << ", steps: " << plannerConfig.epsilonSteps;
         planner->set_eps_step(plannerConfig.epsilonSteps);
         planner->set_initialsolution_eps(plannerConfig.initialEpsilon);
-        
+
         solutionIds.clear();
         if(!planner->replan(maxTime.toSeconds(), &solutionIds))
         {
@@ -269,22 +271,22 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
                 PlannerDump dump(*this, "no_solution", maxTime, startbody2Mls, endbody2Mls);
             return NO_SOLUTION;
         }
-            
+
         LOG_INFO_S << "num expands: " << planner->get_n_expands();
         LOG_INFO_S << "Epsilon is " << planner->get_final_epsilon();
 
         std::vector<PlannerStats> stats;
-        
+
         planner->get_search_stats(&stats);
-        
+
         LOG_INFO_S << "Stats";
         for(const PlannerStats &s: stats)
         {
             LOG_INFO_S << "cost " << s.cost << " time " << s.time << "num childs " << s.expands;
         }
-        
-        env->getTrajectory(solutionIds, resultTrajectory2D, true, goal_translation, ground2Body);
-        env->getTrajectory(solutionIds, resultTrajectory3D, false, goal_translation, ground2Body);
+
+        env->getTrajectory(solutionIds, resultTrajectory2D, true, start_translation, goal_translation, ground2Body);
+        env->getTrajectory(solutionIds, resultTrajectory3D, false, start_translation, goal_translation, ground2Body);
     }
     catch(const SBPL_Exception& ex)
     {
@@ -296,7 +298,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     }
 
     if(dumpOnSuccess)
-        PlannerDump dump(*this, "success", maxTime, startbody2Mls, endbody2Mls); 
+        PlannerDump dump(*this, "success", maxTime, startbody2Mls, endbody2Mls);
 
     return FOUND_SOLUTION;
 }
@@ -326,7 +328,7 @@ void Planner::setTravConfig(const traversability_generator3d::TraversabilityConf
 {
     if(config.gridResolution != splinePrimitiveConfig.gridSize)
         throw std::runtime_error("Planner::Planner : Configuration error, grid resolution of Primitives and TraversabilityGenerator3d differ");
-    
+
     traversabilityConfig = config;
     if(env)
         env->setTravConfig(config);

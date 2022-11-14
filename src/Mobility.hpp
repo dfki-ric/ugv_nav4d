@@ -19,7 +19,8 @@ struct Mobility {
     double minTurningRadius;
     // Resolution used to sample the motion primitive spline
     double spline_sampling_resolution;
-
+    // Remove the goal offset which is there because of the discretization
+    bool remove_goal_offset;
     /** The cost of a motion is multiplied by one of the following Multipliers. This allows
       * the user to penalize some motion types.
       * Do ***not*** set the multiplier to zero. If you do all motions of that type will have no cost */
@@ -44,6 +45,7 @@ struct Mobility {
            rotationSpeed(1.0),
            minTurningRadius(0.0),
            spline_sampling_resolution(0.01),
+           remove_goal_offset(true),
            multiplierForward(1),
            multiplierBackward(1),
            multiplierLateral(1),
@@ -61,6 +63,7 @@ struct Mobility {
              double turning_speed,
              double min_turning_radius,
              double sampling_resolution,
+             bool correct_goal_offset,
              unsigned int mult_forward=0,
              unsigned int mult_backward=0,
              unsigned int mult_lateral=0,
@@ -76,6 +79,7 @@ struct Mobility {
             rotationSpeed(turning_speed),
             minTurningRadius(min_turning_radius),
             spline_sampling_resolution(sampling_resolution),
+            remove_goal_offset(correct_goal_offset),
             multiplierForward(mult_forward),
             multiplierBackward(mult_backward),
             multiplierLateral(mult_lateral),
