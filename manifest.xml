@@ -1,6 +1,6 @@
 <package>
   <description brief="A 4D (X,Y,Z, Theta) Planner for UGVs">
-  
+
   </description>
   <author>Janosch Machowinski/Janosch.Machowinski@dfki.de</author>
   <author>Arne Böckmann/arne.boeckmann@dfki.de</author>
