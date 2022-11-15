@@ -6,6 +6,9 @@ namespace ugv_nav4d{
  */
 struct PlannerConfig
 {
+    /** Search only until the first solution and then stop planning
+     *  See SBPL documentation for an explantion of this value*/
+    bool searchUntilFirstSolution = false;
     /** The initial epsilon for the internal ARA* algorithm.
      *  See SBPL documentation for an explantion of this value*/
     double initialEpsilon = 20.0;
