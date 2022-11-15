@@ -233,7 +233,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     try
     {
         planner->force_planning_from_scratch_and_free_memory();
-        planner->set_search_mode(false);
+        planner->set_search_mode(plannerConfig.searchUntilFirstSolution);
     }
     catch(const SBPL_Exception& ex)
     {
