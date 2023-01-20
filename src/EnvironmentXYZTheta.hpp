@@ -201,7 +201,7 @@ public:
     std::vector<Motion> getMotions(const std::vector<int> &stateIDPath);
 
     void getTrajectory(const std::vector<int> &stateIDPath, std::vector<trajectory_follower::SubTrajectory> &result,
-                       bool setZToZero, const Eigen::Vector3d &startPos, const Eigen::Vector3d &goalPos, const Eigen::Affine3d &plan2Body = Eigen::Affine3d::Identity());
+                       bool setZToZero, const Eigen::Vector3d &startPos, const Eigen::Vector3d &goalPos, double goalHeading, const Eigen::Affine3d &plan2Body = Eigen::Affine3d::Identity());
 
     const PreComputedMotions& getAvailableMotions() const;
 
