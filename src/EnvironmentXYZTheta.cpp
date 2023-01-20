@@ -961,7 +961,7 @@ vector<Motion> EnvironmentXYZTheta::getMotions(const vector< int >& stateIDPath)
 void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                                         vector<SubTrajectory>& result,
                                         bool setZToZero, const Eigen::Vector3d &startPos,
-                                        const Eigen::Vector3d &goalPos, const Eigen::Affine3d &plan2Body)
+                                        const Eigen::Vector3d &goalPos, double goalHeading, const Eigen::Affine3d &plan2Body)
 {
     if(stateIDPath.size() < 2)
         return;
@@ -978,6 +978,8 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
     if (finalMotion.type == Motion::Type::MOV_POINTTURN && stateIDPath.size() > 2){ //assuming that there are no consecutive point turns motion at the end of a planned trajectory
         indexOfMotionToUpdate = stateIDPath.size()-3;
     }
+
+    bool goal_position_updated = false;
 
     Eigen::Vector3d start = startPos;
     for(size_t i = 0; i < stateIDPath.size() - 1; ++i)
@@ -1038,6 +1040,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 positions[j].y() += j*goal_offset_y;
             }
             LOG_INFO_S << "Updated spline end position: " << positions[positions.size()-1];
+            goal_position_updated = true;
         }
 
         curPart.spline.interpolate(positions);
@@ -1122,6 +1125,38 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                     break;
             }
             result.push_back(curPartSub);
+
+            if (goal_position_updated){
+                SubTrajectory subtraj;
+                subtraj.driveMode = DriveMode::ModeTurnOnTheSpot;
+
+                base::Pose2D startPose;
+                startPose.position.x() = curPart.spline.getEndPoint().x();
+                startPose.position.y() = curPart.spline.getEndPoint().y();
+                startPose.orientation  = curPart.spline.getHeading(curPart.spline.getEndParam());
+                if (startPose.orientation < 0){
+                    startPose.orientation += 2*M_PI;
+                }
+
+                base::Pose2D goalPose;
+                goalPose.position.x() = curPart.spline.getEndPoint().x();
+                goalPose.position.y() = curPart.spline.getEndPoint().y();
+                if (goalHeading < 0){
+                    goalHeading += 2*M_PI;
+                }
+                goalPose.orientation  = goalHeading;
+
+                if (std::abs(goalPose.orientation - startPose.orientation) > 0.01){
+                    std::vector<base::Angle> angles;
+                    angles.emplace_back(base::Angle::fromRad(startPose.orientation));
+                    angles.emplace_back(base::Angle::fromRad(goalPose.orientation));
+                    subtraj.interpolate(startPose,angles);
+                    subtraj.startPose     = startPose;
+                    subtraj.goalPose      = goalPose;
+                    result.push_back(subtraj);
+                }
+                goal_position_updated = false;
+            }
             start = curPart.spline.getEndPoint();
         }
     }
