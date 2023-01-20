@@ -975,7 +975,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
 
     int indexOfMotionToUpdate{stateIDPath.size()-2};
     const Motion& finalMotion = getMotion(stateIDPath[stateIDPath.size()-2], stateIDPath[stateIDPath.size()-1]);
-    if (finalMotion.type == Motion::Type::MOV_POINTTURN && stateIDPath.size() > 2){ //assuming that there are no consecutive point turns motion at the end of a planned trajectory
+    if (finalMotion.type == Motion::Type::MOV_POINTTURN && stateIDPath.size() > 1){ //assuming that there are no consecutive point turns motion at the end of a planned trajectory
         indexOfMotionToUpdate = stateIDPath.size()-3;
     }
 
@@ -1025,11 +1025,8 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 }
             }
         }
-
         if (mobilityConfig.remove_goal_offset == true &&
-            i == indexOfMotionToUpdate &&
-            curMotion.type != Motion::Type::MOV_POINTTURN &&
-            !positions.empty() && positions.size() > 1)
+            i == indexOfMotionToUpdate)
         {
             LOG_INFO_S << "Original spline end position: " << positions[positions.size()-1];
             double goal_offset_x = (goalPos.x() - positions[positions.size()-1].x()) / (positions.size()-1);
@@ -1150,7 +1147,8 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                     std::vector<base::Angle> angles;
                     angles.emplace_back(base::Angle::fromRad(startPose.orientation));
                     angles.emplace_back(base::Angle::fromRad(goalPose.orientation));
-                    subtraj.interpolate(startPose,angles);
+
+                    subtraj.interpolate(goalPose,angles);
                     subtraj.startPose     = startPose;
                     subtraj.goalPose      = goalPose;
                     result.push_back(subtraj);
