@@ -27,7 +27,7 @@ public:
     }
     
     DiscreteTheta(double val, unsigned int numAngles) : numAngles(numAngles) {
-        theta = floor(val / M_PI / 2.0 * numAngles);
+        theta = round((val * numAngles) / (2.0 * M_PI));
         normalize();
     }
     
