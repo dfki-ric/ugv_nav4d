@@ -975,7 +975,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
 
     int indexOfMotionToUpdate{stateIDPath.size()-2};
     const Motion& finalMotion = getMotion(stateIDPath[stateIDPath.size()-2], stateIDPath[stateIDPath.size()-1]);
-    if (finalMotion.type == Motion::Type::MOV_POINTTURN && stateIDPath.size() > 1){ //assuming that there are no consecutive point turns motion at the end of a planned trajectory
+    if (finalMotion.type == Motion::Type::MOV_POINTTURN && stateIDPath.size() > 2){ //assuming that there are no consecutive point turns motion at the end of a planned trajectory
         indexOfMotionToUpdate = stateIDPath.size()-3;
     }
 
