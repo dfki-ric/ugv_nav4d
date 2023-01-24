@@ -961,7 +961,7 @@ vector<Motion> EnvironmentXYZTheta::getMotions(const vector< int >& stateIDPath)
 void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                                         vector<SubTrajectory>& result,
                                         bool setZToZero, const Eigen::Vector3d &startPos,
-                                        const Eigen::Vector3d &goalPos, double goalHeading, const Eigen::Affine3d &plan2Body)
+                                        const Eigen::Vector3d &goalPos, const double& goalHeading, const Eigen::Affine3d &plan2Body)
 {
     if(stateIDPath.size() < 2)
         return;
@@ -1138,12 +1138,12 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 base::Pose2D goalPose;
                 goalPose.position.x() = curPart.spline.getEndPoint().x();
                 goalPose.position.y() = curPart.spline.getEndPoint().y();
-                if (goalHeading < 0){
-                    goalHeading += 2*M_PI;
-                }
                 goalPose.orientation  = goalHeading;
-
-                if (std::abs(goalPose.orientation - startPose.orientation) > 0.01){
+                if (goalPose.orientation < 0){
+                    goalPose.orientation += 2*M_PI;
+                }
+                
+                if (std::abs(goalPose.orientation - startPose.orientation) > 0.01){ //needed otherwise spline interpolation has an exception
                     std::vector<base::Angle> angles;
                     angles.emplace_back(base::Angle::fromRad(startPose.orientation));
                     angles.emplace_back(base::Angle::fromRad(goalPose.orientation));
