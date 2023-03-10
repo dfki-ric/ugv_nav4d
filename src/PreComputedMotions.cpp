@@ -2,6 +2,7 @@
 #include <maps/grid/GridMap.hpp>
 #include <cmath>
 #include <base/Angle.hpp>
+#include <base-logging/Logging.hpp>
 
 namespace ugv_nav4d
 {
@@ -20,10 +21,10 @@ void PreComputedMotions::computeMotions(double obstGridResolution, double travGr
 {
     if(fabs(primitives.getConfig().gridSize - travGridResolution) > 1E-5)
     {
-        std::cout << "PreComputedMotions::computeMotions: Error grid size and trav size do not match" << std::endl;
+        LOG_ERROR_S << "PreComputedMotions::computeMotions: Error grid size and trav size do not match";
         throw std::runtime_error("PreComputedMotions::computeMotions: Error grid size and trav size do not match");
     }
-    
+
     readMotionPrimitives(primitives, mobilityConfig, obstGridResolution, travGridResolution);
 }
 
@@ -33,9 +34,9 @@ void PreComputedMotions::sampleOnResolution(double gridResolution,base::geometry
 
     CellWithPoses curPoses;
     curPoses.cell = maps::grid::Index(0,0);
-    
+
     //sample spline:
-    const double stepDist = gridResolution / 16.0;
+    const double stepDist = mobilityConfig.spline_sampling_resolution;
     std::vector<double> parameters;
     //NOTE we dont need the points, but there is no sample() api that returns parameters only
     const std::vector<base::geometry::Spline2::vector_t> points = spline.sample(stepDist, &parameters);
@@ -49,8 +50,8 @@ void PreComputedMotions::sampleOnResolution(double gridResolution,base::geometry
 
 
         const base::Pose2D pose(point, orientation);
-        
-        //point needs to be offset to the middle of the grid, 
+
+        //point needs to be offset to the middle of the grid,
         //as all path computation also starts in the middle
         //if not we would get a wrong diff
         point += base::Vector2d(gridResolution /2.0, gridResolution /2.0);
@@ -58,11 +59,11 @@ void PreComputedMotions::sampleOnResolution(double gridResolution,base::geometry
         maps::grid::Index diff;
         if(!dummyGrid.toGrid(base::Vector3d(point.x(), point.y(), 0), diff, false))
             throw std::runtime_error("Internal Error : Cannot convert intermediate Pose to grid cell");
-        
+
         if(curPoses.cell != diff)
         {
             fullResult.push_back(curPoses);
-            
+
             //Find best match for collision check
             PoseWithCell pwc;
             pwc.cell = curPoses.cell;
@@ -72,12 +73,12 @@ void PreComputedMotions::sampleOnResolution(double gridResolution,base::geometry
             curPoses.poses.clear();
             curPoses.cell = diff;
         }
-        
+
         curPoses.poses.push_back(pose);
     }
-    
+
     fullResult.push_back(curPoses);
-    
+
     //Find best match for collision check
     PoseWithCell pwc;
     pwc.cell = curPoses.cell;
@@ -104,8 +105,8 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
                const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() > maxCurvature)
                {
                    continue;
-               }   
-         
+               }
+
             Motion motion(numAngles);
 
             motion.xDiff = prim.endPosition[0];
@@ -113,20 +114,44 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
             motion.endTheta =  DiscreteTheta(static_cast<int>(prim.endAngle), numAngles);
             motion.startTheta = DiscreteTheta(static_cast<int>(prim.startAngle), numAngles);
             motion.costMultiplier = 1; //is changed in the switch-case below
-           
+
             switch(prim.motionType)
             {
                 case SplinePrimitive::SPLINE_MOVE_FORWARD:
                     motion.type = Motion::Type::MOV_FORWARD;
-                    motion.costMultiplier = mobilityConfig.multiplierForwardTurn;
+                    if (const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() > -0.1 &&
+                        const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() < 0.1)
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierForward;
+                    }
+                    else
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierForwardTurn;
+                    }
                     break;
                 case SplinePrimitive::SPLINE_MOVE_BACKWARD:
                     motion.type = Motion::Type::MOV_BACKWARD;
-                    motion.costMultiplier = mobilityConfig.multiplierBackwardTurn;
+                    if (const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() > -0.1 &&
+                        const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() < 0.1)
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierBackward;
+                    }
+                    else
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierBackwardTurn;
+                    }
                     break;
                 case SplinePrimitive::SPLINE_MOVE_LATERAL:
                     motion.type = Motion::Type::MOV_LATERAL;
-                    motion.costMultiplier = mobilityConfig.multiplierLateral;
+                    if (const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() > -0.1 &&
+                        const_cast<SplinePrimitive&>(prim).spline.getCurvatureMax() < 0.1)
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierLateral;
+                    }
+                    else
+                    {
+                        motion.costMultiplier = mobilityConfig.multiplierLateralCurve;
+                    }
                     break;
                 case SplinePrimitive::SPLINE_POINT_TURN:
                     motion.type = Motion::Type::MOV_POINTTURN;
@@ -135,7 +160,7 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
                 default:
                     throw std::runtime_error("Got Unsupported movement");
             }
-            
+
             //there are no intermediate steps for point turns
             if(prim.motionType != SplinePrimitive::SPLINE_POINT_TURN)
             {
@@ -144,10 +169,10 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
                 sampleOnResolution(obstGridResolution, prim.spline, motion.intermediateStepsObstMap, dummy);
             }
             computeSplinePrimCost(prim, mobilityConfig, motion);
-            
+
             if (motion.translationlDist > mobilityConfig.maxMotionCurveLength) //1.3 is slower but trajectories are curvy , 1.0 is faster with more linear trajectories
             continue;
-            
+
             //orientations for backward motions need to be inverted
             if(motion.type == Motion::Type::MOV_BACKWARD)
             {
@@ -168,8 +193,8 @@ void PreComputedMotions::setMotionForTheta(const Motion& motion, const DiscreteT
     {
         thetaToMotion.resize(theta.getTheta() + 1);
     }
-    
-    
+
+
     //check if a motion to this target destination already exist, if yes skip it.
     for(const Motion& m : thetaToMotion[theta.getTheta()])
     {
@@ -185,14 +210,14 @@ void PreComputedMotions::setMotionForTheta(const Motion& motion, const DiscreteT
                 case Motion::Type::MOV_LATERAL:  type ="MOV_LATERAL" ; break;
                 default:
                     throw std::runtime_error("ERROR: motion without valid type: ");
-                    
+
             }
-            std::cout << "WARNING: motion already exists (skipping): " <<  m.xDiff << ", " << m.yDiff << ", " << m.endTheta << type << std::endl;
+            LOG_WARN_S << "WARNING: motion already exists (skipping): " <<  m.xDiff << ", " << m.yDiff << ", " << m.endTheta << type;
             //TODO add check if intermediate poses are similar
             return;
         }
     }
-    
+
     Motion copy = motion;
     copy.id = idToMotion.size();
 
@@ -204,11 +229,11 @@ base::Pose2D PreComputedMotions::getPointClosestToCellMiddle(const CellWithPoses
 {
     //dummyGrid is used to convert between grid indices and positions
     maps::grid::GridMap<int> dummyGrid(maps::grid::Vector2ui(10, 10), base::Vector2d(gridResolution, gridResolution), 0);
-    
+
     maps::grid::Vector3d cellCenter;
     if(!dummyGrid.fromGrid(cwp.cell, cellCenter, 0, false))
         throw std::runtime_error("Internal Error : Cannot convert index to cell position");
-    
+
     const maps::grid::Vector2d cellCenter2D = cellCenter.topRows(2);
     double closestDist = std::numeric_limits<double>::max();
     assert(cwp.poses.size() > 0);
@@ -222,13 +247,13 @@ base::Pose2D PreComputedMotions::getPointClosestToCellMiddle(const CellWithPoses
             closestDist = dist;
             closestPose = pose;
         }
-        
+
         maps::grid::Index testIdx;
         dummyGrid.toGrid(Eigen::Vector3d(centeredPos.x(), centeredPos.y(), 0), testIdx, false);
-        
+
         assert(testIdx == cwp.cell);
     }
-    
+
     return closestPose;
 }
 
@@ -237,7 +262,7 @@ void PreComputedMotions::computeSplinePrimCost(const SplinePrimitive& prim,
                                                const Mobility& mobilityConfig,
                                                Motion& outMotion) const
 {
-    
+
     double linearDist = 0;
     double angularDist = 0;
     if(prim.motionType == SplinePrimitive::SPLINE_POINT_TURN)
@@ -247,12 +272,12 @@ void PreComputedMotions::computeSplinePrimCost(const SplinePrimitive& prim,
     else
     {
         linearDist = prim.spline.getCurveLength();;
-        const double stepDist = prim.spline.getGeometricResolution();
+        const double stepDist = mobilityConfig.spline_sampling_resolution;
         std::vector<double> parameters;
-        
+
         const std::vector<base::geometry::Spline2::vector_t> points = prim.spline.sample(stepDist, &parameters);
         assert(parameters.size() == points.size());
-        
+
         for(int i = 0; i < ((int)points.size()) - 1; ++i)
         {
             const double dist = prim.spline.getCurveLength(parameters[i], parameters[i+1], 0.01);
@@ -260,7 +285,7 @@ void PreComputedMotions::computeSplinePrimCost(const SplinePrimitive& prim,
             angularDist += dist / linearDist  * std::abs(curvature);
         }
     }
-    
+
     outMotion.baseCost = Motion::calculateCost(linearDist, angularDist, mobilityConfig.translationSpeed,
                                                mobilityConfig.rotationSpeed, outMotion.costMultiplier);
     assert(outMotion.baseCost >= 0);
@@ -273,17 +298,17 @@ int Motion::calculateCost(double translationalDist, double angularDist, double t
 {
     const double translationTime = translationalDist / translationVelocity;
     const double angularTime = angularDist / angularVelocity;
-    
+
     //use ulonglong to catch overflows caused by large cost multipliers
     unsigned long long cost = ceil(std::max(angularTime, translationTime) * Motion::costScaleFactor * costMultiplier);
-    
+
     if(cost > std::numeric_limits<int>::max())
     {
         std::cerr << "WARNING: primitive cost too large for int. Clipping to int_max." << std::endl;
         return std::numeric_limits<int>::max();
     }
     else
-        return cost;    
+        return cost;
 }
 
 const Motion& PreComputedMotions::getMotion(std::size_t id) const
@@ -302,12 +327,12 @@ double PreComputedMotions::calculateCurvatureFromRadius(const double r)
     /*
         Curvature:
         c = abs(f''(x)/(1 + f'(x)^2)^(3/2))
-        
+
         Circle equation:
-        f(x)   = sqrt(r^2 - x^2)       
+        f(x)   = sqrt(r^2 - x^2)
         f'(x)  = -x/sqrt(r^2-x^2)
         f''(x) = -r^2/((r^2-x^2)^(3/2))
-        
+
         Since the curvature of a circle is constant the value of x doesnt matter.
         x has to be smaller than r since we calc sqrt(r^2 - x ^2) which is only defined for positive values.
      */
@@ -318,10 +343,10 @@ double PreComputedMotions::calculateCurvatureFromRadius(const double r)
     const double ddf = - (r2 / std::pow(r2 - x2, 3.0 / 2.0));
     assert(!std::isnan(df) && !std::isinf(df));
     assert(!std::isnan(ddf) && !std::isinf(ddf));
-    
+
     const double df2 = df * df;
     const double c = (std::abs(ddf) / std::pow(1 + df2, 3.0 / 2.0));
-    
+
     return c;
 }
 

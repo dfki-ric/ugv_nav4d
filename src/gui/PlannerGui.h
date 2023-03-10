@@ -6,11 +6,13 @@
 #include <vizkit3d/SubTrajectoryVisualization.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
 #include <vizkit3d/TraversabilityMap3dVisualization.hpp>
+#include <vizkit3d/GridVisualization.hpp>
 #include <vizkit3d/SbplSplineVisualization.hpp>
 #include <vizkit3d/RigidBodyStateVisualization.hpp>
 #include <maps/grid/MLSMap.hpp>
 #include <base/Eigen.hpp>
 #include <ugv_nav4d/Planner.hpp>
+#include <traversability_generator3d/TraversabilityConfig.hpp>
 #include <trajectory_follower/SubTrajectory.hpp>
 #include <QtWidgets>
 #endif
@@ -98,6 +100,7 @@ private:
     vizkit3d::TraversabilityMap3dVisualization obstacleMapViz;
     vizkit3d::RigidBodyStateVisualization startViz;
     vizkit3d::RigidBodyStateVisualization goalViz;
+    vizkit3d::GridVisualization gridViz;
     maps::grid::MLSMapSloped mlsMap;
     base::Pose start;
     base::Pose goal;
@@ -107,7 +110,7 @@ private:
     bool threadRunning = false;
     sbpl_spline_primitives::SplinePrimitivesConfig config;
     ugv_nav4d::Mobility mobility;
-    ugv_nav4d::TraversabilityConfig conf;
+    traversability_generator3d::TraversabilityConfig conf;
     ugv_nav4d::PlannerConfig plannerConf;
     std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
     std::vector<trajectory_follower::SubTrajectory> path;
