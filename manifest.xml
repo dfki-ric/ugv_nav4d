@@ -1,10 +1,10 @@
 <package>
   <description brief="A 4D (X,Y,Z, Theta) Planner for UGVs">
-  
+
   </description>
   <author>Janosch Machowinski/Janosch.Machowinski@dfki.de</author>
   <author>Arne Böckmann/arne.boeckmann@dfki.de</author>
-  <maintainer>Raul Dominguez/raul.dominguez@dfki.de</maintainer>
+  <maintainer>mulo01@dfki.de</maintainer>
   <stage>0</stage>
   <license></license>
   <url>http://</url>
@@ -18,10 +18,8 @@
   <depend package="base/cmake" />
   <depend package="planning/sbpl" />
   <depend package="planning/sbpl_spline_primitives" />
+  <depend package="planning/traversability_generator3d" />
   <depend package="tools/backward" />
-  <depend package="slam/maps" />
-  <depend package="slam/pcl" />
-  <depend package="envire/envire_core" />
   <depend package="gui/vizkit3d_debug_drawings" />
   <depend package="control/trajectory_follower" />
   <tags>needs_opt</tags>

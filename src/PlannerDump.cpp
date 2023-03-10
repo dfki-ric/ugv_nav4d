@@ -6,10 +6,11 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <fstream>
+#include <base-logging/Logging.hpp>
 
 ugv_nav4d::PlannerDump::PlannerDump(const std::string& dumpName)
 {
-    std::cout << "Loading Dump " << dumpName << std::endl;
+    LOG_INFO_S << "Loading Dump " << dumpName;
     
     std::ifstream input(dumpName, std::ios::binary | std::ios::in);
     
@@ -32,7 +33,7 @@ ugv_nav4d::PlannerDump::PlannerDump(const std::string& dumpName)
 ugv_nav4d::PlannerDump::PlannerDump(const ugv_nav4d::Planner& planner, const std::string& filePostfix, const base::Time& maxTimeA, const base::samples::RigidBodyState& startbody2Mls, const base::samples::RigidBodyState& endbody2Mls)
 {
     const std::string targetFile = getUnusedFilename(filePostfix);
-    std::cout << "Dumping planner state to: " << targetFile << std::endl;
+    LOG_INFO_S << "Dumping planner state to: " << targetFile;
     std::ofstream output(targetFile, std::ios::binary | std::ios::out|std::ios::trunc);
 
     WRITE(planner.traversabilityConfig);

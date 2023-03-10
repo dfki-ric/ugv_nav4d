@@ -12,14 +12,20 @@ rock_library(ugv_nav4d_gui
     MOC
         PlannerGui.h        
    DEPS ugv_nav4d 
-   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz sbpl_spline_primitives-viz base-types trajectory_follower-viz
+   DEPS_PKGCONFIG vizkit3d  
+                  vizkit3d-viz  
+                  maps-viz 
+                  base-viz 
+                  sbpl_spline_primitives-viz 
+                  base-types 
+                  trajectory_follower-viz 
 )
 
 rock_executable(ugv_nav4d_bin
     SOURCES
         Main.cpp
    DEPS ugv_nav4d ugv_nav4d_gui
-   DEPS_PKGCONFIG vizkit3d  maps-viz base-viz sbpl_spline_primitives-viz base-types trajectory_follower-viz)
+)
 
 rock_executable(ugv_nav4d_replay
     SOURCES
