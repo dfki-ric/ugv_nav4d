@@ -62,7 +62,6 @@ void PlannerTest::SetUp(){
   traversabilityConfig.maxSlope=0.45;
   traversabilityConfig.inclineLimittingMinSlope=0.2;
   traversabilityConfig.inclineLimittingLimit=0.1;
-  traversabilityConfig.usePathStatistics=false;
   traversabilityConfig.costFunctionDist=0.0;
   traversabilityConfig.minTraversablePercentage=0.4;
   traversabilityConfig.robotHeight=1.2;
