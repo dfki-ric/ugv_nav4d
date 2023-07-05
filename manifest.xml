@@ -22,7 +22,6 @@
   <depend package="gui/vizkit3d_debug_drawings" />
   <depend package="control/trajectory_follower" />
   <test_depend package="libgtest-dev" />
-  <test_depend package="google-mock" />
 
   <tags>needs_opt</tags>
 
