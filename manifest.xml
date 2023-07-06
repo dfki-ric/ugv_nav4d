@@ -21,7 +21,7 @@
   <depend package="planning/traversability_generator3d" />
   <depend package="gui/vizkit3d_debug_drawings" />
   <depend package="control/trajectory_follower" />
-  <test_depend package="libgtest-dev" />
+  <depend package="google-test" />
 
   <tags>needs_opt</tags>
 
