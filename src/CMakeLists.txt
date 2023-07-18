@@ -6,6 +6,36 @@ if(OPENMP_FOUND)
 endif()
 
 rock_library(ugv_nav4d
+    SOURCES
+        DiscreteTheta.cpp
+        EnvironmentXYZTheta.cpp
+        PathStatistic.cpp
+        Planner.cpp
+        PlannerDump.cpp
+        PreComputedMotions.cpp
+        Dijkstra.cpp
+        ObstacleMapGenerator3D.cpp
+        DebugDrawingDeclarations.cpp
+    HEADERS
+        Mobility.hpp
+        DiscreteTheta.hpp
+        EnvironmentXYZTheta.hpp
+        PathStatistic.hpp
+        Planner.hpp
+        PlannerConfig.hpp
+        PreComputedMotions.hpp
+        Dijkstra.hpp
+        ObstacleMapGenerator3D.hpp
+    DEPS_PKGCONFIG
+        base-types
+        sbpl
+        sbpl_spline_primitives
+        traversability_generator3d
+        vizkit3d_debug_drawings
+        trajectory_follower
+)
+
+rock_library(ugv_nav4d-qt5
     SOURCES 
         DiscreteTheta.cpp
         EnvironmentXYZTheta.cpp
@@ -31,7 +61,7 @@ rock_library(ugv_nav4d
         sbpl
         sbpl_spline_primitives
         traversability_generator3d
-        vizkit3d_debug_drawings
+        vizkit3d_debug_drawings-qt5
         trajectory_follower
 )
 

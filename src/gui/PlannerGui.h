@@ -14,7 +14,6 @@
 #include <ugv_nav4d/Planner.hpp>
 #include <traversability_generator3d/TraversabilityConfig.hpp>
 #include <trajectory_follower/SubTrajectory.hpp>
-#include <QtWidgets>
 #endif
 
 class QDoubleSpinBox;
