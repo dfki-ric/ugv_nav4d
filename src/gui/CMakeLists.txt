@@ -2,6 +2,7 @@ rock_find_qt5(Core Gui Widgets REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -fPIC")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
+find_package(PCL 1.7 REQUIRED COMPONENTS common io)
 
 
 rock_library(ugv_nav4d_gui
@@ -19,6 +20,8 @@ rock_library(ugv_nav4d_gui
                   sbpl_spline_primitives-viz 
                   base-types 
                   trajectory_follower-viz 
+                  pcl_common-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
+                  pcl_io-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
 )
 
 rock_executable(ugv_nav4d_bin
