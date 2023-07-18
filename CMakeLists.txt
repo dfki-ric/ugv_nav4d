@@ -14,5 +14,6 @@ if(ENABLE_DEBUG_DRAWINGS)
 endif()
 
 rock_init()
+rock_feature(NOCURDIR)
 add_definitions(-DENABLE_DEBUG_DRAWINGS)
 rock_standard_layout()
