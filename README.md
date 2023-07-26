@@ -500,3 +500,6 @@ In addition the `PlannerGui` can also be used to load and analyze planner dumps.
 This gui was developed to test and debug the `AreaExplorer`.
 It allows for experimentation with the different parameters of the area explorer.
 A left click sets the robot position, a right click sets the goal position.
+
+## Funding
+The ugv_nav4d library was initiated and is currently developed at the Robotics Innovation Center of the German Research Center for Artificial Intelligence (DFKI) in Bremen, together with the Robotics Group of the University of Bremen. The development was started in the scope of the Entern project (50RA1406), which has been funded by the German Aerospace Center (DLR) with funds from the German Federal Ministry for Economic Affairs and Climate Action (BMWK).
