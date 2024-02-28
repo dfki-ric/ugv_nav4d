@@ -1,8 +1,6 @@
 #include "EnvironmentXYZTheta.hpp"
 #include <sbpl/planners/planner.h>
 #include <sbpl/utils/mdpconfig.h>
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
 #include <base/Pose.hpp>
 #include <base/Spline.hpp>
 #include <fstream>
@@ -10,9 +8,7 @@
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include "PathStatistic.hpp"
 #include "Dijkstra.hpp"
-#include <trajectory_follower/SubTrajectory.hpp>
 #include <limits>
-#include <trajectory_follower/SubTrajectory.hpp>
 #include <base-logging/Logging.hpp>
 
 using namespace std;
@@ -132,7 +128,6 @@ EnvironmentXYZTheta::XYZNode* EnvironmentXYZTheta::createNewXYZState(traversabil
     return xyzNode;
 }
 
-
 EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(const std::string &name, const Eigen::Vector3d& pos, double theta, XYZNode **xyzBackNode)
 {
     traversability_generator3d::TravGenNode *travNode = travGen.generateStartNode(pos);
@@ -169,9 +164,6 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
                                         const SplinePrimitivesConfig& splineConf,
                                         const std::string& nodeName)
 {
-    //PathStatistic stats(travConf);
-    //std::vector<base::Pose2D> poses;
-
     maps::grid::Index idxObstNode;
     if(!obsGen.getTraversabilityMap().toGrid(pos, idxObstNode))
     {
@@ -190,45 +182,41 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
         return false;
     }
 
-    return true;
+    if (usePathStatistics){
+        PathStatistic stats(travConf);
+        std::vector<base::Pose2D> poses;
+        std::vector<const traversability_generator3d::TravGenNode*> path;
+        path.push_back(obstacleNode);
 
-    /*
-    //DISABLED STATS CALCULATED 26.08.2022 by modhi
-
-    std::vector<const traversability_generator3d::TravGenNode*> path;
-    path.push_back(obstacleNode);
-
-    const Eigen::Vector3d centeredPos = obstacleNode->getPosition(obsGen.getTraversabilityMap());
+        const Eigen::Vector3d centeredPos = obstacleNode->getPosition(obsGen.getTraversabilityMap());
 
 
-    //NOTE theta needs to be discretized because the planner uses discrete theta internally everywhere.
-    //     If we do not discretize here, external calls and internal calls will have different results for the same pose input
+        //NOTE theta needs to be discretized because the planner uses discrete theta internally everywhere.
+        //     If we do not discretize here, external calls and internal calls will have different results for the same pose input
 
-    DiscreteTheta discTheta(theta, splineConf.numAngles);
+        DiscreteTheta discTheta(theta, splineConf.numAngles);
 
-    poses.push_back(base::Pose2D(centeredPos.topRows(2), discTheta.getRadian()));
+        poses.push_back(base::Pose2D(centeredPos.topRows(2), discTheta.getRadian()));
 
-    stats.calculateStatistics(path, poses, obsGen.getTraversabilityMap(), "ugv_nav4d_" + nodeName + "Box");
+        stats.calculateStatistics(path, poses, obsGen.getTraversabilityMap(), "ugv_nav4d_" + nodeName + "Box");
 
-    if(stats.getRobotStats().getNumObstacles() ) // || stats.getRobotStats().getNumFrontiers())  )
-    {
-#ifdef ENABLE_V3DD_DRAWINGS
-        V3DD::COMPLEX_DRAWING([&]()
+        if(stats.getRobotStats().getNumObstacles() || stats.getRobotStats().getNumFrontiers()) 
         {
-            const std::string drawName("ugv_nav4d_obs_check_fail_" + nodeName);
-            V3DD::CLEAR_DRAWING(drawName);
-            V3DD::DRAW_WIREFRAME_BOX(drawName, pos, Eigen::Quaterniond(Eigen::AngleAxisd(discTheta.getRadian(), Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), V3DD::Color::red);
-        });
-#endif
+    #ifdef ENABLE_V3DD_DRAWINGS
+            V3DD::COMPLEX_DRAWING([&]()
+            {
+                const std::string drawName("ugv_nav4d_obs_check_fail_" + nodeName);
+                V3DD::CLEAR_DRAWING(drawName);
+                V3DD::DRAW_WIREFRAME_BOX(drawName, pos, Eigen::Quaterniond(Eigen::AngleAxisd(discTheta.getRadian(), Eigen::Vector3d::UnitZ())), Eigen::Vector3d(travConf.robotSizeX, travConf.robotSizeY, travConf.robotHeight), V3DD::Color::red);
+            });
+    #endif
 
-        LOG_INFO_S << "Num obstacles: " << stats.getRobotStats().getNumObstacles();
-        LOG_INFO_S << "Error: " << nodeName << " inside obstacle";
-        return false;
+            LOG_INFO_S << "Num obstacles: " << stats.getRobotStats().getNumObstacles();
+            LOG_INFO_S << "Error: " << nodeName << " inside obstacle";
+            return false;
+        }
     }
-
-
     return true;
-    */
 }
 
 bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, traversability_generator3d::TravGenNode *node, double theta)
@@ -496,6 +484,10 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     return result;
 }
 
+void EnvironmentXYZTheta::enablePathStatistics(bool enable){
+    usePathStatistics = enable;
+}
+
 int EnvironmentXYZTheta::GetStartHeuristic(int stateID)
 {
     const Hash &targetHash(idToHash[stateID]);
@@ -719,18 +711,18 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             curObstIdx = newIndex;
         }
 
-
         //no way from start to end on obstacle map
         if(!intermediateStepsOk)
             continue;
-        /*
-        PathStatistic statistic(travConf);
 
-        if(!statistic.isPathFeasible(nodesOnObstPath, posesOnObstPath, getObstacleMap()))
-        {
-            continue;
+        if (usePathStatistics)
+            PathStatistic statistic(travConf);
+
+            if(!statistic.isPathFeasible(nodesOnObstPath, posesOnObstPath, getObstacleMap()))
+            {
+                continue;
+            }
         }
-        */
 
         //goal from source to the end of the motion was valid
         XYZNode *successXYNode = nullptr;

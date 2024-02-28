@@ -319,7 +319,7 @@ const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> 
 }
 
 
-boost::shared_ptr< EnvironmentXYZTheta > Planner::getEnv() const
+std::shared_ptr<EnvironmentXYZTheta> Planner::getEnv() const
 {
     return env;
 }
