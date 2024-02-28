@@ -1265,17 +1265,15 @@ traversability_generator3d::TravGenNode* EnvironmentXYZTheta::findObstacleNode(c
 
 std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
                                                                                 double theta,
-                                                                                const Eigen::Affine3d& ground2Body,
-                                                                                base::Vector3d& outNewStart,
-                                                                                double& outNewStartTheta)
+                                                                                const Eigen::Affine3d& ground2Body)
 {
     traversability_generator3d::TravGenNode* startTravNode = travGen.generateStartNode(start);
 
     if(!startTravNode->isExpanded())
     {
-        LOG_INFO_S<< "cannot find trajectory out of obstacle, map not expanded";
         //this node should be expanded
-        throw std::runtime_error("cannot find trajectory out of obstacle, map not expanded");
+        LOG_ERROR_S<< "EnvironmentXYZTheta::findTrajectoryOutOfObstacle(): Start position is not expanded!";
+        throw std::runtime_error("EnvironmentXYZTheta::findTrajectoryOutOfObstacle(): Start position is not expanded!");        
     }
 
     Eigen::Vector3d startPosWorld;
@@ -1287,8 +1285,8 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
 
     if(!startNodeObstMap)
     {
-        LOG_INFO_S<< "Unable to find obstacle node corresponding to trav node";
-        throw std::runtime_error("unable to find obstacle node corresponding to trav node");
+        LOG_ERROR_S<< "EnvironmentXYZTheta::findTrajectoryOutOfObstacle(): Unable to find obstacle node corresponding to start position trav node";
+        throw std::runtime_error("EnvironmentXYZTheta::findTrajectoryOutOfObstacle(): Unable to find obstacle node corresponding to start position trav node");
     }
 
     int bestMotionIndex = -1;
@@ -1375,10 +1373,6 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
             bestMotionIndex = i;
             bestNodesOnPath = nodesOnPath;
             bestPosesOnObstPath = posesOnObstPath;
-
-            outNewStart = endPosWorld;
-            outNewStartTheta = motions[bestMotionIndex].endTheta.getRadian();
-
         }
     }
 
@@ -1415,9 +1409,9 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
     }
     else
     {
-        LOG_INFO_S<< "NO WAY OUT, ROBOT IS STUCK!";
-        LOG_INFO_S<< "NO WAY OUT, ROBOT IS STUCK!";
-        LOG_INFO_S<< "NO WAY OUT, ROBOT IS STUCK!";
+        LOG_INFO_S<< "EnvironmentXYZTheta::findTrajectoryOutOfObstacle(): NO WAY OUT, ROBOT IS STUCK!";
+        LOG_INFO_S<< "EnvironmentXYZTheta::findTrajectoryOutOfObstacle(): NO WAY OUT, ROBOT IS STUCK!";
+        LOG_INFO_S<< "EnvironmentXYZTheta::findTrajectoryOutOfObstacle(): NO WAY OUT, ROBOT IS STUCK!";
         return nullptr;
     }
 

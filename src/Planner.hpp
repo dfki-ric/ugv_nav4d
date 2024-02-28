@@ -125,9 +125,7 @@ public:
     PLANNING_RESULT plan(const base::Time& maxTime, const base::samples::RigidBodyState& start_pose,
                          const base::samples::RigidBodyState& end_pose, std::vector<trajectory_follower::SubTrajectory>& resultTrajectory2D,
                          std::vector<trajectory_follower::SubTrajectory>& resultTrajectory3D, bool dumpOnError = false, bool dumpOnSuccess = false);
-
-    void genTravMap(const base::samples::RigidBodyState& startbody2Mls);    
-    
+   
     void setTravConfig(const traversability_generator3d::TraversabilityConfig& config);
     
     void setPlannerConfig(const PlannerConfig& config);
@@ -136,6 +134,9 @@ public:
 
     const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &getObstacleMap() const;
     
+    std::shared_ptr<trajectory_follower::SubTrajectory> findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
+            const Eigen::Affine3d& ground2Body);
+
     private:
     bool calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& goal_translation, const double yaw) noexcept;
     bool tryGoal(const Eigen::Vector3d& translation, const double yaw) noexcept;
