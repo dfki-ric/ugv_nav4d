@@ -373,14 +373,6 @@ void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
         throw ObstacleCheckFailed("Could not generate obstacle node at start pos");
     }
 
-    LOG_INFO_S<< "Expanding trav map...\n";
-    travGen.expandAll(startXYZNode->getUserData().travNode);
-    LOG_INFO_S<< "expanded ";
-
-    LOG_INFO_S<< "Expanding obstacle map...\n";
-    obsGen.expandAll(obstacleStartNode);
-    LOG_INFO_S<< "expanded ";
-
     //check start position
     if(!checkStartGoalNode("start", startXYZNode->getUserData().travNode, startThetaNode->theta.getRadian()))
     {
