@@ -53,7 +53,6 @@ private slots:
     void goalOrientationChanged(int newValue);
     void timeEditingFinished();
     void replanButtonReleased();
-    void expandPressed();
     void dumpPressed();
     void slopeMetricComboBoxIndexChanged(int index);
     void numThreadsValueChanged(int newValue);
@@ -76,7 +75,6 @@ private:
     QSlider* goalOrientationSlider;
     QDoubleSpinBox* obstacleDistanceSpinBox;
     QDoubleSpinBox* obstacleFactorSpinBox;
-    QPushButton* expandButton;
     QComboBox* slopeMetricComboBox;
     QComboBox* heuristicComboBox;
     QSpinBox* numThreadsSpinBox;

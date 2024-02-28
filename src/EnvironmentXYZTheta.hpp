@@ -151,8 +151,7 @@ public:
      * @return the best trajectory that gets the robot out of the obstacle.
      *         Or an empty trajectory if no way out can be found*/
     std::shared_ptr<trajectory_follower::SubTrajectory> findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
-            const Eigen::Affine3d& ground2Body,
-            base::Vector3d& outNewStart, double& outNewStartTheta);
+            const Eigen::Affine3d& ground2Body);
 
 
      /**

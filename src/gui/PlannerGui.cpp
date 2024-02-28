@@ -90,8 +90,6 @@ void PlannerGui::setupUI()
        
     layout->addWidget(widget);
     
-    expandButton = new QPushButton("Create travMap");
-    expandButton->setEnabled(false);
     maxSlopeSpinBox = new QDoubleSpinBox();
     maxSlopeSpinBox->setMinimum(1);
     maxSlopeSpinBox->setMaximum(60);
@@ -101,7 +99,6 @@ void PlannerGui::setupUI()
     lab->setText("max slope (deg):");
     slopeLayout->addWidget(lab);
     slopeLayout->addWidget(maxSlopeSpinBox);
-    slopeLayout->addWidget(expandButton);
     layout->addLayout(slopeLayout);
     
     QHBoxLayout* timeLayout = new QHBoxLayout();
@@ -254,7 +251,6 @@ void PlannerGui::setupUI()
 
     
     connect(replanButton, SIGNAL(released()), this, SLOT(replanButtonReleased()));
-    connect(expandButton, SIGNAL(released()), this, SLOT(expandPressed()));
     connect(dumpButton, SIGNAL(released()), this, SLOT(dumpPressed()));
     
     
@@ -350,7 +346,6 @@ void PlannerGui::setupPlanner(int argc, char** argv)
         
         LOG_INFO_S << "Start: " << start.position.transpose();
         pickStart = false;
-        expandButton->setEnabled(true);
     }
 }
 
@@ -449,7 +444,6 @@ void PlannerGui::picked(float x, float y, float z, int buttonMask, int modifierM
             startViz.setTranslation(pos);
             LOG_INFO_S << "Start: " << start.position.transpose();
             startPicked = true;
-            expandButton->setEnabled(true);
         }
             break;
         case 4: //right click
@@ -580,26 +574,10 @@ void PlannerGui::plannerIsDone()
     
     
     
-    trav3dViz.updateData((planner->getEnv()->getTraversabilityMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
-    obstacleMapViz.updateData((planner->getEnv()->getObstacleMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
+    trav3dViz.updateData((planner->getTraversabilityMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
+    obstacleMapViz.updateData((planner->getObstacleMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
     
     bar->setMaximum(1);
-}
-
-void PlannerGui::expandPressed()
-{
-    planner->getEnv()->getTravGen().clearTrMap();
-    planner->getEnv()->getTravGen().setConfig(conf);
-    //expand position needs to be on map
-    planner->getEnv()->getTravGen().expandAll(start.position - base::Position(0, 0, conf.distToGround));
-    
-    planner->getEnv()->getObstacleGen().clearTrMap();
-    planner->getEnv()->getObstacleGen().setConfig(conf);
-    planner->getEnv()->getObstacleGen().expandAll(start.position - base::Position(0, 0, conf.distToGround));
-    
-    trav3dViz.updateData((planner->getEnv()->getTraversabilityMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
-    obstacleMapViz.updateData((planner->getEnv()->getObstacleMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
-    mlsViz.setPluginEnabled(false);
 }
 
 void PlannerGui::dumpPressed()

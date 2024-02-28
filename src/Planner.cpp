@@ -49,30 +49,6 @@ void Planner::setTravMapCallback(const std::function< void ()>& callback)
     travMapCallback = callback;
 }
 
-void Planner::genTravMap(const base::samples::RigidBodyState& start_pose)
-{
-    if(!env)
-    {
-        LOG_ERROR_S << "Planner::genTravMap : Error : No map was set";
-        return;
-    }
-
-    env->clear();
-
-    Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
-    ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
-
-    const Eigen::Affine3d startGround2Mls(start_pose.getTransform() * ground2Body);
-
-    previousStartPositions.push_back(startGround2Mls.translation());
-
-    env->expandMap(previousStartPositions);
-
-    if(travMapCallback)
-        travMapCallback();
-}
-
-
 bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& goal_translation, const double yaw) noexcept
 {
     static constexpr double theta_step = EIGEN_PI / 10.;
@@ -323,6 +299,14 @@ const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> 
 const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &Planner::getObstacleMap() const
 {
     return env->getObstacleMap();
+}
+
+std::shared_ptr<SubTrajectory> Planner::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
+                                                                                double theta,
+                                                                                const Eigen::Affine3d& ground2Body){
+    if(env){
+        return env->findTrajectoryOutOfObstacle(start, theta, ground2Body);
+    }
 }
 
 void Planner::setTravConfig(const traversability_generator3d::TraversabilityConfig& config)
