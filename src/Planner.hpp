@@ -1,11 +1,12 @@
 #pragma once
 #include <maps/grid/MLSMap.hpp>
 #include <base/samples/RigidBodyState.hpp>
-#include <boost/shared_ptr.hpp>
 #include <sbpl_spline_primitives/SbplSplineMotionPrimitives.hpp>
 #include "EnvironmentXYZTheta.hpp"
 #include <trajectory_follower/SubTrajectory.hpp>
 #include "PlannerConfig.hpp"
+
+#include <memory>
 
 class ARAPlanner;
 
@@ -19,8 +20,8 @@ class Planner
 protected:
     friend class PlannerDump;
     typedef EnvironmentXYZTheta::MLGrid MLSBase;
-    boost::shared_ptr<EnvironmentXYZTheta> env;
-    boost::shared_ptr<ARAPlanner> planner;
+    std::shared_ptr<EnvironmentXYZTheta> env;
+    std::shared_ptr<ARAPlanner> planner;
     
     const sbpl_spline_primitives::SplinePrimitivesConfig splinePrimitiveConfig; 
     const Mobility mobility;
@@ -133,7 +134,7 @@ public:
 
     const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &getObstacleMap() const;
     
-    boost::shared_ptr<EnvironmentXYZTheta> getEnv() const;
+    std::shared_ptr<EnvironmentXYZTheta> getEnv() const;
 
     private:
     bool calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& goal_translation, const double yaw) noexcept;

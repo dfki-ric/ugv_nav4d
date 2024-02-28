@@ -215,6 +215,9 @@ public:
     void dijkstraComputeCost(const traversability_generator3d::TravGenNode* source, std::vector<double> &outDistances,
                              const double maxDist) const;
 
+    /** Should a computationally expensive obstacle check be done to check whether the robot bounding box
+     *  is in collision with obstacles. This mode is useful for highly cluttered and tight spaced environments */
+    void enablePathStatistics(bool enable);
 
 private:
 
@@ -253,6 +256,8 @@ private:
      *  Thread-safe.
      *  @return True if the expansion succeeded */
     bool checkExpandTreadSafe(traversability_generator3d::TravGenNode * node);
+
+    bool usePathStatistics;
 
     traversability_generator3d::TraversabilityConfig travConf;
     sbpl_spline_primitives::SplinePrimitivesConfig primitiveConfig;
