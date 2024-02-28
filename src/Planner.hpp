@@ -79,6 +79,8 @@ public:
     }
     void setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadius);
 
+    void enablePathStatistics(bool enable);
+
     /**
      * This callback is executed, whenever a new traverability map
      * was expanded
@@ -134,8 +136,6 @@ public:
 
     const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &getObstacleMap() const;
     
-    std::shared_ptr<EnvironmentXYZTheta> getEnv() const;
-
     private:
     bool calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& goal_translation, const double yaw) noexcept;
     bool tryGoal(const Eigen::Vector3d& translation, const double yaw) noexcept;
