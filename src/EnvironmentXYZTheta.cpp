@@ -715,7 +715,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         if(!intermediateStepsOk)
             continue;
 
-        if (usePathStatistics)
+        if (usePathStatistics){
             PathStatistic statistic(travConf);
 
             if(!statistic.isPathFeasible(nodesOnObstPath, posesOnObstPath, getObstacleMap()))
@@ -827,33 +827,34 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 throw std::runtime_error("unknown slope metric selected");
         }
 
-        /*
-        if(statistic.getBoundaryStats().getNumObstacles())
-        {
-            const double outer_radius = travConf.costFunctionDist;
-            double minDistToRobot = statistic.getBoundaryStats().getMinDistToObstacles();
-            minDistToRobot = std::min(outer_radius, minDistToRobot);
-            double impactFactor = (outer_radius - minDistToRobot) / outer_radius;
-            oassert(impactFactor < 1.001 && impactFactor >= 0);
+        if (usePathStatistics){
+            PathStatistic statistic(travConf);
+            if(statistic.getBoundaryStats().getNumObstacles())
+            {
+                const double outer_radius = travConf.costFunctionDist;
+                double minDistToRobot = statistic.getBoundaryStats().getMinDistToObstacles();
+                minDistToRobot = std::min(outer_radius, minDistToRobot);
+                double impactFactor = (outer_radius - minDistToRobot) / outer_radius;
+                oassert(impactFactor < 1.001 && impactFactor >= 0);
 
-            cost += cost * impactFactor;
+                cost += cost * impactFactor;
+            }
+
+            if(statistic.getBoundaryStats().getNumFrontiers())
+            {
+                const double outer_radius = travConf.costFunctionDist;
+                double minDistToRobot = statistic.getBoundaryStats().getMinDistToFrontiers();
+                minDistToRobot = std::min(outer_radius, minDistToRobot);
+                double impactFactor = (outer_radius - minDistToRobot) / outer_radius;
+                oassert(impactFactor < 1.001 && impactFactor >= 0);
+
+                cost += cost * impactFactor;
+            }
         }
 
-        if(statistic.getBoundaryStats().getNumFrontiers())
-        {
-            const double outer_radius = travConf.costFunctionDist;
-            double minDistToRobot = statistic.getBoundaryStats().getMinDistToFrontiers();
-            minDistToRobot = std::min(outer_radius, minDistToRobot);
-            double impactFactor = (outer_radius - minDistToRobot) / outer_radius;
-            oassert(impactFactor < 1.001 && impactFactor >= 0);
-
-            cost += cost * impactFactor;
-        }
-        */
         oassert(cost <= std::numeric_limits<int>::max() && cost >= std::numeric_limits< int >::min());
         oassert(int(cost) >= motion.baseCost);
         oassert(motion.baseCost > 0);
-
 
         const int iCost = (int)cost;
         #pragma omp critical(updateData)

@@ -33,8 +33,15 @@ void Planner::setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadiu
 {
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
+    if (env){
+        env->setInitialPatch(body2Mls * ground2Body , patchRadius);
+    }
+}
 
-    env->setInitialPatch(body2Mls * ground2Body , patchRadius);
+void Planner::enablePathStatistics(bool enable){
+    if (env){
+        env->enablePathStatistics(enable);
+    }
 }
 
 void Planner::setTravMapCallback(const std::function< void ()>& callback)
@@ -318,20 +325,15 @@ const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> 
     return env->getObstacleMap();
 }
 
-
-std::shared_ptr<EnvironmentXYZTheta> Planner::getEnv() const
-{
-    return env;
-}
-
 void Planner::setTravConfig(const traversability_generator3d::TraversabilityConfig& config)
 {
     if(config.gridResolution != splinePrimitiveConfig.gridSize)
         throw std::runtime_error("Planner::Planner : Configuration error, grid resolution of Primitives and TraversabilityGenerator3d differ");
 
     traversabilityConfig = config;
-    if(env)
+    if(env){
         env->setTravConfig(config);
+    }
 }
 
  void Planner::setPlannerConfig(const PlannerConfig& config)

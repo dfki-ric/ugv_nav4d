@@ -119,7 +119,7 @@ protected:
 public:
 
     /** @param pos Position in map frame */
-    static bool obstacleCheck(const maps::grid::Vector3d& pos, double theta, const ObstacleMapGenerator3D& obsGen,
+    bool obstacleCheck(const maps::grid::Vector3d& pos, double theta, const ObstacleMapGenerator3D& obsGen,
                               const traversability_generator3d::TraversabilityConfig& travConf,
                               const sbpl_spline_primitives::SplinePrimitivesConfig& splineConf,
                               const std::string& nodeName="node");
