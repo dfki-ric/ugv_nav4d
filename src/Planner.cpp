@@ -305,7 +305,16 @@ std::shared_ptr<SubTrajectory> Planner::findTrajectoryOutOfObstacle(const Eigen:
                                                                                 double theta,
                                                                                 const Eigen::Affine3d& ground2Body){
     if(env){
-        return env->findTrajectoryOutOfObstacle(start, theta, ground2Body);
+        try{
+            return env->findTrajectoryOutOfObstacle(start, theta, ground2Body);
+        }
+        catch (const std::exception& e){
+            LOG_ERROR_S << e.what();
+            return nullptr;
+        }
+    }
+    else {
+        return nullptr;
     }
 }
 
