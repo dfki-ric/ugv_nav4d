@@ -4,13 +4,10 @@
 #include "Mobility.hpp"
 #include <limits>
 #include <stdexcept>
-#include <iostream>
 #include <vector>
 #include <base/Pose.hpp>
 #include <maps/grid/Index.hpp>
 #include <sbpl_spline_primitives/SbplSplineMotionPrimitives.hpp>
-#include <base/Trajectory.hpp>
-
 
 namespace ugv_nav4d
 {

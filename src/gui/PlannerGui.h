@@ -53,7 +53,6 @@ private slots:
     void goalOrientationChanged(int newValue);
     void timeEditingFinished();
     void replanButtonReleased();
-    void expandPressed();
     void dumpPressed();
     void slopeMetricComboBoxIndexChanged(int index);
     void numThreadsValueChanged(int newValue);
@@ -76,7 +75,6 @@ private:
     QSlider* goalOrientationSlider;
     QDoubleSpinBox* obstacleDistanceSpinBox;
     QDoubleSpinBox* obstacleFactorSpinBox;
-    QPushButton* expandButton;
     QComboBox* slopeMetricComboBox;
     QComboBox* heuristicComboBox;
     QSpinBox* numThreadsSpinBox;
@@ -98,10 +96,10 @@ private:
     bool startPicked = false;
     bool goalPicked = false;
     bool threadRunning = false;
-    sbpl_spline_primitives::SplinePrimitivesConfig config;
-    ugv_nav4d::Mobility mobility;
-    traversability_generator3d::TraversabilityConfig conf;
-    ugv_nav4d::PlannerConfig plannerConf;
+    sbpl_spline_primitives::SplinePrimitivesConfig splineConfig;
+    ugv_nav4d::Mobility mobilityConfig;
+    traversability_generator3d::TraversabilityConfig travConfig;
+    ugv_nav4d::PlannerConfig plannerConfig;
     std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
     std::vector<trajectory_follower::SubTrajectory> path;
     std::vector<trajectory_follower::SubTrajectory> beautifiedPath;

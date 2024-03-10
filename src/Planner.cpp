@@ -33,38 +33,21 @@ void Planner::setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadiu
 {
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
+    if (env){
+        env->setInitialPatch(body2Mls * ground2Body , patchRadius);
+    }
+}
 
-    env->setInitialPatch(body2Mls * ground2Body , patchRadius);
+void Planner::enablePathStatistics(bool enable){
+    if (env){
+        env->enablePathStatistics(enable);
+    }
 }
 
 void Planner::setTravMapCallback(const std::function< void ()>& callback)
 {
     travMapCallback = callback;
 }
-
-void Planner::genTravMap(const base::samples::RigidBodyState& start_pose)
-{
-    if(!env)
-    {
-        LOG_ERROR_S << "Planner::genTravMap : Error : No map was set";
-        return;
-    }
-
-    env->clear();
-
-    Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
-    ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
-
-    const Eigen::Affine3d startGround2Mls(start_pose.getTransform() * ground2Body);
-
-    previousStartPositions.push_back(startGround2Mls.translation());
-
-    env->expandMap(previousStartPositions);
-
-    if(travMapCallback)
-        travMapCallback();
-}
-
 
 bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& goal_translation, const double yaw) noexcept
 {
@@ -318,10 +301,21 @@ const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> 
     return env->getObstacleMap();
 }
 
-
-boost::shared_ptr< EnvironmentXYZTheta > Planner::getEnv() const
-{
-    return env;
+std::shared_ptr<SubTrajectory> Planner::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
+                                                                                double theta,
+                                                                                const Eigen::Affine3d& ground2Body){
+    if(env){
+        try{
+            return env->findTrajectoryOutOfObstacle(start, theta, ground2Body);
+        }
+        catch (const std::exception& e){
+            LOG_ERROR_S << e.what();
+            return nullptr;
+        }
+    }
+    else {
+        return nullptr;
+    }
 }
 
 void Planner::setTravConfig(const traversability_generator3d::TraversabilityConfig& config)
@@ -330,8 +324,9 @@ void Planner::setTravConfig(const traversability_generator3d::TraversabilityConf
         throw std::runtime_error("Planner::Planner : Configuration error, grid resolution of Primitives and TraversabilityGenerator3d differ");
 
     traversabilityConfig = config;
-    if(env)
+    if(env){
         env->setTravConfig(config);
+    }
 }
 
  void Planner::setPlannerConfig(const PlannerConfig& config)
