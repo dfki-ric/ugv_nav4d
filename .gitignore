@@ -6,3 +6,4 @@ build/
 *.project
 *.cproject
 .env
+*/install/*
