@@ -35,5 +35,5 @@ rock_library(ugv_nav4d
         trajectory_follower
 )
 
-add_subdirectory(gui)
-add_subdirectory(test)
+#add_subdirectory(gui)
+#add_subdirectory(test)

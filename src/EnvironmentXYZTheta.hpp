@@ -192,7 +192,7 @@ public:
 
     const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode *> &getTraversabilityMap() const;
     const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode *> &getObstacleMap() const;
-
+    const maps::grid::TraversabilityMap3d<traversability_generator3d::SoilNode*>& getSoilMap() const;
     traversability_generator3d::TraversabilityGenerator3d& getTravGen();
     traversability_generator3d::TraversabilityGenerator3d& getObstacleGen();
 

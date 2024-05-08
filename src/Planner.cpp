@@ -313,6 +313,11 @@ const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> 
     return env->getTraversabilityMap();
 }
 
+const maps::grid::TraversabilityMap3d<traversability_generator3d::SoilNode*> &Planner::getSoilMap() const
+{
+    return env->getSoilMap();
+}
+
 const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &Planner::getObstacleMap() const
 {
     return env->getObstacleMap();

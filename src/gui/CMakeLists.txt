@@ -16,6 +16,7 @@ rock_library(ugv_nav4d_gui
                   sbpl_spline_primitives-viz 
                   base-types 
                   trajectory_follower-viz 
+                  traversability_generator3d
 )
 
 rock_executable(ugv_nav4d_bin

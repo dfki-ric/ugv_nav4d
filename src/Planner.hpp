@@ -131,6 +131,8 @@ public:
     
     const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &getTraversabilityMap() const;
 
+    const maps::grid::TraversabilityMap3d<traversability_generator3d::SoilNode*> &getSoilMap() const;
+
     const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &getObstacleMap() const;
     
     boost::shared_ptr<EnvironmentXYZTheta> getEnv() const;

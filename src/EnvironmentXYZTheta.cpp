@@ -375,6 +375,7 @@ void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
 
     LOG_INFO_S<< "Expanding trav map...\n";
     travGen.expandAll(startXYZNode->getUserData().travNode);
+    travGen.setSoilType(startPos, 100, 1);
     LOG_INFO_S<< "expanded ";
 
     LOG_INFO_S<< "Expanding obstacle map...\n";
@@ -1163,6 +1164,11 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
 const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*>& EnvironmentXYZTheta::getTraversabilityMap() const
 {
     return travGen.getTraversabilityMap();
+}
+
+const maps::grid::TraversabilityMap3d<traversability_generator3d::SoilNode*>& EnvironmentXYZTheta::getSoilMap() const
+{
+    return travGen.getSoilMap();
 }
 
 const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*>& EnvironmentXYZTheta::getObstacleMap() const
