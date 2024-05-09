@@ -6,6 +6,9 @@ namespace ugv_nav4d{
  */
 struct PlannerConfig
 {
+    /** Should a computationally expensive obstacle check be done to check whether the robot bounding box
+    *  is in collision with obstacles. This mode is useful for highly cluttered and tight spaced environments */      
+    bool usePathStatistics = false;
     /** Search only until the first solution and then stop planning
      *  See SBPL documentation for an explantion of this value*/
     bool searchUntilFirstSolution = false;
