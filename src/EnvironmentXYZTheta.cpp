@@ -772,6 +772,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         }
 
         double cost = 0;
+
         switch(travConf.slopeMetric)
         {
             case traversability_generator3d::SlopeMetric::AVG_SLOPE:
@@ -849,6 +850,47 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 oassert(impactFactor < 1.001 && impactFactor >= 0);
 
                 cost += cost * impactFactor;
+            }
+        }
+
+        for(auto node : nodesOnObstPath){
+            maps::grid::Index idx = node->getIndex();
+            const auto &candidateMap = this->getSoilMap().at(idx);
+            for(traversability_generator3d::SoilNode *n : candidateMap)
+            {
+                /*Soil Types
+                -1 Unknown
+                 0 Concrete
+                 1 Rocks
+                 2 Sand
+                 3 Gravel
+                 */
+                switch(n->getUserData().soil_type)
+                {
+                    case -1:    
+                        cost += 100; 
+                        break;
+                    case 0:  
+                        //concrete is preferred over all other soils
+                        break;
+                    case 1:    
+                        //rocky soil is not preferred over all other soils
+                        cost += 1000;
+                        break;
+                    case 2:     
+                        //sand is preferred over unknown soil 
+                        //sand is preferred over rocky soil
+                        cost += 50;
+                        break;
+                    case 3:     
+                        //gravel is preferred over unknown soil 
+                        //gravel is preferred over rocky soil 
+                        //gravel is preferred over sand
+                        cost += 30;
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 

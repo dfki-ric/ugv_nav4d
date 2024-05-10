@@ -306,6 +306,10 @@ const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> 
     return env->getObstacleMap();
 }
 
+std::shared_ptr<EnvironmentXYZTheta> Planner::getEnv(){
+    return env;
+}
+
 std::shared_ptr<SubTrajectory> Planner::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
                                                                                 double theta,
                                                                                 const Eigen::Affine3d& ground2Body){

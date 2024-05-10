@@ -135,6 +135,8 @@ public:
     const maps::grid::TraversabilityMap3d<traversability_generator3d::SoilNode*> &getSoilMap() const;
 
     const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &getObstacleMap() const;
+
+    std::shared_ptr<EnvironmentXYZTheta> getEnv();
     
     std::shared_ptr<trajectory_follower::SubTrajectory> findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
             const Eigen::Affine3d& ground2Body);
