@@ -868,25 +868,26 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 switch(n->getUserData().soil_type)
                 {
                     case -1:    
-                        cost += 100; 
+                        cost += travConf.costUnknownSoil; 
                         break;
                     case 0:  
                         //concrete is preferred over all other soils
+                        cost += travConf.costConcreteSoil; 
                         break;
                     case 1:    
                         //rocky soil is not preferred over all other soils
-                        cost += 1000;
+                        cost += travConf.costRockySoil; 
                         break;
                     case 2:     
                         //sand is preferred over unknown soil 
                         //sand is preferred over rocky soil
-                        cost += 50;
+                        cost += travConf.costSandSoil; 
                         break;
                     case 3:     
                         //gravel is preferred over unknown soil 
                         //gravel is preferred over rocky soil 
                         //gravel is preferred over sand
-                        cost += 30;
+                        cost += travConf.costGravelSoil; 
                         break;
                     default:
                         break;
