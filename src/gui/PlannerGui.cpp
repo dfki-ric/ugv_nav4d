@@ -276,57 +276,65 @@ void PlannerGui::setupUI()
 
 void PlannerGui::setupPlanner(int argc, char** argv)
 {
-    double res = 0.1;
+    double res = 0.3;
      if(argc > 2)
          res = atof(argv[2]);
     
     splineConfig.gridSize = res;
-    splineConfig.numAngles = 24;
-    splineConfig.numEndAngles = 12;
-    splineConfig.destinationCircleRadius = 5;
-    splineConfig.cellSkipFactor = 1.0;
+    splineConfig.numAngles = 42;
+    splineConfig.numEndAngles = 21;
+    splineConfig.destinationCircleRadius = 10;
+    splineConfig.cellSkipFactor = 3.0;
     splineConfig.generatePointTurnMotions = true;
-    splineConfig.generateLateralMotions = false;
+    splineConfig.generateLateralMotions = true;
     splineConfig.generateBackwardMotions = true;
+    splineConfig.generateForwardMotions = true;
     splineConfig.splineOrder = 4;
-    
-    mobilityConfig.translationSpeed = 0.2;
-    mobilityConfig.rotationSpeed = 0.6;
-    mobilityConfig.minTurningRadius = 0.2; // increase this to reduce the number of available motion primitives
+
+    mobilityConfig.translationSpeed = 0.5;
+    mobilityConfig.rotationSpeed = 0.5;
+    mobilityConfig.minTurningRadius = 1; // increase this to reduce the number of available motion primitives
     mobilityConfig.searchRadius = 0.0;
-    
     mobilityConfig.multiplierForward = 1;
-    mobilityConfig.multiplierBackward = 1;
-    mobilityConfig.multiplierLateral = 3;
-    mobilityConfig.multiplierBackwardTurn = 1;
-    mobilityConfig.multiplierForwardTurn = 1;
+    mobilityConfig.multiplierBackward = 3;
+    mobilityConfig.multiplierLateral = 4;
+    mobilityConfig.multiplierBackwardTurn = 4;
+    mobilityConfig.multiplierLateralCurve = 4;
+    mobilityConfig.multiplierForwardTurn = 2;
     mobilityConfig.multiplierPointTurn = 3;
-     
+    mobilityConfig.searchProgressSteps = 0.1;
+    mobilityConfig.maxMotionCurveLength = 100;
+    mobilityConfig.spline_sampling_resolution = 0.05;
+    mobilityConfig.remove_goal_offset = false;
+
+
     travConfig.gridResolution = res;
-    travConfig.maxSlope = 0.57; //40.0/180.0 * M_PI;
-    travConfig.maxStepHeight = 0.3; //space below robot
-    travConfig.robotSizeX = 0.3;
-    travConfig.robotSizeY =  0.3;
-    travConfig.robotHeight = 0.3; //incl space below body
-    travConfig.slopeMetricScale = 0.0;
+    travConfig.maxSlope = 0.45; //40.0/180.0 * M_PI;
+    travConfig.maxStepHeight = 0.25; //space below robot
+    travConfig.robotSizeX = 1.2;
+    travConfig.robotSizeY =  1.35;
+    travConfig.robotHeight = 0.85; //incl space below body
+    travConfig.slopeMetricScale = 1.0;
     travConfig.slopeMetric = traversability_generator3d::SlopeMetric::NONE;
     travConfig.inclineLimittingMinSlope = 0.22; // 10.0 * M_PI/180.0;
     travConfig.inclineLimittingLimit = 0.43;// 5.0 * M_PI/180.0;
-    travConfig.costFunctionDist = 0.4;
+    travConfig.costFunctionDist = 0.0;
     travConfig.distToGround = 0.2;
     travConfig.minTraversablePercentage = 0.5;
     travConfig.allowForwardDownhill = true;
+    travConfig.enableInclineLimitting = false;
+
     plannerConfig.epsilonSteps = 2.0;
-    plannerConfig.initialEpsilon = 20.0;
+    plannerConfig.initialEpsilon = 64.0;
     plannerConfig.numThreads = 4;
-    
+
     planner.reset(new ugv_nav4d::Planner(splineConfig, travConfig, mobilityConfig, plannerConfig));
-    
+
     sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(splineConfig);
-    
+
     splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobilityConfig.minTurningRadius));
     splineViz.updateData(primitives);
-    
+
     if(argc > 1)
     {
         const std::string mls(argv[1]);
