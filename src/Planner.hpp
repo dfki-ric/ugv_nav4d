@@ -1,11 +1,12 @@
 #pragma once
 #include <maps/grid/MLSMap.hpp>
 #include <base/samples/RigidBodyState.hpp>
-#include <boost/shared_ptr.hpp>
 #include <sbpl_spline_primitives/SbplSplineMotionPrimitives.hpp>
 #include "EnvironmentXYZTheta.hpp"
 #include <trajectory_follower/SubTrajectory.hpp>
 #include "PlannerConfig.hpp"
+
+#include <memory>
 
 class ARAPlanner;
 
@@ -19,8 +20,8 @@ class Planner
 protected:
     friend class PlannerDump;
     typedef EnvironmentXYZTheta::MLGrid MLSBase;
-    boost::shared_ptr<EnvironmentXYZTheta> env;
-    boost::shared_ptr<ARAPlanner> planner;
+    std::shared_ptr<EnvironmentXYZTheta> env;
+    std::shared_ptr<ARAPlanner> planner;
     
     const sbpl_spline_primitives::SplinePrimitivesConfig splinePrimitiveConfig; 
     const Mobility mobility;
@@ -78,6 +79,8 @@ public:
     }
     void setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadius);
 
+    void enablePathStatistics(bool enable);
+
     /**
      * This callback is executed, whenever a new traverability map
      * was expanded
@@ -122,9 +125,7 @@ public:
     PLANNING_RESULT plan(const base::Time& maxTime, const base::samples::RigidBodyState& start_pose,
                          const base::samples::RigidBodyState& end_pose, std::vector<trajectory_follower::SubTrajectory>& resultTrajectory2D,
                          std::vector<trajectory_follower::SubTrajectory>& resultTrajectory3D, bool dumpOnError = false, bool dumpOnSuccess = false);
-
-    void genTravMap(const base::samples::RigidBodyState& startbody2Mls);    
-    
+   
     void setTravConfig(const traversability_generator3d::TraversabilityConfig& config);
     
     void setPlannerConfig(const PlannerConfig& config);
@@ -133,7 +134,8 @@ public:
 
     const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &getObstacleMap() const;
     
-    boost::shared_ptr<EnvironmentXYZTheta> getEnv() const;
+    std::shared_ptr<trajectory_follower::SubTrajectory> findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
+            const Eigen::Affine3d& ground2Body);
 
     private:
     bool calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& goal_translation, const double yaw) noexcept;

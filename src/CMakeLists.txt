@@ -66,3 +66,4 @@ rock_library(ugv_nav4d-qt5
 )
 
 add_subdirectory(gui)
+add_subdirectory(test)

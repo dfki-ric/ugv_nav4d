@@ -119,7 +119,7 @@ protected:
 public:
 
     /** @param pos Position in map frame */
-    static bool obstacleCheck(const maps::grid::Vector3d& pos, double theta, const ObstacleMapGenerator3D& obsGen,
+    bool obstacleCheck(const maps::grid::Vector3d& pos, double theta, const ObstacleMapGenerator3D& obsGen,
                               const traversability_generator3d::TraversabilityConfig& travConf,
                               const sbpl_spline_primitives::SplinePrimitivesConfig& splineConf,
                               const std::string& nodeName="node");
@@ -151,8 +151,7 @@ public:
      * @return the best trajectory that gets the robot out of the obstacle.
      *         Or an empty trajectory if no way out can be found*/
     std::shared_ptr<trajectory_follower::SubTrajectory> findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
-            const Eigen::Affine3d& ground2Body,
-            base::Vector3d& outNewStart, double& outNewStartTheta);
+            const Eigen::Affine3d& ground2Body);
 
 
      /**
@@ -215,6 +214,9 @@ public:
     void dijkstraComputeCost(const traversability_generator3d::TravGenNode* source, std::vector<double> &outDistances,
                              const double maxDist) const;
 
+    /** Should a computationally expensive obstacle check be done to check whether the robot bounding box
+     *  is in collision with obstacles. This mode is useful for highly cluttered and tight spaced environments */
+    void enablePathStatistics(bool enable);
 
 private:
 
@@ -253,6 +255,8 @@ private:
      *  Thread-safe.
      *  @return True if the expansion succeeded */
     bool checkExpandTreadSafe(traversability_generator3d::TravGenNode * node);
+
+    bool usePathStatistics;
 
     traversability_generator3d::TraversabilityConfig travConf;
     sbpl_spline_primitives::SplinePrimitivesConfig primitiveConfig;

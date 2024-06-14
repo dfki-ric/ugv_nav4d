@@ -6,3 +6,5 @@ build/
 *.project
 *.cproject
 .env
+*/install/*
+build_standalone/env.sh
