@@ -1,6 +1,3 @@
-rock_find_qt4(OPTIONAL)
-rock_find_qt5(OPTIONAL)
-
 find_package(PCL 1.7 REQUIRED COMPONENTS common io)
 
 if(ROCK_QT_VERSION_4)
