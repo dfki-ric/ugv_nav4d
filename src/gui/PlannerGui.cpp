@@ -28,15 +28,15 @@ PlannerGui::PlannerGui(const std::string& dumpName): QObject()
     
     PlannerDump dump(dumpName);
 
-    mobility = dump.getMobilityConf();
-    conf = dump.getTravConfig();
-    config = dump.getSplineConfig();
-    plannerConf = dump.getPlannerConfig();
+    mobilityConfig = dump.getMobilityConf();
+    travConfig = dump.getTravConfig();
+    splineConfig = dump.getSplineConfig();
+    plannerConfig = dump.getPlannerConfig();
     
-    planner.reset(new ugv_nav4d::Planner(config, conf, mobility, plannerConf));
+    planner.reset(new ugv_nav4d::Planner(splineConfig, travConfig, mobilityConfig, plannerConfig));
     
-    sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(config);
-    splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.minTurningRadius));
+    sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(splineConfig);
+    splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobilityConfig.minTurningRadius));
     splineViz.updateData(primitives);
 
     start = dump.getStart().getPose();
@@ -97,8 +97,6 @@ void PlannerGui::setupUI()
        
     layout->addWidget(widget);
     
-    expandButton = new QPushButton("Create travMap");
-    expandButton->setEnabled(false);
     maxSlopeSpinBox = new QDoubleSpinBox();
     maxSlopeSpinBox->setMinimum(1);
     maxSlopeSpinBox->setMaximum(60);
@@ -108,7 +106,6 @@ void PlannerGui::setupUI()
     lab->setText("max slope (deg):");
     slopeLayout->addWidget(lab);
     slopeLayout->addWidget(maxSlopeSpinBox);
-    slopeLayout->addWidget(expandButton);
     layout->addLayout(slopeLayout);
     
     QHBoxLayout* timeLayout = new QHBoxLayout();
@@ -261,7 +258,6 @@ void PlannerGui::setupUI()
 
     
     connect(replanButton, SIGNAL(released()), this, SLOT(replanButtonReleased()));
-    connect(expandButton, SIGNAL(released()), this, SLOT(expandPressed()));
     connect(dumpButton, SIGNAL(released()), this, SLOT(dumpPressed()));
     
     
@@ -287,57 +283,65 @@ void PlannerGui::setupUI()
 
 void PlannerGui::setupPlanner(int argc, char** argv)
 {
-    double res = 0.1;
+    double res = 0.3;
      if(argc > 2)
          res = atof(argv[2]);
     
-    config.gridSize = res;
-    config.numAngles = 24;
-    config.numEndAngles = 12;
-    config.destinationCircleRadius = 5;
-    config.cellSkipFactor = 1.0;
-    config.generatePointTurnMotions = true;
-    config.generateLateralMotions = false;
-    config.generateBackwardMotions = true;
-    config.splineOrder = 4;
-    
-    mobility.translationSpeed = 0.2;
-    mobility.rotationSpeed = 0.6;
-    mobility.minTurningRadius = 0.2; // increase this to reduce the number of available motion primitives
-    mobility.searchRadius = 0.0;
-    
-    mobility.multiplierForward = 1;
-    mobility.multiplierBackward = 1;
-    mobility.multiplierLateral = 3;
-    mobility.multiplierBackwardTurn = 1;
-    mobility.multiplierForwardTurn = 1;
-    mobility.multiplierPointTurn = 3;
-     
-    conf.gridResolution = res;
-    conf.maxSlope = 0.57; //40.0/180.0 * M_PI;
-    conf.maxStepHeight = 0.3; //space below robot
-    conf.robotSizeX = 0.9;
-    conf.robotSizeY =  0.5;
-    conf.robotHeight = 0.9; //incl space below body
-    conf.slopeMetricScale = 0.0;
-    conf.slopeMetric = traversability_generator3d::SlopeMetric::NONE;
-    conf.inclineLimittingMinSlope = 0.22; // 10.0 * M_PI/180.0;
-    conf.inclineLimittingLimit = 0.43;// 5.0 * M_PI/180.0;
-    conf.costFunctionDist = 0.4;
-    conf.distToGround = 0.2;
-    conf.minTraversablePercentage = 0.5;
-    conf.allowForwardDownhill = true;
-    plannerConf.epsilonSteps = 2.0;
-    plannerConf.initialEpsilon = 20.0;
-    plannerConf.numThreads = 4;
-    
-    planner.reset(new ugv_nav4d::Planner(config, conf, mobility, plannerConf));
-    
-    sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(config);
-    
-    splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobility.minTurningRadius));
+    splineConfig.gridSize = res;
+    splineConfig.numAngles = 42;
+    splineConfig.numEndAngles = 21;
+    splineConfig.destinationCircleRadius = 10;
+    splineConfig.cellSkipFactor = 3.0;
+    splineConfig.generatePointTurnMotions = true;
+    splineConfig.generateLateralMotions = true;
+    splineConfig.generateBackwardMotions = true;
+    splineConfig.generateForwardMotions = true;
+    splineConfig.splineOrder = 4;
+
+    mobilityConfig.translationSpeed = 0.5;
+    mobilityConfig.rotationSpeed = 0.5;
+    mobilityConfig.minTurningRadius = 1; // increase this to reduce the number of available motion primitives
+    mobilityConfig.searchRadius = 0.0;
+    mobilityConfig.multiplierForward = 1;
+    mobilityConfig.multiplierBackward = 3;
+    mobilityConfig.multiplierLateral = 4;
+    mobilityConfig.multiplierBackwardTurn = 4;
+    mobilityConfig.multiplierLateralCurve = 4;
+    mobilityConfig.multiplierForwardTurn = 2;
+    mobilityConfig.multiplierPointTurn = 3;
+    mobilityConfig.searchProgressSteps = 0.1;
+    mobilityConfig.maxMotionCurveLength = 100;
+    mobilityConfig.spline_sampling_resolution = 0.05;
+    mobilityConfig.remove_goal_offset = false;
+
+
+    travConfig.gridResolution = res;
+    travConfig.maxSlope = 0.45; //40.0/180.0 * M_PI;
+    travConfig.maxStepHeight = 0.25; //space below robot
+    travConfig.robotSizeX = 1.2;
+    travConfig.robotSizeY =  1.35;
+    travConfig.robotHeight = 0.85; //incl space below body
+    travConfig.slopeMetricScale = 1.0;
+    travConfig.slopeMetric = traversability_generator3d::SlopeMetric::NONE;
+    travConfig.inclineLimittingMinSlope = 0.22; // 10.0 * M_PI/180.0;
+    travConfig.inclineLimittingLimit = 0.43;// 5.0 * M_PI/180.0;
+    travConfig.costFunctionDist = 0.0;
+    travConfig.distToGround = 0.2;
+    travConfig.minTraversablePercentage = 0.5;
+    travConfig.allowForwardDownhill = true;
+    travConfig.enableInclineLimitting = false;
+
+    plannerConfig.epsilonSteps = 2.0;
+    plannerConfig.initialEpsilon = 64.0;
+    plannerConfig.numThreads = 4;
+
+    planner.reset(new ugv_nav4d::Planner(splineConfig, travConfig, mobilityConfig, plannerConfig));
+
+    sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(splineConfig);
+
+    splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobilityConfig.minTurningRadius));
     splineViz.updateData(primitives);
-    
+
     if(argc > 1)
     {
         const std::string mls(argv[1]);
@@ -357,7 +361,6 @@ void PlannerGui::setupPlanner(int argc, char** argv)
         
         LOG_INFO_S << "Start: " << start.position.transpose();
         pickStart = false;
-        expandButton->setEnabled(true);
     }
 }
 
@@ -396,7 +399,7 @@ void PlannerGui::loadMls(const std::string& path)
             pcl::getMinMax3D (*cloud, mi, ma); 
             LOG_INFO_S << "MIN: " << mi << ", MAX: " << ma;
         
-            const double mls_res = conf.gridResolution;
+            const double mls_res = travConfig.gridResolution;
             const double size_x = ma.x;
             const double size_y = ma.y;
             
@@ -446,23 +449,22 @@ void PlannerGui::picked(float x, float y, float z, int buttonMask, int modifierM
         case 1: //left click
         {
             start.position << x, y, z;
-            start.position.z() += conf.distToGround; //because we click on the ground but need to put robot position
+            start.position.z() += travConfig.distToGround; //because we click on the ground but need to put robot position
             
             V3DD::CLEAR_DRAWING("ugv_nav4d_start_aabb");
-            V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_start_aabb", start.position +  base::Vector3d(0, 0, conf.distToGround / 2.0), start.orientation,
-                               base::Vector3d(conf.robotSizeX, conf.robotSizeY, conf.robotHeight - conf.distToGround), V3DD::Color::cyan);
+            V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_start_aabb", start.position +  base::Vector3d(0, 0, travConfig.distToGround / 2.0), start.orientation,
+                               base::Vector3d(travConfig.robotSizeX, travConfig.robotSizeY, travConfig.robotHeight - travConfig.distToGround), V3DD::Color::cyan);
             
             QVector3D pos(start.position.x(), start.position.y(), start.position.z());
             startViz.setTranslation(pos);
             LOG_INFO_S << "Start: " << start.position.transpose();
             startPicked = true;
-            expandButton->setEnabled(true);
         }
             break;
         case 4: //right click
         {
             goal.position << x, y, z;
-            goal.position.z() += conf.distToGround;
+            goal.position.z() += travConfig.distToGround;
             QVector3D pos(goal.position.x(), goal.position.y(), goal.position.z());
             goalViz.setTranslation(pos);
             LOG_INFO_S << "goal: " << goal.position.transpose();
@@ -481,22 +483,22 @@ void PlannerGui::show()
 
 void PlannerGui::maxSlopeEditingFinished()
 {
-    conf.maxSlope = maxSlopeSpinBox->value()/180.0 * M_PI;
+    travConfig.maxSlope = maxSlopeSpinBox->value()/180.0 * M_PI;
 }
 
 void PlannerGui::inclineLimittingLimitSpinBoxEditingFinished()
 {
-    conf.inclineLimittingLimit = inclineLimittingLimitSpinBox->value()/180.0 * M_PI;
+    travConfig.inclineLimittingLimit = inclineLimittingLimitSpinBox->value()/180.0 * M_PI;
 }
 
 void PlannerGui::inclineLimittingMinSlopeSpinBoxEditingFinished()
 {
-    conf.inclineLimittingMinSlope = inclineLimittingMinSlopeSpinBox->value()/180.0 * M_PI;
+    travConfig.inclineLimittingMinSlope = inclineLimittingMinSlopeSpinBox->value()/180.0 * M_PI;
 }
 
 void PlannerGui::slopeMetricScaleSpinBoxEditingFinished()
 {
-    conf.slopeMetricScale = slopeMetricScaleSpinBox->value();
+    travConfig.slopeMetricScale = slopeMetricScaleSpinBox->value();
 }
 
 void PlannerGui::slopeMetricComboBoxIndexChanged(int index)
@@ -507,7 +509,7 @@ void PlannerGui::slopeMetricComboBoxIndexChanged(int index)
                                         traversability_generator3d::SlopeMetric::TRIANGLE_SLOPE};
     if(size_t(index) < metrics.size())
     {
-        conf.slopeMetric = metrics[index];
+        travConfig.slopeMetric = metrics[index];
     }
     else
     {
@@ -519,7 +521,7 @@ void PlannerGui::numThreadsValueChanged(int newValue)
 {
     if(newValue >= 1)
     {
-        plannerConf.numThreads = newValue; 
+        plannerConfig.numThreads = newValue; 
     }
 }
 
@@ -538,19 +540,19 @@ void PlannerGui::startOrientationChanged(int newValue)
     startViz.setRotation(QQuaternion(start.orientation.w(), start.orientation.x(), start.orientation.y(), start.orientation.z()));
     
     V3DD::CLEAR_DRAWING("ugv_nav4d_start_aabb");
-    V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_start_aabb", start.position + Eigen::Vector3d(0, 0, conf.distToGround),
-                       start.orientation, base::Vector3d(conf.robotSizeX, conf.robotSizeY, conf.robotHeight), V3DD::Color::cyan);
+    V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_start_aabb", start.position + Eigen::Vector3d(0, 0, travConfig.distToGround),
+                       start.orientation, base::Vector3d(travConfig.robotSizeX, travConfig.robotSizeY, travConfig.robotHeight), V3DD::Color::cyan);
 }
 
 void PlannerGui::obstacleDistanceSpinBoxEditingFinished()
 {
-    conf.costFunctionDist = obstacleDistanceSpinBox->value();
+    travConfig.costFunctionDist = obstacleDistanceSpinBox->value();
 }
 
 void PlannerGui::obstacleFactorSpinBoxEditingFinished()
 {
     throw std::runtime_error("Function removed");
-//     conf.costFunctionObstacleMultiplier = obstacleFactorSpinBox->value();
+//     travConfig.costFunctionObstacleMultiplier = obstacleFactorSpinBox->value();
 }
 
 void PlannerGui::timeEditingFinished()
@@ -560,8 +562,8 @@ void PlannerGui::timeEditingFinished()
 
 void PlannerGui::replanButtonReleased()
 {
-    planner->setTravConfig(conf);
-    planner->setPlannerConfig(plannerConf);
+    planner->setTravConfig(travConfig);
+    planner->setPlannerConfig(plannerConfig);
     startPlanThread();       
 }
 
@@ -587,26 +589,10 @@ void PlannerGui::plannerIsDone()
     
     
     
-    trav3dViz.updateData((planner->getEnv()->getTraversabilityMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
-    obstacleMapViz.updateData((planner->getEnv()->getObstacleMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
+    trav3dViz.updateData((planner->getTraversabilityMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
+    obstacleMapViz.updateData((planner->getObstacleMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
     
     bar->setMaximum(1);
-}
-
-void PlannerGui::expandPressed()
-{
-    planner->getEnv()->getTravGen().clearTrMap();
-    planner->getEnv()->getTravGen().setConfig(conf);
-    //expand position needs to be on map
-    planner->getEnv()->getTravGen().expandAll(start.position - base::Position(0, 0, conf.distToGround));
-    
-    planner->getEnv()->getObstacleGen().clearTrMap();
-    planner->getEnv()->getObstacleGen().setConfig(conf);
-    planner->getEnv()->getObstacleGen().expandAll(start.position - base::Position(0, 0, conf.distToGround));
-    
-    trav3dViz.updateData((planner->getEnv()->getTraversabilityMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
-    obstacleMapViz.updateData((planner->getEnv()->getObstacleMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
-    mlsViz.setPluginEnabled(false);
 }
 
 void PlannerGui::dumpPressed()
