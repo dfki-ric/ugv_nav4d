@@ -6,8 +6,10 @@ A 4D (X,Y,Z, Theta) Planner for unmaned ground vehicles (UGVs).
 ### Installation
 
 #### Compiling standalone
+Follow the steps to peform a standalone build of the library.
 
-Follow the steps to manually install dependencies
+##### Install dependencies
+Follow the steps to manually install dependencies. Define a `path_to_prefix` e.g. `install` where the dependencies will be installed
 
 ```
 cd source_dependencies
@@ -15,18 +17,18 @@ bash ./install_os_dependencies.bash
 bash ./build.bash [path_to_prefix]
 ```
 
-The build script generates an env.sh file in the `source_dependencies` folder. It exports all neccessary environment variables.
+The build script generates an env.sh in the `CMAKE_INSTALL_PREFIX` folder. Source the file to export all neccessary environment variables.
 ```
-source env.sh
+source [path_to_prefix]/env.sh
 ```
 
-##### install ugv_nav4d
+##### Install ugv_nav4d
 After all dependencies have been installed, go to the main folder build and install like any other cmake project.
 
 ```
 mkdir build
 cd build
-cmake -DWITH_PORTS=OFF -DROCK_TEST_ENABLED=ON ..
+cmake -DCMAKE_INSTALL_PREFIX=../source_dependencies/[path_to_prefix] -DTESTS_ENABLED=OFF -DENABLE_DEBUG_DRAWINGS=OFF -DCMAKE_BUILD_TYPE=RELEASE ..
 make -j install
 ```
 
