@@ -9,7 +9,7 @@ ExternalProject_Add(planning-ugv_nav4d
     BINARY_DIR   ${CMAKE_CURRENT_BINARY_DIR}/planning/ugv_nav4d/build
     INSTALL_DIR         ${CMAKE_INSTALL_PREFIX}
     GIT_REPOSITORY      https://git.hb.dfki.de/dfki-planning/ugv_nav4d.git
-    GIT_TAG             feature/qt4-qt5
+    GIT_TAG             main
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
@@ -67,7 +67,7 @@ ExternalProject_Add(planning-traversability_generator3d
     BINARY_DIR   ${CMAKE_CURRENT_BINARY_DIR}/planning/traversability_generator3d/build
     INSTALL_DIR         ${CMAKE_INSTALL_PREFIX}
     GIT_REPOSITORY      https://git.hb.dfki.de/dfki-planning/traversability_generator3d.git
-    GIT_TAG             master
+    GIT_TAG             main
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
