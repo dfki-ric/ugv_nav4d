@@ -9,7 +9,7 @@ A 4D (X,Y,Z, Theta) Planner for unmaned ground vehicles (UGVs).
 Follow the steps to peform a standalone build of the library.
 
 ##### Install dependencies
-Follow the steps to manually install dependencies. Define a `path_to_prefix` e.g. `install` where the dependencies will be installed
+Follow the steps to manually install dependencies. Define a `path_to_prefix` e.g. `./install` where the dependencies will be installed
 
 ```
 cd source_dependencies
