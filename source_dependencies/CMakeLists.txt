@@ -1,21 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 include(ExternalProject)
 
-ExternalProject_Add(planning-ugv_nav4d
-    PREFIX       planning/ugv_nav4d
-    STAMP_DIR    ${CMAKE_CURRENT_BINARY_DIR}/planning/ugv_nav4d/stamp
-    DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/planning/ugv_nav4d/src
-    SOURCE_DIR   ${CMAKE_CURRENT_BINARY_DIR}/planning/ugv_nav4d/src
-    BINARY_DIR   ${CMAKE_CURRENT_BINARY_DIR}/planning/ugv_nav4d/build
-    INSTALL_DIR         ${CMAKE_INSTALL_PREFIX}
-    GIT_REPOSITORY      https://git.hb.dfki.de/dfki-planning/ugv_nav4d.git
-    GIT_TAG             main
-    CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
-                        -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
-)
-add_dependencies(planning-ugv_nav4d base-cmake planning-sbpl planning-sbpl_spline_primitives planning-traversability_generator3d gui-vizkit3d_debug_drawings control-trajectory_follower external-googletest )
-
 ExternalProject_Add(base-cmake
     PREFIX       base/cmake
     STAMP_DIR    ${CMAKE_CURRENT_BINARY_DIR}/base/cmake/stamp
