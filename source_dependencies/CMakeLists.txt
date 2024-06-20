@@ -51,7 +51,7 @@ ExternalProject_Add(planning-traversability_generator3d
     SOURCE_DIR   ${CMAKE_CURRENT_BINARY_DIR}/planning/traversability_generator3d/src
     BINARY_DIR   ${CMAKE_CURRENT_BINARY_DIR}/planning/traversability_generator3d/build
     INSTALL_DIR         ${CMAKE_INSTALL_PREFIX}
-    GIT_REPOSITORY      https://git.hb.dfki.de/dfki-planning/traversability_generator3d.git
+    GIT_REPOSITORY      https://github.com/dfki-ric/traversability_generator3d.git
     GIT_TAG             main
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
