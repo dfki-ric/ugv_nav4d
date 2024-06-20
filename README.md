@@ -40,11 +40,6 @@ bash ./install_os_dependencies.bash
 bash ./build.bash ../build/install
 ```
 
-The build script generates an env.sh in the `CMAKE_INSTALL_PREFIX` folder. Source the file to export all neccessary environment variables.
-```
-source install/env.sh
-```
-
 After all dependencies have been installed. Go back to the main folder to build and install ugv_nav4d like any other cmake project.
 
 ```
