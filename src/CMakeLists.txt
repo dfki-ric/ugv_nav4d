@@ -73,4 +73,11 @@ if (ROCK_QT_VERSION_5)
 endif()
 
 add_subdirectory(gui)
-#add_subdirectory(test)
+
+if(TESTS_ENABLED)
+    message(STATUS "TESTS_ENABLED is defined with value: ${TESTS_ENABLED}")
+    add_subdirectory(test)
+else()
+    message(STATUS "TESTS_ENABLED is set to OFF. Skipped!")
+endif()
+

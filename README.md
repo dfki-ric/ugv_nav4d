@@ -1,43 +1,109 @@
-ugv_nav4d
+Advanced Multi-Surface Navigation for Unmanned Ground Vehicles (UGVs) Using 4D Path Planning Techniques (ugv_nav4d)
 =============
 A 4D (X,Y,Z, Theta) Planner for unmaned ground vehicles (UGVs).
 
+<figure>
+<img src="doc/figures/ugv_nav4d_logo.jpeg" height= "200" width="200"/>
+</figure>
 
-### Installation
+## Installation
 
-#### Compiling standalone
 Follow the steps to peform a standalone build of the library.
 
-##### Install dependencies
-Follow the steps to manually install dependencies. Define a `path_to_prefix` e.g. `./install` where the dependencies will be installed
+#### Get the library
 
 ```
-cd source_dependencies
+git clone https://github.com/dfki-ric/ugv_nav4d.git
+```
+
+#### Automatic Install of Dependencies & Build
+Install dependencies automatically when building ugv_nav4d. Defining `-DINSTALL_DEPS=ON` for cmake, builds and installs the source dependencies automatically. When `-DCMAKE_INSTALL_PREFIX` is used, the dependencies are also installed there.
+
+```
+cd ugv_nav4d
+mkdir build && cd build
+cmake -DINSTALL_DEPS=ON -DCMAKE_INSTALL_PREFIX=./install ..
+make -j install
+```
+The install script generates an env.sh file in the `CMAKE_INSTALL_PREFIX` folder. If you did not install system wide, source this file before building and running code. It exports all neccessary environment variables.
+
+#### Manual Installation of Dependencies & Build 
+
+Skip this step if you already installed the dependencies automatically from the previous step.
+
+Follow the steps to manually install dependencies. Define a path_to_install_folder e.g. `./install` where the dependencies will be installed
+
+```
+cd ugv_nav4d
+mkdir build && cd source_dependencies
 bash ./install_os_dependencies.bash
-bash ./build.bash [path_to_prefix]
+bash ./build.bash ../build/install
 ```
 
 The build script generates an env.sh in the `CMAKE_INSTALL_PREFIX` folder. Source the file to export all neccessary environment variables.
 ```
-source [path_to_prefix]/env.sh
+source install/env.sh
 ```
 
-##### Install ugv_nav4d
-After all dependencies have been installed, go to the main folder build and install like any other cmake project.
+After all dependencies have been installed. Go back to the main folder to build and install ugv_nav4d like any other cmake project.
 
 ```
-mkdir build
-cd build
-cmake -DCMAKE_INSTALL_PREFIX=../source_dependencies/[path_to_prefix] -DTESTS_ENABLED=OFF -DENABLE_DEBUG_DRAWINGS=OFF -DCMAKE_BUILD_TYPE=RELEASE ..
+cd ../build
+cmake -DCMAKE_INSTALL_PREFIX=./install -DTESTS_ENABLED=OFF -DENABLE_DEBUG_DRAWINGS=OFF -DCMAKE_BUILD_TYPE=RELEASE ..
 make -j install
 ```
 
-#### Compiling inside a ROCK environment
+#### Compiling inside a ROCK environment 
 See the `manifest.xml` for an up to date list of dependencies.
 
 Buidling inside ROCK works as usual.
 The package can be found in the backbone package set: https://git.hb.dfki.de/sw-backbone/package_sets
 
+#### GUI Usage & Tests
+
+Source the `env.sh` in the install folder.
+
+At first, let us start the GUI.
+```
+cd ..
+source build/install/env.sh
+ugv_nav4d_bin test_data/parking_deck.ply 0.3
+```
+![PlannerGui](doc/figures/planner_gui.png)
+
+A basic GUI is loaded with the Multi-layer Surface Map of a parking deck environment. Use the mouse left-click to select a start position and the mouse right-click to select the goal position. The sliders can be used to changed the orientations of start and goal positions. Click on the button `Plan` to plan a path.
+
+![PlannerGuiResult](doc/figures/planner_gui_result.png)
+
+The button `Create PlannerDump` can be used to save the planner's state. The created file e.g. ugv4d_dump_xxxx.bin can be replayed using the executable `ugv_naved_replay`.
+
+```
+ugv_nav4d_replay ugv4d_dump_xxxx.bin
+```
+
+#### Unit Tests
+
+Build the library again but this time enable the `-DTESTS_ENABLED=ON`
+
+```
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=./install -DTESTS_ENABLED=ON -DENABLE_DEBUG_DRAWINGS=OFF -DCMAKE_BUILD_TYPE=RELEASE ..
+make -j install
+```
+Run the unit tests using the executable
+```
+test_ugv_nav4d ../test_data/Plane1Mio.ply
+```
+
+At the end you should see the output
+```
+[----------] Global test environment tear-down
+[==========] 6 tests from 2 test suites ran. (10297 ms total)
+[  PASSED  ] 6 tests.
+```
+
+---
+## Implementation Details
 ### Planning
 The planner is based on SBPL (http://www.sbpl.net/). I.e. it uses the SBPLs ARA* planner to plan in a custom environment.
 
@@ -80,7 +146,8 @@ The `TraversabilityMap3D` has to be fully expanded (i.e. generated from the MLS)
 The planner uses the `TraversabilityMap3D` to find valid successor states during planning. I.e. states that the robot can traverse to from a given state using the given motion primitives. Metadata stored in the map (e.g. slope) is also used during planning to calculate costs.
 
 #### Color Codes
-![color_codes](https://git.hb.dfki.de/entern/ugv_nav4d/raw/master/doc/color_codes.png)
+
+![ColorCodes](doc/figures/color_codes.png)
 
 The visualizer of the `TraversabilityMap3D` uses color coding to indicate the different patch types:
 - **Traversable**: The robot can stand (with its center) on this patch in at least one orientation without hitting an obstacle.
@@ -90,8 +157,7 @@ The visualizer of the `TraversabilityMap3D` uses color coding to indicate the di
 - **Hole**: This is part of the map specification but is not used by ugv_nav4d. It might be used elsewhere but the planner cannot handle it.
 - **Unset**: This is the starting state of a new patch. It should not be visible in a fully explored map. If you see a yellow patch after map expansion is done, you have found a bug in the `TraversabilityMapGenerator` and should investigate.
 
-
-![2022-03-02_10-45](/uploads/68a0caf1d9cb6d5923d552a0f8502954/2022-03-02_10-45.png)
+![TravMap1](doc/figures/trav_map_1.png)
 
 #### Obstacle Checking
 To ensure that the robot can traverse a certain area, obstacle checks have to be done.
@@ -107,8 +173,6 @@ It also means that a full 3D oriented bounding box check is still necessary duri
 - **Map limit check**: A patch is an obstacle if the bounding box of the robot (again just using the smaller side length) leaves the map (maximum possible map, not currently known map).
 
 I.e. this step marks patches in the `TraversabilityMap3D` as obstacle if the robot would touch an obstacle when standing (centered) on this patch, or when the slope is too steep.
-
-
 
 ##### 2. The `ObstacleMap`
 The `ObstacleMap` is a `TraversabilityMap3D` and is created by the `ObstacleMapGenerator`.
@@ -164,11 +228,13 @@ The parameters for primitive generation are grouped in the `SplinePrimitivesConf
 
 Based on the value of the parameter `destinationCircleRadius` a number of discrete destination points are generated on concentric circles. The parameter `CellSkipFactor` decides the interval between each two consecutive concentric circles. Before generating a motion primitive, each destination cell is scaled via multiplication with the `gridSize`. A unique motion primitives is generated for each start angle to each destination cell shown in picture below, from `(0,0)` to that cell for each end angle. The number of start angles and end angles is decided basd on the parameters `numAngles` and `numEndAngles` respectively.
 
-![GetImage](/uploads/0fc6280c33594bebff819888c7b58404/GetImage.png)
+
+![NumAngles](doc/figures/num_angles.png)
 
 To keep the number of primitives reasonable they are discretized. Their start and end positions are discretized using a 2d grid. The start and end orientations are discretized using angle segments.
 
-![splines](https://git.hb.dfki.de/entern/ugv_nav4d/raw/master/doc/splines.gif)
+![NumAngles](doc/figures/splines.gif)
+
 This animation shows all splines generated by the following configuration (each frame shows the primitives for one start orientation). 
 ```
 config.gridSize = 0.1;
@@ -179,6 +245,7 @@ config.cellSkipFactor = 1.0;
 config.generatePointTurnMotions = false;
 config.generateLateralMotions = false;
 config.generateBackwardMotions = false;
+config.generateForwardMotions = true;
 config.splineOrder = 4;
 ```
 ##### Default Parameters
@@ -203,6 +270,8 @@ config.splineOrder = 4;
 | multiplierLateralCurve | int  | Cost multiplier for the lateral curve motion primitives  | 2 |
 | searchRadius    | double         |   | 1.0 |
 | searchProgressSteps     | double        |   | 0.1 |
+| remove_goal_offset     | bool        | Remove the goal offset which is there because of the discretization  | true |
+| spline_sampling_resolution     | double        | Resolution used to sample the motion primitive spline  | 0.01 |
 | maxMotionCurveLength | double  | The maximum curve length of the selected motion primitives. Small value results in small primitives and a large value results in longer primitives. During testing, it was observed that the planner has a hard time in finding a solution if the value of this parameter is set < 0.6  | 1.3 |
 
 ##### Planner Configuration Parameters
@@ -211,6 +280,9 @@ config.splineOrder = 4;
 | initialEpsilon | int  | The planner uses ARA* planner. It finds a sub-optimal solution and then repairs the initial solution by using reducing the epsilon by the parameter `epsilonSteps`. An optimal solution means epsilon is equal to 1, where `solution = epsilon x optimal_solution`   | 36  |
 | epsilonSteps    | int         | The steps in the epsilon during planning and repairing of the initial sub-optimal solution  | 6 |
 | numThreads     | int        | A limit on the threads allocated for the planner during planning.  | 8|
+| usePathStatistics     | bool        | Should a computationally expensive obstacle check be done to check whether the robot bounding box is in collision with obstacles. This mode is useful for highly cluttered and tight spaced environments.  | false|
+| searchUntilFirstSolution     | bool        | Search only until the first solution and then stop planning. See SBPL documentation for an explantion of this value.  | false |
+
 
 ##### Primitives Configuration Parameters
 | Parameter | Type |Description | Recommented Value |
@@ -252,7 +324,8 @@ config.splineOrder = 4;
 The planner filters the primitives by `minTurningRadius` (i.e. all primitives that have a curvature that is larger than allowed by the minimum turning radius are ignored)
 
 The following animation shows the same primitives as above but filtered with a `minTurningRadius` of `0.2`:
-![splines](https://git.hb.dfki.de/entern/ugv_nav4d/raw/master/doc/splines_filtered.gif)
+
+![SplinesFiltered](doc/figures/splines_filtered.gif)
 
 As you can see all sharp turns have been removed from the splines.
 
@@ -265,15 +338,15 @@ You can filter the primitives using the parameter `maxMotionCurveLength`. All pr
 
 The figure below shows the complete set of discritized splines, **without any curve length filter applied**, generated for the start angle of 0 radians. The green color signifies discritized primitives for forward motion, magenta for backward motion, and orange for lateral motion. Please note that the point-turns do not have a spline and therefore are not visible in the image below.
 
-![GetImage__1_](/uploads/177ff981282ad2d84f33b937ddd3b67c/GetImage__1_.png)
+![MaxCurveLength](doc/figures/max_curve_length.png)
 
 The figure below shows the same set of discritized splines for start angle of 0 radians but with a `maxMotionCurveLength` of 1.2.
 
-![GetImage__2_](/uploads/54396e944d35c29e6a39da613b2ade36/GetImage__2_.png)
+![MaxCurveLength2](doc/figures/max_curve_length_2.png)
 
 To get an idea about different geometric lengths of the primitives see the picture below. The picture shows only forward and backward motion primitives. Each arrow represents the end of a unqiue primitive. As mentioned earlier, the end points of the primitives are the destination cells scaled by the grid size of the traversability map. 
 
-![GetImage__3_](/uploads/e6501fee1be56fe272a5b03fa539ab10/GetImage__3_.png)
+![MaxCurveLength3](doc/figures/max_curve_length_3.png)
 
 ##### Motions
 Each slected motion primitive is converted into a motion. A motion is a discritized motion primitive. In the planning phase, each discrete step of the motion is used to perform traversability and obstacle checks. You can find details on the motions in the class preComputedMotions.
@@ -340,12 +413,6 @@ It can load point clouds from ply or serialized mls maps.
 A left click sets the start location, a right click sets the end location.
 
 In addition the `PlannerGui` can also be used to load and analyze planner dumps.
-
-
-##### FrontierTestGui
-This gui was developed to test and debug the `AreaExplorer`.
-It allows for experimentation with the different parameters of the area explorer.
-A left click sets the robot position, a right click sets the goal position.
 
 ## Funding
 The ugv_nav4d library was initiated and is currently developed at the Robotics Innovation Center of the German Research Center for Artificial Intelligence (DFKI) in Bremen, together with the Robotics Group of the University of Bremen. The development was started in the scope of the Entern project (50RA1406), which has been funded by the German Aerospace Center (DLR) with funds from the German Federal Ministry for Economic Affairs and Climate Action (BMWK).

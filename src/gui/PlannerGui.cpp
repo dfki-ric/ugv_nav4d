@@ -100,13 +100,16 @@ void PlannerGui::setupUI()
     maxSlopeSpinBox = new QDoubleSpinBox();
     maxSlopeSpinBox->setMinimum(1);
     maxSlopeSpinBox->setMaximum(60);
+    maxSlopeSpinBox->setValue(33.23);
+
     connect(maxSlopeSpinBox, SIGNAL(editingFinished()), this, SLOT(maxSlopeEditingFinished()));
     QHBoxLayout* slopeLayout = new QHBoxLayout();
     QLabel* lab = new QLabel();
     lab->setText("max slope (deg):");
+
     slopeLayout->addWidget(lab);
     slopeLayout->addWidget(maxSlopeSpinBox);
-    layout->addLayout(slopeLayout);
+    //layout->addLayout(slopeLayout);
     
     QHBoxLayout* timeLayout = new QHBoxLayout();
     time = new QDoubleSpinBox();
@@ -128,17 +131,19 @@ void PlannerGui::setupUI()
     inclineLimittingMinSlopeSpinBox = new QDoubleSpinBox();
     inclineLimittingMinSlopeSpinBox->setMinimum(0.0);
     inclineLimittingMinSlopeSpinBox->setMaximum(180.0);
+    inclineLimittingMinSlopeSpinBox->setValue(20);
     connect(inclineLimittingMinSlopeSpinBox, SIGNAL(editingFinished()), this, SLOT(inclineLimittingMinSlopeSpinBoxEditingFinished()));
     
     inclineLimittingLimitSpinBox = new QDoubleSpinBox();
     inclineLimittingLimitSpinBox->setMinimum(0.00001);
-    inclineLimittingLimitSpinBox->setMaximum(90);
+    inclineLimittingLimitSpinBox->setMaximum(90);    
+    inclineLimittingLimitSpinBox->setValue(25.21);
     connect(inclineLimittingLimitSpinBox, SIGNAL(editingFinished()), this, SLOT(inclineLimittingLimitSpinBoxEditingFinished()));
     
     QLabel* inclineLimittingMinSlopeLabel = new QLabel();
-    inclineLimittingMinSlopeLabel->setText("incline limit min slope (deg)");
+    inclineLimittingMinSlopeLabel->setText("Incline limit min slope (deg)");
     QLabel* inclineLimittingLimitSpinBoxLabel = new QLabel();
-    inclineLimittingLimitSpinBoxLabel->setText("incline limit at max slope (deg)");
+    inclineLimittingLimitSpinBoxLabel->setText("Incline limit at max slope (deg)");
     
     QHBoxLayout* slopeLimitLayout = new QHBoxLayout();
     slopeLimitLayout->addWidget(inclineLimittingMinSlopeLabel);
@@ -147,8 +152,8 @@ void PlannerGui::setupUI()
     slopeLimitLayout2->addWidget(inclineLimittingLimitSpinBoxLabel);
     slopeLimitLayout2->addWidget(inclineLimittingLimitSpinBox);
     
-    layout->addLayout(slopeLimitLayout);
-    layout->addLayout(slopeLimitLayout2);
+    //layout->addLayout(slopeLimitLayout);
+    //layout->addLayout(slopeLimitLayout2);
     
     
     slopeMetricScaleSpinBox = new QDoubleSpinBox();
@@ -163,7 +168,7 @@ void PlannerGui::setupUI()
     QHBoxLayout* slopeMetricLayout = new QHBoxLayout();
     slopeMetricLayout->addWidget(slopeMetricLabel);
     slopeMetricLayout->addWidget(slopeMetricScaleSpinBox);
-    layout->addLayout(slopeMetricLayout);
+    //layout->addLayout(slopeMetricLayout);
     
     slopeMetricComboBox = new QComboBox();
     slopeMetricComboBox->addItem("NONE");
@@ -176,8 +181,7 @@ void PlannerGui::setupUI()
     QHBoxLayout* slopeMetricTypeLayout = new QHBoxLayout();
     slopeMetricTypeLayout->addWidget(slopeMetricComboLabel);
     slopeMetricTypeLayout->addWidget(slopeMetricComboBox);
-    layout->addLayout(slopeMetricTypeLayout);
-    
+    //layout->addLayout(slopeMetricTypeLayout);
     
     startOrientatationSlider = new QSlider(Qt::Horizontal);
     startOrientatationSlider->setMinimum(0);
@@ -192,9 +196,9 @@ void PlannerGui::setupUI()
     connect(goalOrientationSlider, SIGNAL(sliderMoved(int)), this, SLOT(goalOrientationChanged(int)));
     
     QLabel* startOrientationLaebel = new QLabel();
-    startOrientationLaebel->setText("start orientation (deg)");
+    startOrientationLaebel->setText("Start orientation (deg)");
     QLabel* goalOrientationLaebel = new QLabel();
-    goalOrientationLaebel->setText("goal orientation (deg)");
+    goalOrientationLaebel->setText("Goal orientation (deg)");
      
     QHBoxLayout* startOrientationLayout = new QHBoxLayout();
     startOrientationLayout->addWidget(startOrientationLaebel);
@@ -210,7 +214,7 @@ void PlannerGui::setupUI()
     obstacleDistanceSpinBox = new QDoubleSpinBox();
     obstacleDistanceSpinBox->setMaximum(99999);
     obstacleDistanceSpinBox->setMinimum(0);
-    obstacleDistanceSpinBox->setValue(0.4);
+    obstacleDistanceSpinBox->setValue(0.0);
     
     obstacleFactorSpinBox = new QDoubleSpinBox();
     obstacleFactorSpinBox->setMinimum(0);
@@ -229,13 +233,11 @@ void PlannerGui::setupUI()
     obstacleFactorLayout->addWidget(obstacleFactorLabel);
     obstacleFactorLayout->addWidget(obstacleFactorSpinBox);
     
-    layout->addLayout(obstacleDistLayout);
-    layout->addLayout(obstacleFactorLayout);
+    //layout->addLayout(obstacleDistLayout);
+    //layout->addLayout(obstacleFactorLayout);
     
     connect(obstacleDistanceSpinBox, SIGNAL(editingFinished()), this, SLOT(obstacleDistanceSpinBoxEditingFinished()));
     connect(obstacleFactorSpinBox, SIGNAL(editingFinished()), this, SLOT(obstacleFactorSpinBoxEditingFinished()));
-    
-    
     
     numThreadsSpinBox = new QSpinBox();
     numThreadsSpinBox->setValue(4);
@@ -274,10 +276,7 @@ void PlannerGui::setupUI()
     connect(&trav3dViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
     connect(&obstacleMapViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
     connect(this, SIGNAL(plannerDone()), this, SLOT(plannerIsDone()));
-    
-    maxSlopeSpinBox->setValue(33.23);
-    inclineLimittingMinSlopeSpinBox->setValue(20);
-    inclineLimittingLimitSpinBox->setValue(25.21);
+
 }
 
 
@@ -292,8 +291,8 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     splineConfig.numEndAngles = 21;
     splineConfig.destinationCircleRadius = 10;
     splineConfig.cellSkipFactor = 3.0;
-    splineConfig.generatePointTurnMotions = true;
-    splineConfig.generateLateralMotions = true;
+    splineConfig.generatePointTurnMotions = false;
+    splineConfig.generateLateralMotions = false;
     splineConfig.generateBackwardMotions = true;
     splineConfig.generateForwardMotions = true;
     splineConfig.splineOrder = 4;
@@ -314,19 +313,18 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     mobilityConfig.spline_sampling_resolution = 0.05;
     mobilityConfig.remove_goal_offset = false;
 
-
     travConfig.gridResolution = res;
     travConfig.maxSlope = 0.45; //40.0/180.0 * M_PI;
     travConfig.maxStepHeight = 0.25; //space below robot
-    travConfig.robotSizeX = 1.2;
-    travConfig.robotSizeY =  1.35;
-    travConfig.robotHeight = 0.85; //incl space below body
+    travConfig.robotSizeX = 0.5;
+    travConfig.robotSizeY =  0.5;
+    travConfig.robotHeight = 0.5; //incl space below body
     travConfig.slopeMetricScale = 1.0;
     travConfig.slopeMetric = traversability_generator3d::SlopeMetric::NONE;
     travConfig.inclineLimittingMinSlope = 0.22; // 10.0 * M_PI/180.0;
     travConfig.inclineLimittingLimit = 0.43;// 5.0 * M_PI/180.0;
     travConfig.costFunctionDist = 0.0;
-    travConfig.distToGround = 0.2;
+    travConfig.distToGround = 0.0;
     travConfig.minTraversablePercentage = 0.5;
     travConfig.allowForwardDownhill = true;
     travConfig.enableInclineLimitting = false;

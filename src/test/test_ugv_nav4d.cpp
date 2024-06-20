@@ -14,6 +14,8 @@
 
 using namespace ugv_nav4d;
 
+std::string filePath;
+
 class PlannerTest : public testing::Test {
 protected:
 
@@ -79,9 +81,7 @@ void PlannerTest::SetUp(){
   plannerConfig.initialEpsilon=64;
   plannerConfig.epsilonSteps=2;
   plannerConfig.numThreads=8;
-  const std::string path = std::string(getenv("AUTOPROJ_CURRENT_ROOT")) + "/planning/ugv_nav4d/test_data/Plane1Mio.ply";
-  std::cout << "Path to PLY: \n: " << path << "\n";
-  loadMlsMap(path);
+  loadMlsMap(filePath);
 
 }
 
@@ -354,6 +354,15 @@ TEST(UGV_NAV4D_TEST, check_discrete_theta_init) {
 
 int main(int argc, char ** argv){
   ::testing::InitGoogleTest(&argc, argv);
+
+  if (argc > 1) {
+      filePath = argv[1];
+      std::cout << "Path to PLY: \n: " << filePath << "\n";
+  } else {
+      std::cerr << "No .PLY file path provided!" << std::endl;
+      return 1;
+  }
+
   int result = RUN_ALL_TESTS();
   return result;
 }
