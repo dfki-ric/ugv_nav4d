@@ -49,6 +49,7 @@ After all dependencies have been installed. Go back to the main folder to build 
 
 ```
 cd ../build
+source install/env.sh
 cmake -DCMAKE_INSTALL_PREFIX=./install -DTESTS_ENABLED=OFF -DENABLE_DEBUG_DRAWINGS=OFF -DCMAKE_BUILD_TYPE=RELEASE ..
 make -j install
 ```
