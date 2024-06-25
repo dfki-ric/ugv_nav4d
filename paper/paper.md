@@ -6,16 +6,16 @@ tags:
   - Mobile Robotics
   - SBPL
 authors:
-  - name: Muhammad Haider Khan Lodhi
+  - name: Arne Böckmann
     affiliation: 1
   - name: Janosch Machowinski
-    affiliation: 2
-  - name: Arne Böckmann
+    affiliation: 1
+  - name: Muhammad Haider Khan Lodhi
     affiliation: 2
 affiliations:
- - name: DFKI GmbH
-   index: 1 
  - name: Cellumation GmbH
+   index: 1
+ - name: DFKI GmbH
    index: 2
 date: June 20, 2024
 bibliography: paper.bib
