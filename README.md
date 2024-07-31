@@ -59,6 +59,16 @@ make -j install
 See the `manifest.xml` for an up to date list of dependencies. If you are ROCK user then include the package_set which contains the ```dfki-ric/orogen-ugv_nav4d``` package in your autoproj manifest file.
 
 
+#### Generate API Documentation
+The API documentation is generated based on doxygen. You do not need to install doxygen because it is installed as part of the ```install_os_dependencies.bash``` script used in the previous step.
+
+You just need to run the ```make doc``` command in the ugv_nav4d build folder. The doxygen documentation will be automatically generated in the ```build/doc``` folder.
+
+```
+cd build/
+make doc
+```
+
 #### GUI Usage & Tests
 
 Source the `env.sh` in the install folder.
