@@ -10,6 +10,12 @@ A 4D (X,Y,Z, Theta) Planner for unmaned ground vehicles (UGVs).
 
 Follow the steps to peform a standalone build of the library.
 
+### System Requirements
+
+```
+OS: Ubuntu 20.04, Ubuntu 22.04 (Recommended)
+```
+
 #### Get the library
 
 ```
@@ -49,11 +55,9 @@ cmake -DCMAKE_INSTALL_PREFIX=./install -DTESTS_ENABLED=OFF -DENABLE_DEBUG_DRAWIN
 make -j install
 ```
 
-#### Compiling inside a ROCK environment 
-See the `manifest.xml` for an up to date list of dependencies.
+#### Compiling inside a ROCK environment [Only for ROCK users] 
+See the `manifest.xml` for an up to date list of dependencies. If you are ROCK user then include the package_set which contains the ```dfki-ric/orogen-ugv_nav4d``` package in your autoproj manifest file.
 
-Buidling inside ROCK works as usual.
-The package can be found in the backbone package set: https://git.hb.dfki.de/sw-backbone/package_sets
 
 #### GUI Usage & Tests
 
@@ -410,5 +414,6 @@ A left click sets the start location, a right click sets the end location.
 
 In addition the `PlannerGui` can also be used to load and analyze planner dumps.
 
-## Funding
-The ugv_nav4d library was initiated and is currently developed at the Robotics Innovation Center of the German Research Center for Artificial Intelligence (DFKI) in Bremen, together with the Robotics Group of the University of Bremen. The development was started in the scope of the Entern project (50RA1406), which has been funded by the German Aerospace Center (DLR) with funds from the German Federal Ministry for Economic Affairs and Climate Action (BMWK).
+## Bug Reports
+
+To search for bugs or report them, please use GitHubs [Issue-Tracker](https://github.com/dfki-ric/ugv_nav4d/issues)
