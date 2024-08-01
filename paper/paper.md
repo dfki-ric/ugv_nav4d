@@ -56,9 +56,6 @@ The voxel maps used by nav2 are more suitable for applications where non-ground 
 
 ### Visualization Differences
 From a user perspective, the visualization of MLS and voxel maps differs significantly. Voxel maps create a blocky representation of the environment, where objects and surfaces are represented by stacked cubes. This can lead to a staircase effect on sloped surfaces, which may not accurately reflect the true nature of the terrain. This visualization is more suitable for scenarios where the focus is on the presence and absence of obstacles, such as in aerial or underwater navigation. On the other hand, MLS maps provide a smoother and more continuous representation of the environment. The lack of discretization in the z-axis allows for a more accurate depiction of slopes and uneven ground surfaces. This results in a more intuitive and realistic visualization for ground vehicle navigation, where the detailed surface information, such as slope and plane models, is critical for planning and decision-making. The smoother surface representation of MLS maps enhances the user’s ability to understand and interpret the terrain, leading to better navigation outcomes.
-
-### Dynamic Environments
-The Spatio-Temporal Voxel Layer (STVL) in nav2 is based on 3D voxel grid and supports navigation in dynamic environments. However, as explained earlier, ugv_nav4d maintains a Traversability Map based on the user provided MLS. It is usual practice that only the static environment is mapped in the MLS. As a consequence, the dynamic obstacles will not be taken into consideration during the planning phase of ugv_nav4d. Therefore, ugv_nav4d is suitable for static environments. We are working on various approaches to make it capable of working in dynamic environments.
  
 # Software Components 
 The core software components are 
@@ -167,6 +164,9 @@ ugv_nav4d is a very versatile planner and can be used for any type of a terrestr
 - [Hunter-SE](https://robotik.dfki-bremen.de/de/forschung/robotersysteme/hunterse)
 - [SherpaTT](https://robotik.dfki-bremen.de/de/forschung/robotersysteme/sherpatt)
 - [Asguard-IV](https://robotik.dfki-bremen.de/de/forschung/robotersysteme/asguard-iv)
+
+### Limitations
+As explained earlier, ugv_nav4d maintains a Traversability Map based on the user-provided MLS. It is common practice to map only the static environment in the MLS. As a consequence, dynamic obstacles are not considered during the planning phase of ugv_nav4d. Therefore, ugv_nav4d is currently suitable for static environments. In principle, it is possible to generate an MLS and subsequently a Traversability Map for each point cloud sample. This would ensure that dynamic obstacles are visible in the Traversability Map and are considered in the planning phase. We are working on various approaches to make it capable of operating in dynamic environments.
 
 # Acknowledgements 
 The ugv_nav4d library was initiated and is currently developed at the Robotics Innovation Center of the German Research Center for Artificial Intelligence (DFKI) in Bremen, together with the Robotics Group of the University of Bremen. The development was started in the scope of the Entern project (50RA1406), which has been funded by the German Aerospace Center (DLR) with funds from the German Federal Ministry for Economic Affairs and Climate Action (BMWK). 
