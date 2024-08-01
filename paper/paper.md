@@ -165,7 +165,7 @@ ugv_nav4d is a very versatile planner and can be used for any type of a terrestr
 - [SherpaTT](https://robotik.dfki-bremen.de/de/forschung/robotersysteme/sherpatt)
 - [Asguard-IV](https://robotik.dfki-bremen.de/de/forschung/robotersysteme/asguard-iv)
 
-### Limitations
+# Limitations
 As explained earlier, ugv_nav4d maintains a Traversability Map based on the user-provided MLS. It is common practice to map only the static environment in the MLS. As a consequence, dynamic obstacles are not considered during the planning phase of ugv_nav4d. Therefore, ugv_nav4d is currently suitable for static environments. In principle, it is possible to generate an MLS and subsequently a Traversability Map for each point cloud sample. This would ensure that dynamic obstacles are visible in the Traversability Map and are considered in the planning phase. We are working on various approaches to make it capable of operating in dynamic environments.
 
 # Acknowledgements 

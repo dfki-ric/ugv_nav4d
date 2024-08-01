@@ -14,7 +14,9 @@ Follow the steps to peform a standalone build of the library.
 
 ```
 OS: Ubuntu 20.04, Ubuntu 22.04 (Recommended)
+
 ```
+See [install_os_dependencies.bash](source_dependencies/install_os_dependencies.bash) for further os dependencies.
 
 #### Get the library
 
