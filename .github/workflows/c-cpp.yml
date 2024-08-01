@@ -1,0 +1,25 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: install_deps
+      run: bash ./source_dependencies/install_os_dependencies.bash
+    - name: build_deps
+      run: |
+        cd source_dependencies
+        bash ./build.bash ../build/install
+    - name: build_ugv_nav4d
+      run: |
+        cd build
+        source install/env.sh
+        cmake -DCMAKE_INSTALL_PREFIX=./install -DTESTS_ENABLED=OFF -DENABLE_DEBUG_DRAWINGS=OFF -DCMAKE_BUILD_TYPE=RELEASE ..
+        make -j install
