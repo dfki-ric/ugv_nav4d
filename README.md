@@ -1,3 +1,7 @@
+CI build and test:
+
+Main: ![Main](https://github.com/dfki-ric/ugv_nav4d/actions/workflows/c-cpp.yml/badge.svg)
+
 Advanced Multi-Surface Navigation for Unmanned Ground Vehicles (UGVs) Using 4D Path Planning Techniques (ugv_nav4d)
 =============
 A 4D (X,Y,Z, Theta) Planner for unmaned ground vehicles (UGVs).
