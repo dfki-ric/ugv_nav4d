@@ -23,9 +23,9 @@ bibliography: paper.bib
 ---
 
 # Summary
-Navigation of autonomous mobile robots is a complex problem which comprises of multiple software components, each performing a specific task, which when combined form the navigation software architecture. The ugv_nav4d is a path planner which can be used to navigate complex indoor and outdoor environments. It provides a traversable, motion constraint compliant, and collision free trajectory. It is highly customizable and can be used for any type of terrestrial robot.
+Navigation of autonomous mobile robots is a complex problem which comprises of multiple software components, each performing a specific task, which when combined form the navigation software architecture. Ugv_nav4d can be used to navigate complex indoor and outdoor environments. It provides a traversable, motion constraint compliant, and collision free trajectory. It is highly customizable and can be used for any type of terrestrial robot.
 
-To find a traversable trajectory, ugv_nav4d internally maintains a traversability map (TraversabilityMap3d) of the environment. The TraversabilityMap3d [@slammaps] is generated based on a multi-layered surface map (MLSMap [@slammaps]), which enables ugv_nav4d to plan trajectories in multi-surface environments. The trajectory is composed by careful selection and piecing together of motion primitives from a pool of primitives. The primitives are generated based on the specific mechnical features of the robot. As a result, the planned trajectory always fits well with the motion capabilites of the robot. 
+To find a traversable trajectory, ugv_nav4d internally maintains a 3D Traversability Map (TraversabilityMap3d) of the environment. The TraversabilityMap3d [@slammaps] is generated based on a multi-layered surface map (MLS [@mlsmaps], [@slammaps]), which enables ugv_nav4d to plan trajectories in multi-surface environments. The trajectory is composed by careful selection and piecing together of motion primitives from a pool of primitives. The primitives are generated based on the specific mechnical features of the robot. As a result, the planned trajectory always fits well with the motion capabilites of the robot. 
 
 In short, ugv_nav4d
 
@@ -37,9 +37,29 @@ In short, ugv_nav4d
 ![Planned trajectory in a multi-storey environment.](figures/parking_deck.png){width="300pt"}
 
 # Statement of need
-- General purpose path planner is needed which can support any type of terrestrial mobile robot system e.g. Differential Drive, Omni-directional, Ackermann Drive etc. 
-- Capability to plan in a multi-surface unstructured (e.g. natural cave system) and structured (e.g. office, garage) environments.
 
+The ROS navigation stack [@ros2] is undoubtedly the most used open-source robotics framework. This claim can be backed by its widespread usage in research and industry. Navigation2 (nav2) [@macenski2020nav2] is the newest navigation system which is based on the legacy of ROS Navigation. In this paper, we propose a new, fully open-source robot navigation library called ugv_nav4d. Ugv_nav4d presents significant improvements over nav2, particularly in environmental representation and navigation in complex, uneven terrains and multistorey environments. By utilizing Multi-Layered Surface Maps [@mlsmaps] and a 3D Traversability Map [@slammaps], ugv_nav4d offers a more detailed and accurate navigation solution for ground vehicles. These capabilities are essential for operations in challenging terrains and address critical needs within the robotics community. The ongoing development of a ROS2 wrapper for ugv_nav4d aims to facilitate its adoption and integration within the ROS2 ecosystem, providing substantial benefits to the community and enhancing the capabilities of ground vehicle navigation.
+
+### Environment Representation and Mapping Techniques
+Nav2 primarily supports 2D occupancy grid maps, where the environment is discretized into a grid of cells marked as occupied or free. This method is suitable for flat, two-dimensional environments but is inadequate for complex and uneven terrains. For 3D mapping, nav2 utilizes voxel maps, which discretize the environment along the x, y, and z axes. While voxel maps are effective for aerial and underwater navigation due to their capacity to represent non-ground obstacles, they introduce steps on sloped surfaces, which can hinder smooth ground vehicle navigation.
+
+In contrast, ugv_nav4d employs Multi-Layered Surface Maps (MLS), representing the environment with a grid in the x and y coordinates while avoiding discretization in the z axis. Each cell contains a list of blocks defined by start and stop heights, with the top of these blocks capable of having a slope value. This method ensures a smooth surface representation, making it highly suitable for navigating uneven ground. The MLS approach eliminates the stepping effect seen in voxel maps, providing a continuous and detailed representation of ground surfaces, including slopes and varying heights.
+
+### Multistorey Navigation Capabilities
+In multistorey environments, nav2 would require separate costmaps for each floor, which complicates the navigation process. In contrast, the planner in ugv_nav4d maintains a single 3D Traversability Map, enabling efficient long-distance planning in environments with distinct elevation levels, such as multistorey buildings or terrains with significant height variations. This approach simplifies navigation without the need for multiple costmaps.
+
+### Traversability Analysis
+Ugv_nav4d includes detailed ground surface information, such as slope and plane models, in each cell of the traversability map. This can be seen as an advanced alternative to the combination of 3D costmaps and gradient maps in nav2, providing higher accuracy and efficiency.
+
+### Suitability for Different Applications
+The voxel maps used by nav2 are more suitable for applications where non-ground obstacles are significant, such as in aerial or underwater navigation. Conversely, the MLS approach in ugv_nav4d, with its smooth surface representation and detailed ground information, is superior for ground vehicle navigation in uneven terrain. This additional accuracy is crucial for effectively handling complex surfaces.
+
+### Visualization Differences
+From a user perspective, the visualization of MLS and voxel maps differs significantly. Voxel maps create a blocky representation of the environment, where objects and surfaces are represented by stacked cubes. This can lead to a staircase effect on sloped surfaces, which may not accurately reflect the true nature of the terrain. This visualization is more suitable for scenarios where the focus is on the presence and absence of obstacles, such as in aerial or underwater navigation. On the other hand, MLS maps provide a smoother and more continuous representation of the environment. The lack of discretization in the z-axis allows for a more accurate depiction of slopes and uneven ground surfaces. This results in a more intuitive and realistic visualization for ground vehicle navigation, where the detailed surface information, such as slope and plane models, is critical for planning and decision-making. The smoother surface representation of MLS maps enhances the user’s ability to understand and interpret the terrain, leading to better navigation outcomes.
+
+### Dynamic Environments
+The Spatio-Temporal Voxel Layer (STVL) in nav2 is based on 3D voxel grid and supports navigation in dynamic environments. However, as explained earlier, ugv_nav4d maintains a Traversability Map based on the user provided MLS. It is usual practice that only the static environment is mapped in the MLS. As a consequence, the dynamic obstacles will not be taken into consideration during the planning phase of ugv_nav4d. Therefore, ugv_nav4d is suitable for static environments. We are working on various approaches to make it capable of working in dynamic environments.
+ 
 # Software Components 
 The core software components are 
 
