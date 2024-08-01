@@ -9,4 +9,4 @@ build/
 */install/*
 source_dependencies/env.sh
 *.bin
-
+*.ply
