@@ -19,7 +19,7 @@
   <depend package="planning/sbpl" />
   <depend package="planning/sbpl_spline_primitives" />
   <depend package="planning/traversability_generator3d" />
-  <depend package="gui/vizkit3d_debug_drawings" />
+  <depend package="gui/vizkit3d_debug_drawings" optional="1"/>
   <depend package="control/trajectory_follower" />
   <depend package="google-test" />
 

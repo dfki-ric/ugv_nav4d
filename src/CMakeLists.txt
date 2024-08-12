@@ -8,7 +8,19 @@ if(OPENMP_FOUND)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
+set(DEPS_PKGCONFIG_LIST
+	base-types
+	sbpl
+	sbpl_spline_primitives
+	traversability_generator3d
+	trajectory_follower
+)
+
 if (ROCK_QT_VERSION_4)
+	if (ENABLE_DEBUG_DRAWINGS)
+		list(APPEND DEPS_PKGCONFIG_LIST vizkit3d_debug_drawings)
+	endif()
+
 	rock_library(ugv_nav4d
 	    SOURCES
 		DiscreteTheta.cpp
@@ -31,16 +43,15 @@ if (ROCK_QT_VERSION_4)
 		Dijkstra.hpp
 		ObstacleMapGenerator3D.hpp
 	    DEPS_PKGCONFIG
-		base-types
-		sbpl
-		sbpl_spline_primitives
-		traversability_generator3d
-		vizkit3d_debug_drawings
-		trajectory_follower
+		${DEPS_PKGCONFIG_LIST}
 	)
 endif()
 
 if (ROCK_QT_VERSION_5)
+	if (ENABLE_DEBUG_DRAWINGS)
+		list(APPEND DEPS_PKGCONFIG_LIST vizkit3d_debug_drawings-qt5)
+	endif()
+
 	rock_library(ugv_nav4d-qt5
 	    SOURCES 
 		DiscreteTheta.cpp
@@ -63,12 +74,7 @@ if (ROCK_QT_VERSION_5)
 		Dijkstra.hpp
 		ObstacleMapGenerator3D.hpp
 	    DEPS_PKGCONFIG 
-		base-types 
-		sbpl
-		sbpl_spline_primitives
-		traversability_generator3d
-		vizkit3d_debug_drawings-qt5
-		trajectory_follower
+		${DEPS_PKGCONFIG_LIST}
 	)
 endif()
 
