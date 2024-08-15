@@ -14,8 +14,6 @@
 using namespace maps::grid;
 using trajectory_follower::SubTrajectory;
 
-//#define ENABLE_V3DD_DRAWINGS
-
 namespace ugv_nav4d
 {
 
@@ -142,7 +140,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
 
     LOG_INFO_S << "Planning with " << plannerConfig.numThreads << " threads";
     omp_set_num_threads(plannerConfig.numThreads);
-#ifdef ENABLE_V3DD_DRAWINGS
+#ifdef ENABLE_DEBUG_DRAWINGS
     V3DD::CLEAR_DRAWING("ugv_nav4d_successors");
 #endif
     if(!env)

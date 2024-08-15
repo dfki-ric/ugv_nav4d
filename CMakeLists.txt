@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(ENABLE_DEBUG_DRAWINGS)
     message(STATUS "ENABLE_DEBUG_DRAWINGS is defined with value: ${ENABLE_DEBUG_DRAWINGS}")
-    add_definitions(-DENABLE_DEBUG_DRAWINGS=${ENABLE_DEBUG_DRAWINGS})
+    add_definitions(-DENABLE_DEBUG_DRAWINGS)
 else()
     message(STATUS "ENABLE_DEBUG_DRAWINGS is set to OFF. Skipped!")
 endif()
