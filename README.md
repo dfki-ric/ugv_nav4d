@@ -29,15 +29,15 @@ git clone https://github.com/dfki-ric/ugv_nav4d.git
 ```
 
 #### Automatic Install of Dependencies & Build
-Install dependencies automatically when building ugv_nav4d. Defining `-DINSTALL_DEPS=ON` for cmake, builds and installs the source dependencies automatically. When `-DCMAKE_INSTALL_PREFIX` is used, the dependencies are also installed there.
+Install dependencies automatically when building ugv_nav4d. Defining `-DINSTALL_DEPS=ON` for cmake, builds and installs the source dependencies automatically. When `-DCMAKE_INSTALL_PREFIX` is used, the dependencies are also installed there. The install script generates an env.sh file in the `CMAKE_INSTALL_PREFIX` folder. It exports all neccessary environment variables.
 
 ```
 cd ugv_nav4d
 mkdir build && cd build
 cmake -DINSTALL_DEPS=ON -DCMAKE_INSTALL_PREFIX=./install ..
 make -j install
+source install/env.sh
 ```
-The install script generates an env.sh file in the `CMAKE_INSTALL_PREFIX` folder. If you did not install system wide, source this file before building and running code. It exports all neccessary environment variables.
 
 #### Manual Installation of Dependencies & Build 
 
@@ -64,7 +64,6 @@ make -j install
 #### Compiling inside a ROCK environment [Only for ROCK users] 
 See the `manifest.xml` for an up to date list of dependencies. If you are ROCK user then include the package_set which contains the ```dfki-ric/orogen-ugv_nav4d``` package in your autoproj manifest file.
 
-
 #### Generate API Documentation
 The API documentation is generated based on doxygen. You do not need to install doxygen because it is installed as part of the ```install_os_dependencies.bash``` script used in the previous step.
 
@@ -79,11 +78,12 @@ make doc
 
 Source the `env.sh` in the install folder.
 
-At first, let us start the GUI.
+At first, get the test point cloud maps and start the GUI.
 ```
 cd ..
+git lfs pull
 source build/install/env.sh
-ugv_nav4d_bin test_data/parking_deck.ply 0.3
+ugv_nav4d_bin-qt5 test_data/parking_deck.ply 0.3
 ```
 ![PlannerGui](doc/figures/planner_gui.png)
 
