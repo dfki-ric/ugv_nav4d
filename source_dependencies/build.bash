@@ -22,7 +22,7 @@ INSTALLPATH=$(realpath $1)
 mkdir -p build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=${INSTALLPATH} ..
-make -j install
+make install
 
 if [[ $1 = .* ]]; then
     echo

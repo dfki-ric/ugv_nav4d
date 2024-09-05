@@ -35,7 +35,7 @@ Install dependencies automatically when building ugv_nav4d. Defining `-DINSTALL_
 cd ugv_nav4d
 mkdir build && cd build
 cmake -DINSTALL_DEPS=ON -DCMAKE_INSTALL_PREFIX=./install ..
-make -j install
+make install
 source install/env.sh
 ```
 
@@ -58,7 +58,7 @@ After all dependencies have been installed. Go back to the main folder to build 
 cd ../build
 source install/env.sh
 cmake -DCMAKE_INSTALL_PREFIX=./install -DTESTS_ENABLED=OFF -DENABLE_DEBUG_DRAWINGS=OFF -DCMAKE_BUILD_TYPE=RELEASE ..
-make -j install
+make install
 ```
 
 #### Compiling inside a ROCK environment [Only for ROCK users] 
@@ -104,7 +104,7 @@ Build the library again but this time enable the `-DTESTS_ENABLED=ON`
 ```
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=./install -DTESTS_ENABLED=ON -DENABLE_DEBUG_DRAWINGS=OFF -DCMAKE_BUILD_TYPE=RELEASE ..
-make -j install
+make install
 ```
 Run the unit tests using the executable
 ```
