@@ -292,8 +292,8 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     splineConfig.numEndAngles = 21;
     splineConfig.destinationCircleRadius = 10;
     splineConfig.cellSkipFactor = 3.0;
-    splineConfig.generatePointTurnMotions = false;
-    splineConfig.generateLateralMotions = false;
+    splineConfig.generatePointTurnMotions = true;
+    splineConfig.generateLateralMotions = true;
     splineConfig.generateBackwardMotions = true;
     splineConfig.generateForwardMotions = true;
     splineConfig.splineOrder = 4;
