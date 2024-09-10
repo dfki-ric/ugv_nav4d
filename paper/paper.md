@@ -45,7 +45,7 @@ The core software components of the planner are
 ### EnvironmentXYZTheta 
 The core of ugv_nav4d is based on SBPL (Search-Based Planning Library) [@sbpl]. The EnvironmentXYZTheta implements all interfaces needed by SBPL to enable ARA* based planning. The environment in SBPL is a state space which connects states with associated transition costs. A state is defined by the position (x,y,z) and orientation (yaw) of the robot. The EnvironmentXYZTheta uses a TraversabilityGenerator3d [@travgen3d] to generate a TraversabilityMap3d from a MLSMap, which classifies the MLSMap patches into traversable, non-traversable, and unknown terrain and stores meta data of the ground surface (e.g., slope of the patch, supporting plane, etc.). 
 
-![The Moon Crater and its TraversabilityMap3d in the Space Hall at the RIC, DFKI [@roboticsElab]\label{fig:crater}.](figures/trav_map_and_space_hall.png){width="400" height="300pt"}
+![The Moon Crater and its TraversabilityMap3d in the Space Hall at the RIC, DFKI [@roboticsElab]\label{fig:crater}.](figures/trav_map_and_space_hall.png){width="300pt"}
 
 ### PathPlanner
 The search for the shortest path in ugv_nav4d is based on the SBPL-provided ARA* planner. It builds a state space of future robot states and uses a time heuristic to compute the shortest path on the TraversabilityMap3D. Robot and terrain-specific information, including robot dimensions and orientations, collision checks with obstacles, terrain steepness, and motion primitives are incorporated as additional costs in the search for the successive states. The planner generates a complete trajectory for the planned path, which can then be executed by a trajectory follower [@trajectoryfollower].
@@ -69,5 +69,7 @@ ugv_nav4d has been used extensively in research projects for almost a decade. It
 
 # Acknowledgements 
 The ugv_nav4d library was initiated and is currently developed at the Robotics Innovation Center of the German Research Center for Artificial Intelligence (DFKI) in Bremen, together with the Robotics Group of the University of Bremen. The development was started in the scope of the Entern project (50RA1406), which has been funded by the German Aerospace Center (DLR) with funds from the German Federal Ministry for Economic Affairs and Climate Action (BMWK). 
+
+We would also like to acknowledge the contributors of the ugv_nav4d repository, including the developers visible on the project's GitHub contributors page, for their valuable efforts and dedication. 
 
 # References
