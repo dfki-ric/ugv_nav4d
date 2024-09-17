@@ -1,0 +1,9 @@
+<map id="ugv_nav4d::EnvironmentXYZTheta::updateMap" name="ugv_nav4d::EnvironmentXYZTheta::updateMap">
+<area shape="rect" id="node1" title=" " alt="" coords="5,39,252,80"/>
+<area shape="rect" id="node2" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a555ad865da1117a474b36568f956b863" title=" " alt="" coords="300,5,547,47"/>
+<area shape="rect" id="node3" href="$classugv__nav4d_1_1PreComputedMotions.html#adcb702379aa846632ef268a7819b14e7" title=" " alt="" coords="303,71,544,112"/>
+<area shape="rect" id="node4" href="$classugv__nav4d_1_1PreComputedMotions.html#a5b2526f135a3a4037a475d3cf5b5eb2d" title=" " alt="" coords="595,71,836,112"/>
+<area shape="rect" id="node5" href="$classugv__nav4d_1_1PreComputedMotions.html#a46dc536b67a45f6d1e200345011d4aa3" title=" " alt="" coords="884,37,1125,79"/>
+<area shape="rect" id="node6" href="$classugv__nav4d_1_1PreComputedMotions.html#a1aff030f275e3e31a51aff3cfabd8a67" title=" " alt="" coords="884,103,1125,144"/>
+<area shape="rect" id="node7" href="$classDiscreteTheta.html#ad4b8e50f0d9cf1e765dd57a9c4e51ae7" title=" " alt="" coords="1173,110,1352,137"/>
+</map>
