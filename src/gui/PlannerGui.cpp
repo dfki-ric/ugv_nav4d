@@ -389,25 +389,24 @@ void PlannerGui::loadMls(const std::string& path)
         {
             pcl::PointXYZ mi, ma; 
             pcl::getMinMax3D (*cloud, mi, ma); 
-
-            //transform point cloud to zero (instead we could also use MlsMap::translate later but that seems to be broken?)
-            Eigen::Affine3f pclTf = Eigen::Affine3f::Identity();
-            pclTf.translation() << -mi.x, -mi.y, -mi.z;
-            pcl::transformPointCloud (*cloud, *cloud, pclTf);
-            
-            pcl::getMinMax3D (*cloud, mi, ma); 
             LOG_INFO_S << "MIN: " << mi << ", MAX: " << ma;
-        
+
             const double mls_res = travConfig.gridResolution;
-            const double size_x = ma.x;
-            const double size_y = ma.y;
-            
-            const maps::grid::Vector2ui numCells(size_x / mls_res + 1, size_y / mls_res + 1);
-            LOG_INFO_S << "NUM CELLS: " << numCells;
-            
+            const double size_x = ma.x - mi.x;
+            const double size_y = ma.y - mi.y;
+
+            const maps::grid::Vector2ui numCells(size_x / mls_res + 2, size_y / mls_res + 2);
+            LOG_INFO_S << "NUM CELLS: " << numCells.transpose();
+
             maps::grid::MLSConfig cfg;
             cfg.gapSize = 0.1;
+            const maps::grid::Vector2d mapSize(numCells[0]*mls_res, numCells[1]*mls_res);
+            const maps::grid::Vector3d offset(mi.x-0.5*mls_res, mi.y-0.5*mls_res, 0);
+            LOG_DEBUG_S << "Range(x): [" << offset[0] << "; " << mapSize[0]+offset[0] << "], "
+            << "Range(y): [" << offset[1] << "; " << mapSize[1]+offset[1] << "]\n";
+
             mlsMap = maps::grid::MLSMapSloped(numCells, maps::grid::Vector2d(mls_res, mls_res), cfg);
+            mlsMap.translate(offset);
             mlsMap.mergePointCloud(*cloud, base::Transform3d::Identity());
             mlsViz.updateMLSSloped(mlsMap);
             planner->updateMap(mlsMap);
