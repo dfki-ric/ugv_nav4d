@@ -1,4 +1,7 @@
 find_package(PCL 1.7 REQUIRED COMPONENTS common io)
+IF("${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}" VERSION_LESS 1.14)
+    SET(PCL_VERSION_SUFFIX "-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}")
+ENDIF()
 
 if(ROCK_QT_VERSION_4)
     rock_library(ugv_nav4d_gui
@@ -16,8 +19,8 @@ if(ROCK_QT_VERSION_4)
                        sbpl_spline_primitives-viz
                        base-types
                        trajectory_follower-viz
-                       pcl_common-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
-                       pcl_io-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
+                       pcl_common${PCL_VERSION_SUFFIX}
+                       pcl_io${PCL_VERSION_SUFFIX}
     )
 
     rock_executable(ugv_nav4d_bin
@@ -51,8 +54,8 @@ if(ROCK_QT_VERSION_5)
                        sbpl_spline_primitives-viz-qt5
                        base-types
                        trajectory_follower-viz-qt5
-                       pcl_common-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
-                       pcl_io-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
+                       pcl_common${PCL_VERSION_SUFFIX}
+                       pcl_io${PCL_VERSION_SUFFIX}
     )
 
     rock_executable(ugv_nav4d_bin-qt5
