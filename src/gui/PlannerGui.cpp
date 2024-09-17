@@ -70,6 +70,9 @@ void PlannerGui::setupUI()
     trav3dViz.setPluginName("TravMap");
     obstacleMapViz.setPluginName("ObstacleMap");
     
+    startViz.setPluginName("Start Pose");
+    goalViz.setPluginName("Goal Pose");
+
     widget->setCameraManipulator(vizkit3d::ORBIT_MANIPULATOR);
     widget->addPlugin(&splineViz);
     widget->addPlugin(&trajViz);
@@ -82,19 +85,26 @@ void PlannerGui::setupUI()
     widget->addPlugin(&gridViz);
     
     splineViz.setPluginEnabled(false);
+    splineViz.setPluginName("Splines");
+
     gridViz.setPluginEnabled(true);
-    
+    gridViz.setPluginName("Grid");
+
     mlsViz.setCycleHeightColor(true);
     mlsViz.setShowPatchExtents(false); 
     mlsViz.setShowNormals(false);
+    mlsViz.setPluginName("MLSMap");
     
     trajViz.setLineWidth(5);
     trajViz.setColor(QColor("Cyan"));
+    trajViz.setPluginEnabled(false);
+    trajViz.setPluginName("Trajectory 2D");
+
     trajViz2.setLineWidth(5);
     trajViz2.setColor(QColor("magenta"));
-        
+    trajViz2.setPluginName("Trajectory 3D");
+
     QVBoxLayout* layout = new QVBoxLayout();
-    
        
     layout->addWidget(widget);
     
