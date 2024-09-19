@@ -78,12 +78,12 @@ make doc
 
 Source the `env.sh` in the install folder.
 
-At first, get the test point cloud maps and start the GUI.
+At first, get the test point cloud map and start the GUI.
 ```
 cd ..
-git lfs pull
 source build/install/env.sh
-ugv_nav4d_bin-qt5 test_data/parking_deck.ply 0.3
+wget https://zenodo.org/record/13789320/files/parking_deck.ply
+ugv_nav4d_bin-qt5 parking_deck.ply 0.3
 ```
 ![PlannerGui](doc/figures/planner_gui.png)
 
