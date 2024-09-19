@@ -87,7 +87,7 @@ void PlannerGui::setupUI()
     splineViz.setPluginEnabled(false);
     splineViz.setPluginName("Splines");
 
-    gridViz.setPluginEnabled(true);
+    gridViz.setPluginEnabled(false);
     gridViz.setPluginName("Grid");
 
     mlsViz.setCycleHeightColor(true);
@@ -128,7 +128,7 @@ void PlannerGui::setupUI()
     time->setMaximum(9999999);
     time->setValue(14);
     QLabel* lab2 = new QLabel();
-    lab2->setText("Max processor time:");
+    lab2->setText("Max processor time (seconds)");
     timeLayout->addWidget(lab2);
     timeLayout->addWidget(time);
     timeLayout->addWidget(time);
