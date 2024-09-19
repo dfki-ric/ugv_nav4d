@@ -91,10 +91,10 @@ Generate API Documentation</h4>
 </div><!-- fragment --><h4><a class="anchor" id="autotoc_md8"></a>
 GUI Usage &amp; Tests</h4>
 <p>Source the <code>env.sh</code> in the install folder.</p>
-<p>At first, get the test point cloud maps and start the GUI. </p><div class="fragment"><div class="line">cd ..</div>
-<div class="line">git lfs pull</div>
+<p>At first, get the test point cloud map and start the GUI. </p><div class="fragment"><div class="line">cd ..</div>
 <div class="line">source build/install/env.sh</div>
-<div class="line">ugv_nav4d_bin-qt5 test_data/parking_deck.ply 0.3</div>
+<div class="line">wget https://zenodo.org/record/13789320/files/parking_deck.ply</div>
+<div class="line">ugv_nav4d_bin-qt5 parking_deck.ply 0.3</div>
 </div><!-- fragment --><p> <img src="doc/figures/planner_gui.png" alt="PlannerGui" class="inline"/></p>
 <p>A basic GUI is loaded with the Multi-layer Surface Map of a parking deck environment. Use the mouse left-click to select a start position and the mouse right-click to select the goal position. The sliders can be used to changed the orientations of start and goal positions. Click on the button <code>Plan</code> to plan a path.</p>
 <p><img src="doc/figures/planner_gui_result.png" alt="PlannerGuiResult" class="inline"/></p>
