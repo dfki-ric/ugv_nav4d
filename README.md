@@ -10,6 +10,13 @@ A 4D (X,Y,Z, Theta) Planner for unmaned ground vehicles (UGVs).
 <img src="doc/figures/ugv_nav4d_logo.jpeg" height= "200" width="200"/>
 </figure>
 
+## Statement of need
+Accurate ground surface representation is crucial for ground-based robots in complex terrains. The [ROS2 Navigation Stack](https://docs.nav2.org/), which uses voxel maps for 3D navigation, often loses detail and accuracy, especially in multi-storey environments, due to its discrete voxelization and separate costmaps for each floor.
+
+We propose ugv_nav4d, a path planner that enhances environmental representation with [Multi-Layered Surface Maps](https://github.com/envire/slam-maps) (MLS) and a 3D [Traversability Map](https://github.com/dfki-ric/traversability_generator3d.git). Ugv_nav4d avoids the "stepping" effect of voxel maps by using a continuous grid and detailed vertical information, providing smoother and more accurate terrain modeling.
+
+Unlike nav2, ugv_nav4d simplifies planning with a single TraversabilityMap3D, which contains detailed ground surface data, offering a superior alternative to nav2’s 3D costmaps. For users, MLS maps provide a smoother, more realistic view of terrain compared to the blocky voxel maps, enhancing navigation and decision-making in complex environments.
+
 ## Installation
 
 Follow the steps to peform a standalone build of the library.
@@ -17,7 +24,7 @@ Follow the steps to peform a standalone build of the library.
 ### System Requirements
 
 ```
-OS: Ubuntu 20.04, Ubuntu 22.04 (Recommended)
+OS: Ubuntu 20.04, Ubuntu 22.04, Ubuntu 24.04
 
 ```
 See [install_os_dependencies.bash](source_dependencies/install_os_dependencies.bash) for further os dependencies.
@@ -64,15 +71,8 @@ make install
 #### Compiling inside a ROCK environment [Only for ROCK users] 
 See the `manifest.xml` for an up to date list of dependencies. If you are ROCK user then include the package_set which contains the ```dfki-ric/orogen-ugv_nav4d``` package in your autoproj manifest file.
 
-#### Generate API Documentation
-The API documentation is generated based on doxygen. You do not need to install doxygen because it is installed as part of the ```install_os_dependencies.bash``` script used in the previous step.
-
-You just need to run the ```make doc``` command in the ugv_nav4d build folder. The doxygen documentation will be automatically generated in the ```build/doc``` folder.
-
-```
-cd build/
-make doc
-```
+#### API Documentation
+The API documentation can be found at https://dfki-ric.github.io/ugv_nav4d/
 
 #### GUI Usage & Tests
 
@@ -122,8 +122,6 @@ At the end you should see the output
 ## Implementation Details
 ### Planning
 The planner is based on SBPL (http://www.sbpl.net/). I.e. it uses the SBPLs ARA* planner to plan in a custom environment.
-
-TODO parallellism
 
 #### Environment
 SBPL internally uses states (identified by an id only) and associated costs (a unitless integer). The state ids reference states of an environment. That environment has to be defined by the user.
