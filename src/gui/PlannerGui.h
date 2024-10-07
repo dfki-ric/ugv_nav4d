@@ -74,6 +74,8 @@ private:
     void startPlanThread();
     
 private:
+
+    bool planning;
     vizkit3d::Vizkit3DWidget* widget;
     QDoubleSpinBox* maxSlopeSpinBox;
     QDoubleSpinBox* slopeMetricScaleSpinBox;

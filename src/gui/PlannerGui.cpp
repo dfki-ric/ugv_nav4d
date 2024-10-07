@@ -46,8 +46,8 @@ PlannerGui::PlannerGui(const std::string& dumpName): QObject()
     goalViz.updateData(dump.getGoal());
 
     planner->updateMap(dump.getMlsMap());
-    
-    startPlanThread();
+
+    planning = false;
 }
 
 
@@ -579,6 +579,11 @@ void PlannerGui::replanButtonReleased()
 
 void PlannerGui::startPlanThread()
 {
+
+    if (planning){
+        return;
+    }
+
     bar->setMaximum(0);
     std::thread t([this](){
 #ifdef ENABLE_DEBUG_DRAWINGS
@@ -597,8 +602,6 @@ void PlannerGui::plannerIsDone()
 
     trajViz2.updateData(beautifiedPath);
     trajViz2.setLineWidth(8);    
-    
-    
     
     trav3dViz.updateData((planner->getTraversabilityMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
     obstacleMapViz.updateData((planner->getObstacleMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
@@ -638,9 +641,11 @@ void PlannerGui::plan(const base::Pose& start, const base::Pose& goal)
     endState.orientation = goal.orientation;
 
     LOG_INFO_S << "Planning: " << start << " -> " << goal;
+    planning = true;
     const Planner::PLANNING_RESULT result = planner->plan(base::Time::fromSeconds(time->value()),
                                             startState, endState, path, beautifiedPath);
     
+    planning = false;
     switch(result)
     {
         case Planner::GOAL_INVALID:
