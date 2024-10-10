@@ -120,52 +120,54 @@ $(function() {
 <div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;    <span class="keywordtype">void</span> startPlanThread();</div>
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    </div>
 <div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    vizkit3d::Vizkit3DWidget* widget;</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;    QDoubleSpinBox* maxSlopeSpinBox;</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    QDoubleSpinBox* slopeMetricScaleSpinBox;</div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    QDoubleSpinBox* time;</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    QDoubleSpinBox* inclineLimittingMinSlopeSpinBox;</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    QDoubleSpinBox* inclineLimittingLimitSpinBox;</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;    QSlider* startOrientatationSlider;</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    QSlider* goalOrientationSlider;</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;    QDoubleSpinBox* obstacleDistanceSpinBox;</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;    QDoubleSpinBox* obstacleFactorSpinBox;</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;    QComboBox* slopeMetricComboBox;</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    QComboBox* heuristicComboBox;</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    QSpinBox* numThreadsSpinBox;</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    QProgressBar* bar;</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    QWidget window;</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    vizkit3d::SbplSplineVisualization splineViz;</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    vizkit3d::SubTrajectoryVisualization trajViz;</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    vizkit3d::SubTrajectoryVisualization trajViz2;</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    vizkit3d::MLSMapVisualization mlsViz;</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    vizkit3d::TraversabilityMap3dVisualization trav3dViz;</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;    vizkit3d::TraversabilityMap3dVisualization obstacleMapViz;</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;    vizkit3d::RigidBodyStateVisualization startViz;</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;    vizkit3d::RigidBodyStateVisualization goalViz;</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    vizkit3d::GridVisualization gridViz;</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    maps::grid::MLSMapSloped mlsMap;</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    base::Pose start;</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;    base::Pose goal;</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;    <span class="keywordtype">bool</span> pickStart = <span class="keyword">true</span>;</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;    <span class="keywordtype">bool</span> startPicked = <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;    <span class="keywordtype">bool</span> goalPicked = <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    <span class="keywordtype">bool</span> threadRunning = <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    sbpl_spline_primitives::SplinePrimitivesConfig splineConfig;</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    <a class="code" href="structugv__nav4d_1_1Mobility.html">ugv_nav4d::Mobility</a> mobilityConfig;</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    traversability_generator3d::TraversabilityConfig travConfig;</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;    <a class="code" href="structugv__nav4d_1_1PlannerConfig.html">ugv_nav4d::PlannerConfig</a> plannerConfig;</div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;    std::shared_ptr&lt;ugv_nav4d::Planner&gt; planner; <span class="comment">//is pointer cause of lazy init</span></div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;    std::vector&lt;trajectory_follower::SubTrajectory&gt; path;</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    std::vector&lt;trajectory_follower::SubTrajectory&gt; beautifiedPath;</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    </div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;};</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160; </div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;    <span class="keywordtype">bool</span> planning;</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    vizkit3d::Vizkit3DWidget* widget;</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    QDoubleSpinBox* maxSlopeSpinBox;</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    QDoubleSpinBox* slopeMetricScaleSpinBox;</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    QDoubleSpinBox* time;</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;    QDoubleSpinBox* inclineLimittingMinSlopeSpinBox;</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    QDoubleSpinBox* inclineLimittingLimitSpinBox;</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;    QSlider* startOrientatationSlider;</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;    QSlider* goalOrientationSlider;</div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;    QDoubleSpinBox* obstacleDistanceSpinBox;</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    QDoubleSpinBox* obstacleFactorSpinBox;</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    QComboBox* slopeMetricComboBox;</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    QComboBox* heuristicComboBox;</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    QSpinBox* numThreadsSpinBox;</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    QProgressBar* bar;</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    QWidget window;</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    vizkit3d::SbplSplineVisualization splineViz;</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    vizkit3d::SubTrajectoryVisualization trajViz;</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    vizkit3d::SubTrajectoryVisualization trajViz2;</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;    vizkit3d::MLSMapVisualization mlsViz;</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;    vizkit3d::TraversabilityMap3dVisualization trav3dViz;</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;    vizkit3d::TraversabilityMap3dVisualization obstacleMapViz;</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    vizkit3d::RigidBodyStateVisualization startViz;</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    vizkit3d::RigidBodyStateVisualization goalViz;</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    vizkit3d::GridVisualization gridViz;</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;    maps::grid::MLSMapSloped mlsMap;</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;    base::Pose start;</div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;    base::Pose goal;</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;    <span class="keywordtype">bool</span> pickStart = <span class="keyword">true</span>;</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    <span class="keywordtype">bool</span> startPicked = <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    <span class="keywordtype">bool</span> goalPicked = <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    <span class="keywordtype">bool</span> threadRunning = <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    sbpl_spline_primitives::SplinePrimitivesConfig splineConfig;</div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;    <a class="code" href="structugv__nav4d_1_1Mobility.html">ugv_nav4d::Mobility</a> mobilityConfig;</div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;    traversability_generator3d::TraversabilityConfig travConfig;</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;    <a class="code" href="structugv__nav4d_1_1PlannerConfig.html">ugv_nav4d::PlannerConfig</a> plannerConfig;</div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    std::shared_ptr&lt;ugv_nav4d::Planner&gt; planner; <span class="comment">//is pointer cause of lazy init</span></div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    std::vector&lt;trajectory_follower::SubTrajectory&gt; path;</div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;    std::vector&lt;trajectory_follower::SubTrajectory&gt; beautifiedPath;</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    </div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;};</div>
 <div class="ttc" id="aclassPlannerGui_html"><div class="ttname"><a href="classPlannerGui.html">PlannerGui</a></div><div class="ttdef"><b>Definition:</b> PlannerGui.h:31</div></div>
 <div class="ttc" id="aclassPlannerGui_html_a3c956386d0dbf45a2b3a6153f8627082"><div class="ttname"><a href="classPlannerGui.html#a3c956386d0dbf45a2b3a6153f8627082">PlannerGui::show</a></div><div class="ttdeci">void show()</div><div class="ttdef"><b>Definition:</b> PlannerGui.cpp:488</div></div>
 <div class="ttc" id="aclassPlannerGui_html_a441b92a43e9159ea425c478d9e2dfb59"><div class="ttname"><a href="classPlannerGui.html#a441b92a43e9159ea425c478d9e2dfb59">PlannerGui::PlannerGui</a></div><div class="ttdeci">PlannerGui(int argc, char **argv)</div><div class="ttdef"><b>Definition:</b> PlannerGui.cpp:54</div></div>
 <div class="ttc" id="aclassPlannerGui_html_a4e26f24ace510a0f8595ce39d2c1fbcc"><div class="ttname"><a href="classPlannerGui.html#a4e26f24ace510a0f8595ce39d2c1fbcc">PlannerGui::plannerDone</a></div><div class="ttdeci">void plannerDone()</div></div>
-<div class="ttc" id="aclassPlannerGui_html_a501a6c566dc149b427ff98df0998cb9b"><div class="ttname"><a href="classPlannerGui.html#a501a6c566dc149b427ff98df0998cb9b">PlannerGui::plannerIsDone</a></div><div class="ttdeci">void plannerIsDone()</div><div class="ttdef"><b>Definition:</b> PlannerGui.cpp:593</div></div>
-<div class="ttc" id="aclassPlannerGui_html_ae3f65772ce87041cec0b1f7b46752216"><div class="ttname"><a href="classPlannerGui.html#ae3f65772ce87041cec0b1f7b46752216">PlannerGui::plan</a></div><div class="ttdeci">void plan(const base::Pose &amp;start, const base::Pose &amp;goal)</div><div class="ttdef"><b>Definition:</b> PlannerGui.cpp:631</div></div>
+<div class="ttc" id="aclassPlannerGui_html_a501a6c566dc149b427ff98df0998cb9b"><div class="ttname"><a href="classPlannerGui.html#a501a6c566dc149b427ff98df0998cb9b">PlannerGui::plannerIsDone</a></div><div class="ttdeci">void plannerIsDone()</div><div class="ttdef"><b>Definition:</b> PlannerGui.cpp:598</div></div>
+<div class="ttc" id="aclassPlannerGui_html_ae3f65772ce87041cec0b1f7b46752216"><div class="ttname"><a href="classPlannerGui.html#ae3f65772ce87041cec0b1f7b46752216">PlannerGui::plan</a></div><div class="ttdeci">void plan(const base::Pose &amp;start, const base::Pose &amp;goal)</div><div class="ttdef"><b>Definition:</b> PlannerGui.cpp:634</div></div>
 <div class="ttc" id="aclassPlannerGui_html_aef92dcaa62b7498c536186ce8c8ccdb8"><div class="ttname"><a href="classPlannerGui.html#aef92dcaa62b7498c536186ce8c8ccdb8">PlannerGui::picked</a></div><div class="ttdeci">void picked(float x, float y, float z, int buttonMask, int modifierMask)</div><div class="ttdef"><b>Definition:</b> PlannerGui.cpp:446</div></div>
 <div class="ttc" id="anamespacevizkit3d_html"><div class="ttname"><a href="namespacevizkit3d.html">vizkit3d</a></div><div class="ttdef"><b>Definition:</b> PlannerGui.h:26</div></div>
 <div class="ttc" id="astructugv__nav4d_1_1Mobility_html"><div class="ttname"><a href="structugv__nav4d_1_1Mobility.html">ugv_nav4d::Mobility</a></div><div class="ttdef"><b>Definition:</b> Mobility.hpp:12</div></div>
