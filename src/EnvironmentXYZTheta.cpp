@@ -140,7 +140,7 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
     {
         if(!travGen.expandNode(travNode))
         {
-            cout << "createNewStateFromPose: Error: " << name << " Pose " << pos.transpose() << " is not traversable" << endl;
+            LOG_INFO_S << "createNewStateFromPose: Error: " << name << " Pose " << pos.transpose() << " is not traversable";
             return nullptr;
         }
         travNode->setNotExpanded();
@@ -282,8 +282,13 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
         throw ObstacleCheckFailed("goal position is invalid");
     }
 
-    precomputeCost();
-    LOG_INFO_S << "Heuristic computed";
+    try {
+        precomputeCost();
+        LOG_INFO_S << "Heuristic computed";
+    }
+    catch(const std::runtime_error& ex){
+        throw ex;
+    }
     //draw greedy path
 #ifdef ENABLE_DEBUG_DRAWINGS
     V3DD::COMPLEX_DRAWING([&]()
@@ -1197,7 +1202,10 @@ void EnvironmentXYZTheta::precomputeCost()
 
     Dijkstra::computeCost(startXYZNode->getUserData().travNode, costToStart, travConf);
     Dijkstra::computeCost(goalXYZNode->getUserData().travNode, costToEnd, travConf);
-    assert(costToStart.size() == costToEnd.size());
+
+    if (costToStart.size() != costToEnd.size()){
+        throw std::runtime_error("costToStart.size() is not equal to costToEnd.size()");
+    }
 
     //FIXME this should be a config value?!
     const double maxDist = 99999999; //big enough to never occur in reality. Small enough to not cause overflows when used by accident.
