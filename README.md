@@ -126,11 +126,7 @@ This provides instructions for setting up a test environment using **Gazebo Fort
 ## Prerequisites
 
 ### 1. Install ROS2 Humble
-Ensure you have **ROS2 Humble** installed on your system.
-
-```
-sudo apt install ros-humble-desktop-full
-```
+Ensure you have **ROS2 Humble** installed on your system. Follow the official page at [ROS2 Humble Debian Installation](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html)
 
 ### 2. Install Gazebo Fortress
 If you need to install **Gazebo Fortress**, follow the instructions provided on the official page at [Gazebo Installation](https://gazebosim.org/docs/latest/ros_installation/).
@@ -177,7 +173,7 @@ You can use the `Teleop` plugin of Gazebo for sending velocity commands to the r
 
 ![GazeboTeleop](doc/figures/gazebo_teleop.png)
 
-Alternative to the `Teleop` plugin, you can use a joystick for moving the robot. For this, set the argument `use_joystick:=true`. Adjust the values in the folder `/config` for your joystick setup and provide the full paths to the arguments `joy_config_file` and `teleop_twist_config_file` as shown below:
+Alternative to the `Teleop` plugin, you can use a joystick for moving the robot. For this, set the argument `use_joystick:=True`. Adjust the config files in the folder `/config` of the `ros2_humble_gazebo_sim` package from step 3. Provide the full paths to the arguments `joy_config_file` and `teleop_twist_config_file` as shown below:
 
 ```
 ros2 launch start.launch.py use_joystick:=True joy_config_file:=/your_ros2_workspace/ros2_humble_gazebo_sim/simulation/config/joy_config.yaml teleop_twist_config_file:=/your_ros2_workspace/ros2_humble_gazebo_sim/simulation/config/teleop_twist_config.yaml
