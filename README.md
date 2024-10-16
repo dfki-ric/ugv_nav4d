@@ -135,7 +135,10 @@ sudo apt install ros-humble-desktop-full
 ### 2. Install Gazebo Fortress
 If you need to install **Gazebo Fortress**, follow the instructions provided on the official page at [Gazebo Installation](https://gazebosim.org/docs/latest/ros_installation/).
 
-### 3. Get the repos 
+### 3. Install SLAM
+If you have a SLAM package which provides a pointcloud map on a topic then you can skip this step. If not then you can use [lidarslam_ros2](https://github.com/rsasaki0109/lidarslam_ros2). Please follow the build and install instructions from the original repository. Set the parameter `robot_frame_id: "husky/base_link"` for the `scanmatcher` node in [lidarslam.yaml](https://github.com/rsasaki0109/lidarslam_ros2/blob/a63b8fa2485e05251505b2bb209598285106bff2/lidarslam/param/lidarslam.yaml#L4)
+
+### 3. Get ugv_nav4d_ros2 and a test environment for robot husky in gazebo
 
 ```
 mkdir -p your_ros2_workspace/src
@@ -146,6 +149,8 @@ You can clone the repo `ros2_humble_gazebo_sim` anywhere in your system. Here we
 ```
 cd ~/your_ros2_workspace
 git clone https://github.com/dfki-ric/ros2_humble_gazebo_sim.git
+cd ros2_humble_gazebo_sim
+bash install_dependencies.bash
 ```
 ### 4. Husky Configuration
 To ensure that Gazebo can find the robot model, you need to export the following environment variable. Replace /path/to/ with the actual **complete** path where you clone the repository `ros2_humble_gazebo_sim`. Add this command to your terminal:
@@ -154,7 +159,7 @@ export IGN_GAZEBO_RESOURCE_PATH=/path/to/your_ros2_workspace/ros2_humble_gazebo_
 ```
 
 ### 5. Building the ROS 2 Workspace
-Before launching the simulation, build your ROS 2 workspace with the release flag:
+Before launching the simulation, build your ROS 2 workspace:
 
 ```
 cd ~/your_ros2_workspace
@@ -168,16 +173,99 @@ source ~/your_ros2_workspace/install/setup.bash
 cd ~/your_ros2_workspace/ros2_humble_gazebo_sim/simulation
 ros2 launch start.launch.py
 ```
+You can use the `Teleop` plugin of Gazebo for sending velocity commands to the robot. Click on the three dots in top-right corner of Gazebo window and search for `Teleop`. Select the plugin and adjust the values as shown in figure.
 
-In a new terminal, source your workspace, ugv_nav4d library, and launch the ugv_nav4d_ros2. Replace the /path/to/ugv_nav4d with the location of the ugv_nav4d library. Add this command to your terminal:
+![GazeboTeleop](doc/figures/gazebo_teleop.png)
+
+Alternative to the `Teleop` plugin, you can use a joystick for moving the robot. For this, set the argument `use_joystick:=true`. Adjust the values in the folder `/config` for your joystick setup and provide the full paths to the arguments `joy_config_file` and `teleop_twist_config_file` as shown below:
+
+```
+ros2 launch start.launch.py use_joystick:=True joy_config_file:=/your_ros2_workspace/ros2_humble_gazebo_sim/simulation/config/joy_config.yaml teleop_twist_config_file:=/your_ros2_workspace/ros2_humble_gazebo_sim/simulation/config/teleop_twist_config.yaml
+```
+
+Available arguments:
+```
+'robot_name':
+    Options: husky
+    (default: 'husky')
+
+'world_file_name':
+    Options: cave_circuit, urban_circuit_practice_03
+    (default: 'cave_circuit')
+
+'use_joystick':
+    Use a real joystick.
+    (default: 'False')
+
+'joy_config_file':
+    Full path to the joy config
+    (default: 'joy_config_file')
+
+'teleop_twist_config_file':
+    Full path to the teleop twist joy config
+    (default: 'teleop_twist_config_file')
+```
+
+In a new terminal, source your workspace and start SLAM.
+
+```
+ros2 launch lidarslam lidarslam.launch.py main_param_dir:=/path/to/your/lidarslam.yaml
+```
+
+
+In a new terminal, source your workspace, ugv_nav4d library, and launch the ugv_nav4d_ros2. Replace the /path/to/your/ugv_nav4d with the location of the ugv_nav4d library. Add this command to your terminal:
 
 ```
 source ~/your_ros2_workspace/install/setup.bash
-source /path/to/ugv_nav4d/build/install/env.sh
+source /path/to/your/ugv_nav4d/build/install/env.sh
 
-ros2 launch ugv_nav4d_ros2 ugv_nav4d_ros2.launch.py
+ros2 launch ugv_nav4d_ros2 ugv_nav4d.launch.py pointcloud_topic:=/map goal_topic:=/goal_pose
 ```
- 
+
+### 7. Plan
+
+In a new terminal, start Rviz2.
+```
+cd ~/your_ros2_workspace
+source ~/your_ros2_workspace/install/setup.bash
+source /path/to/your/ugv_nav4d/build/install/env.sh
+rviz2 -d src/ugv_nav4d_ros2/config/ugv_nav4d.rviz 
+```
+
+After you start to move the robot, the planner will show the following status:
+
+```
+[ugv_nav4d_ros2]: Planner state: Got Map
+[ugv_nav4d_ros2]: Initial patch added.
+[ugv_nav4d_ros2]: Planner state: Ready
+```
+
+Visualize the MLS in Rviz2 using 
+
+```
+ros2 service call /ugv_nav4d_ros2/map_publish std_srvs/srv/Trigger
+```
+![MLSVizRviz2](doc/figures/mls_visualization_rviz2.png)
+
+The gaps in the MLS map are due to the gaps in the scanned points. Move the robot around in the environment. After some time, you will see the MLS start to fill out the gaps.
+
+![MLSVizRviz2](doc/figures/mls_visualization_rviz2_2.png)
+
+Set a goal using the `2D Goal Pose` option in Rviz2 or by publishing to the topic `/ugv_nav4d_ros2/goal_pose`.
+
+![GoalPose2D](doc/figures/set_goal_pose_rviz2.png)
+
+```
+ros2 topic pub /goal_pose geometry_msgs/PoseStamped "{header: {stamp: {sec: 0, nanosec: 0}, frame_id: 'map'}, pose: {position: {x: 4.0, y: 4.0, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}}"
+```
+
+![MLSVizRviz2](doc/figures/mls_visualization_rviz2_3.png)
+
+If planning is successful you should see the following status in the terminal:
+
+```
+[ugv_nav4d_ros2]: FOUND_SOLUTION
+```
 ---
 ## Implementation Details
 ### Planning
