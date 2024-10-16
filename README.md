@@ -134,6 +134,12 @@ If you need to install **Gazebo Fortress**, follow the instructions provided on 
 ### 3. Install SLAM
 If you have a SLAM package which provides a pointcloud map on a topic then you can skip this step. If not then you can use [lidarslam_ros2](https://github.com/rsasaki0109/lidarslam_ros2). Please follow the build and install instructions from the original repository. Set the parameter `robot_frame_id: "husky/base_link"` for the `scanmatcher` node in [lidarslam.yaml](https://github.com/rsasaki0109/lidarslam_ros2/blob/a63b8fa2485e05251505b2bb209598285106bff2/lidarslam/param/lidarslam.yaml#L4)
 
+Install libg2o:
+
+```
+sudo apt-get install -y ros-humble-libg2o
+```
+
 ### 3. Get ugv_nav4d_ros2 and a test environment for robot husky in gazebo
 
 ```
@@ -202,7 +208,7 @@ Available arguments:
     (default: 'teleop_twist_config_file')
 ```
 
-In a new terminal, source your workspace and start SLAM.
+In a new terminal, source your workspace and start SLAM. Remap the node scanmatcher's topic `/input_cloud` to `/husky/scan/points` in the `lidarslam.launch.py`
 
 ```
 ros2 launch lidarslam lidarslam.launch.py main_param_dir:=/path/to/your/lidarslam.yaml
