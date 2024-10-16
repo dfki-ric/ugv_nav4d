@@ -173,7 +173,7 @@ You can use the `Teleop` plugin of Gazebo for sending velocity commands to the r
 
 ![GazeboTeleop](doc/figures/gazebo_teleop.png)
 
-Alternative to the `Teleop` plugin, you can use a joystick for moving the robot. For this, set the argument `use_joystick:=True`. Adjust the config files in the folder `/config` of the `ros2_humble_gazebo_sim` package from step 3. Provide the full paths to the arguments `joy_config_file` and `teleop_twist_config_file` as shown below:
+Alternative to the `Teleop` plugin, you can use a joystick for moving the robot. For this, set the argument `use_joystick:=True`. Adjust the config files in the folder `/config` of the `ros2_humble_gazebo_sim` package from Step 3. Provide the full paths to the arguments `joy_config_file` and `teleop_twist_config_file` as shown below:
 
 ```
 ros2 launch start.launch.py use_joystick:=True joy_config_file:=/your_ros2_workspace/ros2_humble_gazebo_sim/simulation/config/joy_config.yaml teleop_twist_config_file:=/your_ros2_workspace/ros2_humble_gazebo_sim/simulation/config/teleop_twist_config.yaml
@@ -255,6 +255,8 @@ Set a goal using the `2D Goal Pose` option in Rviz2 or by publishing to the topi
 ros2 topic pub /goal_pose geometry_msgs/PoseStamped "{header: {stamp: {sec: 0, nanosec: 0}, frame_id: 'map'}, pose: {position: {x: 4.0, y: 4.0, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}}"
 ```
 
+#### cave_circuit
+
 ![MLSVizRviz2](doc/figures/mls_visualization_rviz2_3.png)
 
 If planning is successful you should see the following status in the terminal:
@@ -262,6 +264,12 @@ If planning is successful you should see the following status in the terminal:
 ```
 [ugv_nav4d_ros2]: FOUND_SOLUTION
 ```
+
+#### urban_circuit_practice_03
+You could repeat the same steps and in Step 6 set `world_file_name:=urban_circuit_practice_03`.
+
+![MLSVizRviz2](doc/figures/mls_visualization_rviz2_4.png)
+
 ---
 ## Implementation Details
 ### Planning
