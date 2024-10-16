@@ -119,6 +119,66 @@ At the end you should see the output
 ```
 
 ---
+# ROS 2 Humble Test Environment with Gazebo Fortress
+
+This provides instructions for setting up a test environment using **Gazebo Fortress** and **ROS 2 Humble**. The setup includes configurations for using the Husky robot and ensures that the necessary resources are in place for smooth operation.
+
+## Prerequisites
+
+### 1. Install ROS2 Humble
+Ensure you have **ROS2 Humble** installed on your system.
+
+```
+sudo apt install ros-humble-desktop-full
+```
+
+### 2. Install Gazebo Fortress
+If you need to install **Gazebo Fortress**, follow the instructions provided on the official page at [Gazebo Installation](https://gazebosim.org/docs/latest/ros_installation/).
+
+### 3. Get the repos 
+
+```
+mkdir -p your_ros2_workspace/src
+cd ~/your_ros2_workspace/src
+git clone https://github.com/dfki-ric/ugv_nav4d_ros2.git
+```
+You can clone the repo `ros2_humble_gazebo_sim` anywhere in your system. Here we clone it in the `your_ros2_workspace` folder.
+```
+cd ~/your_ros2_workspace
+git clone https://github.com/dfki-ric/ros2_humble_gazebo_sim.git
+```
+### 4. Husky Configuration
+To ensure that Gazebo can find the robot model, you need to export the following environment variable. Replace /path/to/ with the actual **complete** path where you clone the repository `ros2_humble_gazebo_sim`. Add this command to your terminal:
+```
+export IGN_GAZEBO_RESOURCE_PATH=/path/to/your_ros2_workspace/ros2_humble_gazebo_sim/resource:$IGN_GAZEBO_RESOURCE_PATH
+```
+
+### 5. Building the ROS 2 Workspace
+Before launching the simulation, build your ROS 2 workspace with the release flag:
+
+```
+cd ~/your_ros2_workspace
+colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
+```
+
+### 6. Start the Test Environment
+Launch the Gazebo simulation by executing the following command in your terminal:
+```
+source ~/your_ros2_workspace/install/setup.bash
+cd ~/your_ros2_workspace/ros2_humble_gazebo_sim/simulation
+ros2 launch start.launch.py
+```
+
+In a new terminal, source your workspace, ugv_nav4d library, and launch the ugv_nav4d_ros2. Replace the /path/to/ugv_nav4d with the location of the ugv_nav4d library. Add this command to your terminal:
+
+```
+source ~/your_ros2_workspace/install/setup.bash
+source /path/to/ugv_nav4d/build/install/env.sh
+
+ros2 launch ugv_nav4d_ros2 ugv_nav4d_ros2.launch.py
+```
+ 
+---
 ## Implementation Details
 ### Planning
 The planner is based on SBPL (http://www.sbpl.net/). I.e. it uses the SBPLs ARA* planner to plan in a custom environment.
