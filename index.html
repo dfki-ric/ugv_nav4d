@@ -113,12 +113,108 @@ Unit Tests</h4>
 <div class="line">[==========] 6 tests from 2 test suites ran. (10297 ms total)</div>
 <div class="line">[  PASSED  ] 6 tests.</div>
 </div><!-- fragment --><hr  />
- <h2><a class="anchor" id="autotoc_md12"></a>
+ <h1><a class="anchor" id="autotoc_md12"></a>
+ROS 2 Humble Test Environment with Gazebo Fortress</h1>
+<p>This provides instructions for setting up a test environment using <b>Gazebo Fortress</b> and <b>ROS 2 Humble</b>. The setup includes configurations for using the Husky robot and ensures that the necessary resources are in place for smooth operation.</p>
+<h2><a class="anchor" id="autotoc_md13"></a>
+Prerequisites</h2>
+<h3><a class="anchor" id="autotoc_md14"></a>
+1. Install ROS2 Humble</h3>
+<p>Ensure you have <b>ROS2 Humble</b> installed on your system. Follow the official page at <a href="https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html">ROS2 Humble Debian Installation</a></p>
+<h3><a class="anchor" id="autotoc_md15"></a>
+2. Install Gazebo Fortress</h3>
+<p>If you need to install <b>Gazebo Fortress</b>, follow the instructions provided on the official page at <a href="https://gazebosim.org/docs/latest/ros_installation/">Gazebo Installation</a>.</p>
+<h3><a class="anchor" id="autotoc_md16"></a>
+3. Install SLAM</h3>
+<p>If you have a SLAM package which provides a pointcloud map on a topic then you can skip this step. If not then you can use <a href="https://github.com/rsasaki0109/lidarslam_ros2">lidarslam_ros2</a>. Please follow the build and install instructions from the original repository. Set the parameter <code>robot_frame_id: "husky/base_link"</code> for the <code>scanmatcher</code> node in <a href="https://github.com/rsasaki0109/lidarslam_ros2/blob/a63b8fa2485e05251505b2bb209598285106bff2/lidarslam/param/lidarslam.yaml#L4">lidarslam.yaml</a></p>
+<p>Install libg2o:</p>
+<div class="fragment"><div class="line">sudo apt-get install -y ros-humble-libg2o</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md17"></a>
+3. Get ugv_nav4d_ros2 and a test environment for robot husky in gazebo</h3>
+<div class="fragment"><div class="line">mkdir -p your_ros2_workspace/src</div>
+<div class="line">cd ~/your_ros2_workspace/src</div>
+<div class="line">git clone https://github.com/dfki-ric/ugv_nav4d_ros2.git</div>
+</div><!-- fragment --><p> You can clone the repo <code>ros2_humble_gazebo_sim</code> anywhere in your system. Here we clone it in the <code>your_ros2_workspace</code> folder. </p><div class="fragment"><div class="line">cd ~/your_ros2_workspace</div>
+<div class="line">git clone https://github.com/dfki-ric/ros2_humble_gazebo_sim.git</div>
+<div class="line">cd ros2_humble_gazebo_sim</div>
+<div class="line">bash install_dependencies.bash</div>
+</div><!-- fragment --> <h3><a class="anchor" id="autotoc_md18"></a>
+4. Husky Configuration</h3>
+<p>To ensure that Gazebo can find the robot model, you need to export the following environment variable. Replace /path/to/ with the actual <b>complete</b> path where you clone the repository <code>ros2_humble_gazebo_sim</code>. Add this command to your terminal: </p><div class="fragment"><div class="line">export IGN_GAZEBO_RESOURCE_PATH=/path/to/your_ros2_workspace/ros2_humble_gazebo_sim/resource:$IGN_GAZEBO_RESOURCE_PATH</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md19"></a>
+5. Building the ROS 2 Workspace</h3>
+<p>Before launching the simulation, build your ROS 2 workspace:</p>
+<div class="fragment"><div class="line">cd ~/your_ros2_workspace</div>
+<div class="line">colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md20"></a>
+6. Start the Test Environment</h3>
+<p>Launch the Gazebo simulation by executing the following command in your terminal: </p><div class="fragment"><div class="line">source ~/your_ros2_workspace/install/setup.bash</div>
+<div class="line">cd ~/your_ros2_workspace/ros2_humble_gazebo_sim/simulation</div>
+<div class="line">ros2 launch start.launch.py</div>
+</div><!-- fragment --><p> You can use the <code>Teleop</code> plugin of Gazebo for sending velocity commands to the robot. Click on the three dots in top-right corner of Gazebo window and search for <code>Teleop</code>. Select the plugin and adjust the values as shown in figure.</p>
+<p><img src="doc/figures/gazebo_teleop.png" alt="GazeboTeleop" class="inline"/></p>
+<p>Alternative to the <code>Teleop</code> plugin, you can use a joystick for moving the robot. For this, set the argument <code>use_joystick:=True</code>. Adjust the config files in the folder <code>/config</code> of the <code>ros2_humble_gazebo_sim</code> package from Step 3. Provide the full paths to the arguments <code>joy_config_file</code> and <code>teleop_twist_config_file</code> as shown below:</p>
+<div class="fragment"><div class="line">ros2 launch start.launch.py use_joystick:=True joy_config_file:=/your_ros2_workspace/ros2_humble_gazebo_sim/simulation/config/joy_config.yaml teleop_twist_config_file:=/your_ros2_workspace/ros2_humble_gazebo_sim/simulation/config/teleop_twist_config.yaml</div>
+</div><!-- fragment --><p>Available arguments: </p><div class="fragment"><div class="line">&#39;robot_name&#39;:</div>
+<div class="line">    Options: husky</div>
+<div class="line">    (default: &#39;husky&#39;)</div>
+<div class="line"> </div>
+<div class="line">&#39;world_file_name&#39;:</div>
+<div class="line">    Options: cave_circuit, urban_circuit_practice_03</div>
+<div class="line">    (default: &#39;cave_circuit&#39;)</div>
+<div class="line"> </div>
+<div class="line">&#39;use_joystick&#39;:</div>
+<div class="line">    Use a real joystick.</div>
+<div class="line">    (default: &#39;False&#39;)</div>
+<div class="line"> </div>
+<div class="line">&#39;joy_config_file&#39;:</div>
+<div class="line">    Full path to the joy config</div>
+<div class="line">    (default: &#39;joy_config_file&#39;)</div>
+<div class="line"> </div>
+<div class="line">&#39;teleop_twist_config_file&#39;:</div>
+<div class="line">    Full path to the teleop twist joy config</div>
+<div class="line">    (default: &#39;teleop_twist_config_file&#39;)</div>
+</div><!-- fragment --><p>In a new terminal, source your workspace and start SLAM. Remap the node scanmatcher's topic <code>/input_cloud</code> to <code>/husky/scan/points</code> in the <code>lidarslam.launch.py</code></p>
+<div class="fragment"><div class="line">ros2 launch lidarslam lidarslam.launch.py main_param_dir:=/path/to/your/lidarslam.yaml</div>
+</div><!-- fragment --><p>In a new terminal, source your workspace, <a class="el" href="namespaceugv__nav4d.html">ugv_nav4d</a> library, and launch the ugv_nav4d_ros2. Replace the /path/to/your/ugv_nav4d with the location of the <a class="el" href="namespaceugv__nav4d.html">ugv_nav4d</a> library. Add this command to your terminal:</p>
+<div class="fragment"><div class="line">source ~/your_ros2_workspace/install/setup.bash</div>
+<div class="line">source /path/to/your/ugv_nav4d/build/install/env.sh</div>
+<div class="line"> </div>
+<div class="line">ros2 launch ugv_nav4d_ros2 ugv_nav4d.launch.py pointcloud_topic:=/map goal_topic:=/goal_pose</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md21"></a>
+7. Plan</h3>
+<p>In a new terminal, start Rviz2. </p><div class="fragment"><div class="line">cd ~/your_ros2_workspace</div>
+<div class="line">source ~/your_ros2_workspace/install/setup.bash</div>
+<div class="line">source /path/to/your/ugv_nav4d/build/install/env.sh</div>
+<div class="line">rviz2 -d src/ugv_nav4d_ros2/config/ugv_nav4d.rviz </div>
+</div><!-- fragment --><p>After you start to move the robot, the planner will show the following status:</p>
+<div class="fragment"><div class="line">[ugv_nav4d_ros2]: Planner state: Got Map</div>
+<div class="line">[ugv_nav4d_ros2]: Initial patch added.</div>
+<div class="line">[ugv_nav4d_ros2]: Planner state: Ready</div>
+</div><!-- fragment --><p>Visualize the MLS in Rviz2 using</p>
+<div class="fragment"><div class="line">ros2 service call /ugv_nav4d_ros2/map_publish std_srvs/srv/Trigger</div>
+</div><!-- fragment --><p> <img src="doc/figures/mls_visualization_rviz2.png" alt="MLSVizRviz2" class="inline"/></p>
+<p>The gaps in the MLS map are due to the gaps in the scanned points. Move the robot around in the environment. After some time, you will see the MLS start to fill out the gaps.</p>
+<p><img src="doc/figures/mls_visualization_rviz2_2.png" alt="MLSVizRviz2" class="inline"/></p>
+<p>Set a goal using the <code>2D Goal Pose</code> option in Rviz2 or by publishing to the topic <code>/ugv_nav4d_ros2/goal_pose</code>.</p>
+<p><img src="doc/figures/set_goal_pose_rviz2.png" alt="GoalPose2D" class="inline"/></p>
+<div class="fragment"><div class="line">ros2 topic pub /goal_pose geometry_msgs/PoseStamped &quot;{header: {stamp: {sec: 0, nanosec: 0}, frame_id: &#39;map&#39;}, pose: {position: {x: 4.0, y: 4.0, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}}&quot;</div>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md22"></a>
+cave_circuit</h4>
+<p><img src="doc/figures/mls_visualization_rviz2_3.png" alt="MLSVizRviz2" class="inline"/></p>
+<p>If planning is successful you should see the following status in the terminal:</p>
+<div class="fragment"><div class="line">[ugv_nav4d_ros2]: FOUND_SOLUTION</div>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md23"></a>
+urban_circuit_practice_03</h4>
+<p>You could repeat the same steps and in Step 6 set <code>world_file_name:=urban_circuit_practice_03</code>.</p>
+<p><img src="doc/figures/mls_visualization_rviz2_4.png" alt="MLSVizRviz2" class="inline"/></p>
+<hr  />
+ <h2><a class="anchor" id="autotoc_md25"></a>
 Implementation Details</h2>
-<h3><a class="anchor" id="autotoc_md13"></a>
+<h3><a class="anchor" id="autotoc_md26"></a>
 Planning</h3>
 <p>The planner is based on SBPL (<a href="http://www.sbpl.net/">http://www.sbpl.net/</a>). I.e. it uses the SBPLs ARA* planner to plan in a custom environment.</p>
-<h4><a class="anchor" id="autotoc_md14"></a>
+<h4><a class="anchor" id="autotoc_md27"></a>
 Environment</h4>
 <p>SBPL internally uses states (identified by an id only) and associated costs (a unitless integer). The state ids reference states of an environment. That environment has to be defined by the user. The planner contains the <code>EnvironmentXYZTheta</code>. This environment implements all interfaces needed by SBPL to enable ARA* planning (other planning algorithms might require additional interfaces).</p>
 <p>A state in this environment consists of the position on the map (xyz) and the orientation of the robot (theta), hence the name.</p>
@@ -130,13 +226,13 @@ Environment</h4>
 </div><!-- fragment --><p>The <code>Hash</code> represents a complete planner state. It consists of an <code>XYZNode</code> and a <code>ThetaNode</code>. The <code>XYZNode</code> represents a position on the traversability map while the <code>ThetaNode</code> holds the discretized orientation. Together they form a planner state. One <code>XYZNode</code> can be part of several states (with different <code>ThetaNodes</code>). However, a new <code>ThetaNode</code> is created for each state. The <code>XYZNode</code> contains a map to all <code>ThetaNodes</code> that it has been associated with during planning.</p>
 <p>All <code>XYZNodes</code> are part of the <code>searchGrid</code>. An <code>XYZNode</code> is always created from (and corresponds to) a <code>TravGenNode</code> and shares the <code>TravGenNodes</code> index. I.e. the <code>XYZNodes</code> position in the <code>searchGrid</code> is the same as the <code>TravGenNodes</code> position on the <code>traversabilityMapGenerator::travMap</code>. For easy access the <code>XYZNode</code> contains a pointer to the corresponding <code>TravGenNode</code>.</p>
 <p>The <code>searchGrid</code> keeps track of the internal state while planning. It contains an <code>XYZNode</code> for every grid cell that the planner has already visited. The <code>searchGrid</code> is a <code>TraversabilityMap</code> but the traversability information is not used (and never set). The <code>TraversabilityMap</code> was chosen because it enables O(n) (n &lt;= maximum number of layers in the map) lookup of nodes based on their xyz position. The choice was made due to time constraints (the map was there and it worked and there was no time). Semantically the usage of a <code>TraversabilityMap</code> to store the <code>XYZNodes</code>is wrong and it should be changed (e.g. to a hashmap), but it works and thus was never changed.</p>
-<h4><a class="anchor" id="autotoc_md15"></a>
+<h4><a class="anchor" id="autotoc_md28"></a>
 The &lt;tt&gt;TraversabilityMap&lt;/tt&gt;</h4>
 <p>In addion to the <code>searchGrid</code> the environment has access to a <code>TraversabilityMap3D</code> (accessed through the <code>travGen</code> attribute).</p>
 <p>A <code>TraversabilityMap3D</code> is generated from an MLS and separates the MLS into traversable, non-traversabel and unknown terrain. Addtionally it contains some meta data (e.g. slope of the patch, supporting plane, etc.). The map is generated by the <code>TraversabilityMapGenerator</code> based on a set of rules.</p>
 <p>The <code>TraversabilityMap3D</code> has to be fully expanded (i.e. generated from the MLS) before planning. In theory it could be expanded on the fly during planning and the code is prepared to do that, however this was never tested and there is a good chance that on-the-fly expansion will trigger bugs (especially if parallelism is enabled).</p>
 <p>The planner uses the <code>TraversabilityMap3D</code> to find valid successor states during planning. I.e. states that the robot can traverse to from a given state using the given motion primitives. Metadata stored in the map (e.g. slope) is also used during planning to calculate costs.</p>
-<h4><a class="anchor" id="autotoc_md16"></a>
+<h4><a class="anchor" id="autotoc_md29"></a>
 Color Codes</h4>
 <p><img src="doc/figures/color_codes.png" alt="ColorCodes" class="inline"/></p>
 <p>The visualizer of the <code>TraversabilityMap3D</code> uses color coding to indicate the different patch types:</p><ul>
@@ -148,10 +244,10 @@ Color Codes</h4>
 <li><b>Unset</b>: This is the starting state of a new patch. It should not be visible in a fully explored map. If you see a yellow patch after map expansion is done, you have found a bug in the <code>TraversabilityMapGenerator</code> and should investigate.</li>
 </ul>
 <p><img src="doc/figures/trav_map_1.png" alt="TravMap1" class="inline"/></p>
-<h4><a class="anchor" id="autotoc_md17"></a>
+<h4><a class="anchor" id="autotoc_md30"></a>
 Obstacle Checking</h4>
 <p>To ensure that the robot can traverse a certain area, obstacle checks have to be done. If we would have infinite resources we could just collide the robot model with the MLS for every possible state and see if it collides or not. But since we have very limitted resources we cannot do that. Instead there are several obstacle checking phases:</p>
-<p><a class="anchor" id="autotoc_md18"></a> </p><h5>1. Obstacle Checks done during Expansion of the <code>TraversabilityMap3D</code></h5>
+<p><a class="anchor" id="autotoc_md31"></a> </p><h5>1. Obstacle Checks done during Expansion of the <code>TraversabilityMap3D</code></h5>
 <p>All obstacle checks in this phase are done using the rotation invariant bounding box of the robot. This is an axis aligned bounding box with side length <code>min(config.robotSizeX, config.robotSizeY)</code>. With this check when an a patch is an obstacle we are 100% sure that it is. But if it is not we cannot be sure that it is not. This greatly reduces map size and planning time without costing too much as checks are only done once per patch. It also means that a full 3D oriented bounding box check is still necessary during planning to factor in different side lengths and the orientation of the robot.</p>
 <ul>
 <li><b>Step height check</b>: A patch is an obstacle if the height between the patch and its neighbors is higher than the maximum step height of the robot. If the robot would stand on this patch, the neighboring patch would be inside the robots body.</li>
@@ -159,12 +255,12 @@ Obstacle Checking</h4>
 <li><b>Map limit check</b>: A patch is an obstacle if the bounding box of the robot (again just using the smaller side length) leaves the map (maximum possible map, not currently known map).</li>
 </ul>
 <p>I.e. this step marks patches in the <code>TraversabilityMap3D</code> as obstacle if the robot would touch an obstacle when standing (centered) on this patch, or when the slope is too steep.</p>
-<p><a class="anchor" id="autotoc_md19"></a> </p><h5>2. The <code>ObstacleMap</code></h5>
+<p><a class="anchor" id="autotoc_md32"></a> </p><h5>2. The <code>ObstacleMap</code></h5>
 <p>The <code>ObstacleMap</code> is a <code>TraversabilityMap3D</code> and is created by the <code>ObstacleMapGenerator</code>. The generator shares a lot of code with the <code>TraversabilityMapGenerator</code>. It differs only in how obstacle checks are done, i.e. what patches are marked as obstacles.</p>
 <p>Patches are marked as obstacle if there is a patch above the marked patch and below robot height. I.e. if the robot would stand on this patch, the patch above would be inside the robot. This is a tiny but important difference. It means that, if the robot is on this patch with even a tiny bit of its body, it would touch an obstacle.</p>
 <p>Using the obstacle map, the 3D collision test (that is necessary during planning) is reduced to a 2D oriented bounding box test. This is the only reason for the existence of the obstacle map. It reduces the complexity of the 3D collison check to 2D. Basically the height check is pre-computed for each patch and stored in the obstacle map.</p>
 <p>The <code>ObstacleMap</code> is used during planning to check if the robot would hit an obstacle when moving to a certain state.</p>
-<h4><a class="anchor" id="autotoc_md20"></a>
+<h4><a class="anchor" id="autotoc_md33"></a>
 Heuristic</h4>
 <p>ARA* is a real-timeish version of A*. Thus it needs a heuristic.</p>
 <p>The heuristic h(a,b) between two cells a and b is the time it would take the robot to follow the shortest path from a to b on the TraversabilityMap3D. The shortest path is calculated <em><b>without</b></em> taking any of the following into account:</p><ul>
@@ -177,7 +273,7 @@ Heuristic</h4>
 <p>I.e. it is the path that the robot would be able to follow if it was infinitesimal small and could change direction instantly.</p>
 <p>The heuristic is computed beforehand for all nodes of the map. Changing the code to on-demand heuristic should be possible. It was not done because it was not needed (fast enough for our maps) at the time of writing.</p>
 <p>SBPL expects the heuristic to be an integer. To avoid losing precision when converting to int the heuristic value is scaled by <code>Motion::costScaleFactor</code> (usually 1000) before conversion. Without the scaling small movements have no cost at all.</p>
-<h4><a class="anchor" id="autotoc_md21"></a>
+<h4><a class="anchor" id="autotoc_md34"></a>
 Motion Primitives</h4>
 <p>The planner uses motion primitives, a set of pre-defined small motions, to determine how the robot can move from one state to the next. The primitives are classified into four categories, namely:</p>
 <p><b>Forward Primitive</b> <b>Backward Primitive</b> <b>Lateral Primitive</b> <b>Point-Turn Primitive</b></p>
@@ -206,7 +302,7 @@ Motion Primitives</h4>
 <div class="line">config.generateBackwardMotions = false;</div>
 <div class="line">config.generateForwardMotions = true;</div>
 <div class="line">config.splineOrder = 4;</div>
-</div><!-- fragment --><p> <a class="anchor" id="autotoc_md22"></a> </p><h5>Default Parameters</h5>
+</div><!-- fragment --><p> <a class="anchor" id="autotoc_md35"></a> </p><h5>Default Parameters</h5>
 <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Parameter   </th><th class="markdownTableHeadLeft">Type   </th><th class="markdownTableHeadLeft">Description   </th><th class="markdownTableHeadLeft">Recommented Value    </th></tr>
@@ -217,7 +313,7 @@ Motion Primitives</h4>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">initialPatchRadius   </td><td class="markdownTableBodyLeft">double   </td><td class="markdownTableBodyLeft">Radius of initial patch of point cloud points to kick-start the planner   </td><td class="markdownTableBodyLeft">3.0   </td></tr>
 </table>
-<p><a class="anchor" id="autotoc_md23"></a> </p><h5>Mobility Configuration Parameters</h5>
+<p><a class="anchor" id="autotoc_md36"></a> </p><h5>Mobility Configuration Parameters</h5>
 <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Parameter   </th><th class="markdownTableHeadLeft">Type   </th><th class="markdownTableHeadLeft">Description   </th><th class="markdownTableHeadLeft">Recommented Value    </th></tr>
@@ -252,7 +348,7 @@ Motion Primitives</h4>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">maxMotionCurveLength   </td><td class="markdownTableBodyLeft">double   </td><td class="markdownTableBodyLeft">The maximum curve length of the selected motion primitives. Small value results in small primitives and a large value results in longer primitives. During testing, it was observed that the planner has a hard time in finding a solution if the value of this parameter is set &lt; 0.6   </td><td class="markdownTableBodyLeft">1.3   </td></tr>
 </table>
-<p><a class="anchor" id="autotoc_md24"></a> </p><h5>Planner Configuration Parameters</h5>
+<p><a class="anchor" id="autotoc_md37"></a> </p><h5>Planner Configuration Parameters</h5>
 <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Parameter   </th><th class="markdownTableHeadLeft">Type   </th><th class="markdownTableHeadLeft">Description   </th><th class="markdownTableHeadLeft">Recommented Value    </th></tr>
@@ -267,7 +363,7 @@ Motion Primitives</h4>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">searchUntilFirstSolution   </td><td class="markdownTableBodyLeft">bool   </td><td class="markdownTableBodyLeft">Search only until the first solution and then stop planning. See SBPL documentation for an explantion of this value.   </td><td class="markdownTableBodyLeft">false   </td></tr>
 </table>
-<p><a class="anchor" id="autotoc_md25"></a> </p><h5>Primitives Configuration Parameters</h5>
+<p><a class="anchor" id="autotoc_md38"></a> </p><h5>Primitives Configuration Parameters</h5>
 <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Parameter   </th><th class="markdownTableHeadLeft">Type   </th><th class="markdownTableHeadLeft">Description   </th><th class="markdownTableHeadLeft">Recommented Value    </th></tr>
@@ -292,7 +388,7 @@ Motion Primitives</h4>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">generatePointTurnMotions   </td><td class="markdownTableBodyLeft">bool   </td><td class="markdownTableBodyLeft">Generate point-turn motion primitives. A point-turn is generated for each start angle to each end angle   </td><td class="markdownTableBodyLeft">Use case specific   </td></tr>
 </table>
-<p><a class="anchor" id="autotoc_md26"></a> </p><h5>Traversability Configuration Parameters</h5>
+<p><a class="anchor" id="autotoc_md39"></a> </p><h5>Traversability Configuration Parameters</h5>
 <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Parameter   </th><th class="markdownTableHeadLeft">Type   </th><th class="markdownTableHeadLeft">Description   </th><th class="markdownTableHeadLeft">Recommented Value    </th></tr>
@@ -329,7 +425,7 @@ Motion Primitives</h4>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">enableInclineLimitting   </td><td class="markdownTableBodyLeft">bool   </td><td class="markdownTableBodyLeft"></td><td class="markdownTableBodyLeft">false   </td></tr>
 </table>
-<p><a class="anchor" id="autotoc_md27"></a> </p><h5>Motion Primitive Filtering</h5>
+<p><a class="anchor" id="autotoc_md40"></a> </p><h5>Motion Primitive Filtering</h5>
 <h6>Minimum Turning Radius</h6>
 <p>The planner filters the primitives by <code>minTurningRadius</code> (i.e. all primitives that have a curvature that is larger than allowed by the minimum turning radius are ignored)</p>
 <p>The following animation shows the same primitives as above but filtered with a <code>minTurningRadius</code> of <code>0.2</code>:</p>
@@ -345,9 +441,9 @@ Motion Primitives</h4>
 <p><img src="doc/figures/max_curve_length_2.png" alt="MaxCurveLength2" class="inline"/></p>
 <p>To get an idea about different geometric lengths of the primitives see the picture below. The picture shows only forward and backward motion primitives. Each arrow represents the end of a unqiue primitive. As mentioned earlier, the end points of the primitives are the destination cells scaled by the grid size of the traversability map.</p>
 <p><img src="doc/figures/max_curve_length_3.png" alt="MaxCurveLength3" class="inline"/></p>
-<p><a class="anchor" id="autotoc_md28"></a> </p><h5>Motions</h5>
+<p><a class="anchor" id="autotoc_md41"></a> </p><h5>Motions</h5>
 <p>Each slected motion primitive is converted into a motion. A motion is a discritized motion primitive. In the planning phase, each discrete step of the motion is used to perform traversability and obstacle checks. You can find details on the motions in the class preComputedMotions.</p>
-<p><a class="anchor" id="autotoc_md29"></a> </p><h5>Motion Base Cost Calculation</h5>
+<p><a class="anchor" id="autotoc_md42"></a> </p><h5>Motion Base Cost Calculation</h5>
 <p>Upon motion generation every motion is asigned a base cost. I.e. the cost that would arise when the robot would follow that motion on a horizontal flat surface. Factors for steepness and other penalties might be factored later during planning on a case to case basis.</p>
 <p>The base cost for each motion is calculated as follows: </p><div class="fragment"><div class="line">translationDist = &lt; distance that the robot has to travel while following the spline &gt;</div>
 <div class="line">rotationDist    = &lt; amount that the robot has to turn while following the spline &gt;</div>
@@ -357,7 +453,7 @@ Motion Primitives</h4>
 <div class="line">costMultiplier  = &lt; the configured multiplier for this particular motion type &gt;</div>
 <div class="line">baseCost        = int(ceil(travelTime * 1000 * costMultiplier))</div>
 </div><!-- fragment --><p> The travelTime is scaled by 1000 to retain three digits of precision when converting to integer.</p>
-<p><a class="anchor" id="autotoc_md30"></a> </p><h5>Motion Cost Scaling</h5>
+<p><a class="anchor" id="autotoc_md43"></a> </p><h5>Motion Cost Scaling</h5>
 <p>Since all primitives are 2-dimensional the <code>baseCost</code> is only accurat on perfectly flat terrain. To factor in the slope of the terrain the cost is scaled based on one of the following metrics during planning.</p>
 <h6>SlopeMetric::NONE</h6>
 <div class="fragment"><div class="line">cost = motion.baseCost;</div>
@@ -372,16 +468,16 @@ Motion Primitives</h4>
 <div class="line">approxMotionLen = sqrt(motion.translationlDist^2 + heightDiff^2)</div>
 <div class="line">cost = calculateCost(approxMotionLen)</div>
 </div><!-- fragment --><p>None of those metrices captures the real cost of moving up or down a slope. They have been implemented for experimentation. However those experiments have never been done (we ran out of time and there where no slopes in the final demo). Thus the performance of the metrices is unclear.</p>
-<h4><a class="anchor" id="autotoc_md31"></a>
+<h4><a class="anchor" id="autotoc_md44"></a>
 Dumping Planner State</h4>
 <p>In case of error the <code>Planner</code> dumps its state to a file (this can be enabled using the <code>dumpOnError</code> parameter). The state can be loaded and analyzed using the <code>ugv_nav4d_replay</code> binary. This binary loads the state and executes the planning in a controlled environment. This can be used to debug the planner.</p>
-<h4><a class="anchor" id="autotoc_md32"></a>
+<h4><a class="anchor" id="autotoc_md45"></a>
 User Interfaces</h4>
 <p>Two user interfaces can be found in <code>src/gui</code>. They are intended for testing and debugging.</p>
-<p><a class="anchor" id="autotoc_md33"></a> </p><h5><a class="el" href="classPlannerGui.html">PlannerGui</a></h5>
+<p><a class="anchor" id="autotoc_md46"></a> </p><h5><a class="el" href="classPlannerGui.html">PlannerGui</a></h5>
 <p>The <code><a class="el" href="classPlannerGui.html">PlannerGui</a></code> is the main testing gui. It is designed to experiment with differen planner parameters on a static map. It can load point clouds from ply or serialized mls maps. A left click sets the start location, a right click sets the end location.</p>
 <p>In addition the <code><a class="el" href="classPlannerGui.html">PlannerGui</a></code> can also be used to load and analyze planner dumps.</p>
-<h2><a class="anchor" id="autotoc_md34"></a>
+<h2><a class="anchor" id="autotoc_md47"></a>
 Bug Reports</h2>
 <p>To search for bugs or report them, please use GitHubs <a href="https://github.com/dfki-ric/ugv_nav4d/issues">Issue-Tracker</a> </p>
 </div></div><!-- PageDoc -->
