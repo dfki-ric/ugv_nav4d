@@ -1,22 +1,9 @@
 #define BOOST_TEST_MODULE EnvironmentXYZThetaTestModule
-
-#include <fstream>
-#include <cstdlib>
-
-#include "ugv_nav4d/EnvironmentXYZTheta.hpp"
-#include "ugv_nav4d/Mobility.hpp"
-#include <sbpl_spline_primitives/SplinePrimitivesConfig.hpp>
-#include <traversability_generator3d/TraversabilityConfig.hpp>
-
-#include <maps/grid/MLSMap.hpp>
-
-#include <pcl/io/ply_io.h>
-#include <pcl/common/common.h>
-#include <pcl/common/transforms.h>
-
 #include <boost/test/included/unit_test.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
+
+#include "ugv_nav4d/EnvironmentXYZTheta.hpp"
 
 using namespace ugv_nav4d;
 using namespace maps::grid;

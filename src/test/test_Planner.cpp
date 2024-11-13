@@ -1,12 +1,7 @@
 #define BOOST_TEST_MODULE PlannerTestModule
 #include <boost/test/included/unit_test.hpp>
 
-#include <fstream>
-#include <cstdlib>
-
 #include "ugv_nav4d/Planner.hpp"
-#include <traversability_generator3d/TraversabilityConfig.hpp>
-#include <maps/grid/MLSMap.hpp>
 
 using namespace ugv_nav4d;
 

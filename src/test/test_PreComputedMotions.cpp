@@ -1,10 +1,7 @@
 #define BOOST_TEST_MODULE PreComputedMotionsModule
+#include <boost/test/included/unit_test.hpp>
 
 #include "ugv_nav4d/PreComputedMotions.hpp"
-#include "ugv_nav4d/Mobility.hpp"
-#include <sbpl_spline_primitives/SplinePrimitivesConfig.hpp>
-
-#include <boost/test/included/unit_test.hpp>
 
 using namespace ugv_nav4d;
 

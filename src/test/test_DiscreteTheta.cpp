@@ -1,8 +1,7 @@
 #define BOOST_TEST_MODULE DiscreteThetaModule
+#include <boost/test/included/unit_test.hpp>
 
 #include "ugv_nav4d/DiscreteTheta.hpp"
-
-#include <boost/test/included/unit_test.hpp>
 
 BOOST_AUTO_TEST_CASE(check_discrete_theta_init) {
     DiscreteTheta theta = DiscreteTheta(0, 16);
