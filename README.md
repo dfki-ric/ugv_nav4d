@@ -161,10 +161,11 @@ export IGN_GAZEBO_RESOURCE_PATH=/path/to/your_ros2_workspace/ros2_humble_gazebo_
 ```
 
 ### 5. Building the ROS 2 Workspace
-Before launching the simulation, build your ROS 2 workspace:
+Before launching the simulation, source your env.sh from ugv_nav4d and build your ROS 2 workspace:
 
 ```
 cd ~/your_ros2_workspace
+source path/to/ugv_nav4d/build/install/env.sh
 colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
 ```
 
