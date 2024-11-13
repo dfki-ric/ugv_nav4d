@@ -44,15 +44,16 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#define-members">Macros</a> &#124;
 <a href="#func-members">Functions</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
 <div class="title">test_ugv_nav4d.cpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;fstream&gt;</code><br />
+<div class="textblock"><code>#include &lt;boost/test/included/unit_test.hpp&gt;</code><br />
+<code>#include &lt;fstream&gt;</code><br />
 <code>#include &lt;cstdlib&gt;</code><br />
-<code>#include &quot;gtest/gtest.h&quot;</code><br />
 <code>#include &quot;ugv_nav4d/DiscreteTheta.hpp&quot;</code><br />
 <code>#include &quot;ugv_nav4d/Planner.hpp&quot;</code><br />
 <code>#include &lt;traversability_generator3d/TraversabilityConfig.hpp&gt;</code><br />
@@ -65,17 +66,17 @@ Include dependency graph for test_ugv_nav4d.cpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="test__ugv__nav4d_8cpp__incl.png" border="0" usemap="#asrc_2test_2test__ugv__nav4d_8cpp" alt=""/></div>
 <map name="asrc_2test_2test__ugv__nav4d_8cpp" id="asrc_2test_2test__ugv__nav4d_8cpp">
-<area shape="rect" title=" " alt="" coords="649,5,853,32"/>
-<area shape="rect" title=" " alt="" coords="5,87,79,114"/>
-<area shape="rect" title=" " alt="" coords="103,87,168,114"/>
-<area shape="rect" title=" " alt="" coords="193,87,297,114"/>
-<area shape="rect" title=" " alt="" coords="321,87,537,114"/>
-<area shape="rect" title=" " alt="" coords="561,87,734,114"/>
-<area shape="rect" title=" " alt="" coords="758,80,953,121"/>
-<area shape="rect" title=" " alt="" coords="977,87,1152,114"/>
-<area shape="rect" title=" " alt="" coords="1177,87,1289,114"/>
-<area shape="rect" title=" " alt="" coords="1313,87,1488,114"/>
-<area shape="rect" title=" " alt="" coords="1513,87,1702,114"/>
+<area shape="rect" title=" " alt="" coords="693,5,897,32"/>
+<area shape="rect" title=" " alt="" coords="5,80,152,121"/>
+<area shape="rect" title=" " alt="" coords="177,87,250,114"/>
+<area shape="rect" title=" " alt="" coords="274,87,339,114"/>
+<area shape="rect" title=" " alt="" coords="364,87,580,114"/>
+<area shape="rect" title=" " alt="" coords="604,87,777,114"/>
+<area shape="rect" title=" " alt="" coords="801,80,996,121"/>
+<area shape="rect" title=" " alt="" coords="1021,87,1195,114"/>
+<area shape="rect" title=" " alt="" coords="1220,87,1332,114"/>
+<area shape="rect" title=" " alt="" coords="1357,87,1531,114"/>
+<area shape="rect" title=" " alt="" coords="1556,87,1745,114"/>
 </map>
 </div>
 </div><table class="memberdecls">
@@ -84,232 +85,162 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPlannerTest.html">PlannerTest</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:a6b2a3852db8bb19ab6909bac01859985"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__ugv__nav4d_8cpp.html#a6b2a3852db8bb19ab6909bac01859985">BOOST_TEST_MODULE</a>&#160;&#160;&#160;PlannerTestModule</td></tr>
+<tr class="separator:a6b2a3852db8bb19ab6909bac01859985"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a827d8fba3f6b7ffbfa9f8906093315ae"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__ugv__nav4d_8cpp.html#a827d8fba3f6b7ffbfa9f8906093315ae">TEST_F</a> (<a class="el" href="classPlannerTest.html">PlannerTest</a>, check_planner_init_failure_wrong_grid_resolutions)</td></tr>
-<tr class="separator:a827d8fba3f6b7ffbfa9f8906093315ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aefb319d4b536bfc2e44d3764dc25bc82"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__ugv__nav4d_8cpp.html#aefb319d4b536bfc2e44d3764dc25bc82">TEST_F</a> (<a class="el" href="classPlannerTest.html">PlannerTest</a>, check_planner_init_success)</td></tr>
-<tr class="separator:aefb319d4b536bfc2e44d3764dc25bc82"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abf59bc4a8d1cb427fe2919480b26fafb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__ugv__nav4d_8cpp.html#abf59bc4a8d1cb427fe2919480b26fafb">TEST_F</a> (<a class="el" href="classPlannerTest.html">PlannerTest</a>, check_planner_goal_invalid)</td></tr>
-<tr class="separator:abf59bc4a8d1cb427fe2919480b26fafb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac1f2a9aa108e4a6a7ce264c92ffc1eba"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__ugv__nav4d_8cpp.html#ac1f2a9aa108e4a6a7ce264c92ffc1eba">TEST_F</a> (<a class="el" href="classPlannerTest.html">PlannerTest</a>, check_planner_start_invalid)</td></tr>
-<tr class="separator:ac1f2a9aa108e4a6a7ce264c92ffc1eba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9191acface0ae2f6c5c3dd5105eca0b8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__ugv__nav4d_8cpp.html#a9191acface0ae2f6c5c3dd5105eca0b8">TEST_F</a> (<a class="el" href="classPlannerTest.html">PlannerTest</a>, check_planner_success)</td></tr>
-<tr class="separator:a9191acface0ae2f6c5c3dd5105eca0b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a42702e28d53ee40df608e5a26c3689d8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__ugv__nav4d_8cpp.html#a42702e28d53ee40df608e5a26c3689d8">TEST</a> (UGV_NAV4D_TEST, check_discrete_theta_init)</td></tr>
-<tr class="separator:a42702e28d53ee40df608e5a26c3689d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c04138a5bfe5d72780bb7e82a18e627"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__ugv__nav4d_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a> (int argc, char **argv)</td></tr>
-<tr class="separator:a3c04138a5bfe5d72780bb7e82a18e627"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c82abf41ee453de9c87c81ea3fec4a2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__ugv__nav4d_8cpp.html#a3c82abf41ee453de9c87c81ea3fec4a2">BOOST_AUTO_TEST_CASE</a> (check_planner_init_failure_wrong_grid_resolutions)</td></tr>
+<tr class="separator:a3c82abf41ee453de9c87c81ea3fec4a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae82551d9e619e615547d74fb16b8750f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__ugv__nav4d_8cpp.html#ae82551d9e619e615547d74fb16b8750f">BOOST_AUTO_TEST_CASE</a> (check_planner_init_success)</td></tr>
+<tr class="separator:ae82551d9e619e615547d74fb16b8750f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b62fa3e3425b8556d6548a12a26b758"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__ugv__nav4d_8cpp.html#a3b62fa3e3425b8556d6548a12a26b758">BOOST_AUTO_TEST_CASE</a> (check_planner_goal_invalid)</td></tr>
+<tr class="separator:a3b62fa3e3425b8556d6548a12a26b758"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1d2ccb177c127cb8955e5fcb27ccd8be"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__ugv__nav4d_8cpp.html#a1d2ccb177c127cb8955e5fcb27ccd8be">BOOST_AUTO_TEST_CASE</a> (check_planner_start_invalid)</td></tr>
+<tr class="separator:a1d2ccb177c127cb8955e5fcb27ccd8be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69b2e84fcff72c356618f79601ce1875"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__ugv__nav4d_8cpp.html#a69b2e84fcff72c356618f79601ce1875">BOOST_AUTO_TEST_CASE</a> (check_planner_success)</td></tr>
+<tr class="separator:a69b2e84fcff72c356618f79601ce1875"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99a1a62a952613df37e30e12fb787445"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__ugv__nav4d_8cpp.html#a99a1a62a952613df37e30e12fb787445">BOOST_AUTO_TEST_CASE</a> (check_discrete_theta_init)</td></tr>
+<tr class="separator:a99a1a62a952613df37e30e12fb787445"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:aa770d80493fae04dd6a59446cceb8e75"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__ugv__nav4d_8cpp.html#aa770d80493fae04dd6a59446cceb8e75">filePath</a></td></tr>
 <tr class="separator:aa770d80493fae04dd6a59446cceb8e75"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Function Documentation</h2>
-<a id="a3c04138a5bfe5d72780bb7e82a18e627"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3c04138a5bfe5d72780bb7e82a18e627">&#9670;&nbsp;</a></span>main()</h2>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a6b2a3852db8bb19ab6909bac01859985"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b2a3852db8bb19ab6909bac01859985">&#9670;&nbsp;</a></span>BOOST_TEST_MODULE</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int main </td>
-          <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>argc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">char **&#160;</td>
-          <td class="paramname"><em>argv</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
+          <td class="memname">#define BOOST_TEST_MODULE&#160;&#160;&#160;PlannerTestModule</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a42702e28d53ee40df608e5a26c3689d8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a42702e28d53ee40df608e5a26c3689d8">&#9670;&nbsp;</a></span>TEST()</h2>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="a99a1a62a952613df37e30e12fb787445"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99a1a62a952613df37e30e12fb787445">&#9670;&nbsp;</a></span>BOOST_AUTO_TEST_CASE() <span class="overload">[1/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">TEST </td>
+          <td class="memname">BOOST_AUTO_TEST_CASE </td>
           <td>(</td>
-          <td class="paramtype">UGV_NAV4D_TEST&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">check_discrete_theta_init&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
+          <td class="paramname"></td><td>)</td>
           <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="test__ugv__nav4d_8cpp_a42702e28d53ee40df608e5a26c3689d8_cgraph.png" border="0" usemap="#atest__ugv__nav4d_8cpp_a42702e28d53ee40df608e5a26c3689d8_cgraph" alt=""/></div>
-<map name="atest__ugv__nav4d_8cpp_a42702e28d53ee40df608e5a26c3689d8_cgraph" id="atest__ugv__nav4d_8cpp_a42702e28d53ee40df608e5a26c3689d8_cgraph">
-<area shape="rect" title=" " alt="" coords="5,81,60,108"/>
-<area shape="rect" href="classDiscreteTheta.html#a53fcf7be0e6c67bad30936f71c01cc0a" title=" " alt="" coords="108,5,325,32"/>
-<area shape="rect" href="classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="123,56,310,83"/>
-<area shape="rect" href="classDiscreteTheta.html#ad4b8e50f0d9cf1e765dd57a9c4e51ae7" title=" " alt="" coords="127,107,306,133"/>
-<area shape="rect" href="classDiscreteTheta.html#adee78f133a8dee7d09233b25de058998" title=" " alt="" coords="117,157,317,184"/>
-<area shape="rect" href="classDiscreteTheta.html#abdd7249de43db8b0f87f777d19c9a3e8" title=" " alt="" coords="373,157,585,184"/>
+<div class="center"><img src="test__ugv__nav4d_8cpp_a99a1a62a952613df37e30e12fb787445_cgraph.png" border="0" usemap="#atest__ugv__nav4d_8cpp_a99a1a62a952613df37e30e12fb787445_cgraph" alt=""/></div>
+<map name="atest__ugv__nav4d_8cpp_a99a1a62a952613df37e30e12fb787445_cgraph" id="atest__ugv__nav4d_8cpp_a99a1a62a952613df37e30e12fb787445_cgraph">
+<area shape="rect" title=" " alt="" coords="5,81,196,108"/>
+<area shape="rect" href="classDiscreteTheta.html#a53fcf7be0e6c67bad30936f71c01cc0a" title=" " alt="" coords="244,5,461,32"/>
+<area shape="rect" href="classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="259,56,446,83"/>
+<area shape="rect" href="classDiscreteTheta.html#ad4b8e50f0d9cf1e765dd57a9c4e51ae7" title=" " alt="" coords="263,107,442,133"/>
+<area shape="rect" href="classDiscreteTheta.html#adee78f133a8dee7d09233b25de058998" title=" " alt="" coords="253,157,453,184"/>
+<area shape="rect" href="classDiscreteTheta.html#abdd7249de43db8b0f87f777d19c9a3e8" title=" " alt="" coords="509,157,721,184"/>
 </map>
 </div>
 
 </div>
 </div>
-<a id="abf59bc4a8d1cb427fe2919480b26fafb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abf59bc4a8d1cb427fe2919480b26fafb">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[1/5]</span></h2>
+<a id="a3b62fa3e3425b8556d6548a12a26b758"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b62fa3e3425b8556d6548a12a26b758">&#9670;&nbsp;</a></span>BOOST_AUTO_TEST_CASE() <span class="overload">[2/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">TEST_F </td>
+          <td class="memname">BOOST_AUTO_TEST_CASE </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classPlannerTest.html">PlannerTest</a>&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">check_planner_goal_invalid&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
+          <td class="paramname"></td><td>)</td>
           <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a827d8fba3f6b7ffbfa9f8906093315ae"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a827d8fba3f6b7ffbfa9f8906093315ae">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[2/5]</span></h2>
+<a id="a3c82abf41ee453de9c87c81ea3fec4a2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3c82abf41ee453de9c87c81ea3fec4a2">&#9670;&nbsp;</a></span>BOOST_AUTO_TEST_CASE() <span class="overload">[3/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">TEST_F </td>
+          <td class="memname">BOOST_AUTO_TEST_CASE </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classPlannerTest.html">PlannerTest</a>&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">check_planner_init_failure_wrong_grid_resolutions&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
+          <td class="paramname"></td><td>)</td>
           <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="aefb319d4b536bfc2e44d3764dc25bc82"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aefb319d4b536bfc2e44d3764dc25bc82">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[3/5]</span></h2>
+<a id="ae82551d9e619e615547d74fb16b8750f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae82551d9e619e615547d74fb16b8750f">&#9670;&nbsp;</a></span>BOOST_AUTO_TEST_CASE() <span class="overload">[4/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">TEST_F </td>
+          <td class="memname">BOOST_AUTO_TEST_CASE </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classPlannerTest.html">PlannerTest</a>&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">check_planner_init_success&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
+          <td class="paramname"></td><td>)</td>
           <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="ac1f2a9aa108e4a6a7ce264c92ffc1eba"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac1f2a9aa108e4a6a7ce264c92ffc1eba">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[4/5]</span></h2>
+<a id="a1d2ccb177c127cb8955e5fcb27ccd8be"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1d2ccb177c127cb8955e5fcb27ccd8be">&#9670;&nbsp;</a></span>BOOST_AUTO_TEST_CASE() <span class="overload">[5/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">TEST_F </td>
+          <td class="memname">BOOST_AUTO_TEST_CASE </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classPlannerTest.html">PlannerTest</a>&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">check_planner_start_invalid&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
+          <td class="paramname"></td><td>)</td>
           <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a9191acface0ae2f6c5c3dd5105eca0b8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9191acface0ae2f6c5c3dd5105eca0b8">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[5/5]</span></h2>
+<a id="a69b2e84fcff72c356618f79601ce1875"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69b2e84fcff72c356618f79601ce1875">&#9670;&nbsp;</a></span>BOOST_AUTO_TEST_CASE() <span class="overload">[6/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">TEST_F </td>
+          <td class="memname">BOOST_AUTO_TEST_CASE </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classPlannerTest.html">PlannerTest</a>&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">check_planner_success&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
+          <td class="paramname"></td><td>)</td>
           <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">

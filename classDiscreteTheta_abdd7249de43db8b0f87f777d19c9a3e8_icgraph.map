@@ -1,7 +1,7 @@
 <map id="DiscreteTheta::DiscreteTheta" name="DiscreteTheta::DiscreteTheta">
-<area shape="rect" id="node1" title=" " alt="" coords="548,78,760,105"/>
-<area shape="rect" id="node2" href="$classDiscreteTheta.html#adee78f133a8dee7d09233b25de058998" title=" " alt="" coords="300,78,500,105"/>
-<area shape="rect" id="node3" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#ac300f19b6d70d26a25ccec530a7d1dec" title="heuristic estimate from state with stateID to goal state" alt="" coords="5,5,252,47"/>
-<area shape="rect" id="node4" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a353817a4f36672d68155c10f604aff59" title="heuristic estimate from start state to state with stateID" alt="" coords="5,71,252,112"/>
-<area shape="rect" id="node5" href="$test__ugv__nav4d_8cpp.html#a42702e28d53ee40df608e5a26c3689d8" title=" " alt="" coords="101,137,156,163"/>
+<area shape="rect" id="node1" title=" " alt="" coords="548,64,760,91"/>
+<area shape="rect" id="node2" href="$classDiscreteTheta.html#adee78f133a8dee7d09233b25de058998" title=" " alt="" coords="300,64,500,91"/>
+<area shape="rect" id="node3" href="$test__ugv__nav4d_8cpp.html#a99a1a62a952613df37e30e12fb787445" title=" " alt="" coords="33,5,224,32"/>
+<area shape="rect" id="node4" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#ac300f19b6d70d26a25ccec530a7d1dec" title="heuristic estimate from state with stateID to goal state" alt="" coords="5,57,252,98"/>
+<area shape="rect" id="node5" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a353817a4f36672d68155c10f604aff59" title="heuristic estimate from start state to state with stateID" alt="" coords="5,122,252,163"/>
 </map>
