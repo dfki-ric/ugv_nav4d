@@ -1,13 +1,12 @@
 <map id="DiscreteTheta::getTheta" name="DiscreteTheta::getTheta">
-<area shape="rect" id="node1" title=" " alt="" coords="1173,93,1352,120"/>
-<area shape="rect" id="node2" href="$test__DiscreteTheta_8cpp.html#a99a1a62a952613df37e30e12fb787445" title=" " alt="" coords="909,5,1100,32"/>
-<area shape="rect" id="node3" href="$classugv__nav4d_1_1PreComputedMotions.html#adcf80d750c46487274aa04dd289e633d" title=" " alt="" coords="884,57,1125,98"/>
-<area shape="rect" id="node5" href="$DiscreteTheta_8cpp.html#a11d7a609b508c5bfbf0013a0eaea5768" title=" " alt="" coords="955,123,1054,149"/>
-<area shape="rect" id="node6" href="$classugv__nav4d_1_1PreComputedMotions.html#a1aff030f275e3e31a51aff3cfabd8a67" title=" " alt="" coords="884,174,1125,215"/>
-<area shape="rect" id="node4" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#ab087eb2361160a03a2c47aebb95cd18d" title=" " alt="" coords="589,57,836,98"/>
-<area shape="rect" id="node7" href="$classugv__nav4d_1_1PreComputedMotions.html#a5b2526f135a3a4037a475d3cf5b5eb2d" title=" " alt="" coords="592,174,833,215"/>
-<area shape="rect" id="node8" href="$classugv__nav4d_1_1PreComputedMotions.html#adcb702379aa846632ef268a7819b14e7" title=" " alt="" coords="300,174,541,215"/>
-<area shape="rect" id="node9" href="$test__PreComputedMotions_8cpp.html#a017374537e0cf0f6b2b766202d65f7a9" title=" " alt="" coords="33,123,224,149"/>
-<area shape="rect" id="node10" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#ac175a384efea6cac42d3d8b6af1e78fa" title=" " alt="" coords="5,174,252,215"/>
-<area shape="rect" id="node11" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#aad923bd208cf067e9385b3d7d1b0f135" title=" " alt="" coords="5,239,252,281"/>
+<area shape="rect" id="node1" title=" " alt="" coords="1173,101,1352,127"/>
+<area shape="rect" id="node2" href="$classugv__nav4d_1_1PreComputedMotions.html#adcf80d750c46487274aa04dd289e633d" title=" " alt="" coords="884,5,1125,47"/>
+<area shape="rect" id="node4" href="$DiscreteTheta_8cpp.html#a11d7a609b508c5bfbf0013a0eaea5768" title=" " alt="" coords="955,71,1054,98"/>
+<area shape="rect" id="node5" href="$classugv__nav4d_1_1PreComputedMotions.html#a1aff030f275e3e31a51aff3cfabd8a67" title=" " alt="" coords="884,123,1125,164"/>
+<area shape="rect" id="node10" href="$test__ugv__nav4d_8cpp.html#a42702e28d53ee40df608e5a26c3689d8" title=" " alt="" coords="977,189,1032,215"/>
+<area shape="rect" id="node3" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#ab087eb2361160a03a2c47aebb95cd18d" title=" " alt="" coords="589,5,836,47"/>
+<area shape="rect" id="node6" href="$classugv__nav4d_1_1PreComputedMotions.html#a5b2526f135a3a4037a475d3cf5b5eb2d" title=" " alt="" coords="592,123,833,164"/>
+<area shape="rect" id="node7" href="$classugv__nav4d_1_1PreComputedMotions.html#adcb702379aa846632ef268a7819b14e7" title=" " alt="" coords="300,123,541,164"/>
+<area shape="rect" id="node8" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#ac175a384efea6cac42d3d8b6af1e78fa" title=" " alt="" coords="5,89,252,131"/>
+<area shape="rect" id="node9" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#aad923bd208cf067e9385b3d7d1b0f135" title=" " alt="" coords="5,155,252,196"/>
 </map>
