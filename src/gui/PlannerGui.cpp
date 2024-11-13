@@ -47,7 +47,7 @@ PlannerGui::PlannerGui(const std::string& dumpName): QObject()
 
     planner->updateMap(dump.getMlsMap());
 
-    planning = false;
+    inplanningphase = false;
 }
 
 
@@ -326,7 +326,7 @@ void PlannerGui::setupPlanner(int argc, char** argv)
 
     travConfig.gridResolution = res;
     travConfig.maxSlope = 0.45; //40.0/180.0 * M_PI;
-    travConfig.maxStepHeight = 0.25; //space below robot
+    travConfig.maxStepHeight = 0.20; //space below robot
     travConfig.robotSizeX = 0.5;
     travConfig.robotSizeY =  0.5;
     travConfig.robotHeight = 0.5; //incl space below body
@@ -580,16 +580,26 @@ void PlannerGui::replanButtonReleased()
 void PlannerGui::startPlanThread()
 {
 
-    if (planning){
+    bar->setMaximum(0);
+
+    // Check if planning is already in progress
+    if (inplanningphase.load()) {
+        std::cout << "Planner is in planning phase... Please wait for it to finish." << std::endl;
         return;
     }
 
-    bar->setMaximum(0);
+    // Mark the start of the planning phase
+    inplanningphase.store(true);    
+    
     std::thread t([this](){
 #ifdef ENABLE_DEBUG_DRAWINGS
         V3DD::CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(this->widget);
 #endif
         this->plan(this->start, this->goal);
+
+        // Mark the end of the planning phase after work is done
+        inplanningphase.store(false);
+
     });
     t.detach(); //needed to avoid destruction of thread at end of method
 }
@@ -641,11 +651,9 @@ void PlannerGui::plan(const base::Pose& start, const base::Pose& goal)
     endState.orientation = goal.orientation;
 
     LOG_INFO_S << "Planning: " << start << " -> " << goal;
-    planning = true;
+    
     const Planner::PLANNING_RESULT result = planner->plan(base::Time::fromSeconds(time->value()),
                                             startState, endState, path, beautifiedPath);
-    
-    planning = false;
     switch(result)
     {
         case Planner::GOAL_INVALID:

@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <QWidget>
+#include <atomic> 
 
 #ifndef Q_MOC_RUN
 #include <vizkit3d/SubTrajectoryVisualization.hpp>
@@ -75,7 +76,7 @@ private:
     
 private:
 
-    bool planning;
+    std::atomic<bool> inplanningphase{false}; // Atomic for thread-safe flag
     vizkit3d::Vizkit3DWidget* widget;
     QDoubleSpinBox* maxSlopeSpinBox;
     QDoubleSpinBox* slopeMetricScaleSpinBox;
