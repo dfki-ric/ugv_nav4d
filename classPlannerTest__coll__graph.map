@@ -1,7 +1,6 @@
 <map id="PlannerTest" name="PlannerTest">
-<area shape="rect" id="node1" title=" " alt="" coords="139,769,315,935"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,497,107,575"/>
-<area shape="rect" id="node3" href="$structugv__nav4d_1_1PlannerConfig.html" title=" " alt="" coords="128,86,320,222"/>
-<area shape="rect" id="node5" href="$classugv__nav4d_1_1Planner.html" title=" " alt="" coords="285,365,515,707"/>
-<area shape="rect" id="node4" href="$structugv__nav4d_1_1Mobility.html" title=" " alt="" coords="375,5,590,303"/>
+<area shape="rect" id="node1" title=" " alt="" coords="191,769,367,905"/>
+<area shape="rect" id="node2" href="$structugv__nav4d_1_1PlannerConfig.html" title=" " alt="" coords="34,86,226,222"/>
+<area shape="rect" id="node4" href="$classugv__nav4d_1_1Planner.html" title=" " alt="" coords="164,365,395,707"/>
+<area shape="rect" id="node3" href="$structugv__nav4d_1_1Mobility.html" title=" " alt="" coords="259,5,473,303"/>
 </map>

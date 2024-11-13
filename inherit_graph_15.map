@@ -1,4 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" title=" " alt="" coords="5,5,204,47"/>
-<area shape="rect" id="node2" href="$classugv__nav4d_1_1ObstacleMapGenerator3D.html" title=" " alt="" coords="252,13,521,39"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,97,144,124"/>
+<area shape="rect" id="node2" href="$classugv__nav4d_1_1NodeCreationFailed.html" title=" " alt="" coords="192,5,420,32"/>
+<area shape="rect" id="node3" href="$classugv__nav4d_1_1ObstacleCheckFailed.html" title=" " alt="" coords="207,57,405,98"/>
+<area shape="rect" id="node4" href="$classugv__nav4d_1_1OrientationNotAllowed.html" title=" " alt="" coords="207,122,405,163"/>
+<area shape="rect" id="node5" href="$classugv__nav4d_1_1StateCreationFailed.html" title=" " alt="" coords="211,187,401,229"/>
 </map>
