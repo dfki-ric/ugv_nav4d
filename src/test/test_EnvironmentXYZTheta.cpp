@@ -19,112 +19,251 @@
 #include <boost/archive/binary_iarchive.hpp>
 
 using namespace ugv_nav4d;
+using namespace maps::grid;
 
-std::string mlsBinFile;
+std::vector<Eigen::Vector3d> startPositions;
+std::vector<Eigen::Vector3d> goalPositions;
 
-// Define EnvironmentXYZThetaTest fixture for Boost Test
 struct EnvironmentXYZThetaTest {
-    EnvironmentXYZThetaTest();
-    ~EnvironmentXYZThetaTest();
+    EnvironmentXYZThetaTest(){}
+    ~EnvironmentXYZThetaTest(){}
 
-    void loadMlsMap();
-
-    typedef EnvironmentXYZTheta::MLGrid MLSBase;
 
     EnvironmentXYZTheta* environment;
-    maps::grid::MLSMapSloped mlsMap;
     Mobility mobility;
     sbpl_spline_primitives::SplinePrimitivesConfig splinePrimitiveConfig;
     traversability_generator3d::TraversabilityConfig traversabilityConfig;
     bool map_loaded = false;
 };
 
-EnvironmentXYZThetaTest::EnvironmentXYZThetaTest() {
-    std::cout << "Called SetUp()" << std::endl;
+BOOST_FIXTURE_TEST_CASE(travmap_resolution_not_equal_to_mls_resolution, EnvironmentXYZThetaTest) {
+    Vector2d res(0.3, 0.3);
+    Vector2ui numCells(10, 10);
 
-    splinePrimitiveConfig.gridSize = 0.3;
-    splinePrimitiveConfig.numAngles = 16;
-    splinePrimitiveConfig.numEndAngles = 8;
-    splinePrimitiveConfig.destinationCircleRadius = 6;
-    splinePrimitiveConfig.cellSkipFactor = 0.1;
-    splinePrimitiveConfig.splineOrder = 4.0;
+    MLSConfig mls_config;
+    mls_config.gapSize = 0.1;
+    mls_config.updateModel = MLSConfig::SLOPE;
+    MLSMapSloped mls_o = MLSMapSloped(numCells, res, mls_config);
 
-    mobility.translationSpeed = 0.5;
-    mobility.rotationSpeed = 0.5;
-    mobility.minTurningRadius = 1;
-    mobility.spline_sampling_resolution = 0.05;
-    mobility.remove_goal_offset = true;
-    mobility.multiplierForward = 1;
-    mobility.multiplierBackward = 3;
-    mobility.multiplierPointTurn = 3;
-    mobility.multiplierLateral = 4;
-    mobility.multiplierForwardTurn = 2;
-    mobility.multiplierBackwardTurn = 4;
-    mobility.multiplierLateralCurve = 4;
-    mobility.searchRadius = 1.0;
-    mobility.searchProgressSteps = 0.1;
-    mobility.maxMotionCurveLength = 100;
+    /** Translate the local frame (offset) **/
+    mls_o.getLocalFrame().translation() << 0.5*mls_o.getSize(), 0;
 
-    traversabilityConfig.maxStepHeight = 0.25;
-    traversabilityConfig.maxSlope = 0.45;
-    traversabilityConfig.inclineLimittingMinSlope = 0.2;
-    traversabilityConfig.inclineLimittingLimit = 0.1;
-    traversabilityConfig.costFunctionDist = 0.0;
-    traversabilityConfig.minTraversablePercentage = 0.4;
-    traversabilityConfig.robotHeight = 1.2;
-    traversabilityConfig.robotSizeX = 1.35;
-    traversabilityConfig.robotSizeY = 0.85;
-    traversabilityConfig.distToGround = 0.0;
-    traversabilityConfig.slopeMetricScale = 1.0;
-    traversabilityConfig.slopeMetric = traversability_generator3d::NONE;
+    Eigen::Vector2d max = 0.5 * mls_o.getSize();
+    Eigen::Vector2d min = -0.5 * mls_o.getSize();
+    for (double x = min.x(); x < max.x(); x += 0.00625)
+    {
+        //double cs = std::cos(x * M_PI/2.5);
+        for (double y = min.y(); y < max.y(); y += 0.00625)
+        {
+            //double sn = std::sin(y * M_PI/2.5);
+            mls_o.mergePoint(Eigen::Vector3d(x, y, 0));
+        }
+    }
+
+    std::shared_ptr<maps::grid::MLSMapSloped> mlsPtr = std::make_shared<maps::grid::MLSMapSloped>(mls_o);
+    traversabilityConfig.gridResolution = 0.5;
+    splinePrimitiveConfig.gridSize = 0.5;
+    environment = new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, splinePrimitiveConfig, mobility);
+    std::vector<Eigen::Vector3d> startPositions;
+    startPositions.emplace_back(Eigen::Vector3d(0,0,0));
+    environment->expandMap(startPositions);
+    BOOST_CHECK_EQUAL(environment->getTravGen().getNumNodes(), 1);
+    delete environment;
+
+    traversabilityConfig.gridResolution = 0.1;
+    splinePrimitiveConfig.gridSize = 0.1;
+    environment = new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, splinePrimitiveConfig, mobility);
+    environment->expandMap(startPositions);
+    BOOST_CHECK_EQUAL(environment->getTravGen().getNumNodes(), 9);
+}
+
+BOOST_FIXTURE_TEST_CASE(travmap_resolution_equal_to_mls_resolution, EnvironmentXYZThetaTest) {
+    Vector2d res(0.3, 0.3);
+    Vector2ui numCells(10, 10);
+
+    MLSConfig mls_config;
+    mls_config.gapSize = 0.1;
+    mls_config.updateModel = MLSConfig::SLOPE;
+    MLSMapSloped mls_o = MLSMapSloped(numCells, res, mls_config);
+
+    /** Translate the local frame (offset) **/
+    mls_o.getLocalFrame().translation() << 0.5*mls_o.getSize(), 0;
+
+    Eigen::Vector2d max = 0.5 * mls_o.getSize();
+    Eigen::Vector2d min = -0.5 * mls_o.getSize();
+
+    for (double x = min.x(); x < max.x(); x += 0.00625)
+    {
+        //double cs = std::cos(x * M_PI/2.5);
+        for (double y = min.y(); y < max.y(); y += 0.00625)
+        {
+            //double sn = std::sin(y * M_PI/2.5);
+            mls_o.mergePoint(Eigen::Vector3d(x, y, 0));
+        }
+    }
+
+    std::shared_ptr<maps::grid::MLSMapSloped> mlsPtr = std::make_shared<maps::grid::MLSMapSloped>(mls_o);
     traversabilityConfig.gridResolution = 0.3;
-    traversabilityConfig.initialPatchVariance = 0.0001;
-    traversabilityConfig.allowForwardDownhill = true;
-    traversabilityConfig.enableInclineLimitting = false;
+    splinePrimitiveConfig.gridSize = 0.3;
 
-    loadMlsMap();
+    environment = new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, splinePrimitiveConfig, mobility);
+    std::vector<Eigen::Vector3d> startPositions;
+    startPositions.emplace_back(Eigen::Vector3d(0,0,0));
+    environment->expandMap(startPositions);
+    BOOST_CHECK_EQUAL(environment->getTravGen().getNumNodes(), numCells.x()* numCells.y());
 }
 
-EnvironmentXYZThetaTest::~EnvironmentXYZThetaTest(){
-    std::cout << "Called TearDown()" << std::endl;
-    delete environment;  
+BOOST_FIXTURE_TEST_CASE(check_travmap, EnvironmentXYZThetaTest) {
+    Vector2d res(0.3, 0.3);
+    Vector2ui numCells(10, 10);
+
+    MLSConfig mls_config;
+    mls_config.gapSize = 0.1;
+    mls_config.updateModel = MLSConfig::SLOPE;
+    MLSMapSloped mls_o = MLSMapSloped(numCells, res, mls_config);
+
+    /** Translate the local frame (offset) **/
+    mls_o.getLocalFrame().translation() << 0.5*mls_o.getSize(), 0;
+
+    Eigen::Vector2d max = 0.5 * mls_o.getSize();
+    Eigen::Vector2d min = -0.5 * mls_o.getSize();
+
+    for (double x = min.x(); x < max.x(); x += 0.00625)
+    {
+        for (double y = min.y(); y < max.y(); y += 0.00625)
+        {
+            double z = 0;
+            if ((x >= 0.6 && x < 0.9) && (y >= 0.6 && y < 0.9)){
+                z = 0.3;
+            }
+            mls_o.mergePoint(Eigen::Vector3d(x, y, z));
+        }
+    }
+
+    std::shared_ptr<maps::grid::MLSMapSloped> mlsPtr = std::make_shared<maps::grid::MLSMapSloped>(mls_o);
+    traversabilityConfig.gridResolution = 0.3;
+    splinePrimitiveConfig.gridSize = 0.3;
+
+    environment = new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, splinePrimitiveConfig, mobility);
+    std::vector<Eigen::Vector3d> startPositions;
+    startPositions.emplace_back(Eigen::Vector3d(0,0,0));
+    environment->expandMap(startPositions);
+
+    Eigen::Vector3d positionFron{0.9, 0.3, 0};
+    maps::grid::Index idxFrontierNode;
+    environment->getTravGen().getTraversabilityMap().toGrid(positionFron, idxFrontierNode);
+    auto frontier = environment->getTravGen().findMatchingTraversabilityPatchAt(idxFrontierNode,0);
+    BOOST_CHECK_EQUAL(frontier->getType(), ::maps::grid::TraversabilityNodeBase::FRONTIER);
+
+    Eigen::Vector3d positionTrav{0.3, 0.3, 0};
+    maps::grid::Index idxTraversableNode;
+    environment->getTravGen().getTraversabilityMap().toGrid(positionTrav, idxTraversableNode);
+    auto traversable = environment->getTravGen().findMatchingTraversabilityPatchAt(idxTraversableNode,0);
+    BOOST_CHECK_EQUAL(traversable->getType(), ::maps::grid::TraversabilityNodeBase::TRAVERSABLE);
+
+    Eigen::Vector3d positionObs{0.65, 0.65, 0};
+    maps::grid::Index idxObstacleNode;
+    environment->getTravGen().getTraversabilityMap().toGrid(positionObs, idxObstacleNode);
+    auto &trList(environment->getTravGen().getTraversabilityMap().at(idxObstacleNode));
+    for(auto *snode : trList)
+    {
+        BOOST_CHECK_EQUAL(snode->getType(), ::maps::grid::TraversabilityNodeBase::OBSTACLE);
+    }
 }
 
-void EnvironmentXYZThetaTest::loadMlsMap() {
-    std::string filename;
+BOOST_FIXTURE_TEST_CASE(check_stepheight, EnvironmentXYZThetaTest) {
+    Vector2d res(0.3, 0.3);
+    Vector2ui numCells(10, 10);
 
-    if (mlsBinFile.empty()) {
-        filename = "cave_circuit_mls.bin";
-    } else {
-        filename = mlsBinFile;
+    MLSConfig mls_config;
+    mls_config.gapSize = 0.1;
+    mls_config.updateModel = MLSConfig::SLOPE;
+    MLSMapSloped mls_o = MLSMapSloped(numCells, res, mls_config);
+
+    /** Translate the local frame (offset) **/
+    mls_o.getLocalFrame().translation() << 0.5*mls_o.getSize(), 0;
+
+    Eigen::Vector2d max = 0.5 * mls_o.getSize();
+    Eigen::Vector2d min = -0.5 * mls_o.getSize();
+
+    for (double x = min.x(); x < max.x(); x += 0.00625)
+    {
+        for (double y = min.y(); y < max.y(); y += 0.00625)
+        {
+            double z = 0;
+            if ((x >= 0 && x < 0.3) && (y >= 0 && y < 0.3)){
+                z = 0.1;
+            }
+            mls_o.mergePoint(Eigen::Vector3d(x, y, z));
+        }
     }
 
-    std::ifstream file(filename, std::ios::binary);
-    if (!file.is_open()) {
-        map_loaded = false;
-        return;
+    std::shared_ptr<maps::grid::MLSMapSloped> mlsPtr = std::make_shared<maps::grid::MLSMapSloped>(mls_o);
+    traversabilityConfig.gridResolution = 0.3;
+    splinePrimitiveConfig.gridSize = 0.3;
+
+    environment = new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, splinePrimitiveConfig, mobility);
+    std::vector<Eigen::Vector3d> startPositions;
+    startPositions.emplace_back(Eigen::Vector3d(0,0,0));
+    environment->expandMap(startPositions);
+
+    Eigen::Vector3d positionObs{0.25, 0.25, 0};
+    maps::grid::Index idxObstacleNode;
+
+    environment->getTravGen().getTraversabilityMap().toGrid(positionObs, idxObstacleNode);
+    for(auto *snode : environment->getTravGen().getTraversabilityMap().at(idxObstacleNode))
+    {
+        BOOST_CHECK_EQUAL(snode->getType(), ::maps::grid::TraversabilityNodeBase::OBSTACLE);
     }
 
-    try {
-        boost::archive::binary_iarchive ia(file);
-        ia >> mlsMap;  // Deserialize into mlsMap
-    } catch (const std::exception& e) {
-        map_loaded = false;
+    delete environment;
+
+    traversabilityConfig.maxStepHeight = 0.2;
+    environment = new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, splinePrimitiveConfig, mobility);
+    environment->expandMap(startPositions);
+
+    environment->getTravGen().getTraversabilityMap().toGrid(positionObs, idxObstacleNode);
+    for(auto *snode : environment->getTravGen().getTraversabilityMap().at(idxObstacleNode))
+    {
+        BOOST_CHECK_EQUAL(snode->getType(), ::maps::grid::TraversabilityNodeBase::TRAVERSABLE);
     }
-    map_loaded = true;
 }
 
-// Define the test suite and test cases
-BOOST_FIXTURE_TEST_SUITE(EnvironmentXYZThetaTestSuite, EnvironmentXYZThetaTest)
+BOOST_FIXTURE_TEST_CASE(set_start_and_goal, EnvironmentXYZThetaTest) {
+    Vector2d res(0.3, 0.3);
+    Vector2ui numCells(100, 100);
 
-BOOST_AUTO_TEST_CASE(check_planner_init_failure_wrong_grid_resolutions) {
-    std::shared_ptr<MLSBase> mlsPtr = std::make_shared<MLSBase>(mlsMap);
-    try {
-        environment = new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, splinePrimitiveConfig, mobility);
-    } catch (const std::exception& ex) {
-        std::cout << "Exception: \n" << ex.what() << "\n";
-        BOOST_CHECK_NE(splinePrimitiveConfig.gridSize, traversabilityConfig.gridResolution);
+    MLSConfig mls_config;
+    mls_config.gapSize = 0.1;
+    mls_config.updateModel = MLSConfig::SLOPE;
+    MLSMapSloped mls_o = MLSMapSloped(numCells, res, mls_config);
+
+    /** Translate the local frame (offset) **/
+    mls_o.getLocalFrame().translation() << 0.5*mls_o.getSize(), 0;
+
+    Eigen::Vector2d max = 0.5 * mls_o.getSize();
+    Eigen::Vector2d min = -0.5 * mls_o.getSize();
+
+    for (double x = min.x(); x < max.x(); x += 0.00625)
+    {
+        for (double y = min.y(); y < max.y(); y += 0.00625)
+        {
+            mls_o.mergePoint(Eigen::Vector3d(x, y, 0));
+        }
     }
-}
 
-BOOST_AUTO_TEST_SUITE_END()
+    std::shared_ptr<maps::grid::MLSMapSloped> mlsPtr = std::make_shared<maps::grid::MLSMapSloped>(mls_o);
+    traversabilityConfig.gridResolution = 0.3;
+    splinePrimitiveConfig.gridSize = 0.3;
+
+    environment = new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, splinePrimitiveConfig, mobility);
+    std::vector<Eigen::Vector3d> startPositions;
+    startPositions.emplace_back(Eigen::Vector3d(0,0,0));
+    environment->expandMap(startPositions);
+
+    Eigen::Vector3d startPos{0,0,0};
+    Eigen::Vector3d goalPos{12, 12, 0};
+
+    environment->setStart(startPos,0);
+    environment->setGoal(goalPos,0);
+}
