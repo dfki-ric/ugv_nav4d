@@ -294,9 +294,11 @@ void PlannerGui::setupUI()
 void PlannerGui::setupPlanner(int argc, char** argv)
 {
     double res = 0.3;
-     if(argc > 2)
-         res = atof(argv[2]);
-    
+    if(argc > 2){
+        std::setlocale(LC_ALL, "C");
+        res = atof(argv[2]);
+    }
+
     splineConfig.gridSize = res;
     splineConfig.numAngles = 16;
     splineConfig.numEndAngles = 8;
