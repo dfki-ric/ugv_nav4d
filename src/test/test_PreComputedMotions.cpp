@@ -2,6 +2,7 @@
 #include <boost/test/included/unit_test.hpp>
 
 #include "ugv_nav4d/PreComputedMotions.hpp"
+#include <base/Pose.hpp>
 
 using namespace ugv_nav4d;
 
@@ -90,11 +91,8 @@ BOOST_AUTO_TEST_CASE(check_motions) {
                     BOOST_CHECK_GT(cellWithPoses.poses.size(), 0);
                 }
 
-                int splineSize = motion.fullSplineSamples.size();
-                int posesSize = motion.fullSplineSamples[splineSize-1].poses.size();
-
-                base::Angle splineStartAngle = base::Angle::fromRad(motion.fullSplineSamples[0].poses[0].orientation);
-                base::Angle splineEndAngle = base::Angle::fromRad(motion.fullSplineSamples[splineSize-1].poses[posesSize-1].orientation);
+                base::Angle splineStartAngle = base::Angle::fromRad(motion.fullSplineSamples.front().poses.front().orientation);
+                base::Angle splineEndAngle = base::Angle::fromRad(motion.fullSplineSamples.back().poses.back().orientation);
 
                 base::Angle motionStartAngle = base::Angle::fromRad(motion.startTheta.getRadian());
                 base::Angle motionEndAngle = base::Angle::fromRad(motion.endTheta.getRadian());
@@ -115,6 +113,14 @@ BOOST_AUTO_TEST_CASE(check_motions) {
                     BOOST_CHECK_CLOSE_FRACTION(std::abs((splineStartAngle - motionStartAngle).getRad()), 1.57, 0.01);   
                     BOOST_CHECK_CLOSE_FRACTION(std::abs((splineEndAngle - motionEndAngle).getRad()), 1.57, 0.01);             
                 }
+
+                const base::Pose2D& splineFinalPosition = motion.fullSplineSamples.back().poses.back();
+                const base::Pose2D& travMapFinalPosition = motion.intermediateStepsTravMap.back().pose;
+                const base::Pose2D& obstMapFinalPosition = motion.intermediateStepsObstMap.back().pose;
+
+                //Check if end position of full spline and sampled spline are same
+                BOOST_REQUIRE(splineFinalPosition.position.isApprox(travMapFinalPosition.position, 1e-6));
+                BOOST_REQUIRE(splineFinalPosition.position.isApprox(obstMapFinalPosition.position, 1e-6));
             }
         }    
     }
