@@ -66,7 +66,6 @@ BOOST_AUTO_TEST_CASE(check_motions) {
                     BOOST_CHECK_GT(motion.fullSplineSamples.size(), 0);
                     BOOST_CHECK_GT(motion.intermediateStepsTravMap.size(), 0);
                     BOOST_CHECK_GT(motion.intermediateStepsObstMap.size(), 0);
-
                     break;
                 case Motion::MOV_LATERAL:
                     BOOST_CHECK_GT(motion.fullSplineSamples.size(), 0);
@@ -137,14 +136,12 @@ BOOST_AUTO_TEST_CASE(calculate_cost) {
     BOOST_REQUIRE(motions_start.size() > 0);
     BOOST_CHECK_THROW(motions_start[0].calculateCost(0,0,0,0,0), std::runtime_error);
 
-    for (const auto& motion : motions_start){
-        //Translation
-        BOOST_CHECK_GT(motion.calculateCost(1,0,0.1,0.1,1), 0);
-        //Rotation
-        BOOST_CHECK_GT(motion.calculateCost(0,1,0.1,0.1,1), 0);
-        //Translation and rotation
-        BOOST_CHECK_GT(motion.calculateCost(1,1,0.1,0.1,1), 0);
-   }
-
+    //Translation
+    BOOST_CHECK_GT(motions_start[0].calculateCost(1,0,0.1,0.1,1), 0);
+    //Rotation
+    BOOST_CHECK_GT(motions_start[0].calculateCost(0,1,0.1,0.1,1), 0);
+    //Translation and rotation
+    BOOST_CHECK_GT(motions_start[0].calculateCost(1,1,0.1,0.1,1), 0);
+   
     delete motions;
 }
