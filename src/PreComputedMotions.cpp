@@ -296,6 +296,11 @@ void PreComputedMotions::computeSplinePrimCost(const SplinePrimitive& prim,
 int Motion::calculateCost(double translationalDist, double angularDist, double translationVelocity,
                           double angularVelocity, double costMultiplier)
 {
+    if (translationVelocity == 0.0 || angularVelocity == 0.0) {
+        LOG_ERROR_S << "ERROR calculateCost: Division by zero translation or angular velocity.";
+        throw std::runtime_error("ERROR calculateCost: Division by zero translation or angular velocity.");
+
+    }
     const double translationTime = translationalDist / translationVelocity;
     const double angularTime = angularDist / angularVelocity;
 
@@ -304,7 +309,7 @@ int Motion::calculateCost(double translationalDist, double angularDist, double t
 
     if(cost > std::numeric_limits<int>::max())
     {
-        std::cerr << "WARNING: primitive cost too large for int. Clipping to int_max." << std::endl;
+        LOG_ERROR_S << "WARNING: primitive cost too large for int. Clipping to int_max.";
         return std::numeric_limits<int>::max();
     }
     else
