@@ -12,9 +12,15 @@ set(DEPS_PKGCONFIG_LIST
 	traversability_generator3d
 	trajectory_follower
 )
-
+pkg_check_modules(vizkit3d_debug_drawings-commands vizkit3d_debug_drawings-commands)
+pkg_check_modules(vizkit3d_debug_drawings-qt5 vizkit3d_debug_drawings-qt5)
 if (ENABLE_DEBUG_DRAWINGS)
-	list(APPEND DEPS_PKGCONFIG_LIST vizkit3d_debug_drawings-commands)
+	if (vizkit3d_debug_drawings-commands)
+		list(APPEND DEPS_PKGCONFIG_LIST vizkit3d_debug_drawings-commands)
+	endif()
+	if(vizkit3d_debug_drawings-qt5)
+		list(APPEND DEPS_PKGCONFIG_LIST vizkit3d_debug_drawings-qt5)
+	endif()
 endif()
 
 rock_library(ugv_nav4d
