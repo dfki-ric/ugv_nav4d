@@ -2,6 +2,7 @@
 #include <boost/test/included/unit_test.hpp>
 
 #include "ugv_nav4d/Planner.hpp"
+#include <base/Angle.hpp>
 
 using namespace ugv_nav4d;
 
@@ -187,6 +188,77 @@ BOOST_AUTO_TEST_CASE(check_planner_success) {
 
     const Planner::PLANNING_RESULT result = planner->plan(base::Time::fromSeconds(maxTime), startState, endState, trajectory2D, trajectory3D);
     BOOST_CHECK_EQUAL(result, Planner::FOUND_SOLUTION);
+    BOOST_CHECK_GT(trajectory2D.size(), 0);
+    BOOST_CHECK_GT(trajectory3D.size(), 0);
+    BOOST_CHECK_EQUAL(trajectory2D.size(), trajectory3D.size());
+
+    //Start and Goal Positions
+    BOOST_REQUIRE(trajectory2D.front().startPose.position.isApprox(startState.position.head<2>(), 1e-6));
+    BOOST_REQUIRE(trajectory2D.back().goalPose.position.isApprox(endState.position.head<2>(), 1e-6));
+    BOOST_REQUIRE(trajectory2D.front().posSpline.getStartPoint().isApprox(startState.position, 1e-6));
+    BOOST_REQUIRE(trajectory2D.back().posSpline.getEndPoint().isApprox(endState.position, 1e-6));
+
+    BOOST_REQUIRE(trajectory3D.front().startPose.position.isApprox(startState.position.head<2>(), 1e-6));
+    BOOST_REQUIRE(trajectory3D.back().goalPose.position.isApprox(endState.position.head<2>(), 1e-6));
+    BOOST_REQUIRE(trajectory3D.front().posSpline.getStartPoint().isApprox(startState.position, 1e-6));
+    BOOST_REQUIRE(trajectory3D.back().posSpline.getEndPoint().isApprox(endState.position, 1e-6));
+
+
+    //Start and Goal Orientations
+    BOOST_REQUIRE_EQUAL(base::Angle::fromRad(trajectory2D.front().startPose.orientation).getRad(),
+                        base::Angle::fromRad(base::getYaw(startState.orientation)).getRad());
+    BOOST_REQUIRE_EQUAL(base::Angle::fromRad(trajectory2D.back().goalPose.orientation).getRad(),
+                        base::Angle::fromRad(base::getYaw(endState.orientation)).getRad());
+
+    BOOST_REQUIRE_EQUAL(base::Angle::fromRad(trajectory3D.front().startPose.orientation).getRad(),
+                        base::Angle::fromRad(base::getYaw(startState.orientation)).getRad());
+    BOOST_REQUIRE_EQUAL(base::Angle::fromRad(trajectory3D.back().goalPose.orientation).getRad(),
+                        base::Angle::fromRad(base::getYaw(endState.orientation)).getRad());
+
+    for (auto& trajectory : trajectory2D){
+        BOOST_REQUIRE(trajectory.speed <= mobility.translationSpeed);
+        BOOST_REQUIRE(trajectory.speed <= mobility.rotationSpeed);
+
+        if (trajectory.driveMode != trajectory_follower::ModeTurnOnTheSpot){
+            BOOST_REQUIRE(trajectory.posSpline.isEmpty() == false);
+
+            BOOST_REQUIRE(trajectory.getCurvatureMax() <= mobility.minTurningRadius/2);
+            BOOST_REQUIRE(trajectory.posSpline.getCurveLength() <= mobility.maxMotionCurveLength);               
+        }
+        else{
+            BOOST_REQUIRE(trajectory.orientationSpline.isEmpty() == false);
+
+            BOOST_CHECK_CLOSE_FRACTION(base::Angle::fromRad(trajectory.getIntermediatePoint(trajectory.orientationSpline.getStartParam()).orientation).getRad(),
+                                base::Angle::fromRad(trajectory.startPose.orientation).getRad(), 1e-6);
+
+            BOOST_CHECK_CLOSE_FRACTION(base::Angle::fromRad(trajectory.getIntermediatePoint(trajectory.orientationSpline.getEndParam()).orientation).getRad(),
+                                base::Angle::fromRad(trajectory.goalPose.orientation).getRad(), 1e-6);
+        }
+    }
+
+    for (auto& trajectory : trajectory3D){
+        BOOST_REQUIRE(trajectory.speed <= mobility.translationSpeed);
+        BOOST_REQUIRE(trajectory.speed <= mobility.rotationSpeed);
+
+        if (trajectory.driveMode != trajectory_follower::ModeTurnOnTheSpot){
+            BOOST_REQUIRE(trajectory.posSpline.isEmpty() == false);
+
+            BOOST_REQUIRE(trajectory.getCurvatureMax() <= mobility.minTurningRadius/2);
+            BOOST_REQUIRE(trajectory.posSpline.getCurveLength() <= mobility.maxMotionCurveLength);               
+        }
+        else{
+            BOOST_REQUIRE(trajectory.orientationSpline.isEmpty() == false);
+
+            BOOST_CHECK_CLOSE_FRACTION(base::Angle::fromRad(trajectory.getIntermediatePoint(trajectory.orientationSpline.getStartParam()).orientation).getRad(),
+                                base::Angle::fromRad(trajectory.startPose.orientation).getRad(), 1e-6);
+
+            BOOST_CHECK_CLOSE_FRACTION(base::Angle::fromRad(trajectory.getIntermediatePoint(trajectory.orientationSpline.getEndParam()).orientation).getRad(),
+                                base::Angle::fromRad(trajectory.goalPose.orientation).getRad(), 1e-6);
+        }
+    }
+
+
 }
+
 
 BOOST_AUTO_TEST_SUITE_END()
