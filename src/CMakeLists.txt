@@ -1,6 +1,3 @@
-rock_find_qt4(OPTIONAL)
-rock_find_qt5(OPTIONAL)
-
 find_package(OpenMP REQUIRED)
 if(OPENMP_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
