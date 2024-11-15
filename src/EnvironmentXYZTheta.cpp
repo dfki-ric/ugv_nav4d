@@ -24,7 +24,7 @@ namespace ugv_nav4d
     {\
         LOG_ERROR_S << #val; \
         LOG_ERROR_S << __FILE__ << ": " << __LINE__; \
-        throw std::runtime_error("meeeeh"); \
+        throw std::runtime_error("Error!"); \
     }
 
 EnvironmentXYZTheta::EnvironmentXYZTheta(std::shared_ptr<MLGrid> mlsGrid,
@@ -103,9 +103,10 @@ void EnvironmentXYZTheta::setInitialPatch(const Eigen::Affine3d& ground2Mls, dou
 
 void EnvironmentXYZTheta::updateMap(shared_ptr< ugv_nav4d::EnvironmentXYZTheta::MLGrid > mlsGrid)
 {
-    if(this->mlsGrid && this->mlsGrid->getResolution() != mlsGrid->getResolution())
+    if(this->mlsGrid && this->mlsGrid->getResolution() != mlsGrid->getResolution()){
+        LOG_ERROR_S << "EnvironmentXYZTheta::updateMap : Error got MLSMap with different resolution";
         throw std::runtime_error("EnvironmentXYZTheta::updateMap : Error got MLSMap with different resolution");
-
+    }
     if(!this->mlsGrid)
     {
         availableMotions.computeMotions(mlsGrid->getResolution().x(), travConf.gridResolution);
@@ -131,7 +132,7 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
     traversability_generator3d::TravGenNode *travNode = travGen.generateStartNode(pos);
     if(!travNode)
     {
-        LOG_INFO_S << "Could not generate Node at pos";
+        LOG_ERROR_S << "Could not generate new state at pos: " << pos.transpose();
         return nullptr;
     }
 
@@ -140,7 +141,7 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
     {
         if(!travGen.expandNode(travNode))
         {
-            LOG_INFO_S << "createNewStateFromPose: Error: " << name << " Pose " << pos.transpose() << " is not traversable";
+            LOG_ERROR_S << "createNewStateFromPose: Error: " << name << " Pose " << pos.transpose() << " is not traversable";
             return nullptr;
         }
         travNode->setNotExpanded();
@@ -165,13 +166,13 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
     maps::grid::Index idxObstNode;
     if(!obsGen.getTraversabilityMap().toGrid(pos, idxObstNode))
     {
-        LOG_INFO_S << "Error " << nodeName << " is outside of obstacle map ";
+        LOG_ERROR_S << "Error " << nodeName << " is outside of obstacle map ";
         return false;
     }
     traversability_generator3d::TravGenNode* obstacleNode = obsGen.findMatchingTraversabilityPatchAt(idxObstNode, pos.z());
     if(!obstacleNode)
     {
-        LOG_INFO_S << "Error, could not find matching obstacle node for " << nodeName;
+        LOG_ERROR_S << "Error, could not find matching obstacle node for " << nodeName;
         return false;
     }
 
@@ -209,8 +210,8 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
             });
 #endif
 
-            LOG_INFO_S << "Num obstacles: " << stats.getRobotStats().getNumObstacles();
-            LOG_INFO_S << "Error: " << nodeName << " inside obstacle";
+            LOG_DEBUG_S << "Num obstacles: " << stats.getRobotStats().getNumObstacles();
+            LOG_DEBUG_S << "Error: " << nodeName << " inside obstacle";
             return false;
         }
     }
@@ -246,7 +247,7 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
             base::Vector3d(1,1,1), V3DD::Color::red);
 #endif
 
-    LOG_INFO_S << "GOAL IS: " << goalPos.transpose();
+    LOG_DEBUG_S << "GOAL IS: " << goalPos.transpose();
 
     if(!startXYZNode)
         throw std::runtime_error("Error, start needs to be set before goal");
@@ -266,7 +267,7 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     {
         if(!checkOrientationAllowed(goalXYZNode->getUserData().travNode, theta))
         {
-            LOG_INFO_S << "Goal orientation not allowed due to slope";
+            LOG_ERROR_S << "Goal orientation not allowed due to slope";
             throw OrientationNotAllowed("Goal orientation not allowed due to slope");
         }
     }
@@ -278,13 +279,12 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     //check goal position
     if(!checkStartGoalNode("goal", goalXYZNode->getUserData().travNode, goalThetaNode->theta.getRadian()))
     {
-        LOG_INFO_S << "goal position is invalid";
+        LOG_ERROR_S << "Goal position is invalid";
         throw ObstacleCheckFailed("goal position is invalid");
     }
 
     try {
         precomputeCost();
-        LOG_INFO_S << "Heuristic computed";
     }
     catch(const std::runtime_error& ex){
         throw ex;
@@ -316,7 +316,7 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
                 }
             }
             if (!foundNextNode) {
-                LOG_INFO_S << "nextNode has no connection";
+                LOG_DEBUG_S << "nextNode has no connection";
                 break;
             }
         }
@@ -351,23 +351,24 @@ void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
                      base::Vector3d(1,1,1), V3DD::Color::blue);
 #endif
 
-    LOG_INFO_S << "START IS: " << startPos.transpose();
+    LOG_DEBUG_S << "START IS: " << startPos.transpose();
 
     startThetaNode = createNewStateFromPose("start", startPos, theta, &startXYZNode);
-    if(!startThetaNode)
+    if(!startThetaNode){
+        LOG_ERROR_S << "Failed to create start state";
         throw StateCreationFailed("Failed to create start state");
-
+    }
     obstacleStartNode = obsGen.generateStartNode(startPos);
     if(!obstacleStartNode)
     {
-        LOG_INFO_S << "Could not generate obstacle node at start pos";
+        LOG_ERROR_S << "Could not generate obstacle node at start pos";
         throw ObstacleCheckFailed("Could not generate obstacle node at start pos");
     }
 
     //check start position
     if(!checkStartGoalNode("start", startXYZNode->getUserData().travNode, startThetaNode->theta.getRadian()))
     {
-        LOG_INFO_S<< "Start position is invalid";
+        LOG_ERROR_S<< "Start position is invalid";
         throw ObstacleCheckFailed("Start position inside obstacle");
     }
 }
@@ -425,9 +426,10 @@ const Motion& EnvironmentXYZTheta::getMotion(const int fromStateID, const int to
         }
     }
 
-    if(cost == -1)
+    if(cost == -1){
+        LOG_ERROR_S << "Internal Error: No matching motion for output path found";
         throw std::runtime_error("Internal Error: No matching motion for output path found");
-
+    }
     return availableMotions.getMotion(motionId);
 }
 
@@ -452,7 +454,6 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
         numToTravType[maps::grid::TraversabilityNodeBase::HOLE] = "HOLE";
         numToTravType[maps::grid::TraversabilityNodeBase::UNSET] = "UNSET";
         numToTravType[maps::grid::TraversabilityNodeBase::FRONTIER] = "FRONTIER";
-        //throw std::runtime_error("tried to get heuristic for " + numToTravType[travNode->getType()] + " patch. StateID: " + std::to_string(stateID));
         return std::numeric_limits<int>::max();
     }
 
@@ -469,18 +470,18 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     int result = maxTime >= 10000000 ? maxTime : maxTime * Motion::costScaleFactor;
     if(result < 0)
     {
-        LOG_INFO_S << sourceToGoalDist;
-        LOG_INFO_S << stateID;
-        LOG_INFO_S << mobilityConfig.translationSpeed;
-        LOG_INFO_S << timeTranslation;
-        LOG_INFO_S << sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian();
-        LOG_INFO_S << mobilityConfig.rotationSpeed;
-        LOG_INFO_S << timeRotation;
-        LOG_INFO_S << result;
-        LOG_INFO_S << travNode->getUserData().id;
-        LOG_INFO_S << travNode->getType();
+        LOG_ERROR_S << sourceToGoalDist;
+        LOG_ERROR_S << stateID;
+        LOG_ERROR_S << mobilityConfig.translationSpeed;
+        LOG_ERROR_S << timeTranslation;
+        LOG_ERROR_S << sourceThetaNode->theta.shortestDist(goalThetaNode->theta).getRadian();
+        LOG_ERROR_S << mobilityConfig.rotationSpeed;
+        LOG_ERROR_S << timeRotation;
+        LOG_ERROR_S << result;
+        LOG_ERROR_S << travNode->getUserData().id;
+        LOG_ERROR_S << travNode->getType();
         //throw std::runtime_error("Goal heuristic < 0");
-        LOG_INFO_S<< "Overflow while computing goal heuristic!";
+        LOG_ERROR_S<< "Overflow while computing goal heuristic!";
         result = std::numeric_limits<int>::max();
     }
     oassert(result >= 0);
@@ -556,7 +557,7 @@ traversability_generator3d::TravGenNode *EnvironmentXYZTheta::movementPossible(t
     {
         //FIXME this should never happen but it did happen in the past and I have no idea why
         //      needs investigation!
-        LOG_INFO_S<< "movement not possible. nodes not conncted";
+        LOG_DEBUG_S<< "Movement not possible. Nodes are not connected";
         return nullptr;
     }
 
@@ -569,7 +570,7 @@ traversability_generator3d::TravGenNode *EnvironmentXYZTheta::movementPossible(t
     //     during the expansion. Beforehand the type is undefined
     if(targetNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
     {
-//         LOG_INFO_S<< "movement not possible. targetnode not traversable";
+        LOG_DEBUG_S<< "movement not possible. targetnode not traversable";
         return nullptr;
     }
     return targetNode;
@@ -652,7 +653,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         if(!travGen.expandNode(sourceTravNode))
         {
             //expansion failed, current node is not driveable -> there are not successors to this state
-            LOG_INFO_S<< "GetSuccs: current node not expanded and not expandable";
+            LOG_DEBUG_S<< "GetSuccs: current node not expanded and not expandable";
             return;
         }
     }
@@ -740,9 +741,10 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         {
             const auto &candidateMap = searchGrid.at(finalPos);
 
-            if(goalTravNode->getIndex() != finalPos)
-                throw std::runtime_error("Internal error, indexes do not match");
-
+            if(goalTravNode->getIndex() != finalPos){
+                LOG_ERROR_S << "Internal error, indexes of goalTravNode and finalPos do not match";
+                throw std::runtime_error("Internal error, indexes of goalTravNode and finalPos do not match");
+            }
             XYZNode searchTmp(goalTravNode->getHeight(), goalTravNode->getIndex());
 
             //this works, as the equals check is on the height, not the node itself
@@ -791,7 +793,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 }
                 const double slopeFactor = avgSlope * travConf.slopeMetricScale;
                 cost = motion.baseCost + motion.baseCost * slopeFactor;
-                LOG_INFO_S<< "cost: " << cost << ", baseCost: " << motion.baseCost << ", slopeFactor: " << slopeFactor;
                 break;
             }
             case traversability_generator3d::SlopeMetric::MAX_SLOPE:
@@ -827,7 +828,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 cost = motion.baseCost;
                 break;
             default:
-                throw std::runtime_error("unknown slope metric selected");
+                LOG_ERROR_S << "Unknown slope metric selected";
+                throw std::runtime_error("Unknown slope metric selected");
         }
 
         if (usePathStatistics){
@@ -874,6 +876,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
                 if(travNodeh->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
                 {
+                    LOG_ERROR_S << "In GetSuccs() returned id for non-traversable patch";
                     throw std::runtime_error("In GetSuccs() returned id for non-traversable patch");
                 }
             }
@@ -987,9 +990,8 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 traversability_generator3d::TravGenNode *nextNode = curNode->getConnectedNode(curIndex);
                 if(!nextNode)
                 {
-                    for(auto *n : curNode->getConnections())
-                        LOG_INFO_S<< "Con Node " << n->getIndex().transpose();;
-                    throw std::runtime_error("Internal error, trajectory is not continuous on tr grid");
+                    LOG_ERROR_S << "Internal error, trajectory is not continuous on traversability grid";
+                    throw std::runtime_error("Internal error, trajectory is not continuous on traversability grid");
                 }
                 curNode = nextNode;
                 lastIndex = curIndex;
@@ -1016,7 +1018,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
         if (mobilityConfig.remove_goal_offset == true &&
             i == indexOfMotionToUpdate)
         {
-            LOG_INFO_S << "Original spline end position: " << positions[positions.size()-1];
             double goal_offset_x = (goalPos.x() - positions[positions.size()-1].x()) / (positions.size()-1);
             double goal_offset_y = (goalPos.y() - positions[positions.size()-1].y()) / (positions.size()-1);
 
@@ -1024,7 +1025,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 positions[j].x() += j*goal_offset_x;
                 positions[j].y() += j*goal_offset_y;
             }
-            LOG_INFO_S << "Updated spline end position: " << positions[positions.size()-1];
             goal_position_updated = true;
         }
 
@@ -1172,8 +1172,8 @@ double EnvironmentXYZTheta::getAvgSlope(std::vector<const traversability_generat
 {
     if(path.size() <= 0)
     {
+        LOG_ERROR_S << "Requested slope of path with length zero.";
         throw std::runtime_error("Requested slope of path with length zero.");
-        return 0;
     }
     double slopeSum = 0;
     for(const traversability_generator3d::TravGenNode* node : path)
@@ -1415,16 +1415,13 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
     }
     else
     {
-        LOG_INFO_S<< "EnvironmentXYZTheta::findTrajectoryOutOfObstacle(): NO WAY OUT, ROBOT IS STUCK!";
-        LOG_INFO_S<< "EnvironmentXYZTheta::findTrajectoryOutOfObstacle(): NO WAY OUT, ROBOT IS STUCK!";
-        LOG_INFO_S<< "EnvironmentXYZTheta::findTrajectoryOutOfObstacle(): NO WAY OUT, ROBOT IS STUCK!";
+        LOG_ERROR_S<< "EnvironmentXYZTheta::findTrajectoryOutOfObstacle(): NO WAY OUT, ROBOT IS STUCK!";
+        LOG_ERROR_S<< "EnvironmentXYZTheta::findTrajectoryOutOfObstacle(): NO WAY OUT, ROBOT IS STUCK!";
+        LOG_ERROR_S<< "EnvironmentXYZTheta::findTrajectoryOutOfObstacle(): NO WAY OUT, ROBOT IS STUCK!";
         return nullptr;
     }
 
     std::shared_ptr<SubTrajectory> subTraj(new SubTrajectory(trajectory));
     return subTraj;
 }
-
-
-
 }
