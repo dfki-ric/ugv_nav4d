@@ -1,6 +1,3 @@
-rock_find_qt4(OPTIONAL)
-rock_find_qt5(OPTIONAL)
-
 find_package(OpenMP REQUIRED)
 if(OPENMP_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -16,67 +13,34 @@ set(DEPS_PKGCONFIG_LIST
 	trajectory_follower
 )
 
-if (ROCK_QT_VERSION_4)
-	if (ENABLE_DEBUG_DRAWINGS)
-		list(APPEND DEPS_PKGCONFIG_LIST vizkit3d_debug_drawings)
-	endif()
-
-	rock_library(ugv_nav4d
-	    SOURCES
-		DiscreteTheta.cpp
-		EnvironmentXYZTheta.cpp
-		PathStatistic.cpp
-		Planner.cpp
-		PlannerDump.cpp
-		PreComputedMotions.cpp
-		Dijkstra.cpp
-		ObstacleMapGenerator3D.cpp
-		DebugDrawingDeclarations.cpp
-	    HEADERS
-		Mobility.hpp
-		DiscreteTheta.hpp
-		EnvironmentXYZTheta.hpp
-		PathStatistic.hpp
-		Planner.hpp
-		PlannerConfig.hpp
-		PreComputedMotions.hpp
-		Dijkstra.hpp
-		ObstacleMapGenerator3D.hpp
-	    DEPS_PKGCONFIG
-		${DEPS_PKGCONFIG_LIST}
-	)
+if (ENABLE_DEBUG_DRAWINGS)
+	list(APPEND DEPS_PKGCONFIG_LIST vizkit3d_debug_drawings-commands)
 endif()
 
-if (ROCK_QT_VERSION_5)
-	if (ENABLE_DEBUG_DRAWINGS)
-		list(APPEND DEPS_PKGCONFIG_LIST vizkit3d_debug_drawings-qt5)
-	endif()
-
-	rock_library(ugv_nav4d-qt5
-	    SOURCES 
-		DiscreteTheta.cpp
-		EnvironmentXYZTheta.cpp
-		PathStatistic.cpp
-		Planner.cpp
-		PlannerDump.cpp
-		PreComputedMotions.cpp
-		Dijkstra.cpp
-		ObstacleMapGenerator3D.cpp
-		DebugDrawingDeclarations.cpp
-	    HEADERS 
-		Mobility.hpp
-		DiscreteTheta.hpp
-		EnvironmentXYZTheta.hpp
-		PathStatistic.hpp
-		Planner.hpp
-		PlannerConfig.hpp
-		PreComputedMotions.hpp
-		Dijkstra.hpp
-		ObstacleMapGenerator3D.hpp
-	    DEPS_PKGCONFIG 
-		${DEPS_PKGCONFIG_LIST}
-	)
-endif()
+rock_library(ugv_nav4d
+    SOURCES 
+	DiscreteTheta.cpp
+	EnvironmentXYZTheta.cpp
+	PathStatistic.cpp
+	Planner.cpp
+	PlannerDump.cpp
+	PreComputedMotions.cpp
+	Dijkstra.cpp
+	ObstacleMapGenerator3D.cpp
+	DebugDrawingDeclarations.cpp
+    HEADERS 
+	Mobility.hpp
+	DiscreteTheta.hpp
+	EnvironmentXYZTheta.hpp
+	PathStatistic.hpp
+	Planner.hpp
+	PlannerConfig.hpp
+	PreComputedMotions.hpp
+	Dijkstra.hpp
+	ObstacleMapGenerator3D.hpp
+    DEPS_PKGCONFIG 
+	${DEPS_PKGCONFIG_LIST}
+)
 
 add_subdirectory(gui)
 
