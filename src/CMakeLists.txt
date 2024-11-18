@@ -13,11 +13,8 @@ set(DEPS_PKGCONFIG_LIST
 	trajectory_follower
 )
 
-if (ENABLE_DEBUG_DRAWINGS)
+if(ENABLE_DEBUG_DRAWINGS AND vizkit3d_debug_drawings-commands_FOUND)
 	list(APPEND DEPS_PKGCONFIG_LIST vizkit3d_debug_drawings-commands)
-	# These are (only) required for building the GUIs:
-	list(APPEND DEPS_PKGCONFIG_QT4 vizkit3d_debug_drawings)
-	list(APPEND DEPS_PKGCONFIG_QT5 vizkit3d_debug_drawings-qt5)
 endif()
 
 rock_library(ugv_nav4d

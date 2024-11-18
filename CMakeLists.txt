@@ -8,13 +8,6 @@ project(ugv_nav4d
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(ENABLE_DEBUG_DRAWINGS)
-    message(STATUS "ENABLE_DEBUG_DRAWINGS is defined with value: ${ENABLE_DEBUG_DRAWINGS}")
-    add_definitions(-DENABLE_DEBUG_DRAWINGS)
-else()
-    message(STATUS "ENABLE_DEBUG_DRAWINGS is set to OFF. Skipped!")
-endif()
-
 if(INSTALL_DEPS)
 
   execute_process(COMMAND bash install_os_dependencies.bash
@@ -25,7 +18,23 @@ if(INSTALL_DEPS)
   set(ENV{CMAKE_PREFIX_PATH} ${CMAKE_INSTALL_PREFIX}/share/rock/cmake/)
 endif()
 
+
 find_package(Rock)
 rock_init()
 rock_feature(NOCURDIR)
+
+pkg_check_modules(vizkit3d_debug_drawings-commands vizkit3d_debug_drawings-commands)
+
+if(ENABLE_DEBUG_DRAWINGS)
+    message(STATUS "ENABLE_DEBUG_DRAWINGS is defined with value: ${ENABLE_DEBUG_DRAWINGS}")
+    if(vizkit3d_debug_drawings-commands_FOUND)
+        add_definitions(-DENABLE_DEBUG_DRAWINGS)
+        message(STATUS "Building with vizkit3d_debug_drawings support in library")
+    else()
+        message(STATUS "Cannot find vizkit3d_debug_drawings, ignoring ENABLE_DEBUG_DRAWINGS")
+    endif()
+else()
+    message(STATUS "ENABLE_DEBUG_DRAWINGS is set to OFF. Skipped!")
+endif()
+
 rock_standard_layout()
