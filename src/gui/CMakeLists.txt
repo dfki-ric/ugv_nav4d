@@ -24,6 +24,7 @@ if(ROCK_QT_VERSION_4)
                        trajectory_follower-viz
                        pcl_common${PCL_VERSION_SUFFIX}
                        pcl_io${PCL_VERSION_SUFFIX}
+                       ${DEPS_PKGCONFIG_QT4}
     )
 
     rock_executable(ugv_nav4d_bin
@@ -59,6 +60,7 @@ if(ROCK_QT_VERSION_5)
                        trajectory_follower-viz-qt5
                        pcl_common${PCL_VERSION_SUFFIX}
                        pcl_io${PCL_VERSION_SUFFIX}
+                       ${DEPS_PKGCONFIG_QT5}
     )
 
     rock_executable(ugv_nav4d_bin-qt5
