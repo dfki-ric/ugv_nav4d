@@ -8,6 +8,17 @@ project(ugv_nav4d
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(INSTALL_DEPS)
+
+  execute_process(COMMAND bash install_os_dependencies.bash
+                  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/source_dependencies)
+  execute_process(COMMAND bash build.bash ${CMAKE_INSTALL_PREFIX}
+                  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/source_dependencies)
+  set(ENV{PKG_CONFIG_PATH} ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/)
+  set(ENV{CMAKE_PREFIX_PATH} ${CMAKE_INSTALL_PREFIX}/share/rock/cmake/)
+endif()
+
+
 find_package(Rock)
 rock_init()
 rock_feature(NOCURDIR)
@@ -24,16 +35,6 @@ if(ENABLE_DEBUG_DRAWINGS)
     endif()
 else()
     message(STATUS "ENABLE_DEBUG_DRAWINGS is set to OFF. Skipped!")
-endif()
-
-if(INSTALL_DEPS)
-
-  execute_process(COMMAND bash install_os_dependencies.bash
-                  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/source_dependencies)
-  execute_process(COMMAND bash build.bash ${CMAKE_INSTALL_PREFIX}
-                  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/source_dependencies)
-  set(ENV{PKG_CONFIG_PATH} ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/)
-  set(ENV{CMAKE_PREFIX_PATH} ${CMAKE_INSTALL_PREFIX}/share/rock/cmake/)
 endif()
 
 rock_standard_layout()
