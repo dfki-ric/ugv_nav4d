@@ -15,6 +15,9 @@ set(DEPS_PKGCONFIG_LIST
 
 if (ENABLE_DEBUG_DRAWINGS)
 	list(APPEND DEPS_PKGCONFIG_LIST vizkit3d_debug_drawings-commands)
+	# These are (only) required for building the GUIs:
+	list(APPEND DEPS_PKGCONFIG_QT4 vizkit3d_debug_drawings)
+	list(APPEND DEPS_PKGCONFIG_QT5 vizkit3d_debug_drawings-qt5)
 endif()
 
 rock_library(ugv_nav4d
