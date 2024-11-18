@@ -2,6 +2,7 @@ find_package(Boost REQUIRED COMPONENTS filesystem serialization)
 
 rock_executable(test_Planner
     SOURCES test_Planner.cpp
+	DEPS Boost::filesystem
     DEPS_PKGCONFIG ugv_nav4d
 )
 
@@ -18,5 +19,6 @@ rock_executable(test_DiscreteTheta
 
 rock_executable(test_PreComputedMotions
     SOURCES test_PreComputedMotions.cpp
+	DEPS Boost::filesystem
     DEPS_PKGCONFIG ugv_nav4d
 )
