@@ -7,27 +7,10 @@ add_executable(test_PreComputedMotions test_PreComputedMotions.cpp)
 
 set(DEPS Boost::filesystem)
 
-if (ROCK_QT_VERSION_4)
-	target_link_libraries(test_Planner PRIVATE
-							ugv_nav4d ${DEPS})
-	target_link_libraries(test_EnvironmentXYZTheta PRIVATE
-							ugv_nav4d ${DEPS})
-	target_link_libraries(test_DiscreteTheta PRIVATE
-							ugv_nav4d)
-	target_link_libraries(test_PreComputedMotions PRIVATE
-							ugv_nav4d ${DEPS})
-endif()
-
-if (ROCK_QT_VERSION_5)
-	target_link_libraries(test_Planner PRIVATE
-						  	ugv_nav4d-qt5 ${DEPS})
-	target_link_libraries(test_EnvironmentXYZTheta PRIVATE
-	                        ugv_nav4d-qt5 ${DEPS})
-	target_link_libraries(test_DiscreteTheta PRIVATE
-							ugv_nav4d-qt5)
-	target_link_libraries(test_PreComputedMotions PRIVATE
-							ugv_nav4d-qt5 ${DEPS})							
-endif()
+target_link_libraries(test_Planner PRIVATE ugv_nav4d ${DEPS})
+target_link_libraries(test_EnvironmentXYZTheta PRIVATE ugv_nav4d ${DEPS})
+target_link_libraries(test_DiscreteTheta PRIVATE ugv_nav4d)
+target_link_libraries(test_PreComputedMotions PRIVATE ugv_nav4d ${DEPS})
 
 # Install the binaries
 install(TARGETS test_Planner EXPORT test_Planner-targets
