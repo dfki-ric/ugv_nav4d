@@ -43,19 +43,19 @@ struct Mobility {
     Mobility() :
            translationSpeed(1.0),
            rotationSpeed(1.0),
-           minTurningRadius(0.0),
-           spline_sampling_resolution(0.01),
-           remove_goal_offset(true),
+           minTurningRadius(1.0),
+           spline_sampling_resolution(0.05),
+           remove_goal_offset(false),
            multiplierForward(1),
-           multiplierBackward(1),
-           multiplierLateral(1),
-           multiplierForwardTurn(1),
-           multiplierBackwardTurn(1),
-           multiplierPointTurn(1),
-           multiplierLateralCurve(1),
-           searchRadius(2.0),
+           multiplierBackward(2),
+           multiplierLateral(4),
+           multiplierForwardTurn(2),
+           multiplierBackwardTurn(3),
+           multiplierPointTurn(3),
+           multiplierLateralCurve(4),
+           searchRadius(1.0),
            searchProgressSteps(0.1),
-           maxMotionCurveLength(1.2)
+           maxMotionCurveLength(100)
     {
     }
 

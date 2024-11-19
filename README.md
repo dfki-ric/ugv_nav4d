@@ -106,17 +106,8 @@ cd build
 cmake -DCMAKE_INSTALL_PREFIX=./install -DTESTS_ENABLED=ON -DENABLE_DEBUG_DRAWINGS=OFF -DCMAKE_BUILD_TYPE=RELEASE ..
 make install
 ```
-Run the unit tests using the executable
-```
-test_ugv_nav4d ../test_data/Plane1Mio.ply
-```
 
-At the end you should see the output
-```
-[----------] Global test environment tear-down
-[==========] 6 tests from 2 test suites ran. (10297 ms total)
-[  PASSED  ] 6 tests.
-```
+The test executables are in the folder: `build/src/test/`.
 
 ---
 # ROS 2 Humble Test Environment with Gazebo Fortress
