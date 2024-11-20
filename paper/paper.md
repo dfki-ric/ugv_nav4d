@@ -1,16 +1,18 @@
 ---
 title: 'Advanced Multi-Surface Navigation for Unmanned Ground Vehicles (UGVs) Using 4D Path Planning Techniques (ugv_nav4d)'
 tags:
+  - Multi-Surface Trajectory Planning
   - Global Path Planning
-  - Mobile Robot Trajectory
+  - Unmanned Ground Vehicle Navigation
   - Mobile Robotics
-  - SBPL
+
 authors:
   - name: Arne Böckmann
     affiliation: 1
   - name: Janosch Machowinski
     affiliation: 1
   - name: Muhammad Haider Khan Lodhi
+    orcid: 0009-0008-1199-3489
     affiliation: 2
 affiliations:
  - name: Cellumation GmbH
@@ -24,14 +26,14 @@ bibliography: paper.bib
 
 # Summary
 
-The ugv_nav4d is a global path planner designed for terrestrial robots to navigate complex indoor and outdoor environments. To achieve this, ugv_nav4d uses a traversability map (TraversabilityMap3d) based on a multi-layered surface map (MLSMap) [@mlsmaps], [@slammaps], enabling planning in multi-surface environments. The path is built by selecting motion primitives tailored to the robot's mechanical features, ensuring compatibility with its motion capabilities.
+The ugv_nav4d is a global path planner designed for terrestrial robots to navigate complex indoor and outdoor environments. To achieve this, ugv_nav4d uses a traversability map (TraversabilityMap3d) based on a multi-layered surface map (MLSMap) [@mlsmaps; @slammaps], enabling planning in multi-surface environments. The path is built by selecting motion primitives tailored to the robot's mechanical features, ensuring compatibility with its motion capabilities.
 
 ![Planned trajectory in a multi-storey environment.](figures/parking_deck.png){width="300pt"}
 
-# Statement of need
-Accurate ground surface representation is crucial for ground-based robots in complex terrains. The ROS Navigation Stack (nav2) [@ros2], which uses voxel maps for 3D navigation, often loses detail and accuracy, especially in multi-storey environments, due to its discrete voxelization and separate costmaps for each floor.
+# Statement Of Need
+Accurate ground surface representation is crucial for ground-based robots in complex terrains. The ROS2 Navigation Stack (nav2) [@macenski2020nav2], which uses voxel maps for 3D navigation, often loses detail and accuracy, especially in multi-storey environments, due to its discrete voxelization and separate costmaps for each floor.
 
-We propose ugv_nav4d, a path planner that enhances environmental representation with Multi-Layered Surface Maps (MLS) [@mlsmaps] and a 3D Traversability Map [@slammaps]. Ugv_nav4d avoids the "stepping" effect of voxel maps by using a continuous grid and detailed vertical information, providing smoother and more accurate terrain modeling.
+We propose ugv_nav4d, a path planner that enhances environmental representation with Multi-Layered Surface Maps (MLS) [@mlsmaps] and a 3D Traversability Map [@slammaps]. Ugv_nav4d avoids the "stepping" effect of voxel maps by using a continuous grid and detailed vertical information, providing smoother and more accurate terrain modelling.
 
 Unlike nav2, ugv_nav4d simplifies planning with a single TraversabilityMap3D, which contains detailed ground surface data, offering a superior alternative to nav2’s 3D costmaps. For users, MLS maps provide a smoother, more realistic view of terrain compared to the blocky voxel maps, enhancing navigation and decision-making in complex environments.
  
