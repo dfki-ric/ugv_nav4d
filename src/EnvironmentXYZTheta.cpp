@@ -964,7 +964,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
         V3DD::CLEAR_DRAWING("ugv_nav4d_trajectory");
 #endif
 
-    int indexOfMotionToUpdate{stateIDPath.size()-2};
+    size_t indexOfMotionToUpdate{stateIDPath.size()-2};
     const Motion& finalMotion = getMotion(stateIDPath[stateIDPath.size()-2], stateIDPath[stateIDPath.size()-1]);
     if (finalMotion.type == Motion::Type::MOV_POINTTURN && stateIDPath.size() > 2){ //assuming that there are no consecutive point turns motion at the end of a planned trajectory
         indexOfMotionToUpdate = stateIDPath.size()-3;
@@ -1089,26 +1089,10 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
         }
         else
         {
-            if (curMotion.type == Motion::Type::MOV_BACKWARD)
-            {
-                curPart.speed = -mobilityConfig.translationSpeed;
-            }
-            else
-            {
-                curPart.speed = mobilityConfig.translationSpeed;
-            }
             SubTrajectory curPartSub(curPart);
-            switch (curMotion.type) {
-                case Motion::Type::MOV_FORWARD:
-                    curPartSub.driveMode = DriveMode::ModeAckermann;
-                    break;
-                case Motion::Type::MOV_BACKWARD:
-                    curPartSub.driveMode = DriveMode::ModeAckermann;
-                    break;
-                case Motion::Type::MOV_LATERAL:
-                    curPartSub.driveMode = DriveMode::ModeSideways;
-                    break;
-            }
+            curPartSub.speed = (curMotion.type == Motion::Type::MOV_BACKWARD) ? -mobilityConfig.translationSpeed : mobilityConfig.translationSpeed;
+            curPartSub.driveMode = (curMotion.type == Motion::Type::MOV_LATERAL) ? DriveMode::ModeSideways : DriveMode::ModeAckermann;
+
             result.push_back(curPartSub);
 
             if (goal_position_updated){

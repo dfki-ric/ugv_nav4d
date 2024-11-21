@@ -1,19 +1,15 @@
 #include "Dijkstra.hpp"
-#include <traversability_generator3d/TraversabilityConfig.hpp>
 #include <maps/grid/TraversabilityMap3d.hpp>
+#include <traversability_generator3d/TraversabilityConfig.hpp>
 
 using namespace maps::grid;
 
 namespace ugv_nav4d
 {
-
-    
 void Dijkstra::computeCost(const TraversabilityNodeBase* source,
                            std::unordered_map<const TraversabilityNodeBase*, double>& outDistances,
                            const traversability_generator3d::TraversabilityConfig& config)
-{
-
-    
+{   
     outDistances.clear();
     outDistances[source] = 0.0;
     
@@ -42,7 +38,7 @@ void Dijkstra::computeCost(const TraversabilityNodeBase* source,
                                        v->getIndex().y() * config.gridResolution,
                                        v->getHeight());
 
-            const double distance = getHeuristicDistance(vPos, uPos, config);
+            const double distance = (vPos - uPos).norm();
             double distance_through_u = dist + distance;
             
             if (outDistances.find(v) == outDistances.end() || 
@@ -55,12 +51,4 @@ void Dijkstra::computeCost(const TraversabilityNodeBase* source,
         }
     }
 }
-
-double Dijkstra::getHeuristicDistance(const Eigen::Vector3d& a, const Eigen::Vector3d& b,
-                            const traversability_generator3d::TraversabilityConfig& config)
-{
-    return (a - b).norm();
-}
-
-    
 }
