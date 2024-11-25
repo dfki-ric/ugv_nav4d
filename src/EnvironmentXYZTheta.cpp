@@ -970,8 +970,10 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
         indexOfMotionToUpdate = stateIDPath.size()-3;
     }
 
-    bool goal_position_updated = false;
-
+    bool updateGoalPose = false;
+    Eigen::Vector3d current_up(0, 0, 1);
+    Eigen::Hyperplane<double, 3> travNodePlane;
+    
     Eigen::Vector3d start = startPos;
     for(size_t i = 0; i < stateIDPath.size() - 1; ++i)
     {
@@ -997,20 +999,33 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 lastIndex = curIndex;
             }
 
-            for(const base::Pose2D &p : cwp.poses)
+
+            Eigen::Vector3d posWorld;
+            travGen.getTraversabilityMap().fromGrid(curNode->getIndex(), posWorld, curNode->getHeight(), false);
+
+            // Set up the plane at the 3D world position
+            travNodePlane.normal() = curNode->getUserData().plane.normal();
+            travNodePlane.offset() = -travNodePlane.normal().dot(posWorld); // Align the plane offset to posWorld
+
+#ifdef ENABLE_DEBUG_DRAWINGS
+            V3DD::DRAW_SPHERE("ugv_nav4d_worlds", posWorld, 0.05, V3DD::Color::blue);
+            Eigen::Quaterniond rotation = Eigen::Quaterniond::FromTwoVectors(current_up, travNodePlane.normal());
+            V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_plane", posWorld, rotation, base::Vector3d(travConf.gridResolution, travConf.gridResolution, 0.05), V3DD::Color::blue);
+            V3DD::DRAW_SPHERE("ugv_nav4d_starts", start, 0.05, V3DD::Color::green);
+#endif
+            for (const base::Pose2D &p : cwp.poses)
             {
-                //start is already corrected to be in the middle of a cell, thus cwp.pose.position should not be corrected
-                base::Vector3d pos(p.position.x() + start.x(), p.position.y() + start.y(), start.z());
-                pos.z() = curNode->getHeight();
-                // HACK this overwrite avoids wrong headings in trajectory
-                //See ticket: https://git.hb.dfki.de/entern/ugv_nav4d/issues/1
-                if(setZToZero)
-                    pos.z() = 0.0;
-                //this just changes the z-coordinate (slightly wasteful to use Affine3d for that, but not inside critical loop)
+                Eigen::Vector3d point{p.position.x(), p.position.y(), 0};
+                Eigen::Vector3d globalPoint = point + Eigen::Vector3d(start.x(), start.y(), posWorld.z());
+                Eigen::Vector3d pointP = travNodePlane.projection(globalPoint); // Offset by posWorld
+                base::Vector3d pos(pointP.x(), pointP.y(), pointP.z());
+
+#ifdef ENABLE_DEBUG_DRAWINGS
+                V3DD::DRAW_SPHERE("ugv_nav4d_trajectory_poses", pos, 0.01, V3DD::Color::red);
+#endif
                 Eigen::Vector3d pos_Body = plan2Body.inverse(Eigen::Isometry) * pos;
-                if(positions.empty() || !(positions.back().isApprox(pos_Body)))
+                if (positions.empty() || !(positions.back().isApprox(pos_Body)))
                 {
-                    //need to offset by start because the poses are relative to (0/0)
                     positions.emplace_back(pos_Body);
                 }
             }
@@ -1021,11 +1036,11 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             double goal_offset_x = (goalPos.x() - positions[positions.size()-1].x()) / (positions.size()-1);
             double goal_offset_y = (goalPos.y() - positions[positions.size()-1].y()) / (positions.size()-1);
 
-            for (int j{0}; j < positions.size(); j++){
+            for (std::size_t j{0}; j < positions.size(); j++){
                 positions[j].x() += j*goal_offset_x;
                 positions[j].y() += j*goal_offset_y;
             }
-            goal_position_updated = true;
+            updateGoalPose = true;
         }
 
         curPart.spline.interpolate(positions);
@@ -1095,7 +1110,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
 
             result.push_back(curPartSub);
 
-            if (goal_position_updated){
+            if (updateGoalPose){
                 SubTrajectory subtraj;
                 subtraj.driveMode = DriveMode::ModeTurnOnTheSpot;
 
@@ -1125,7 +1140,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                     subtraj.goalPose      = goalPose;
                     result.push_back(subtraj);
                 }
-                goal_position_updated = false;
+                updateGoalPose = false;
             }
             start = curPart.spline.getEndPoint();
         }
