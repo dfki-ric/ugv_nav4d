@@ -1016,7 +1016,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             for (const base::Pose2D &p : cwp.poses)
             {
                 Eigen::Vector3d point{p.position.x(), p.position.y(), 0};
-                Eigen::Vector3d globalPoint = point + Eigen::Vector3d(start.x(), start.y(), posWorld.z());
+                Eigen::Vector3d globalPoint = point + Eigen::Vector3d(start.x(), start.y(), start.z());
                 Eigen::Vector3d pointP = travNodePlane.projection(globalPoint); // Offset by posWorld
 
 #ifdef ENABLE_DEBUG_DRAWINGS
