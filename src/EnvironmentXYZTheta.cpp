@@ -1018,12 +1018,11 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 Eigen::Vector3d point{p.position.x(), p.position.y(), 0};
                 Eigen::Vector3d globalPoint = point + Eigen::Vector3d(start.x(), start.y(), posWorld.z());
                 Eigen::Vector3d pointP = travNodePlane.projection(globalPoint); // Offset by posWorld
-                base::Vector3d pos(pointP.x(), pointP.y(), pointP.z());
 
 #ifdef ENABLE_DEBUG_DRAWINGS
-                V3DD::DRAW_SPHERE("ugv_nav4d_trajectory_poses", pos, 0.01, V3DD::Color::red);
+                V3DD::DRAW_SPHERE("ugv_nav4d_trajectory_poses", pointP, 0.01, V3DD::Color::red);
 #endif
-                Eigen::Vector3d pos_Body = plan2Body.inverse(Eigen::Isometry) * pos;
+                Eigen::Vector3d pos_Body = plan2Body.inverse(Eigen::Isometry) * pointP;
                 if (positions.empty() || !(positions.back().isApprox(pos_Body)))
                 {
                     positions.emplace_back(pos_Body);
