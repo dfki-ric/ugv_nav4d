@@ -983,10 +983,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
         traversability_generator3d::TravGenNode *curNode = startHash.node->getUserData().travNode;
         std::vector<base::Vector3d> positions;
 
-
-        Eigen::Vector3d previousOffset = start;
-        Eigen::Vector3d previousPoint{0,0,0};
-
         for(const CellWithPoses &cwp : curMotion.fullSplineSamples)
         {
             maps::grid::Index curIndex = startIndex + cwp.cell;
@@ -1002,7 +998,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 lastIndex = curIndex;
             }
 
-
             Eigen::Vector3d posWorld;
             travGen.getTraversabilityMap().fromGrid(curNode->getIndex(), posWorld, curNode->getHeight(), false);
 
@@ -1010,27 +1005,19 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             travNodePlane.normal() = curNode->getUserData().plane.normal();
             travNodePlane.offset() = -travNodePlane.normal().dot(posWorld); // Align the plane offset to posWorld
 
-#ifdef ENABLE_DEBUG_DRAWINGS
-            V3DD::DRAW_SPHERE("ugv_nav4d_worlds", posWorld, 0.05, V3DD::Color::blue);
-            Eigen::Quaterniond rotation = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), travNodePlane.normal());
-            V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_plane", posWorld, rotation, base::Vector3d(travConf.gridResolution, travConf.gridResolution, 0.05), V3DD::Color::blue);
-            V3DD::DRAW_SPHERE("ugv_nav4d_starts", start, 0.05, V3DD::Color::green);
-#endif
             for (const base::Pose2D &p : cwp.poses)
             {
                 Eigen::Vector3d point{p.position.x(), p.position.y(), 0};
-                Eigen::Vector3d globalPoint = (point - previousPoint) + previousOffset;
-
-                Eigen::Vector3d pointP = travNodePlane.projection(globalPoint); 
+                Eigen::Vector3d globalPoint = point + start;
+                Eigen::ParametrizedLine<double, 3> line = Eigen::ParametrizedLine<double, 3>::Through(globalPoint, globalPoint + Eigen::Vector3d::UnitZ());
+                Eigen::Vector3d pointOnTravPlane = line.intersectionPoint(travNodePlane); 
 #ifdef ENABLE_DEBUG_DRAWINGS
-                V3DD::DRAW_SPHERE("ugv_nav4d_trajectory_poses", pointP, 0.01, V3DD::Color::red);
+                V3DD::DRAW_SPHERE("ugv_nav4d_trajectory_poses", pointOnTravPlane, 0.01, V3DD::Color::red);
 #endif
-                Eigen::Vector3d pos_Body = plan2Body.inverse(Eigen::Isometry) * pointP;
-                if (positions.empty() || !(positions.back().isApprox(pos_Body)))
+                Eigen::Vector3d pointOnBody = plan2Body.inverse(Eigen::Isometry) * pointOnTravPlane;
+                if (positions.empty() || !(positions.back().isApprox(pointOnBody)))
                 {
-                    positions.emplace_back(pos_Body);
-                    previousOffset = pointP;
-                    previousPoint = point;
+                    positions.emplace_back(pointOnBody);
                 }
             }
         }
