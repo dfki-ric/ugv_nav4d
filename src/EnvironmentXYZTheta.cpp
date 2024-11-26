@@ -971,7 +971,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
     }
 
     bool updateGoalPose = false;
-    Eigen::Vector3d current_up(0, 0, 1);
     Eigen::Hyperplane<double, 3> travNodePlane;
     
     Eigen::Vector3d start = startPos;
@@ -983,6 +982,10 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
         maps::grid::Index lastIndex = startIndex;
         traversability_generator3d::TravGenNode *curNode = startHash.node->getUserData().travNode;
         std::vector<base::Vector3d> positions;
+
+
+        Eigen::Vector3d previousOffset = start;
+        Eigen::Vector3d previousPoint{0,0,0};
 
         for(const CellWithPoses &cwp : curMotion.fullSplineSamples)
         {
@@ -1009,16 +1012,16 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
 
 #ifdef ENABLE_DEBUG_DRAWINGS
             V3DD::DRAW_SPHERE("ugv_nav4d_worlds", posWorld, 0.05, V3DD::Color::blue);
-            Eigen::Quaterniond rotation = Eigen::Quaterniond::FromTwoVectors(current_up, travNodePlane.normal());
+            Eigen::Quaterniond rotation = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), travNodePlane.normal());
             V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_plane", posWorld, rotation, base::Vector3d(travConf.gridResolution, travConf.gridResolution, 0.05), V3DD::Color::blue);
             V3DD::DRAW_SPHERE("ugv_nav4d_starts", start, 0.05, V3DD::Color::green);
 #endif
             for (const base::Pose2D &p : cwp.poses)
             {
                 Eigen::Vector3d point{p.position.x(), p.position.y(), 0};
-                Eigen::Vector3d globalPoint = point + Eigen::Vector3d(start.x(), start.y(), start.z());
-                Eigen::Vector3d pointP = travNodePlane.projection(globalPoint); // Offset by posWorld
+                Eigen::Vector3d globalPoint = (point - previousPoint) + previousOffset;
 
+                Eigen::Vector3d pointP = travNodePlane.projection(globalPoint); 
 #ifdef ENABLE_DEBUG_DRAWINGS
                 V3DD::DRAW_SPHERE("ugv_nav4d_trajectory_poses", pointP, 0.01, V3DD::Color::red);
 #endif
@@ -1026,6 +1029,8 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 if (positions.empty() || !(positions.back().isApprox(pos_Body)))
                 {
                     positions.emplace_back(pos_Body);
+                    previousOffset = pointP;
+                    previousPoint = point;
                 }
             }
         }
