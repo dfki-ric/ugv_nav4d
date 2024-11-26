@@ -76,7 +76,6 @@ void PlannerGui::setupUI()
     widget->setCameraManipulator(vizkit3d::ORBIT_MANIPULATOR);
     widget->addPlugin(&splineViz);
     widget->addPlugin(&trajViz);
-    widget->addPlugin(&trajViz2);
     widget->addPlugin(&mlsViz);
     widget->addPlugin(&trav3dViz);
     widget->addPlugin(&obstacleMapViz);
@@ -96,13 +95,9 @@ void PlannerGui::setupUI()
     mlsViz.setPluginName("MLSMap");
     
     trajViz.setLineWidth(5);
-    trajViz.setColor(QColor("Cyan"));
-    trajViz.setPluginEnabled(false);
-    trajViz.setPluginName("Trajectory 2D");
-
-    trajViz2.setLineWidth(5);
-    trajViz2.setColor(QColor("magenta"));
-    trajViz2.setPluginName("Trajectory 3D");
+    trajViz.setColor(QColor("magenta"));
+    trajViz.setPluginEnabled(true);
+    trajViz.setPluginName("Trajectory");
 
     QVBoxLayout* layout = new QVBoxLayout();
        
@@ -324,7 +319,7 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     mobilityConfig.multiplierPointTurn = 3;
     mobilityConfig.maxMotionCurveLength = 100;
     mobilityConfig.spline_sampling_resolution = 0.05;
-    mobilityConfig.remove_goal_offset = false;
+    mobilityConfig.remove_goal_offset = true;
 
     travConfig.gridResolution = res;
     travConfig.maxSlope = 0.45; //40.0/180.0 * M_PI;
@@ -611,9 +606,6 @@ void PlannerGui::plannerIsDone()
 {   
     trajViz.updateData(path);
     trajViz.setLineWidth(8);
-
-    trajViz2.updateData(beautifiedPath);
-    trajViz2.setLineWidth(8);    
     
     trav3dViz.updateData((planner->getTraversabilityMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
     obstacleMapViz.updateData((planner->getObstacleMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
@@ -655,7 +647,7 @@ void PlannerGui::plan(const base::Pose& start, const base::Pose& goal)
     LOG_INFO_S << "Planning: " << start << " -> " << goal;
     
     const Planner::PLANNING_RESULT result = planner->plan(base::Time::fromSeconds(time->value()),
-                                            startState, endState, path, beautifiedPath);
+                                            startState, endState, path);
     switch(result)
     {
         case Planner::GOAL_INVALID:

@@ -951,8 +951,10 @@ vector<Motion> EnvironmentXYZTheta::getMotions(const vector< int >& stateIDPath)
 
 void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                                         vector<SubTrajectory>& result,
-                                        bool setZToZero, const Eigen::Vector3d &startPos,
-                                        const Eigen::Vector3d &goalPos, const double& goalHeading, const Eigen::Affine3d &plan2Body)
+                                        const Eigen::Vector3d &startPos,
+                                        const Eigen::Vector3d &goalPos, 
+                                        const double& goalHeading, 
+                                        const Eigen::Affine3d &plan2Body)
 {
     if(stateIDPath.size() < 2)
         return;

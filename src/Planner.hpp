@@ -123,8 +123,9 @@ public:
      * @return An enum indicating the planner state
      * */
     PLANNING_RESULT plan(const base::Time& maxTime, const base::samples::RigidBodyState& start_pose,
-                         const base::samples::RigidBodyState& end_pose, std::vector<trajectory_follower::SubTrajectory>& resultTrajectory2D,
-                         std::vector<trajectory_follower::SubTrajectory>& resultTrajectory3D, bool dumpOnError = false, bool dumpOnSuccess = false);
+                         const base::samples::RigidBodyState& end_pose,
+                         std::vector<trajectory_follower::SubTrajectory>& resultTrajectory3D, bool dumpOnError = false, 
+                         bool dumpOnSuccess = false);
    
     void setTravConfig(const traversability_generator3d::TraversabilityConfig& config);
     

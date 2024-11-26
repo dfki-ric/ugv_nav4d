@@ -134,7 +134,6 @@ bool Planner::tryGoal(const Eigen::Vector3d& translation, const double yaw) noex
 
 Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::samples::RigidBodyState& start_pose,
                                        const base::samples::RigidBodyState& end_pose,
-                                       std::vector<SubTrajectory>& resultTrajectory2D,
                                        std::vector<SubTrajectory>& resultTrajectory3D,
                                        bool dumpOnError, bool dumpOnSuccess)
 {
@@ -150,7 +149,6 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         return NO_MAP;
     }
 
-    resultTrajectory2D.clear();
     resultTrajectory3D.clear();
     env->clear();
 
@@ -261,8 +259,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         std::vector<PlannerStats> stats;
 
         planner->get_search_stats(&stats);
-        env->getTrajectory(solutionIds, resultTrajectory2D, true, start_translation, goal_translation, end_pose.getYaw(), ground2Body);
-        env->getTrajectory(solutionIds, resultTrajectory3D, false, start_translation, goal_translation,end_pose.getYaw(), ground2Body);
+        env->getTrajectory(solutionIds, resultTrajectory3D, start_translation, goal_translation,end_pose.getYaw(), ground2Body);
     }
     catch(const SBPL_Exception& ex)
     {
