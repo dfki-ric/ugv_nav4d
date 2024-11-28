@@ -102,7 +102,8 @@ GUI Usage &amp; Tests</h4>
 <p><img src="doc/figures/planner_gui_result.png" alt="PlannerGuiResult" class="inline"/></p>
 <p>The button <code>Create PlannerDump</code> can be used to save the planner's state. The created file e.g. ugv4d_dump_xxxx.bin can be replayed using the executable <code>ugv_naved_replay</code>.</p>
 <div class="fragment"><div class="line">ugv_nav4d_replay ugv4d_dump_xxxx.bin</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md10"></a>
+</div><!-- fragment --><p>An additional GUI is provided for tuning of parameters used in the generation of motion primitives. The generated spline motion primitives are also visualized. Furthermore, the <code>vizkit3d::SbplSplineVisualization</code> plugin under <code>Properties</code> offers further options for visualizing and analyzing the splines for various start and end angles. <img src="doc/figures/motion_primitives_gui.png" alt="MotionPrimitivesGui" class="inline"/></p>
+<h4><a class="anchor" id="autotoc_md10"></a>
 Unit Tests</h4>
 <p>Build the library again but this time enable the <code>-DTESTS_ENABLED=ON</code></p>
 <div class="fragment"><div class="line">cd build</div>
