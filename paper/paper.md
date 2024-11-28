@@ -1,5 +1,5 @@
 ---
-title: 'Advanced Multi-Surface Navigation for Unmanned Ground Vehicles (UGVs) Using 4D Path Planning Techniques (ugv_nav4d)'
+title: 'ugv_nav4d: Advanced Multi-Surface Navigation for Unmanned Ground Vehicles Using 4D Path Planning Techniques'
 tags:
   - Multi-Surface Trajectory Planning
   - Global Path Planning
@@ -45,7 +45,7 @@ The core software components of the planner are
 - PreComputedMotions
 
 ### EnvironmentXYZTheta 
-The core of ugv_nav4d is based on SBPL (Search-Based Planning Library) [@sbpl]. The EnvironmentXYZTheta implements all interfaces needed by SBPL to enable ARA* based planning. The environment in SBPL is a state space which connects states with associated transition costs. A state is defined by the position (x,y,z) and orientation (yaw) of the robot. The EnvironmentXYZTheta uses a TraversabilityGenerator3d [@travgen3d] to generate a TraversabilityMap3d from a MLSMap, which classifies the MLSMap patches into traversable, non-traversable, and unknown terrain and stores meta data of the ground surface (e.g., slope of the patch, supporting plane, etc.). 
+The core of ugv_nav4d is based on SBPL (Search-Based Planning Library) [@sbpl]. The EnvironmentXYZTheta implements all interfaces needed by SBPL to enable ARA* based planning. The environment in SBPL is a state space which connects states with associated transition costs. A state is defined by the position (x,y,z) and orientation (yaw) of the robot. The EnvironmentXYZTheta uses a TraversabilityGenerator3d [@travgen3d] to generate a TraversabilityMap3d from a MLSMap, which classifies the MLSMap patches into traversable, non-traversable, and unknown terrain and stores metadata of the ground surface (e.g., slope of the patch, supporting plane, etc.). 
 
 ![The Moon Crater and its TraversabilityMap3d in the Space Hall at the RIC, DFKI [@roboticsElab]\label{fig:crater}.](figures/trav_map_and_space_hall.png){width="300pt"}
 
