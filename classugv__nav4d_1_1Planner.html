@@ -97,8 +97,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a8c189dee5e2e2f574d3f78f0db1fd82e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a468e437f6fa4c5d12d6debc14b4de164"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classugv__nav4d_1_1Motion.html">Motion</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a468e437f6fa4c5d12d6debc14b4de164">getMotions</a> () const</td></tr>
 <tr class="separator:a468e437f6fa4c5d12d6debc14b4de164"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a450049e7f70b8f042cf7ec37e30fba78"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classugv__nav4d_1_1Planner.html#a67f733c96fd5fe78709a25c3ef013635">PLANNING_RESULT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a450049e7f70b8f042cf7ec37e30fba78">plan</a> (const base::Time &amp;maxTime, const base::samples::RigidBodyState &amp;start_pose, const base::samples::RigidBodyState &amp;end_pose, std::vector&lt; trajectory_follower::SubTrajectory &gt; &amp;resultTrajectory3D, bool dumpOnError=false, bool dumpOnSuccess=false)</td></tr>
-<tr class="separator:a450049e7f70b8f042cf7ec37e30fba78"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab4cdd5fa067cadc645e039802e7a7f3d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classugv__nav4d_1_1Planner.html#a67f733c96fd5fe78709a25c3ef013635">PLANNING_RESULT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#ab4cdd5fa067cadc645e039802e7a7f3d">plan</a> (const base::Time &amp;maxTime, const base::samples::RigidBodyState &amp;start_pose, const base::samples::RigidBodyState &amp;end_pose, std::vector&lt; trajectory_follower::SubTrajectory &gt; &amp;resultTrajectory2D, std::vector&lt; trajectory_follower::SubTrajectory &gt; &amp;resultTrajectory3D, bool dumpOnError=false, bool dumpOnSuccess=false)</td></tr>
+<tr class="separator:ab4cdd5fa067cadc645e039802e7a7f3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6811240734bc96e783969bb36d478a55"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a6811240734bc96e783969bb36d478a55">setTravConfig</a> (const traversability_generator3d::TraversabilityConfig &amp;config)</td></tr>
 <tr class="separator:a6811240734bc96e783969bb36d478a55"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ada8f90ee8b6bd27bea660b25865dd6c6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#ada8f90ee8b6bd27bea660b25865dd6c6">setPlannerConfig</a> (const <a class="el" href="structugv__nav4d_1_1PlannerConfig.html">PlannerConfig</a> &amp;config)</td></tr>
@@ -342,8 +342,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a450049e7f70b8f042cf7ec37e30fba78"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a450049e7f70b8f042cf7ec37e30fba78">&#9670;&nbsp;</a></span>plan()</h2>
+<a id="ab4cdd5fa067cadc645e039802e7a7f3d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab4cdd5fa067cadc645e039802e7a7f3d">&#9670;&nbsp;</a></span>plan()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -365,6 +365,12 @@ Here is the call graph for this function:</div>
           <td></td>
           <td class="paramtype">const base::samples::RigidBodyState &amp;&#160;</td>
           <td class="paramname"><em>end_pose</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; trajectory_follower::SubTrajectory &gt; &amp;&#160;</td>
+          <td class="paramname"><em>resultTrajectory2D</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
