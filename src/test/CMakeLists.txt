@@ -1,10 +1,24 @@
-find_package(GTest REQUIRED)
-add_executable(test_ugv_nav4d test_ugv_nav4d.cpp)
-target_link_libraries(test_ugv_nav4d GTest::GTest ugv_nav4d)
+find_package(Boost REQUIRED COMPONENTS filesystem serialization)
 
-# Install the binaries
-install(TARGETS test_ugv_nav4d EXPORT test_ugv_nav4d-targets
-	ARCHIVE DESTINATION lib
-	LIBRARY DESTINATION lib
-	RUNTIME DESTINATION bin
+rock_executable(test_Planner
+    SOURCES test_Planner.cpp
+	DEPS Boost::filesystem
+    DEPS_PKGCONFIG ugv_nav4d
+)
+
+rock_executable(test_EnvironmentXYZTheta
+    SOURCES test_EnvironmentXYZTheta.cpp
+	DEPS Boost::filesystem Boost::serialization
+    DEPS_PKGCONFIG ugv_nav4d
+)
+
+rock_executable(test_DiscreteTheta
+    SOURCES test_DiscreteTheta.cpp
+    DEPS_PKGCONFIG ugv_nav4d
+)
+
+rock_executable(test_PreComputedMotions
+    SOURCES test_PreComputedMotions.cpp
+	DEPS Boost::filesystem
+    DEPS_PKGCONFIG ugv_nav4d
 )

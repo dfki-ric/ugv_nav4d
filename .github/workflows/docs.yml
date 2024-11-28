@@ -1,0 +1,49 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main", "feat-build-doc" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y graphviz doxygen
+      shell: bash
+
+    - name: build_doxygen
+      run: |
+        # bootstrap rock
+        git clone https://github.com/rock-core/base-cmake.git
+        cmake -Bbuild/rock base-cmake -DCMAKE_INSTALL_PREFIX=build/install
+        make -Cbuild/rock install
+        export CMAKE_PREFIX_PATH=build/install/share/rock/cmake/:$CMAKE_PREFIX_PATH
+        # get doxygen to trigger generation
+        # build the doxyfile
+        cmake -Bbuild . || true  # building doc does not need build deps
+
+    - name: move doc with figures into a tmp folder
+      run: mv doc doc_tmp
+
+    - name: Generate Doxygen Documentation
+      run: doxygen build/Doxyfile
+      shell: bash
+      
+    - name: Create .nojekyll (ensures pages with underscores work on gh pages)
+      run: touch doc/.nojekyll
+      shell: bash
+
+    - name: move figures into the actual doc
+      run: mv doc_tmp doc/doc
+
+    - name: Deploy to GitHub Pages
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        branch: gh-pages
+        folder: doc
+

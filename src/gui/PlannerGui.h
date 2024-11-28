@@ -1,8 +1,9 @@
 #pragma once
 #include <QObject>
+#include <QWidget>
+#include <atomic> 
 
 #ifndef Q_MOC_RUN
-#include <vizkit3d/Vizkit3DWidget.hpp>
 #include <vizkit3d/SubTrajectoryVisualization.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
 #include <vizkit3d/TraversabilityMap3dVisualization.hpp>
@@ -16,7 +17,16 @@
 #include <trajectory_follower/SubTrajectory.hpp>
 #endif
 
+class QDoubleSpinBox;
+class QSpinBox;
+class QSlider;
+class QPushButton;
+class QComboBox;
+class QProgressBar;
 
+namespace vizkit3d {
+    class Vizkit3DWidget;
+}
 
 class PlannerGui : public QObject
 {
@@ -65,6 +75,8 @@ private:
     void startPlanThread();
     
 private:
+
+    std::atomic<bool> inplanningphase{false}; // Atomic for thread-safe flag
     vizkit3d::Vizkit3DWidget* widget;
     QDoubleSpinBox* maxSlopeSpinBox;
     QDoubleSpinBox* slopeMetricScaleSpinBox;
@@ -75,6 +87,7 @@ private:
     QSlider* goalOrientationSlider;
     QDoubleSpinBox* obstacleDistanceSpinBox;
     QDoubleSpinBox* obstacleFactorSpinBox;
+    QPushButton* expandButton;
     QComboBox* slopeMetricComboBox;
     QComboBox* heuristicComboBox;
     QSpinBox* numThreadsSpinBox;
@@ -92,6 +105,7 @@ private:
     maps::grid::MLSMapSloped mlsMap;
     base::Pose start;
     base::Pose goal;
+    base::Vector3d frontier;
     bool pickStart = true;
     bool startPicked = false;
     bool goalPicked = false;

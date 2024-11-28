@@ -1,7 +1,14 @@
 #include "PlannerGui.h"
 #include <QFileDialog>
+#include <QSpinBox>
 #include <QPushButton>
+#include <QProgressBar>
+#include <QLabel>
+#include <QSlider>
+#include <QComboBox>
+#include <QHBoxLayout>
 #include <thread>
+#include <vizkit3d/Vizkit3DWidget.hpp>
 #include <ugv_nav4d/PreComputedMotions.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
@@ -39,8 +46,8 @@ PlannerGui::PlannerGui(const std::string& dumpName): QObject()
     goalViz.updateData(dump.getGoal());
 
     planner->updateMap(dump.getMlsMap());
-    
-    startPlanThread();
+
+    inplanningphase = false;
 }
 
 
@@ -57,11 +64,15 @@ void PlannerGui::setupUI()
     goal.orientation.setIdentity();
     
     widget = new vizkit3d::Vizkit3DWidget();
+#ifdef ENABLE_DEBUG_DRAWINGS
     V3DD::CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(widget);
-    
+#endif
     trav3dViz.setPluginName("TravMap");
     obstacleMapViz.setPluginName("ObstacleMap");
     
+    startViz.setPluginName("Start Pose");
+    goalViz.setPluginName("Goal Pose");
+
     widget->setCameraManipulator(vizkit3d::ORBIT_MANIPULATOR);
     widget->addPlugin(&splineViz);
     widget->addPlugin(&trajViz);
@@ -74,32 +85,42 @@ void PlannerGui::setupUI()
     widget->addPlugin(&gridViz);
     
     splineViz.setPluginEnabled(false);
-    gridViz.setPluginEnabled(true);
-    
+    splineViz.setPluginName("Splines");
+
+    gridViz.setPluginEnabled(false);
+    gridViz.setPluginName("Grid");
+
     mlsViz.setCycleHeightColor(true);
     mlsViz.setShowPatchExtents(false); 
     mlsViz.setShowNormals(false);
+    mlsViz.setPluginName("MLSMap");
     
     trajViz.setLineWidth(5);
     trajViz.setColor(QColor("Cyan"));
+    trajViz.setPluginEnabled(false);
+    trajViz.setPluginName("Trajectory 2D");
+
     trajViz2.setLineWidth(5);
     trajViz2.setColor(QColor("magenta"));
-        
+    trajViz2.setPluginName("Trajectory 3D");
+
     QVBoxLayout* layout = new QVBoxLayout();
-    
        
     layout->addWidget(widget);
     
     maxSlopeSpinBox = new QDoubleSpinBox();
     maxSlopeSpinBox->setMinimum(1);
     maxSlopeSpinBox->setMaximum(60);
+    maxSlopeSpinBox->setValue(33.23);
+
     connect(maxSlopeSpinBox, SIGNAL(editingFinished()), this, SLOT(maxSlopeEditingFinished()));
     QHBoxLayout* slopeLayout = new QHBoxLayout();
     QLabel* lab = new QLabel();
     lab->setText("max slope (deg):");
+
     slopeLayout->addWidget(lab);
     slopeLayout->addWidget(maxSlopeSpinBox);
-    layout->addLayout(slopeLayout);
+    //layout->addLayout(slopeLayout);
     
     QHBoxLayout* timeLayout = new QHBoxLayout();
     time = new QDoubleSpinBox();
@@ -107,7 +128,7 @@ void PlannerGui::setupUI()
     time->setMaximum(9999999);
     time->setValue(14);
     QLabel* lab2 = new QLabel();
-    lab2->setText("Max processor time:");
+    lab2->setText("Max processor time (seconds)");
     timeLayout->addWidget(lab2);
     timeLayout->addWidget(time);
     timeLayout->addWidget(time);
@@ -121,17 +142,19 @@ void PlannerGui::setupUI()
     inclineLimittingMinSlopeSpinBox = new QDoubleSpinBox();
     inclineLimittingMinSlopeSpinBox->setMinimum(0.0);
     inclineLimittingMinSlopeSpinBox->setMaximum(180.0);
+    inclineLimittingMinSlopeSpinBox->setValue(20);
     connect(inclineLimittingMinSlopeSpinBox, SIGNAL(editingFinished()), this, SLOT(inclineLimittingMinSlopeSpinBoxEditingFinished()));
     
     inclineLimittingLimitSpinBox = new QDoubleSpinBox();
     inclineLimittingLimitSpinBox->setMinimum(0.00001);
-    inclineLimittingLimitSpinBox->setMaximum(90);
+    inclineLimittingLimitSpinBox->setMaximum(90);    
+    inclineLimittingLimitSpinBox->setValue(25.21);
     connect(inclineLimittingLimitSpinBox, SIGNAL(editingFinished()), this, SLOT(inclineLimittingLimitSpinBoxEditingFinished()));
     
     QLabel* inclineLimittingMinSlopeLabel = new QLabel();
-    inclineLimittingMinSlopeLabel->setText("incline limit min slope (deg)");
+    inclineLimittingMinSlopeLabel->setText("Incline limit min slope (deg)");
     QLabel* inclineLimittingLimitSpinBoxLabel = new QLabel();
-    inclineLimittingLimitSpinBoxLabel->setText("incline limit at max slope (deg)");
+    inclineLimittingLimitSpinBoxLabel->setText("Incline limit at max slope (deg)");
     
     QHBoxLayout* slopeLimitLayout = new QHBoxLayout();
     slopeLimitLayout->addWidget(inclineLimittingMinSlopeLabel);
@@ -156,7 +179,7 @@ void PlannerGui::setupUI()
     QHBoxLayout* slopeMetricLayout = new QHBoxLayout();
     slopeMetricLayout->addWidget(slopeMetricLabel);
     slopeMetricLayout->addWidget(slopeMetricScaleSpinBox);
-    layout->addLayout(slopeMetricLayout);
+    //layout->addLayout(slopeMetricLayout);
     
     slopeMetricComboBox = new QComboBox();
     slopeMetricComboBox->addItem("NONE");
@@ -169,8 +192,7 @@ void PlannerGui::setupUI()
     QHBoxLayout* slopeMetricTypeLayout = new QHBoxLayout();
     slopeMetricTypeLayout->addWidget(slopeMetricComboLabel);
     slopeMetricTypeLayout->addWidget(slopeMetricComboBox);
-    layout->addLayout(slopeMetricTypeLayout);
-    
+    //layout->addLayout(slopeMetricTypeLayout);
     
     startOrientatationSlider = new QSlider(Qt::Horizontal);
     startOrientatationSlider->setMinimum(0);
@@ -185,9 +207,9 @@ void PlannerGui::setupUI()
     connect(goalOrientationSlider, SIGNAL(sliderMoved(int)), this, SLOT(goalOrientationChanged(int)));
     
     QLabel* startOrientationLaebel = new QLabel();
-    startOrientationLaebel->setText("start orientation (deg)");
+    startOrientationLaebel->setText("Start orientation (deg)");
     QLabel* goalOrientationLaebel = new QLabel();
-    goalOrientationLaebel->setText("goal orientation (deg)");
+    goalOrientationLaebel->setText("Goal orientation (deg)");
      
     QHBoxLayout* startOrientationLayout = new QHBoxLayout();
     startOrientationLayout->addWidget(startOrientationLaebel);
@@ -222,13 +244,11 @@ void PlannerGui::setupUI()
     obstacleFactorLayout->addWidget(obstacleFactorLabel);
     obstacleFactorLayout->addWidget(obstacleFactorSpinBox);
     
-    layout->addLayout(obstacleDistLayout);
-    layout->addLayout(obstacleFactorLayout);
+    //layout->addLayout(obstacleDistLayout);
+    //layout->addLayout(obstacleFactorLayout);
     
     connect(obstacleDistanceSpinBox, SIGNAL(editingFinished()), this, SLOT(obstacleDistanceSpinBoxEditingFinished()));
     connect(obstacleFactorSpinBox, SIGNAL(editingFinished()), this, SLOT(obstacleFactorSpinBoxEditingFinished()));
-    
-    
     
     numThreadsSpinBox = new QSpinBox();
     numThreadsSpinBox->setValue(4);
@@ -251,8 +271,7 @@ void PlannerGui::setupUI()
 
     
     connect(replanButton, SIGNAL(released()), this, SLOT(replanButtonReleased()));
-    connect(dumpButton, SIGNAL(released()), this, SLOT(dumpPressed()));
-    
+    connect(expandButton, SIGNAL(released()), this, SLOT(expandPressed()));
     
     layout->addWidget(bar);
     
@@ -267,63 +286,69 @@ void PlannerGui::setupUI()
     connect(&trav3dViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
     connect(&obstacleMapViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
     connect(this, SIGNAL(plannerDone()), this, SLOT(plannerIsDone()));
-    
-    maxSlopeSpinBox->setValue(33.23);
-    inclineLimittingMinSlopeSpinBox->setValue(20);
-    inclineLimittingLimitSpinBox->setValue(25.21);
+
 }
 
 
 void PlannerGui::setupPlanner(int argc, char** argv)
 {
-    double res = 0.1;
-     if(argc > 2)
-         res = atof(argv[2]);
-    
+    double res = 0.3;
+    if(argc > 2){
+        std::setlocale(LC_ALL, "C");
+        res = atof(argv[2]);
+    }
+
     splineConfig.gridSize = res;
-    splineConfig.numAngles = 24;
-    splineConfig.numEndAngles = 12;
-    splineConfig.destinationCircleRadius = 5;
-    splineConfig.cellSkipFactor = 1.0;
+    splineConfig.numAngles = 16;
+    splineConfig.numEndAngles = 8;
+    splineConfig.destinationCircleRadius = 6;
+    splineConfig.cellSkipFactor = 0.1;
     splineConfig.generatePointTurnMotions = true;
-    splineConfig.generateLateralMotions = false;
+    splineConfig.generateLateralMotions = true;
     splineConfig.generateBackwardMotions = true;
+    splineConfig.generateForwardMotions = true;
     splineConfig.splineOrder = 4;
-    
-    mobilityConfig.translationSpeed = 0.2;
-    mobilityConfig.rotationSpeed = 0.6;
-    mobilityConfig.minTurningRadius = 0.2; // increase this to reduce the number of available motion primitives
-    mobilityConfig.searchRadius = 0.0;
-    
+
+    mobilityConfig.translationSpeed = 0.5;
+    mobilityConfig.rotationSpeed = 0.5;
+    mobilityConfig.minTurningRadius = 1; // increase this to reduce the number of available motion primitives
+    mobilityConfig.searchRadius = 1.0;
+    mobilityConfig.searchProgressSteps = 0.1;
     mobilityConfig.multiplierForward = 1;
-    mobilityConfig.multiplierBackward = 1;
-    mobilityConfig.multiplierLateral = 3;
-    mobilityConfig.multiplierBackwardTurn = 1;
-    mobilityConfig.multiplierForwardTurn = 1;
+    mobilityConfig.multiplierForwardTurn = 2;
+    mobilityConfig.multiplierBackward = 2;
+    mobilityConfig.multiplierBackwardTurn = 3;
+    mobilityConfig.multiplierLateral = 4;
+    mobilityConfig.multiplierLateralCurve = 4;
     mobilityConfig.multiplierPointTurn = 3;
-     
+    mobilityConfig.maxMotionCurveLength = 100;
+    mobilityConfig.spline_sampling_resolution = 0.05;
+    mobilityConfig.remove_goal_offset = false;
+
     travConfig.gridResolution = res;
-    travConfig.maxSlope = 0.57; //40.0/180.0 * M_PI;
-    travConfig.maxStepHeight = 0.3; //space below robot
-    travConfig.robotSizeX = 0.3;
-    travConfig.robotSizeY =  0.3;
-    travConfig.robotHeight = 0.3; //incl space below body
-    travConfig.slopeMetricScale = 0.0;
+    travConfig.maxSlope = 0.45; //40.0/180.0 * M_PI;
+    travConfig.maxStepHeight = 0.20; //space below robot
+    travConfig.robotSizeX = 0.5;
+    travConfig.robotSizeY =  0.5;
+    travConfig.robotHeight = 0.5; //incl space below body
+    travConfig.slopeMetricScale = 1.0;
     travConfig.slopeMetric = traversability_generator3d::SlopeMetric::NONE;
     travConfig.inclineLimittingMinSlope = 0.22; // 10.0 * M_PI/180.0;
     travConfig.inclineLimittingLimit = 0.43;// 5.0 * M_PI/180.0;
-    travConfig.costFunctionDist = 0.4;
-    travConfig.distToGround = 0.2;
+    travConfig.costFunctionDist = 0.0;
+    travConfig.distToGround = 0.0;
     travConfig.minTraversablePercentage = 0.5;
     travConfig.allowForwardDownhill = true;
+    travConfig.enableInclineLimitting = false;
+
     plannerConfig.epsilonSteps = 2.0;
-    plannerConfig.initialEpsilon = 20.0;
+    plannerConfig.initialEpsilon = 64.0;
     plannerConfig.numThreads = 4;
-    
+
     planner.reset(new ugv_nav4d::Planner(splineConfig, travConfig, mobilityConfig, plannerConfig));
-    
+
     sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(splineConfig);
-    
+
     splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobilityConfig.minTurningRadius));
     splineViz.updateData(primitives);
     
@@ -375,25 +400,24 @@ void PlannerGui::loadMls(const std::string& path)
         {
             pcl::PointXYZ mi, ma; 
             pcl::getMinMax3D (*cloud, mi, ma); 
-
-            //transform point cloud to zero (instead we could also use MlsMap::translate later but that seems to be broken?)
-            Eigen::Affine3f pclTf = Eigen::Affine3f::Identity();
-            pclTf.translation() << -mi.x, -mi.y, -mi.z;
-            pcl::transformPointCloud (*cloud, *cloud, pclTf);
-            
-            pcl::getMinMax3D (*cloud, mi, ma); 
             LOG_INFO_S << "MIN: " << mi << ", MAX: " << ma;
-        
+
             const double mls_res = travConfig.gridResolution;
-            const double size_x = ma.x;
-            const double size_y = ma.y;
-            
-            const maps::grid::Vector2ui numCells(size_x / mls_res + 1, size_y / mls_res + 1);
-            LOG_INFO_S << "NUM CELLS: " << numCells;
-            
+            const double size_x = ma.x - mi.x;
+            const double size_y = ma.y - mi.y;
+
+            const maps::grid::Vector2ui numCells(size_x / mls_res + 2, size_y / mls_res + 2);
+            LOG_INFO_S << "NUM CELLS: " << numCells.transpose();
+
             maps::grid::MLSConfig cfg;
             cfg.gapSize = 0.1;
+            const maps::grid::Vector2d mapSize(numCells[0]*mls_res, numCells[1]*mls_res);
+            const maps::grid::Vector3d offset(mi.x-0.5*mls_res, mi.y-0.5*mls_res, 0);
+            LOG_DEBUG_S << "Range(x): [" << offset[0] << "; " << mapSize[0]+offset[0] << "], "
+            << "Range(y): [" << offset[1] << "; " << mapSize[1]+offset[1] << "]\n";
+
             mlsMap = maps::grid::MLSMapSloped(numCells, maps::grid::Vector2d(mls_res, mls_res), cfg);
+            mlsMap.translate(offset);
             mlsMap.mergePointCloud(*cloud, base::Transform3d::Identity());
             mlsViz.updateMLSSloped(mlsMap);
             planner->updateMap(mlsMap);
@@ -435,15 +459,17 @@ void PlannerGui::picked(float x, float y, float z, int buttonMask, int modifierM
         {
             start.position << x, y, z;
             start.position.z() += travConfig.distToGround; //because we click on the ground but need to put robot position
-            
+
+#ifdef ENABLE_DEBUG_DRAWINGS
             V3DD::CLEAR_DRAWING("ugv_nav4d_start_aabb");
             V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_start_aabb", start.position +  base::Vector3d(0, 0, travConfig.distToGround / 2.0), start.orientation,
                                base::Vector3d(travConfig.robotSizeX, travConfig.robotSizeY, travConfig.robotHeight - travConfig.distToGround), V3DD::Color::cyan);
-            
+#endif
             QVector3D pos(start.position.x(), start.position.y(), start.position.z());
             startViz.setTranslation(pos);
             LOG_INFO_S << "Start: " << start.position.transpose();
             startPicked = true;
+            expandButton->setEnabled(true);
         }
             break;
         case 4: //right click
@@ -523,10 +549,11 @@ void PlannerGui::startOrientationChanged(int newValue)
     const double rad = newValue/180.0 * M_PI;
     start.orientation = Eigen::AngleAxisd(rad, Eigen::Vector3d::UnitZ());
     startViz.setRotation(QQuaternion(start.orientation.w(), start.orientation.x(), start.orientation.y(), start.orientation.z()));
-    
+#ifdef ENABLE_DEBUG_DRAWINGS
     V3DD::CLEAR_DRAWING("ugv_nav4d_start_aabb");
     V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_start_aabb", start.position + Eigen::Vector3d(0, 0, travConfig.distToGround),
                        start.orientation, base::Vector3d(travConfig.robotSizeX, travConfig.robotSizeY, travConfig.robotHeight), V3DD::Color::cyan);
+#endif
 }
 
 void PlannerGui::obstacleDistanceSpinBoxEditingFinished()
@@ -554,11 +581,27 @@ void PlannerGui::replanButtonReleased()
 
 void PlannerGui::startPlanThread()
 {
-    bar->setMaximum(0);
-    std::thread t([this](){
-        V3DD::CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(this->widget);
 
+    bar->setMaximum(0);
+
+    // Check if planning is already in progress
+    if (inplanningphase.load()) {
+        std::cout << "Planner is in planning phase... Please wait for it to finish." << std::endl;
+        return;
+    }
+
+    // Mark the start of the planning phase
+    inplanningphase.store(true);    
+    
+    std::thread t([this](){
+#ifdef ENABLE_DEBUG_DRAWINGS
+        V3DD::CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(this->widget);
+#endif
         this->plan(this->start, this->goal);
+
+        // Mark the end of the planning phase after work is done
+        inplanningphase.store(false);
+
     });
     t.detach(); //needed to avoid destruction of thread at end of method
 }
@@ -571,8 +614,6 @@ void PlannerGui::plannerIsDone()
 
     trajViz2.updateData(beautifiedPath);
     trajViz2.setLineWidth(8);    
-    
-    
     
     trav3dViz.updateData((planner->getTraversabilityMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
     obstacleMapViz.updateData((planner->getObstacleMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
@@ -612,6 +653,7 @@ void PlannerGui::plan(const base::Pose& start, const base::Pose& goal)
     endState.orientation = goal.orientation;
 
     LOG_INFO_S << "Planning: " << start << " -> " << goal;
+    
     const Planner::PLANNING_RESULT result = planner->plan(base::Time::fromSeconds(time->value()),
                                             startState, endState, path, beautifiedPath);
     

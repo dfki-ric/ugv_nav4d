@@ -1,0 +1,18 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: build_ugv_nav4d
+      run: |
+        mkdir build && cd build
+        cmake -DINSTALL_DEPS=ON -DCMAKE_INSTALL_PREFIX=./install ..
+        make -j install

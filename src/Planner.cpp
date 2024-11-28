@@ -14,8 +14,6 @@
 using namespace maps::grid;
 using trajectory_follower::SubTrajectory;
 
-//#define ENABLE_V3DD_DRAWINGS
-
 namespace ugv_nav4d
 {
 
@@ -128,6 +126,7 @@ bool Planner::tryGoal(const Eigen::Vector3d& translation, const double yaw) noex
     }
     catch(const std::runtime_error& ex)
     {
+        LOG_ERROR_S << "Caught exception while setting goal pose:"  << ex.what();
         return false;
     }
     return true;
@@ -140,9 +139,9 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
                                        bool dumpOnError, bool dumpOnSuccess)
 {
 
-    LOG_INFO_S << "Planning with " << plannerConfig.numThreads << " threads";
+    LOG_DEBUG_S << "Planning with " << plannerConfig.numThreads << " threads";
     omp_set_num_threads(plannerConfig.numThreads);
-#ifdef ENABLE_V3DD_DRAWINGS
+#ifdef ENABLE_DEBUG_DRAWINGS
     V3DD::CLEAR_DRAWING("ugv_nav4d_successors");
 #endif
     if(!env)
@@ -168,8 +167,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     startbody2Mls.setTransform(startbody2Mls.getTransform());
     endbody2Mls.setTransform(endbody2Mls.getTransform());
 
-    LOG_INFO_S << "start_pose position (raw): " << start_pose.position.transpose();
-    LOG_INFO_S << "end_pose position (raw): " << end_pose.position.transpose();
+    LOG_DEBUG_S << "start_pose position (raw): " << start_pose.position.transpose();
+    LOG_DEBUG_S << "end_pose position (raw): " << end_pose.position.transpose();
 
     const Eigen::Affine3d startGround2Mls(startbody2Mls.getTransform() * ground2Body);
     const Eigen::Affine3d endGround2Mls(endbody2Mls.getTransform() *ground2Body);
@@ -189,15 +188,17 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     }
     catch(const ugv_nav4d::ObstacleCheckFailed& ex)
     {
-        LOG_INFO_S << "Start inside obstacle.";
+        LOG_ERROR_S << "Caught exception while setting start pose:"  << ex.what();
         if(dumpOnError)
             PlannerDump dump(*this, "start_inside_obstacle", maxTime, startbody2Mls, endbody2Mls);
         return START_INVALID;
     }
     catch(const std::runtime_error& ex)
     {
+        LOG_ERROR_S << "Caught exception while setting start pose:"  << ex.what();
         if(dumpOnError)
             PlannerDump dump(*this, "bad_start", maxTime, startbody2Mls, endbody2Mls);
+
         return START_INVALID;
     }
 
@@ -220,7 +221,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     }
     catch(const SBPL_Exception& ex)
     {
-        LOG_ERROR_S << "caught sbpl exception: " << ex.what();
+        LOG_ERROR_S << "Caught SBPL exception: " << ex.what();
         return NO_SOLUTION;
     }
 
@@ -231,10 +232,13 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         LOG_ERROR_S << "InitializeMDPCfg failed, start and goal id cannot be requested yet";
         return INTERNAL_ERROR;
     }
+        
+    std::cout << "SBPL: About to set start and goal, startid=" << mdp_cfg.startstateid << std::endl;
     if (planner->set_start(mdp_cfg.startstateid) == 0) {
         LOG_ERROR_S << "Failed to set start state";
         return INTERNAL_ERROR;
     }
+
     if (planner->set_goal(mdp_cfg.goalstateid) == 0) {
         LOG_ERROR_S << "Failed to set goal state";
         return INTERNAL_ERROR;
@@ -242,39 +246,31 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
 
     try
     {
-        LOG_INFO_S << "Initial Epsilon: " << plannerConfig.initialEpsilon << ", steps: " << plannerConfig.epsilonSteps;
+        LOG_DEBUG_S << "Initial Epsilon: " << plannerConfig.initialEpsilon << ", steps: " << plannerConfig.epsilonSteps;
         planner->set_eps_step(plannerConfig.epsilonSteps);
         planner->set_initialsolution_eps(plannerConfig.initialEpsilon);
 
         solutionIds.clear();
         if(!planner->replan(maxTime.toSeconds(), &solutionIds))
         {
-            LOG_INFO_S << "num expands: " << planner->get_n_expands();
+            LOG_DEBUG_S << "Number of state space expands: " << planner->get_n_expands();
             if(dumpOnError)
                 PlannerDump dump(*this, "no_solution", maxTime, startbody2Mls, endbody2Mls);
             return NO_SOLUTION;
         }
 
-        LOG_INFO_S << "num expands: " << planner->get_n_expands();
-        LOG_INFO_S << "Epsilon is " << planner->get_final_epsilon();
+        LOG_DEBUG_S << "num expands: " << planner->get_n_expands();
+        LOG_DEBUG_S << "Epsilon is " << planner->get_final_epsilon();
 
         std::vector<PlannerStats> stats;
 
         planner->get_search_stats(&stats);
-
-        LOG_INFO_S << "Stats";
-        for(const PlannerStats &s: stats)
-        {
-            LOG_INFO_S << "cost " << s.cost << " time " << s.time << "num childs " << s.expands;
-        }
-
         env->getTrajectory(solutionIds, resultTrajectory2D, true, start_translation, goal_translation, end_pose.getYaw(), ground2Body);
         env->getTrajectory(solutionIds, resultTrajectory3D, false, start_translation, goal_translation,end_pose.getYaw(), ground2Body);
     }
     catch(const SBPL_Exception& ex)
     {
-        LOG_ERROR_S << "caught sbpl exception: " << ex.what();
-        LOG_ERROR_S << "dumping state";
+        LOG_ERROR_S << "Caught sbpl exception: " << ex.what();
         if(dumpOnError)
             PlannerDump dump(*this, "no_solution", maxTime, startbody2Mls, endbody2Mls);
         return NO_SOLUTION;
@@ -306,10 +302,6 @@ const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> 
     return env->getObstacleMap();
 }
 
-std::shared_ptr<EnvironmentXYZTheta> Planner::getEnv(){
-    return env;
-}
-
 std::shared_ptr<SubTrajectory> Planner::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
                                                                                 double theta,
                                                                                 const Eigen::Affine3d& ground2Body){
@@ -318,7 +310,7 @@ std::shared_ptr<SubTrajectory> Planner::findTrajectoryOutOfObstacle(const Eigen:
             return env->findTrajectoryOutOfObstacle(start, theta, ground2Body);
         }
         catch (const std::exception& e){
-            LOG_ERROR_S << e.what();
+            LOG_ERROR_S << "Caught exception when finding trajectory out of obstacle: " << e.what();
             return nullptr;
         }
     }
@@ -329,9 +321,10 @@ std::shared_ptr<SubTrajectory> Planner::findTrajectoryOutOfObstacle(const Eigen:
 
 void Planner::setTravConfig(const traversability_generator3d::TraversabilityConfig& config)
 {
-    if(config.gridResolution != splinePrimitiveConfig.gridSize)
+    if(config.gridResolution != splinePrimitiveConfig.gridSize){
+        LOG_ERROR_S << "Planner::Planner : Configuration error, grid resolution of Primitives and TraversabilityGenerator3d differ";
         throw std::runtime_error("Planner::Planner : Configuration error, grid resolution of Primitives and TraversabilityGenerator3d differ");
-
+    }
     traversabilityConfig = config;
     if(env){
         env->setTravConfig(config);

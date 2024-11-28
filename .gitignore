@@ -7,3 +7,6 @@ build/
 *.cproject
 .env
 */install/*
+source_dependencies/env.sh
+*.bin
+*.ply
