@@ -100,6 +100,11 @@ ugv_nav4d_replay ugv4d_dump_xxxx.bin
 An additional GUI is provided for tuning of parameters used in the generation of motion primitives. The generated spline motion primitives are also visualized. Furthermore, the `vizkit3d::SbplSplineVisualization` plugin under `Properties` offers further options for visualizing and analyzing the splines for various start and end angles.
 ![MotionPrimitivesGui](doc/figures/motion_primitives_gui.png)
 
+Run the following executable in your terminal:
+```
+sbpl_spline_viz_bin
+``````
+
 #### Unit Tests
 
 Build the library again but this time enable the `-DTESTS_ENABLED=ON`
