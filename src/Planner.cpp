@@ -297,6 +297,17 @@ const maps::grid::TraversabilityMap3d<traversability_generator3d::SoilNode*> &Pl
     return env->getSoilMap();
 }
 
+void Planner::clearSoilMap()
+{
+    env->getTravGen().clearSoilMap();
+}
+
+void Planner::addSoilNode(const traversability_generator3d::SoilSample& sample)
+{
+    std::cout << "Planner::addSoilNode" << std::endl;
+    env->getTravGen().addSoilNode(sample);
+}
+
 const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &Planner::getObstacleMap() const
 {
     return env->getObstacleMap();

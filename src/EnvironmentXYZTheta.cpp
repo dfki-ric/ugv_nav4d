@@ -857,18 +857,19 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             }
         }
 
+        /*
         for(auto node : nodesOnObstPath){
             maps::grid::Index idx = node->getIndex();
             const auto &candidateMap = this->getSoilMap().at(idx);
             for(traversability_generator3d::SoilNode *n : candidateMap)
             {
-                /*Soil Types
-                -1 Unknown
-                 0 Concrete
-                 1 Rocks
-                 2 Sand
-                 3 Gravel
-                 */
+                //Soil Types
+                //-1 Unknown
+                // 0 Concrete
+                // 1 Rocks
+                // 2 Sand
+                // 3 Gravel
+                //
                 switch(n->getUserData().soil_type)
                 {
                     case -1:    
@@ -897,8 +898,10 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                         break;
                 }
             }
+           
         }
-
+        */
+       
         oassert(cost <= std::numeric_limits<int>::max() && cost >= std::numeric_limits< int >::min());
         oassert(int(cost) >= motion.baseCost);
         oassert(motion.baseCost > 0);
@@ -1019,7 +1022,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
     for(size_t i = 0; i < stateIDPath.size() - 1; ++i)
     {
         const Motion& curMotion = getMotion(stateIDPath[i], stateIDPath[i+1]);
-        const maps::grid::Vector3d start = getStatePosition(stateIDPath[i]);
         const Hash &startHash(idToHash[stateIDPath[i]]);
         const maps::grid::Index startIndex(startHash.node->getIndex());
         maps::grid::Index lastIndex = startIndex;
@@ -1265,6 +1267,11 @@ void EnvironmentXYZTheta::precomputeCost()
         const double cost = pair.second;
         travNodeIdToDistance[node->getUserData().id].distToGoal = cost;
     }
+}
+
+const maps::grid::TraversabilityMap3d<traversability_generator3d::SoilNode*>& EnvironmentXYZTheta::getSoilMap() const
+{
+    return travGen.getSoilMap();
 }
 
 traversability_generator3d::TraversabilityGenerator3d& EnvironmentXYZTheta::getTravGen()

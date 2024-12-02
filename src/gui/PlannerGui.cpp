@@ -470,6 +470,11 @@ void PlannerGui::picked(float x, float y, float z, int buttonMask, int modifierM
             LOG_INFO_S << "Start: " << start.position.transpose();
             startPicked = true;
             expandButton->setEnabled(true);
+
+            traversability_generator3d::SoilSample sample;
+            sample.location = start.position;
+            sample.type = traversability_generator3d::SoilType::SAND;
+            planner->addSoilNode(sample);
         }
             break;
         case 4: //right click

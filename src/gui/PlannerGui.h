@@ -14,6 +14,7 @@
 #include <base/Eigen.hpp>
 #include <ugv_nav4d/Planner.hpp>
 #include <traversability_generator3d/TraversabilityConfig.hpp>
+#include <traversability_generator3d/SoilSample.hpp>
 #include <trajectory_follower/SubTrajectory.hpp>
 #endif
 
