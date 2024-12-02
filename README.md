@@ -1,6 +1,7 @@
-CI build and test:
+CI build (main): ![Main](https://github.com/dfki-ric/ugv_nav4d/actions/workflows/c-cpp.yml/badge.svg) 
 
-Main: ![Main](https://github.com/dfki-ric/ugv_nav4d/actions/workflows/c-cpp.yml/badge.svg)
+JOSS Paper: 
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.06983/status.svg)](https://doi.org/10.21105/joss.06983)
 
 ugv_nav4d: Advanced Multi-Surface Navigation for Unmanned Ground Vehicles Using 4D Path Planning Techniques
 =============
