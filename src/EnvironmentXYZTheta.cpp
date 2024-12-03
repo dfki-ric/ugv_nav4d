@@ -4,12 +4,15 @@
 #include <base/Pose.hpp>
 #include <base/Spline.hpp>
 #include <fstream>
-#include <vizkit3d_debug_drawings/DebugDrawing.hpp>
-#include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include "PathStatistic.hpp"
 #include "Dijkstra.hpp"
 #include <limits>
 #include <base-logging/Logging.hpp>
+
+#ifdef ENABLE_DEBUG_DRAWINGS
+#include <vizkit3d_debug_drawings/DebugDrawing.hpp>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
+#endif
 
 using namespace std;
 using namespace sbpl_spline_primitives;

@@ -1,8 +1,11 @@
 #include "PathStatistic.hpp"
 #include <unordered_set>
 #include <deque>
+
+#ifdef ENABLE_DEBUG_DRAWINGS
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
+#endif
 
 ugv_nav4d::PathStatistic::Stats::Stats() :
     obstacles(0), 
