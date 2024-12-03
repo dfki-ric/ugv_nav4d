@@ -2,14 +2,17 @@
 #include <sbpl/planners/araplanner.h>
 #include <sbpl/utils/mdpconfig.h>
 #include <maps/grid/MultiLevelGridMap.hpp>
-#include <vizkit3d_debug_drawings/DebugDrawing.hpp>
-#include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include <base/Eigen.hpp>
 #include "PlannerDump.hpp"
 #include <omp.h>
 #include <cmath>
 #include <base-logging/Logging.hpp>
 #include "Logger.hpp"
+
+#ifdef ENABLE_DEBUG_DRAWINGS
+#include <vizkit3d_debug_drawings/DebugDrawing.hpp>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
+#endif
 
 using namespace maps::grid;
 using trajectory_follower::SubTrajectory;
