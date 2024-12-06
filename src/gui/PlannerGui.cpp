@@ -271,7 +271,7 @@ void PlannerGui::setupUI()
 
     
     connect(replanButton, SIGNAL(released()), this, SLOT(replanButtonReleased()));
-    connect(expandButton, SIGNAL(released()), this, SLOT(expandPressed()));
+    //connect(expandButton, SIGNAL(released()), this, SLOT(expandPressed()));
     
     layout->addWidget(bar);
     
@@ -471,10 +471,10 @@ void PlannerGui::picked(float x, float y, float z, int buttonMask, int modifierM
             startPicked = true;
             expandButton->setEnabled(true);
 
-            traversability_generator3d::SoilSample sample;
-            sample.location = start.position;
-            sample.type = traversability_generator3d::SoilType::SAND;
-            planner->addSoilNode(sample);
+            //traversability_generator3d::SoilSample sample;
+            //sample.location = start.position;
+            //sample.type = traversability_generator3d::SoilType::SAND;
+            //planner->addSoilNode(sample);
         }
             break;
         case 4: //right click

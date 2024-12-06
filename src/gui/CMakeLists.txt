@@ -11,6 +11,7 @@ find_package(PCL 1.7 REQUIRED COMPONENTS common io)
 IF("${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}" VERSION_LESS 1.14)
     SET(PCL_VERSION_SUFFIX "-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}")
 ENDIF()
+set(ENABLE_DEBUG_DRAWINGS ON)
 
 if(ENABLE_DEBUG_DRAWINGS AND vizkit3d_debug_drawings-commands_FOUND)
 	# These are (only) required for building the GUIs:

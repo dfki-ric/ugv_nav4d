@@ -1,5 +1,4 @@
 #include "Dijkstra.hpp"
-#include "TraversabilityConfig.hpp"
 #include <maps/grid/TraversabilityMap3d.hpp>
 #include <traversability_generator3d/TraversabilityConfig.hpp>
 

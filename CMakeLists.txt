@@ -25,6 +25,8 @@ rock_feature(NOCURDIR)
 
 pkg_check_modules(vizkit3d_debug_drawings-commands vizkit3d_debug_drawings-commands)
 
+set(ENABLE_DEBUG_DRAWINGS ON)
+
 if(ENABLE_DEBUG_DRAWINGS)
     message(STATUS "ENABLE_DEBUG_DRAWINGS is defined with value: ${ENABLE_DEBUG_DRAWINGS}")
     if(vizkit3d_debug_drawings-commands_FOUND)
