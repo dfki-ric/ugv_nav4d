@@ -1,13 +1,12 @@
 <package>
   <description brief="A 4D (X,Y,Z, Theta) Planner for UGVs">
-
   </description>
   <author>Janosch Machowinski/Janosch.Machowinski@dfki.de</author>
   <author>Arne Böckmann/arne.boeckmann@dfki.de</author>
   <maintainer>mulo01@dfki.de</maintainer>
   <stage>1</stage>
-  <license></license>
-  <url>http://</url>
+  <license>BSD 3-Clause</license>
+  <url>https://github.com/dfki-ric/ugv_nav4d</url>
   <logo>http://</logo>
   <keywords>
     <keyword>Planning</keyword>
@@ -21,8 +20,5 @@
   <depend package="planning/traversability_generator3d" />
   <depend package="gui/vizkit3d_debug_drawings" optional="1"/>
   <depend package="control/trajectory_follower" />
-  <depend package="google-test" />
-
   <tags>needs_opt</tags>
-
 </package>
