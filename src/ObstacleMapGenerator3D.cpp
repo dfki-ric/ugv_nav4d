@@ -1,6 +1,9 @@
 #include "ObstacleMapGenerator3D.hpp"
+
+#ifdef ENABLE_DEBUG_DRAWINGS
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
 #include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
+#endif
 
 using namespace maps::grid;
 

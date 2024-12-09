@@ -1,6 +1,7 @@
-CI build and test:
+CI build (main): ![Main](https://github.com/dfki-ric/ugv_nav4d/actions/workflows/c-cpp.yml/badge.svg) 
 
-Main: ![Main](https://github.com/dfki-ric/ugv_nav4d/actions/workflows/c-cpp.yml/badge.svg)
+JOSS Paper: 
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.06983/status.svg)](https://doi.org/10.21105/joss.06983)
 
 ugv_nav4d: Advanced Multi-Surface Navigation for Unmanned Ground Vehicles Using 4D Path Planning Techniques
 =============
@@ -96,6 +97,14 @@ The button `Create PlannerDump` can be used to save the planner's state. The cre
 ```
 ugv_nav4d_replay ugv4d_dump_xxxx.bin
 ```
+
+An additional GUI is provided for tuning of parameters used in the generation of motion primitives. The generated spline motion primitives are also visualized. Furthermore, the `vizkit3d::SbplSplineVisualization` plugin under `Properties` offers further options for visualizing and analyzing the splines for various start and end angles.
+![MotionPrimitivesGui](doc/figures/motion_primitives_gui.png)
+
+Run the following executable in your terminal:
+```
+sbpl_spline_viz_bin
+``````
 
 #### Unit Tests
 

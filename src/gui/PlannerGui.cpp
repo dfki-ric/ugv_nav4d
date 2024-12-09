@@ -10,8 +10,6 @@
 #include <thread>
 #include <vizkit3d/Vizkit3DWidget.hpp>
 #include <ugv_nav4d/PreComputedMotions.hpp>
-#include <vizkit3d_debug_drawings/DebugDrawing.hpp>
-#include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <pcl/io/ply_io.h>
@@ -19,6 +17,11 @@
 #include <ugv_nav4d/PlannerDump.hpp>
 #include <pcl/common/transforms.h>
 #include <base-logging/Logging.hpp>
+
+#ifdef ENABLE_DEBUG_DRAWINGS
+#include <vizkit3d_debug_drawings/DebugDrawing.hpp>
+#include <vizkit3d_debug_drawings/DebugDrawingColors.hpp>
+#endif
 
 using namespace ugv_nav4d;
 
