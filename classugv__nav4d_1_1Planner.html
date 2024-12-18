@@ -60,7 +60,7 @@ Collaboration diagram for ugv_nav4d::Planner:</div>
 <div class="dyncontent">
 <div class="center"><img src="classugv__nav4d_1_1Planner__coll__graph.png" border="0" usemap="#augv__nav4d_1_1Planner_coll__map" alt="Collaboration graph"/></div>
 <map name="augv__nav4d_1_1Planner_coll__map" id="augv__nav4d_1_1Planner_coll__map">
-<area shape="rect" title=" " alt="" coords="99,365,330,707"/>
+<area shape="rect" title=" " alt="" coords="99,365,330,692"/>
 <area shape="rect" href="structugv__nav4d_1_1PlannerConfig.html" title=" " alt="" coords="5,86,197,222"/>
 <area shape="rect" href="structugv__nav4d_1_1Mobility.html" title=" " alt="" coords="222,5,437,303"/>
 </map>
@@ -105,8 +105,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ada8f90ee8b6bd27bea660b25865dd6c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a232636df072133d9f994f9db125b39d8"><td class="memItemLeft" align="right" valign="top">const maps::grid::TraversabilityMap3d&lt; traversability_generator3d::TravGenNode * &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a232636df072133d9f994f9db125b39d8">getTraversabilityMap</a> () const</td></tr>
 <tr class="separator:a232636df072133d9f994f9db125b39d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2e90dc69833421ac84eff06fa6015cf2"><td class="memItemLeft" align="right" valign="top">const maps::grid::TraversabilityMap3d&lt; traversability_generator3d::TravGenNode * &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a2e90dc69833421ac84eff06fa6015cf2">getObstacleMap</a> () const</td></tr>
-<tr class="separator:a2e90dc69833421ac84eff06fa6015cf2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6c320a80929c4a30446b38b59daf1852"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; trajectory_follower::SubTrajectory &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a6c320a80929c4a30446b38b59daf1852">findTrajectoryOutOfObstacle</a> (const Eigen::Vector3d &amp;start, double theta, const Eigen::Affine3d &amp;ground2Body)</td></tr>
 <tr class="separator:a6c320a80929c4a30446b38b59daf1852"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -299,23 +297,6 @@ Here is the call graph for this function:</div>
       <table class="memname">
         <tr>
           <td class="memname">std::vector&lt; <a class="el" href="classugv__nav4d_1_1Motion.html">Motion</a> &gt; ugv_nav4d::Planner::getMotions </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a2e90dc69833421ac84eff06fa6015cf2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2e90dc69833421ac84eff06fa6015cf2">&#9670;&nbsp;</a></span>getObstacleMap()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const maps::grid::TraversabilityMap3d&lt; traversability_generator3d::TravGenNode * &gt; &amp; ugv_nav4d::Planner::getObstacleMap </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
