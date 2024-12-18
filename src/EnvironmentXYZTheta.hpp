@@ -101,9 +101,6 @@ protected:
     ThetaNode *goalThetaNode;
     XYZNode *goalXYZNode; //part of the goal state
 
-    /**Start node in trav map */
-    traversability_generator3d::TravGenNode* travStartNode;
-
     ThetaNode *createNewState(const DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
     XYZNode *createNewXYZState(traversability_generator3d::TravGenNode* travNode);
     ThetaNode *createNewStateFromPose(const std::string& name, const Eigen::Vector3d& pos, double theta, ugv_nav4d::EnvironmentXYZTheta::XYZNode** xyzBackNode);

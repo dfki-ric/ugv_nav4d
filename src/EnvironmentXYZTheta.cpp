@@ -356,13 +356,7 @@ void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
         LOG_ERROR_S << "Failed to create start state";
         throw StateCreationFailed("Failed to create start state");
     }
-    travStartNode = travGen.generateStartNode(startPos);
-    if(!travStartNode)
-    {
-        LOG_ERROR_S << "Could not generate trav node at start pos";
-        throw ObstacleCheckFailed("Could not generate trav node at start pos");
-    }
-
+    
     //check start position
     if(!checkStartGoalNode("start", startXYZNode->getUserData().travNode, startThetaNode->theta.getRadian()))
     {
