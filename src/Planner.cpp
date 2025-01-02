@@ -30,15 +30,6 @@ Planner::Planner(const sbpl_spline_primitives::SplinePrimitivesConfig& primitive
     setTravConfig(traversabilityConfig);
 }
 
-void Planner::setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadius)
-{
-    Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
-    ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
-    if (env){
-        env->setInitialPatch(body2Mls * ground2Body , patchRadius);
-    }
-}
-
 void Planner::enablePathStatistics(bool enable){
     if (env){
         env->enablePathStatistics(enable);
@@ -54,12 +45,7 @@ bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vec
 {
     static constexpr double theta_step = EIGEN_PI / 10.;
     if(mobility.searchRadius < std::numeric_limits<double>::epsilon()) {
-        double z{0.0};
-        Eigen::Vector3d temp = goal_translation;
-        if (env->getMlsMap().getClosestSurfacePos(temp, z)){
-            temp.z() = z;
-        }
-        return tryGoal(temp, yaw);
+        return tryGoal(goal_translation, yaw);
     }
     else {
         bool is_invalid = true;
@@ -77,13 +63,6 @@ bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vec
             Eigen::Vector3d temp = goal_translation;
             temp.x() += pos.x();
             temp.y() += pos.y();
-            temp.z() = [&]{
-                double z;
-                if(env->getMlsMap().getClosestSurfacePos(temp, z)) {
-                    return z;
-                }
-                return temp.z();
-            }();
 
             if(tryGoal(temp, yaw)) {
                 goal_translation = temp; // for future use by calling function
@@ -179,10 +158,6 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     startbody2Mls.setTransform(startGround2Mls);
     endbody2Mls.setTransform(endGround2Mls);
 
-    //TODO maybe use a deque and limit to last 30 starts?
-    previousStartPositions.push_back(startGround2Mls.translation());
-
-    env->expandMap(previousStartPositions);
     if(travMapCallback)
         travMapCallback();
     try
@@ -286,7 +261,7 @@ std::vector< Motion > Planner::getMotions() const
     return env->getMotions(solutionIds);
 }
 
-const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &Planner::getTraversabilityMap() const
+const std::shared_ptr<const traversability_generator3d::TravMap3d > Planner::getTraversabilityMap() const
 {
     return env->getTraversabilityMap();
 }

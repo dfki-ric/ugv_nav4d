@@ -1,5 +1,4 @@
 #pragma once
-#include <maps/grid/MLSMap.hpp>
 #include <base/samples/RigidBodyState.hpp>
 #include <sbpl_spline_primitives/SbplSplineMotionPrimitives.hpp>
 #include "EnvironmentXYZTheta.hpp"
@@ -19,7 +18,6 @@ class Planner
 {
 protected:
     friend class PlannerDump;
-    typedef EnvironmentXYZTheta::MLGrid MLSBase;
     std::shared_ptr<EnvironmentXYZTheta> env;
     std::shared_ptr<ARAPlanner> planner;
     
@@ -48,36 +46,20 @@ public:
         const traversability_generator3d::TraversabilityConfig &traversabilityConfig,
         const Mobility& mobility, 
         const PlannerConfig& plannerConfig);
-    
-    template <maps::grid::MLSConfig::update_model SurfacePatch>
-    void updateMap(const maps::grid::MLSMap<SurfacePatch>& mls)
+      
+    void updateMap(const traversability_generator3d::TravMap3d &map)
     {
-        std::shared_ptr<MLSBase> mlsPtr = std::make_shared<MLSBase>(mls);
+        std::shared_ptr<traversability_generator3d::TravMap3d> mapPtr = std::make_shared<traversability_generator3d::TravMap3d>(map);
 
         if(!env)
         {
-            env.reset(new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, splinePrimitiveConfig, mobility));
+            env.reset(new EnvironmentXYZTheta(mapPtr, traversabilityConfig, splinePrimitiveConfig, mobility));
         }
         else
         {
-            env->updateMap(mlsPtr);
+            env->updateMap(mapPtr);
         }
     }
-    
-    void updateMap(const MLSBase &mls)
-    {
-        std::shared_ptr<MLSBase> mlsPtr= std::make_shared<MLSBase>(mls);
-
-        if(!env)
-        {
-            env.reset(new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, splinePrimitiveConfig, mobility));
-        }
-        else
-        {
-            env->updateMap(mlsPtr);
-        }
-    }
-    void setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadius);
 
     void enablePathStatistics(bool enable);
 
@@ -130,7 +112,7 @@ public:
     
     void setPlannerConfig(const PlannerConfig& config);
     
-    const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &getTraversabilityMap() const;
+    const std::shared_ptr<const traversability_generator3d::TravMap3d> getTraversabilityMap() const;
     
     std::shared_ptr<trajectory_follower::SubTrajectory> findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
             const Eigen::Affine3d& ground2Body);

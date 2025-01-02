@@ -30,12 +30,11 @@ namespace ugv_nav4d
         throw std::runtime_error("Error!"); \
     }
 
-EnvironmentXYZTheta::EnvironmentXYZTheta(std::shared_ptr<MLGrid> mlsGrid,
+EnvironmentXYZTheta::EnvironmentXYZTheta(std::shared_ptr<const traversability_generator3d::TravMap3d> travMap,
                                          const traversability_generator3d::TraversabilityConfig& travConf,
                                          const SplinePrimitivesConfig& primitiveConfig,
                                          const Mobility& mobilityConfig) :
-    travGen(travConf)
-    , mlsGrid(mlsGrid)
+    travMap(travMap)
     , availableMotions(primitiveConfig, mobilityConfig)
     , startThetaNode(nullptr)
     , startXYZNode(nullptr)
@@ -46,13 +45,12 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(std::shared_ptr<MLGrid> mlsGrid,
     , mobilityConfig(mobilityConfig)
 {
     numAngles = primitiveConfig.numAngles;
-    travGen.setMLSGrid(mlsGrid);
     searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
-    searchGrid.extend(travGen.getTraversabilityMap().getNumCells());
+    searchGrid.extend(travMap->getNumCells());
     robotHalfSize << travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight/2;
-    if(mlsGrid)
+    if(travMap)
     {
-        availableMotions.computeMotions(mlsGrid->getResolution().x(), travConf.gridResolution);
+        availableMotions.computeMotions(travMap->getResolution().x(), travConf.gridResolution);
     }
 }
 
@@ -96,23 +94,17 @@ EnvironmentXYZTheta::~EnvironmentXYZTheta()
     clear();
 }
 
-void EnvironmentXYZTheta::setInitialPatch(const Eigen::Affine3d& ground2Mls, double patchRadius)
+void EnvironmentXYZTheta::updateMap(shared_ptr<const traversability_generator3d::TravMap3d > travMap)
 {
-    travGen.setInitialPatch(ground2Mls, patchRadius);
-}
-
-void EnvironmentXYZTheta::updateMap(shared_ptr< ugv_nav4d::EnvironmentXYZTheta::MLGrid > mlsGrid)
-{
-    if(this->mlsGrid && this->mlsGrid->getResolution() != mlsGrid->getResolution()){
-        LOG_ERROR_S << "EnvironmentXYZTheta::updateMap : Error got MLSMap with different resolution";
-        throw std::runtime_error("EnvironmentXYZTheta::updateMap : Error got MLSMap with different resolution");
+    if(this->travMap && this->travMap->getResolution() != travMap->getResolution()){
+        LOG_ERROR_S << "EnvironmentXYZTheta::updateMap : Error got TravMap3d with different resolution";
+        throw std::runtime_error("EnvironmentXYZTheta::updateMap : Error got TravMap3d with different resolution");
     }
-    if(!this->mlsGrid)
+    if(!this->travMap)
     {
-        availableMotions.computeMotions(mlsGrid->getResolution().x(), travConf.gridResolution);
+        availableMotions.computeMotions(travMap->getResolution().x(), travConf.gridResolution);
     }
-    travGen.setMLSGrid(mlsGrid);
-    this->mlsGrid = mlsGrid;
+    this->travMap = travMap;
 
     clear();
 }
@@ -128,22 +120,18 @@ EnvironmentXYZTheta::XYZNode* EnvironmentXYZTheta::createNewXYZState(traversabil
 
 EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(const std::string &name, const Eigen::Vector3d& pos, double theta, XYZNode **xyzBackNode)
 {
-    traversability_generator3d::TravGenNode *travNode = travGen.generateStartNode(pos);
+    traversability_generator3d::TravGenNode* travNode = findMatchingTraversabilityPatchAt(pos);
+
     if(!travNode)
     {
-        LOG_ERROR_S << "Could not generate new state at pos: " << pos.transpose();
+        LOG_ERROR_S << "Error, could not find matching trav node for " << name;
         return nullptr;
     }
 
-    //check if intitial patch is unknown
     if(!travNode->isExpanded())
     {
-        if(!travGen.expandNode(travNode))
-        {
-            LOG_ERROR_S << "createNewStateFromPose: Error: " << name << " Pose " << pos.transpose() << " is not traversable";
-            return nullptr;
-        }
-        travNode->setNotExpanded();
+        LOG_ERROR_S << "createNewStateFromPose: Error: " << name << " Pose " << pos.transpose() << " is not traversable";
+        return nullptr;
     }
 
     XYZNode *xyzNode = createNewXYZState(travNode);
@@ -156,19 +144,41 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
     return createNewState(thetaD, xyzNode);
 }
 
+traversability_generator3d::TravGenNode* EnvironmentXYZTheta::findMatchingTraversabilityPatchAt(const Eigen::Vector3d& pos){
+    maps::grid::Index idxTravNode;
+    if(!travMap->toGrid(pos, idxTravNode))
+    {
+        LOG_ERROR_S << "EnvironmentXYZTheta::findMatchingTraversabilityPatchAt: Position outside of map !";
+        return nullptr;
+    }
+
+    auto &trList(travMap->at(idxTravNode));
+
+    //check if we got an existing node
+    for(traversability_generator3d::TravGenNode *snode : trList)
+    {
+        const double searchHeight = snode->getHeight();
+
+        if((searchHeight - travConf.maxStepHeight) <= pos.z() && (searchHeight + travConf.maxStepHeight) >= pos.z())
+        {
+            //found a connectable node
+            return snode;
+        }
+
+        if(searchHeight > pos.z())
+        {
+            return nullptr;
+        }
+    }
+    return nullptr;        
+}
+
 bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double theta,
-                                        const traversability_generator3d::TraversabilityGenerator3d& travGen,
                                         const traversability_generator3d::TraversabilityConfig& travConf,
                                         const SplinePrimitivesConfig& splineConf,
                                         const std::string& nodeName)
 {
-    maps::grid::Index idxTravNode;
-    if(!travGen.getTraversabilityMap().toGrid(pos, idxTravNode))
-    {
-        LOG_ERROR_S << "Error " << nodeName << " is outside of trav map ";
-        return false;
-    }
-    traversability_generator3d::TravGenNode* travNode = travGen.findMatchingTraversabilityPatchAt(idxTravNode, pos.z());
+    traversability_generator3d::TravGenNode* travNode = findMatchingTraversabilityPatchAt(pos);
     if(!travNode)
     {
         LOG_ERROR_S << "Error, could not find matching trav node for " << nodeName;
@@ -186,7 +196,7 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
         std::vector<const traversability_generator3d::TravGenNode*> path;
         path.push_back(travNode);
 
-        const Eigen::Vector3d centeredPos = travNode->getPosition(travGen.getTraversabilityMap());
+        const Eigen::Vector3d centeredPos = travNode->getPosition(*travMap);
 
 
         //NOTE theta needs to be discretized because the planner uses discrete theta internally everywhere.
@@ -196,7 +206,7 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
 
         poses.push_back(base::Pose2D(centeredPos.topRows(2), discTheta.getRadian()));
 
-        stats.calculateStatistics(path, poses, travGen.getTraversabilityMap(), "ugv_nav4d_" + nodeName + "Box");
+        stats.calculateStatistics(path, poses, *travMap, "ugv_nav4d_" + nodeName + "Box");
 
         if(stats.getRobotStats().getNumObstacles() || stats.getRobotStats().getNumFrontiers()) 
         {
@@ -222,7 +232,7 @@ bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, traversability_
     //check for collisions NOTE has to be done after expansion
 
     maps::grid::Vector3d nodePos;
-    travGen.getTraversabilityMap().fromGrid(node->getIndex(), nodePos, node->getHeight(), false);
+    travMap->fromGrid(node->getIndex(), nodePos, node->getHeight(), false);
 #ifdef ENABLE_DEBUG_DRAWINGS
         V3DD::COMPLEX_DRAWING([&]()
         {
@@ -233,7 +243,7 @@ bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, traversability_
 #endif
 
 
-    return obstacleCheck(nodePos, theta, travGen, travConf, primitiveConfig, name);
+    return obstacleCheck(nodePos, theta, travConf, primitiveConfig, name);
 }
 
 
@@ -298,7 +308,7 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
         while(nextNode != goal)
         {
             maps::grid::Vector3d pos;
-            travGen.getTraversabilityMap().fromGrid(nextNode->getIndex(), pos, nextNode->getHeight(), false);
+            travMap->fromGrid(nextNode->getIndex(), pos, nextNode->getHeight(), false);
 
             V3DD::DRAW_CYLINDER("ugv_nav4d_greedyPath", pos, base::Vector3d(0.03, 0.03, 0.3), V3DD::Color::yellow);
             double minCost = std::numeric_limits< double >::max();
@@ -323,24 +333,6 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
 #endif
 }
 
-void EnvironmentXYZTheta::expandMap(const std::vector<Eigen::Vector3d>& positions)
-{
-#ifdef ENABLE_DEBUG_DRAWINGS
-    V3DD::COMPLEX_DRAWING([&]()
-    {
-        V3DD::CLEAR_DRAWING("ugv_nav4d_expandStarts");
-        for(const Eigen::Vector3d& pos : positions)
-        {
-            V3DD::DRAW_ARROW("ugv_nav4d_expandStarts", pos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
-                       base::Vector3d(1,1,1), V3DD::Color::cyan);
-        }
-    });
-#endif
-
-    travGen.expandAll(positions);
-}
-
-
 void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta)
 {
 #ifdef ENABLE_DEBUG_DRAWINGS
@@ -355,12 +347,6 @@ void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
     if(!startThetaNode){
         LOG_ERROR_S << "Failed to create start state";
         throw StateCreationFailed("Failed to create start state");
-    }
-    travStartNode = travGen.generateStartNode(startPos);
-    if(!travStartNode)
-    {
-        LOG_ERROR_S << "Could not generate trav node at start pos";
-        throw ObstacleCheckFailed("Could not generate trav node at start pos");
     }
 
     //check start position
@@ -397,7 +383,7 @@ maps::grid::Vector3d EnvironmentXYZTheta::getStatePosition(const int stateID) co
     const Hash &sourceHash(idToHash[stateID]);
     const XYZNode *node = sourceHash.node;
     maps::grid::Vector3d ret;
-    travGen.getTraversabilityMap().fromGrid(node->getIndex(), ret, node->getHeight());
+    travMap->fromGrid(node->getIndex(), ret, node->getHeight());
     return ret;
 }
 
@@ -580,16 +566,7 @@ bool EnvironmentXYZTheta::checkExpandTreadSafe(traversability_generator3d::TravG
     {
         return true;
     }
-
-    bool result = true;
-    #pragma omp critical(checkExpandTreadSafe)
-    {
-        if(!node->isExpanded())
-        {
-            result = travGen.expandNode(node);
-        }
-    }
-    return result;
+    return false;
 }
 
 
@@ -640,24 +617,21 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             Eigen::Vector3d pos((node->getIndex().x() + 0.5) * travConf.gridResolution,
                                 (node->getIndex().y() + 0.5) * travConf.gridResolution,
                                 node->getHeight());
-            pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
-            V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_successors", pos, base::Vector3d(mlsGrid->getResolution().x() / 2.0, mlsGrid->getResolution().y() / 2.0,
+            pos = travMap->getLocalFrame().inverse(Eigen::Isometry) * pos;
+            V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_successors", pos, base::Vector3d(travMap->getResolution().x() / 2.0, travMap->getResolution().y() / 2.0,
                             0.05), V3DD::Color::blue);
         });
 #endif
 
     if(!sourceTravNode->isExpanded())
     {
-        if(!travGen.expandNode(sourceTravNode))
-        {
-            //expansion failed, current node is not driveable -> there are not successors to this state
-            LOG_DEBUG_S<< "GetSuccs: current node not expanded and not expandable";
-            return;
-        }
+        //expansion failed, current node is not driveable -> there are not successors to this state
+        LOG_DEBUG_S<< "GetSuccs: current node not expanded and not expandable";
+        return;
     }
 
     Eigen::Vector3d sourcePosWorld;
-    travGen.getTraversabilityMap().fromGrid(sourceNode->getIndex(), sourcePosWorld, sourceTravNode->getHeight(), false);
+    travMap->fromGrid(sourceNode->getIndex(), sourcePosWorld, sourceTravNode->getHeight(), false);
 
     const auto& motions = availableMotions.getMotionForStartTheta(sourceThetaNode->theta);
 
@@ -670,7 +644,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     {
         //check that the motion is traversable (without collision checks) and find the goal node of the motion
         const ugv_nav4d::Motion &motion(motions[i]);
-        traversability_generator3d::TravGenNode *goalTravNode = checkTraversableHeuristic(sourceNode->getIndex(), sourceNode->getUserData().travNode, motions[i], travGen.getTraversabilityMap());
+        traversability_generator3d::TravGenNode *goalTravNode = checkTraversableHeuristic(sourceNode->getIndex(), sourceNode->getUserData().travNode, motions[i], *travMap);
         if(!goalTravNode)
         {
             //at least one node on the path is not traversable
@@ -715,7 +689,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         if (usePathStatistics){
             PathStatistic statistic(travConf);
 
-            if(!statistic.isPathFeasible(nodesOnTravPath, posesOnPath, getTraversabilityMap()))
+            if(!statistic.isPathFeasible(nodesOnTravPath, posesOnPath, *getTraversabilityMap()))
             {
                 continue;
             }
@@ -992,7 +966,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             }
 
             Eigen::Vector3d posWorld;
-            travGen.getTraversabilityMap().fromGrid(curNode->getIndex(), posWorld, curNode->getHeight(), false);
+            travMap->fromGrid(curNode->getIndex(), posWorld, curNode->getHeight(), false);
 
             // Set up the plane at the 3D world position
             travNodePlane.normal() = curNode->getUserData().plane.normal();
@@ -1061,7 +1035,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 }
                 for(base::Vector3d pos : positions)
                 {
-    //                 pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
+    //                 pos = travMap->getLocalFrame().inverse(Eigen::Isometry) * pos;
                     V3DD::DRAW_CYLINDER("ugv_nav4d_trajectory", pos,  size, color);
                 }
             });
@@ -1136,14 +1110,9 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
     }
 }
 
-const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*>& EnvironmentXYZTheta::getTraversabilityMap() const
+const std::shared_ptr<const traversability_generator3d::TravMap3d > EnvironmentXYZTheta::getTraversabilityMap() const
 {
-    return travGen.getTraversabilityMap();
-}
-
-const EnvironmentXYZTheta::MLGrid& EnvironmentXYZTheta::getMlsMap() const
-{
-    return *mlsGrid;
+    return travMap;
 }
 
 const PreComputedMotions& EnvironmentXYZTheta::getAvailableMotions() const
@@ -1193,7 +1162,7 @@ void EnvironmentXYZTheta::precomputeCost()
     //FIXME this should be a config value?!
     const double maxDist = 99999999; //big enough to never occur in reality. Small enough to not cause overflows when used by accident.
     travNodeIdToDistance.clear();
-    travNodeIdToDistance.resize(travGen.getNumNodes(), Distance(maxDist, maxDist));
+    travNodeIdToDistance.resize(travMap->getNumCells().x() * travMap->getNumCells().y(), Distance(maxDist, maxDist));
 
     for(const auto pair : costToStart)
     {
@@ -1210,11 +1179,6 @@ void EnvironmentXYZTheta::precomputeCost()
     }
 }
 
-traversability_generator3d::TraversabilityGenerator3d& EnvironmentXYZTheta::getTravGen()
-{
-    return travGen;
-}
-
 void EnvironmentXYZTheta::setTravConfig(const traversability_generator3d::TraversabilityConfig& cfg)
 {
     travConf = cfg;
@@ -1224,7 +1188,7 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
                                                                                 double theta,
                                                                                 const Eigen::Affine3d& ground2Body)
 {
-    traversability_generator3d::TravGenNode* startTravNode = travGen.generateStartNode(start);
+    traversability_generator3d::TravGenNode* startTravNode = findMatchingTraversabilityPatchAt(start);
     if(!startTravNode)
     {
         LOG_ERROR_S<< "EnvironmentXYZTheta::findTrajectoryOutOfObstacle(): Unable to generate trav node corresponding to start position";
@@ -1239,7 +1203,7 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
     }
 
     Eigen::Vector3d startPosWorld;
-    travGen.getTraversabilityMap().fromGrid(startTravNode->getIndex(), startPosWorld, startTravNode->getHeight(), false);
+    travMap->fromGrid(startTravNode->getIndex(), startPosWorld, startTravNode->getHeight(), false);
 
     DiscreteTheta thetaD(theta, numAngles);
     const maps::grid::Index startIdxTravMap =  startTravNode->getIndex();
@@ -1303,13 +1267,13 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
         std::vector<base::Pose2D> endPosePoses;
         endPosePath.push_back(currentNode);
         Eigen::Vector3d endPosWorld;
-        travGen.getTraversabilityMap().fromGrid(currentNode->getIndex(), endPosWorld, currentNode->getHeight(), false);
+        travMap->fromGrid(currentNode->getIndex(), endPosWorld, currentNode->getHeight(), false);
         base::Pose2D endPose;
         endPose.position = endPosWorld.topRows(2);
         endPose.orientation = motions[i].endTheta.getRadian();
         endPosePoses.push_back(endPose);
         PathStatistic endPoseStats(travConf);
-        endPoseStats.calculateStatistics(endPosePath, endPosePoses, travGen.getTraversabilityMap());
+        endPoseStats.calculateStatistics(endPosePath, endPosePoses, *travMap);
         if(endPoseStats.getRobotStats().getNumObstacles() > 0 ||
            endPoseStats.getRobotStats().getNumFrontiers() > 0)
         {
@@ -1319,7 +1283,7 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
 
 
         PathStatistic stats(travConf);
-        stats.calculateStatistics(nodesOnPath, posesOnPath, travGen.getTraversabilityMap());
+        stats.calculateStatistics(nodesOnPath, posesOnPath, *travMap);
         const int obstacleCount = stats.getRobotStats().getNumObstacles() + stats.getRobotStats().getNumFrontiers();
 
         if(obstacleCount < bestMotionObstacleCount)
@@ -1356,7 +1320,7 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
             {
                 for(base::Vector3d pos : positions)
                 {
-    //                 pos = mlsGrid->getLocalFrame().inverse(Eigen::Isometry) * pos;
+    //                 pos = travMap->getLocalFrame().inverse(Eigen::Isometry) * pos;
                     V3DD::DRAW_CYLINDER("ugv_nav4d_outOfObstacleTrajectory", pos,  base::Vector3d(0.02, 0.02, 0.2), V3DD::Color::blue);
                 }
             });

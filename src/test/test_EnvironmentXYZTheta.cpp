@@ -138,20 +138,20 @@ BOOST_FIXTURE_TEST_CASE(check_travmap, EnvironmentXYZThetaTest) {
 
     Eigen::Vector3d positionFron{0.9, 0.3, 0};
     maps::grid::Index idxFrontierNode;
-    environment->getTravGen().getTraversabilityMap().toGrid(positionFron, idxFrontierNode);
+    environment->getTravGen().getTraversabilityMap()->toGrid(positionFron, idxFrontierNode);
     auto frontier = environment->getTravGen().findMatchingTraversabilityPatchAt(idxFrontierNode,0);
     BOOST_CHECK_EQUAL(frontier->getType(), ::maps::grid::TraversabilityNodeBase::FRONTIER);
 
     Eigen::Vector3d positionTrav{0.3, 0.3, 0};
     maps::grid::Index idxTraversableNode;
-    environment->getTravGen().getTraversabilityMap().toGrid(positionTrav, idxTraversableNode);
+    environment->getTravGen().getTraversabilityMap()->toGrid(positionTrav, idxTraversableNode);
     auto traversable = environment->getTravGen().findMatchingTraversabilityPatchAt(idxTraversableNode,0);
     BOOST_CHECK_EQUAL(traversable->getType(), ::maps::grid::TraversabilityNodeBase::TRAVERSABLE);
 
     Eigen::Vector3d positionObs{0.65, 0.65, 0};
     maps::grid::Index idxObstacleNode;
-    environment->getTravGen().getTraversabilityMap().toGrid(positionObs, idxObstacleNode);
-    auto &trList(environment->getTravGen().getTraversabilityMap().at(idxObstacleNode));
+    environment->getTravGen().getTraversabilityMap()->toGrid(positionObs, idxObstacleNode);
+    auto &trList(environment->getTravGen().getTraversabilityMap()->at(idxObstacleNode));
     for(auto *snode : trList)
     {
         BOOST_CHECK_EQUAL(snode->getType(), ::maps::grid::TraversabilityNodeBase::OBSTACLE);
@@ -197,8 +197,8 @@ BOOST_FIXTURE_TEST_CASE(check_stepheight, EnvironmentXYZThetaTest) {
     Eigen::Vector3d positionObs{0.25, 0.25, 0};
     maps::grid::Index idxObstacleNode;
 
-    environment->getTravGen().getTraversabilityMap().toGrid(positionObs, idxObstacleNode);
-    for(auto *snode : environment->getTravGen().getTraversabilityMap().at(idxObstacleNode))
+    environment->getTravGen().getTraversabilityMap()->toGrid(positionObs, idxObstacleNode);
+    for(auto *snode : environment->getTravGen().getTraversabilityMap()->at(idxObstacleNode))
     {
         BOOST_CHECK_EQUAL(snode->getType(), ::maps::grid::TraversabilityNodeBase::OBSTACLE);
     }
@@ -209,8 +209,8 @@ BOOST_FIXTURE_TEST_CASE(check_stepheight, EnvironmentXYZThetaTest) {
     environment = new EnvironmentXYZTheta(mlsPtr, traversabilityConfig, splinePrimitiveConfig, mobility);
     environment->expandMap(startPositions);
 
-    environment->getTravGen().getTraversabilityMap().toGrid(positionObs, idxObstacleNode);
-    for(auto *snode : environment->getTravGen().getTraversabilityMap().at(idxObstacleNode))
+    environment->getTravGen().getTraversabilityMap()->toGrid(positionObs, idxObstacleNode);
+    for(auto *snode : environment->getTravGen().getTraversabilityMap()->at(idxObstacleNode))
     {
         BOOST_CHECK_EQUAL(snode->getType(), ::maps::grid::TraversabilityNodeBase::TRAVERSABLE);
     }

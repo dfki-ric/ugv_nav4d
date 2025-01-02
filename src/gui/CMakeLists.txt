@@ -33,6 +33,7 @@ if(ROCK_QT_VERSION_4 AND vizkit3d_FOUND)
         DEPS ugv_nav4d Qt4::QtCore
         DEPS_PKGCONFIG vizkit3d
                        vizkit3d-viz
+                       traversability_generator3d-viz
                        maps-viz
                        base-viz
                        sbpl_spline_primitives-viz
@@ -76,6 +77,7 @@ if(ROCK_QT_VERSION_5 AND vizkit3d-qt5_FOUND)
         DEPS ugv_nav4d Qt5::Core
         DEPS_PKGCONFIG vizkit3d-qt5
                        vizkit3d-viz-qt5
+                       traversability_generator3d-viz-qt5
                        maps-viz-qt5
                        base-viz-qt5
                        sbpl_spline_primitives-viz-qt5
