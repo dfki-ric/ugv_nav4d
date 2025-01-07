@@ -185,7 +185,8 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
         return false;
     }
 
-    if (travNode->getType() != ::maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+    if (travNode->getUserData().nodeType != ::traversability_generator3d::NodeType::TRAVERSABLE && 
+        travNode->getUserData().nodeType != ::traversability_generator3d::NodeType::INFLATED_FRONTIER )
     {
         return false;
     }
@@ -246,7 +247,6 @@ bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, traversability_
     return obstacleCheck(nodePos, theta, travConf, primitiveConfig, name);
 }
 
-
 void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
 {
 
@@ -266,7 +266,8 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     {
         throw StateCreationFailed("Failed to create goal state");
     }
-    const auto nodeType = goalXYZNode->getUserData().travNode->getType();
+
+    const auto nodeType = goalXYZNode->getUserData().travNode->getUserData().nodeType;
     if(nodeType != maps::grid::TraversabilityNodeBase::TRAVERSABLE) {
         throw std::runtime_error("Error, goal has to be a traversable patch");
     }
@@ -276,7 +277,6 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     {
         if(!checkOrientationAllowed(goalXYZNode->getUserData().travNode, theta))
         {
-            LOG_ERROR_S << "Goal orientation not allowed due to slope";
             throw OrientationNotAllowed("Goal orientation not allowed due to slope");
         }
     }
@@ -288,16 +288,11 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     //check goal position
     if(!checkStartGoalNode("goal", goalXYZNode->getUserData().travNode, goalThetaNode->theta.getRadian()))
     {
-        LOG_ERROR_S << "Goal position is invalid";
         throw ObstacleCheckFailed("goal position is invalid");
     }
 
-    try {
-        precomputeCost();
-    }
-    catch(const std::runtime_error& ex){
-        throw ex;
-    }
+    precomputeCost();
+
     //draw greedy path
 #ifdef ENABLE_DEBUG_DRAWINGS
     V3DD::COMPLEX_DRAWING([&]()
@@ -429,7 +424,8 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     const traversability_generator3d::TravGenNode* travNode = sourceNode->getUserData().travNode;
     const ThetaNode *sourceThetaNode = sourceHash.thetaNode;
 
-    if(travNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE && travNode->getType() != maps::grid::TraversabilityNodeBase::FRONTIER)
+    if(travNode->getUserData().nodeType != ::traversability_generator3d::NodeType::TRAVERSABLE && 
+       travNode->getUserData().nodeType != ::traversability_generator3d::NodeType::FRONTIER)
     {
         std::map<int, std::string> numToTravType;
         numToTravType[maps::grid::TraversabilityNodeBase::OBSTACLE] = "OBSTACLE";
@@ -463,7 +459,7 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
         LOG_ERROR_S << timeRotation;
         LOG_ERROR_S << result;
         LOG_ERROR_S << travNode->getUserData().id;
-        LOG_ERROR_S << travNode->getType();
+        LOG_ERROR_S << travNode->getUserData().nodeType;
         //throw std::runtime_error("Goal heuristic < 0");
         LOG_ERROR_S<< "Overflow while computing goal heuristic!";
         result = std::numeric_limits<int>::max();
@@ -552,7 +548,7 @@ traversability_generator3d::TravGenNode *EnvironmentXYZTheta::movementPossible(t
 
     //NOTE this check cannot be done before checkExpandTreadSafe because the type will be determined
     //     during the expansion. Beforehand the type is undefined
-    if(targetNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+    if(targetNode->getUserData().nodeType != ::traversability_generator3d::NodeType::TRAVERSABLE)
     {
         LOG_DEBUG_S<< "movement not possible. targetnode not traversable";
         return nullptr;
@@ -1148,34 +1144,50 @@ double EnvironmentXYZTheta::getMaxSlope(std::vector<const traversability_generat
 
 void EnvironmentXYZTheta::precomputeCost()
 {
-
     std::unordered_map<const maps::grid::TraversabilityNodeBase*, double> costToStart;
     std::unordered_map<const maps::grid::TraversabilityNodeBase*, double> costToEnd;
 
+    // Compute costs
     Dijkstra::computeCost(startXYZNode->getUserData().travNode, costToStart, travConf);
     Dijkstra::computeCost(goalXYZNode->getUserData().travNode, costToEnd, travConf);
 
-    if (costToStart.size() != costToEnd.size()){
-        throw std::runtime_error("costToStart.size() is not equal to costToEnd.size()");
+    // Validate keys in both maps
+    if (costToStart.size() != costToEnd.size()) {
+        throw std::runtime_error("Mismatch: costToStart and costToEnd have different sizes.");
     }
 
-    //FIXME this should be a config value?!
-    const double maxDist = 99999999; //big enough to never occur in reality. Small enough to not cause overflows when used by accident.
+    size_t largestId = 0; // Assuming IDs are non-negative, or use an appropriate minimum value
+    for (const maps::grid::LevelList<traversability_generator3d::TravGenNode *> &l : *travMap) {
+        for (traversability_generator3d::TravGenNode *n : l) {
+            if (n != nullptr) { // Safety check
+                largestId = std::max(largestId, n->getUserData().id);
+            }
+        }
+    }
+
+    // Initialize distances
+    const double maxDist = std::numeric_limits<double>::max(); // Use a meaningful constant
     travNodeIdToDistance.clear();
-    travNodeIdToDistance.resize(travMap->getNumCells().x() * travMap->getNumCells().y(), Distance(maxDist, maxDist));
+    travNodeIdToDistance.resize(largestId, Distance(maxDist, maxDist));
 
-    for(const auto pair : costToStart)
-    {
-        const traversability_generator3d::TravGenNode* node = static_cast<const traversability_generator3d::TravGenNode*>(pair.first);
-        const double cost = pair.second;
-        travNodeIdToDistance[node->getUserData().id].distToStart = cost;
+    // Process costToStart
+    for (const auto& pair : costToStart) {
+        const auto* node = static_cast<const traversability_generator3d::TravGenNode*>(pair.first);
+        if (!node) {
+            throw std::runtime_error("Invalid node encountered in costToStart.");
+        }
+        const size_t nodeId = node->getUserData().id;
+        travNodeIdToDistance[nodeId].distToStart = pair.second;
     }
 
-    for(const auto pair : costToEnd)
-    {
-        const traversability_generator3d::TravGenNode* node = static_cast<const traversability_generator3d::TravGenNode*>(pair.first);
-        const double cost = pair.second;
-        travNodeIdToDistance[node->getUserData().id].distToGoal = cost;
+    // Process costToEnd
+    for (const auto& pair : costToEnd) {
+        const auto* node = static_cast<const traversability_generator3d::TravGenNode*>(pair.first);
+        if (!node) {
+            throw std::runtime_error("Invalid node encountered in costToEnd.");
+        }
+        const size_t nodeId = node->getUserData().id;
+        travNodeIdToDistance[nodeId].distToGoal = pair.second;
     }
 }
 
