@@ -1198,7 +1198,8 @@ void EnvironmentXYZTheta::setTravConfig(const traversability_generator3d::Traver
 
 std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
                                                                                 double theta,
-                                                                                const Eigen::Affine3d& ground2Body)
+                                                                                const Eigen::Affine3d& ground2Body,
+                                                                                bool setZToZero)
 {
     traversability_generator3d::TravGenNode* startTravNode = findMatchingTraversabilityPatchAt(start);
     if(!startTravNode)
@@ -1313,18 +1314,38 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
     {
         //turn the poses into a spline
         std::vector<base::Vector3d> positions;
+        Eigen::Hyperplane<double, 3> travNodePlane;
 
-        for(const base::Pose2D &p : bestPosesOnObstPath)
+        assert(bestPosesOnObstPath.size() == bestNodesOnPath.size());
+        
+        for(size_t i = 0; i < bestPosesOnObstPath.size(); i++)
         {
-            base::Vector3d position(p.position.x(), p.position.y(), startPosWorld.z());
+            const traversability_generator3d::TravGenNode* curNode(bestNodesOnPath[i]);
+            const base::Pose2D curPose(bestPosesOnObstPath[i]);
 
-            // HACK this overwrite avoids wrong headings in trajectory
-            // TODO ideally, this should interpolate the actual height (but at the moment this would only make a difference in visualization)
-            position.z() = 0.0;
-            Eigen::Vector3d pos_Body = ground2Body.inverse(Eigen::Isometry) * position;
+            Eigen::Vector3d posWorld;
+            travMap->fromGrid(curNode->getIndex(), posWorld, curNode->getHeight(), false);
 
-            positions.push_back(pos_Body);
+            // Set up the plane at the 3D world position
+            travNodePlane.normal() = curNode->getUserData().plane.normal();
+            travNodePlane.offset() = -travNodePlane.normal().dot(posWorld); // Align the plane offset to posWorld
+
+            Eigen::Vector3d globalPoint{curPose.position.x(), curPose.position.y(), 0};
+            Eigen::ParametrizedLine<double, 3> line = Eigen::ParametrizedLine<double, 3>::Through(globalPoint, globalPoint + Eigen::Vector3d::UnitZ());
+            Eigen::Vector3d pointOnTravPlane = line.intersectionPoint(travNodePlane); 
+
+            //TODO: Only left here until software which still uses trajectory2D is updated to use trajectory3D
+            if (setZToZero){
+                pointOnTravPlane.z() = 0;
+            }
+
+            Eigen::Vector3d pointOnBody = ground2Body.inverse(Eigen::Isometry) * pointOnTravPlane;
+            if (positions.empty() || !(positions.back().isApprox(pointOnBody)))
+            {
+                positions.emplace_back(pointOnBody);
+            }
         }
+
         trajectory.spline.interpolate(positions);
         trajectory.speed = motions[bestMotionIndex].type == Motion::Type::MOV_BACKWARD? -mobilityConfig.translationSpeed : mobilityConfig.translationSpeed;
 #ifdef ENABLE_DEBUG_DRAWINGS
@@ -1347,6 +1368,7 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
     }
 
     std::shared_ptr<SubTrajectory> subTraj(new SubTrajectory(trajectory));
+    subTraj->kind = trajectory_follower::TRAJECTORY_KIND_RESCUE;
     return subTraj;
 }
 }

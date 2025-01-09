@@ -115,7 +115,7 @@ public:
     const std::shared_ptr<const traversability_generator3d::TravMap3d> getTraversabilityMap() const;
     
     std::shared_ptr<trajectory_follower::SubTrajectory> findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
-            const Eigen::Affine3d& ground2Body);
+            const Eigen::Affine3d& ground2Body, bool setZToZero);
 
     private:
     bool calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& goal_translation, const double yaw) noexcept;
