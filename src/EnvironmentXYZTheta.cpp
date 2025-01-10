@@ -185,8 +185,9 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
         return false;
     }
 
-    if (travNode->getUserData().nodeType != ::traversability_generator3d::NodeType::TRAVERSABLE && 
-        travNode->getUserData().nodeType != ::traversability_generator3d::NodeType::INFLATED_FRONTIER )
+    LOG_ERROR_S << "NodeType: " << travNode->getUserData().nodeType;
+
+    if (travNode->getUserData().nodeType != ::traversability_generator3d::NodeType::TRAVERSABLE)
     {
         return false;
     }
@@ -424,16 +425,8 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     const traversability_generator3d::TravGenNode* travNode = sourceNode->getUserData().travNode;
     const ThetaNode *sourceThetaNode = sourceHash.thetaNode;
 
-    if(travNode->getUserData().nodeType != ::traversability_generator3d::NodeType::TRAVERSABLE && 
-       travNode->getUserData().nodeType != ::traversability_generator3d::NodeType::FRONTIER)
+    if(travNode->getUserData().nodeType != ::traversability_generator3d::NodeType::TRAVERSABLE)
     {
-        std::map<int, std::string> numToTravType;
-        numToTravType[maps::grid::TraversabilityNodeBase::OBSTACLE] = "OBSTACLE";
-        numToTravType[maps::grid::TraversabilityNodeBase::TRAVERSABLE] = "TRAVERSABLE";
-        numToTravType[maps::grid::TraversabilityNodeBase::UNKNOWN] = "UNKNOWN";
-        numToTravType[maps::grid::TraversabilityNodeBase::HOLE] = "HOLE";
-        numToTravType[maps::grid::TraversabilityNodeBase::UNSET] = "UNSET";
-        numToTravType[maps::grid::TraversabilityNodeBase::FRONTIER] = "FRONTIER";
         return std::numeric_limits<int>::max();
     }
 
@@ -1153,7 +1146,9 @@ void EnvironmentXYZTheta::precomputeCost()
 
     // Validate keys in both maps
     if (costToStart.size() != costToEnd.size()) {
-        throw std::runtime_error("Mismatch: costToStart and costToEnd have different sizes.");
+        throw std::runtime_error("Mismatch: costToStart size(" + std::to_string(costToStart.size()) + ")" 
+                                + " and costToEnd size(" + std::to_string(costToEnd.size()) + ")" 
+                                + " have different sizes.");
     }
 
     size_t largestId = 0; // Assuming IDs are non-negative, or use an appropriate minimum value
