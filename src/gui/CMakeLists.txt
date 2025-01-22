@@ -7,6 +7,12 @@ pkg_check_modules(vizkit3d-qt5 vizkit3d-qt5)
 pkg_check_modules(vizkit3d_debug_drawings vizkit3d_debug_drawings)
 pkg_check_modules(vizkit3d_debug_drawings-qt5 vizkit3d_debug_drawings-qt5)
 
+pkg_check_modules(maps-viz maps-viz)
+pkg_check_modules(maps-viz-qt5 maps-viz-qt5)
+
+pkg_check_modules(base-viz base-viz)
+pkg_check_modules(base-viz-qt5 base-viz-qt5)
+
 find_package(PCL 1.7 REQUIRED COMPONENTS common io)
 IF("${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}" VERSION_LESS 1.14)
     SET(PCL_VERSION_SUFFIX "-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}")
@@ -22,7 +28,7 @@ if(ENABLE_DEBUG_DRAWINGS AND vizkit3d_debug_drawings-commands_FOUND)
 	endif()
 endif()
 
-if(ROCK_QT_VERSION_4 AND vizkit3d_FOUND)
+if(ROCK_QT_VERSION_4 AND vizkit3d_FOUND AND maps-viz_FOUND AND base-viz_FOUND)
     rock_library(ugv_nav4d_gui
         SOURCES
             PlannerGui.cpp
@@ -65,7 +71,7 @@ else(ROCK_QT_VERSION_4 AND vizkit3d_FOUND)
     message(STATUS "Gui using Qt4: disabled")
 endif(ROCK_QT_VERSION_4 AND vizkit3d_FOUND)
 
-if(ROCK_QT_VERSION_5 AND vizkit3d-qt5_FOUND)
+if(ROCK_QT_VERSION_5 AND vizkit3d-qt5_FOUND AND maps-viz-qt5_FOUND AND base-viz-qt5_FOUND)
     rock_library(ugv_nav4d_gui-qt5
         SOURCES
             PlannerGui.cpp
