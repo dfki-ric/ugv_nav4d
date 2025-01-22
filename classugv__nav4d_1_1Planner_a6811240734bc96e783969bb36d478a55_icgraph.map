@@ -1,4 +1,5 @@
 <map id="ugv_nav4d::Planner::setTravConfig" name="ugv_nav4d::Planner::setTravConfig">
-<area shape="rect" id="node1" title=" " alt="" coords="204,5,355,47"/>
-<area shape="rect" id="node2" href="$classugv__nav4d_1_1Planner.html#a6e6ebefa26b206365484bb8b4705eb6a" title=" " alt="" coords="5,5,156,47"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="204,5,355,45"/>
+<area shape="rect" id="Node000002" href="$classugv__nav4d_1_1Planner.html#a6e6ebefa26b206365484bb8b4705eb6a" title=" " alt="" coords="5,5,156,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,28,156,28,156,23,191,23"/>
 </map>

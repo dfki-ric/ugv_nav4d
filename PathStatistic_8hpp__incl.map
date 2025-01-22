@@ -1,6 +1,9 @@
 <map id="src/PathStatistic.hpp" name="src/PathStatistic.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="244,5,399,32"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,80,200,121"/>
-<area shape="rect" id="node3" title=" " alt="" coords="224,80,419,121"/>
-<area shape="rect" id="node4" title=" " alt="" coords="443,87,559,114"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="244,5,399,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,200,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="290,33,169,77,167,72,289,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="224,79,419,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="324,31,324,65,319,65,319,31"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="443,86,559,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="349,28,464,78,462,83,346,33"/>
 </map>

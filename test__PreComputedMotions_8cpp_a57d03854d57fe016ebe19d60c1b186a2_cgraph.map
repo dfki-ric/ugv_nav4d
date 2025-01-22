@@ -1,4 +1,5 @@
 <map id="BOOST_AUTO_TEST_CASE" name="BOOST_AUTO_TEST_CASE">
-<area shape="rect" id="node1" title=" " alt="" coords="5,13,196,39"/>
-<area shape="rect" id="node2" href="$classugv__nav4d_1_1PreComputedMotions.html#a46dc536b67a45f6d1e200345011d4aa3" title=" " alt="" coords="244,5,485,47"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,196,38"/>
+<area shape="rect" id="Node000002" href="$classugv__nav4d_1_1PreComputedMotions.html#a46dc536b67a45f6d1e200345011d4aa3" title=" " alt="" coords="244,5,485,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,23,230,23,230,28,196,28"/>
 </map>

@@ -1,4 +1,5 @@
 <map id="ugv_nav4d::PreComputedMotions::setMotionForTheta" name="ugv_nav4d::PreComputedMotions::setMotionForTheta">
-<area shape="rect" id="node1" title=" " alt="" coords="5,5,247,47"/>
-<area shape="rect" id="node2" href="$classDiscreteTheta.html#ad4b8e50f0d9cf1e765dd57a9c4e51ae7" title=" " alt="" coords="295,13,473,39"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,247,45"/>
+<area shape="rect" id="Node000002" href="$classDiscreteTheta.html#ad4b8e50f0d9cf1e765dd57a9c4e51ae7" title=" " alt="" coords="295,13,473,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="247,23,281,23,281,28,247,28"/>
 </map>

@@ -1,4 +1,5 @@
 <map id="ugv_nav4d::StateCreationFailed" name="ugv_nav4d::StateCreationFailed">
-<area shape="rect" id="node1" title=" " alt="" coords="5,131,196,223"/>
-<area shape="rect" id="node2" title=" " alt="" coords="31,5,170,83"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,119,188,199"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="31,5,162,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,85,99,118,94,118,94,85"/>
 </map>

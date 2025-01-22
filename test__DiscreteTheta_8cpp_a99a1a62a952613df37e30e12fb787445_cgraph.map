@@ -1,8 +1,11 @@
 <map id="BOOST_AUTO_TEST_CASE" name="BOOST_AUTO_TEST_CASE">
-<area shape="rect" id="node1" title=" " alt="" coords="5,81,196,108"/>
-<area shape="rect" id="node2" href="$classDiscreteTheta.html#a53fcf7be0e6c67bad30936f71c01cc0a" title=" " alt="" coords="244,5,461,32"/>
-<area shape="rect" id="node3" href="$classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="259,56,446,83"/>
-<area shape="rect" id="node4" href="$classDiscreteTheta.html#ad4b8e50f0d9cf1e765dd57a9c4e51ae7" title=" " alt="" coords="263,107,442,133"/>
-<area shape="rect" id="node5" href="$classDiscreteTheta.html#adee78f133a8dee7d09233b25de058998" title=" " alt="" coords="253,157,453,184"/>
-<area shape="rect" id="node6" href="$classDiscreteTheta.html#abdd7249de43db8b0f87f777d19c9a3e8" title=" " alt="" coords="509,157,721,184"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,80,196,105"/>
+<area shape="rect" id="Node000002" href="$classDiscreteTheta.html#a53fcf7be0e6c67bad30936f71c01cc0a" title=" " alt="" coords="244,5,461,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,77,243,39,275,31,276,36,245,45,135,82"/>
+<area shape="rect" id="Node000003" href="$classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="259,55,446,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="196,80,245,75,246,81,197,86"/>
+<area shape="rect" id="Node000004" href="$classDiscreteTheta.html#ad4b8e50f0d9cf1e765dd57a9c4e51ae7" title=" " alt="" coords="263,104,442,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="197,99,250,104,249,110,196,104"/>
+<area shape="rect" id="Node000005" href="$classDiscreteTheta.html#adee78f133a8dee7d09233b25de058998" title=" " alt="" coords="253,153,453,179"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="138,103,245,138,281,148,279,153,243,143,136,108"/>
 </map>

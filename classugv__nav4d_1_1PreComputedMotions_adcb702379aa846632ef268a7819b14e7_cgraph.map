@@ -1,7 +1,11 @@
 <map id="ugv_nav4d::PreComputedMotions::computeMotions" name="ugv_nav4d::PreComputedMotions::computeMotions">
-<area shape="rect" id="node1" title=" " alt="" coords="5,39,247,80"/>
-<area shape="rect" id="node2" href="$classugv__nav4d_1_1PreComputedMotions.html#a5b2526f135a3a4037a475d3cf5b5eb2d" title=" " alt="" coords="295,39,536,80"/>
-<area shape="rect" id="node3" href="$classugv__nav4d_1_1PreComputedMotions.html#a46dc536b67a45f6d1e200345011d4aa3" title=" " alt="" coords="584,5,825,47"/>
-<area shape="rect" id="node4" href="$classugv__nav4d_1_1PreComputedMotions.html#a1aff030f275e3e31a51aff3cfabd8a67" title=" " alt="" coords="584,71,825,112"/>
-<area shape="rect" id="node5" href="$classDiscreteTheta.html#ad4b8e50f0d9cf1e765dd57a9c4e51ae7" title=" " alt="" coords="873,78,1052,105"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,247,77"/>
+<area shape="rect" id="Node000002" href="$classugv__nav4d_1_1PreComputedMotions.html#a5b2526f135a3a4037a475d3cf5b5eb2d" title=" " alt="" coords="295,37,536,77"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="247,55,281,55,281,60,247,60"/>
+<area shape="rect" id="Node000003" href="$classugv__nav4d_1_1PreComputedMotions.html#a46dc536b67a45f6d1e200345011d4aa3" title=" " alt="" coords="584,5,825,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="536,41,570,38,571,43,536,47"/>
+<area shape="rect" id="Node000004" href="$classugv__nav4d_1_1PreComputedMotions.html#a1aff030f275e3e31a51aff3cfabd8a67" title=" " alt="" coords="584,69,825,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="536,68,571,72,570,77,536,73"/>
+<area shape="rect" id="Node000005" href="$classDiscreteTheta.html#ad4b8e50f0d9cf1e765dd57a9c4e51ae7" title=" " alt="" coords="873,77,1052,102"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="825,87,860,87,860,92,825,92"/>
 </map>

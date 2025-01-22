@@ -1,6 +1,9 @@
 <map id="src/test/test_Planner.cpp" name="src/test/test_Planner.cpp">
-<area shape="rect" id="node1" title=" " alt="" coords="172,5,353,32"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,80,152,121"/>
-<area shape="rect" id="node3" title=" " alt="" coords="176,87,349,114"/>
-<area shape="rect" id="node4" title=" " alt="" coords="373,87,496,114"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="172,5,353,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,152,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="237,33,136,76,134,71,235,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="176,86,349,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="265,31,265,72,260,72,260,31"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="373,86,496,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="289,28,398,78,396,83,287,33"/>
 </map>

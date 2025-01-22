@@ -1,24 +1,52 @@
 <map id="src/Planner.hpp" name="src/Planner.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="831,5,952,32"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,80,180,107"/>
-<area shape="rect" id="node3" title=" " alt="" coords="204,80,448,107"/>
-<area shape="rect" id="node4" title=" " alt="" coords="221,244,455,285"/>
-<area shape="rect" id="node5" href="$EnvironmentXYZTheta_8hpp.html" title=" " alt="" coords="793,80,989,107"/>
-<area shape="rect" id="node20" title=" " alt="" coords="1519,155,1664,196"/>
-<area shape="rect" id="node21" href="$PlannerConfig_8hpp.html" title=" " alt="" coords="1065,80,1205,107"/>
-<area shape="rect" id="node22" title=" " alt="" coords="1230,80,1307,107"/>
-<area shape="rect" id="node6" title=" " alt="" coords="789,155,993,196"/>
-<area shape="rect" id="node7" title=" " alt="" coords="1017,155,1240,196"/>
-<area shape="rect" id="node8" title=" " alt="" coords="1265,155,1443,196"/>
-<area shape="rect" id="node9" title=" " alt="" coords="479,251,595,278"/>
-<area shape="rect" id="node10" href="$DiscreteTheta_8hpp.html" title=" " alt="" coords="1307,251,1449,278"/>
-<area shape="rect" id="node14" href="$PreComputedMotions_8hpp.html" title=" " alt="" coords="575,162,765,189"/>
-<area shape="rect" id="node11" title=" " alt="" coords="1245,333,1319,360"/>
-<area shape="rect" id="node12" title=" " alt="" coords="1344,333,1412,360"/>
-<area shape="rect" id="node13" title=" " alt="" coords="1436,333,1512,360"/>
-<area shape="rect" id="node15" href="$Mobility_8hpp.html" title=" " alt="" coords="619,251,721,278"/>
-<area shape="rect" id="node16" title=" " alt="" coords="745,251,803,278"/>
-<area shape="rect" id="node17" title=" " alt="" coords="828,251,915,278"/>
-<area shape="rect" id="node18" title=" " alt="" coords="939,251,1001,278"/>
-<area shape="rect" id="node19" title=" " alt="" coords="1026,251,1181,278"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="933,5,1055,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,180,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="933,26,621,46,194,81,194,76,620,41,933,20"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="204,79,448,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="933,28,447,80,447,75,933,23"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="408,240,641,280"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="934,30,825,46,698,73,637,90,583,109,541,130,513,154,506,170,504,189,512,227,507,228,499,189,500,169,509,150,538,126,581,104,635,85,697,68,824,41,933,24"/>
+<area shape="rect" id="Node000005" href="$EnvironmentXYZTheta_8hpp.html" title=" " alt="" coords="896,79,1092,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="997,31,997,65,991,65,991,31"/>
+<area shape="rect" id="Node000021" title=" " alt="" coords="1567,152,1712,192"/>
+<area shape="poly" id="edge25_Node000001_Node000021" title=" " alt="" coords="1017,28,1158,102,1215,117,1264,127,1350,134,1437,137,1548,149,1554,150,1553,156,1547,155,1437,143,1350,140,1264,132,1214,122,1156,106,1014,33"/>
+<area shape="rect" id="Node000022" href="$PlannerConfig_8hpp.html" title=" " alt="" coords="1168,79,1308,104"/>
+<area shape="poly" id="edge26_Node000001_Node000022" title=" " alt="" coords="1034,28,1186,72,1185,77,1032,33"/>
+<area shape="rect" id="Node000023" title=" " alt="" coords="1333,79,1410,104"/>
+<area shape="poly" id="edge27_Node000001_Node000023" title=" " alt="" coords="1055,27,1320,76,1319,81,1054,32"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="524,152,728,192"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="941,107,728,152,727,147,940,101"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="1595,240,1817,280"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="1093,101,1349,130,1504,149,1521,159,1532,169,1557,190,1644,232,1642,237,1554,194,1528,173,1518,163,1503,155,1348,135,1092,106"/>
+<area shape="rect" id="Node000008" href="$ObstacleMapGenerator3D_8hpp.html" title=" " alt="" coords="1273,159,1491,185"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="1051,101,1313,154,1312,159,1050,107"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="753,152,931,192"/>
+<area shape="poly" id="edge9_Node000005_Node000009" title=" " alt="" coords="973,107,892,148,889,143,970,102"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="871,247,987,273"/>
+<area shape="poly" id="edge10_Node000005_Node000010" title=" " alt="" coords="998,104,1000,144,997,169,990,193,974,219,955,240,951,236,970,216,985,191,992,168,994,144,993,104"/>
+<area shape="rect" id="Node000011" href="$DiscreteTheta_8hpp.html" title=" " alt="" coords="705,247,846,273"/>
+<area shape="poly" id="edge11_Node000005_Node000011" title=" " alt="" coords="994,105,978,148,964,172,945,194,922,212,897,226,845,246,843,241,895,221,919,207,941,190,959,169,973,145,989,103"/>
+<area shape="rect" id="Node000015" href="$PreComputedMotions_8hpp.html" title=" " alt="" coords="1057,159,1248,185"/>
+<area shape="poly" id="edge15_Node000005_Node000015" title=" " alt="" coords="1018,102,1119,151,1116,156,1016,106"/>
+<area shape="poly" id="edge24_Node000005_Node000021" title=" " alt="" coords="1092,100,1548,149,1554,150,1553,156,1547,155,1092,105"/>
+<area shape="poly" id="edge8_Node000008_Node000007" title=" " alt="" coords="1426,182,1623,234,1621,239,1425,187"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="642,328,717,353"/>
+<area shape="poly" id="edge12_Node000011_Node000012" title=" " alt="" coords="763,275,706,321,702,317,759,271"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="741,328,809,353"/>
+<area shape="poly" id="edge13_Node000011_Node000013" title=" " alt="" coords="778,273,778,314,773,314,773,273"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="833,328,909,353"/>
+<area shape="poly" id="edge14_Node000011_Node000014" title=" " alt="" coords="791,271,848,317,845,321,788,275"/>
+<area shape="poly" id="edge23_Node000015_Node000004" title=" " alt="" coords="1069,187,656,244,655,238,1068,182"/>
+<area shape="poly" id="edge21_Node000015_Node000010" title=" " alt="" coords="1123,187,973,245,971,240,1122,182"/>
+<area shape="poly" id="edge16_Node000015_Node000011" title=" " alt="" coords="1103,187,839,247,838,242,1102,182"/>
+<area shape="rect" id="Node000016" href="$Mobility_8hpp.html" title=" " alt="" coords="1387,247,1489,273"/>
+<area shape="poly" id="edge17_Node000015_Node000016" title=" " alt="" coords="1192,182,1388,241,1386,246,1190,187"/>
+<area shape="rect" id="Node000017" title=" " alt="" coords="1513,247,1571,273"/>
+<area shape="poly" id="edge18_Node000015_Node000017" title=" " alt="" coords="1217,182,1384,213,1501,237,1507,239,1506,245,1500,243,1383,218,1216,187"/>
+<area shape="rect" id="Node000018" title=" " alt="" coords="1011,247,1097,273"/>
+<area shape="poly" id="edge19_Node000015_Node000018" title=" " alt="" coords="1141,187,1080,240,1076,236,1138,183"/>
+<area shape="rect" id="Node000019" title=" " alt="" coords="1121,247,1184,273"/>
+<area shape="poly" id="edge20_Node000015_Node000019" title=" " alt="" coords="1155,185,1155,233,1150,233,1150,185"/>
+<area shape="rect" id="Node000020" title=" " alt="" coords="1209,247,1363,273"/>
+<area shape="poly" id="edge22_Node000015_Node000020" title=" " alt="" coords="1172,183,1258,237,1255,242,1169,187"/>
 </map>

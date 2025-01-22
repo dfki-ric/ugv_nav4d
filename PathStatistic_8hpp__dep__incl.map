@@ -1,5 +1,7 @@
 <map id="src/PathStatistic.hpp" name="src/PathStatistic.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="143,5,297,32"/>
-<area shape="rect" id="node2" href="$EnvironmentXYZTheta_8cpp.html" title=" " alt="" coords="5,80,224,107"/>
-<area shape="rect" id="node3" href="$PathStatistic_8cpp.html" title=" " alt="" coords="249,80,402,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="143,5,297,31"/>
+<area shape="rect" id="Node000002" href="$EnvironmentXYZTheta_8cpp.html" title=" " alt="" coords="5,79,224,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,41,133,81,130,76,190,36"/>
+<area shape="rect" id="Node000003" href="$PathStatistic_8cpp.html" title=" " alt="" coords="249,79,402,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="250,36,310,76,307,81,247,41"/>
 </map>

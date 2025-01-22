@@ -1,10 +1,19 @@
 <map id="src/PreComputedMotions.hpp" name="src/PreComputedMotions.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="225,5,439,32"/>
-<area shape="rect" id="node2" href="$EnvironmentXYZTheta_8hpp.html" title=" " alt="" coords="103,80,321,107"/>
-<area shape="rect" id="node8" href="$PreComputedMotions_8cpp.html" title=" " alt="" coords="346,80,558,107"/>
-<area shape="rect" id="node3" href="$EnvironmentXYZTheta_8cpp.html" title=" " alt="" coords="5,155,224,181"/>
-<area shape="rect" id="node4" href="$Planner_8hpp.html" title=" " alt="" coords="249,155,370,181"/>
-<area shape="rect" id="node5" href="$Planner_8cpp.html" title=" " alt="" coords="167,304,287,331"/>
-<area shape="rect" id="node6" href="$PlannerDump_8cpp.html" title=" " alt="" coords="329,304,489,331"/>
-<area shape="rect" id="node7" href="$PlannerDump_8hpp.html" title=" " alt="" coords="229,229,390,256"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="225,5,439,31"/>
+<area shape="rect" id="Node000002" href="$EnvironmentXYZTheta_8hpp.html" title=" " alt="" coords="103,79,321,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="302,40,233,81,230,76,299,35"/>
+<area shape="rect" id="Node000008" href="$PreComputedMotions_8cpp.html" title=" " alt="" coords="346,79,558,104"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="365,35,434,76,431,81,362,40"/>
+<area shape="rect" id="Node000003" href="$EnvironmentXYZTheta_8cpp.html" title=" " alt="" coords="5,152,224,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="187,114,132,154,129,150,184,110"/>
+<area shape="rect" id="Node000004" href="$Planner_8hpp.html" title=" " alt="" coords="249,152,370,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="240,110,295,150,292,154,237,114"/>
+<area shape="rect" id="Node000005" href="$Planner_8cpp.html" title=" " alt="" coords="167,299,287,324"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="265,186,239,203,218,227,213,245,214,264,224,297,218,299,208,265,208,244,214,224,235,199,262,181"/>
+<area shape="rect" id="Node000006" href="$PlannerDump_8cpp.html" title=" " alt="" coords="329,299,489,324"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="354,181,381,199,404,224,412,243,415,264,414,299,409,299,410,264,407,245,399,227,378,203,351,186"/>
+<area shape="rect" id="Node000007" href="$PlannerDump_8hpp.html" title=" " alt="" coords="229,225,390,251"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="312,191,312,225,307,225,307,191"/>
+<area shape="poly" id="edge7_Node000007_Node000005" title=" " alt="" coords="287,262,242,300,238,296,284,258"/>
+<area shape="poly" id="edge8_Node000007_Node000006" title=" " alt="" coords="338,256,395,296,391,301,335,261"/>
 </map>

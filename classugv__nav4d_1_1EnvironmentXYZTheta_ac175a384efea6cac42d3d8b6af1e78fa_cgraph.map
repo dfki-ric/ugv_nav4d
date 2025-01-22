@@ -1,8 +1,13 @@
 <map id="ugv_nav4d::EnvironmentXYZTheta::EnvironmentXYZTheta" name="ugv_nav4d::EnvironmentXYZTheta::EnvironmentXYZTheta">
-<area shape="rect" id="node1" title=" " alt="" coords="5,39,252,80"/>
-<area shape="rect" id="node2" href="$classugv__nav4d_1_1PreComputedMotions.html#adcb702379aa846632ef268a7819b14e7" title=" " alt="" coords="300,39,541,80"/>
-<area shape="rect" id="node3" href="$classugv__nav4d_1_1PreComputedMotions.html#a5b2526f135a3a4037a475d3cf5b5eb2d" title=" " alt="" coords="589,39,831,80"/>
-<area shape="rect" id="node4" href="$classugv__nav4d_1_1PreComputedMotions.html#a46dc536b67a45f6d1e200345011d4aa3" title=" " alt="" coords="879,5,1120,47"/>
-<area shape="rect" id="node5" href="$classugv__nav4d_1_1PreComputedMotions.html#a1aff030f275e3e31a51aff3cfabd8a67" title=" " alt="" coords="879,71,1120,112"/>
-<area shape="rect" id="node6" href="$classDiscreteTheta.html#ad4b8e50f0d9cf1e765dd57a9c4e51ae7" title=" " alt="" coords="1168,78,1347,105"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,252,77"/>
+<area shape="rect" id="Node000002" href="$classugv__nav4d_1_1PreComputedMotions.html#adcb702379aa846632ef268a7819b14e7" title=" " alt="" coords="300,37,541,77"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,55,286,55,286,60,252,60"/>
+<area shape="rect" id="Node000003" href="$classugv__nav4d_1_1PreComputedMotions.html#a5b2526f135a3a4037a475d3cf5b5eb2d" title=" " alt="" coords="589,37,831,77"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="541,55,575,55,575,60,541,60"/>
+<area shape="rect" id="Node000004" href="$classugv__nav4d_1_1PreComputedMotions.html#a46dc536b67a45f6d1e200345011d4aa3" title=" " alt="" coords="879,5,1120,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="831,41,865,38,865,43,831,47"/>
+<area shape="rect" id="Node000005" href="$classugv__nav4d_1_1PreComputedMotions.html#a1aff030f275e3e31a51aff3cfabd8a67" title=" " alt="" coords="879,69,1120,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="831,68,865,72,865,77,831,73"/>
+<area shape="rect" id="Node000006" href="$classDiscreteTheta.html#ad4b8e50f0d9cf1e765dd57a9c4e51ae7" title=" " alt="" coords="1168,77,1347,102"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1120,87,1154,87,1154,92,1120,92"/>
 </map>
