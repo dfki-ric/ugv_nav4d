@@ -61,6 +61,16 @@ public:
         }
     }
 
+    void updateSoilMap(const traversability_generator3d::SoilMap3d &map)
+    {
+        std::shared_ptr<traversability_generator3d::SoilMap3d> mapPtr = std::make_shared<traversability_generator3d::SoilMap3d>(map);
+
+        if(env)
+        {
+            env->updateSoilMap(mapPtr);
+        }
+    }
+
     void enablePathStatistics(bool enable);
 
     /**
@@ -113,7 +123,6 @@ public:
     void setPlannerConfig(const PlannerConfig& config);
     
     const std::shared_ptr<const traversability_generator3d::TravMap3d> getTraversabilityMap() const;
-    
     std::shared_ptr<trajectory_follower::SubTrajectory> findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
             const Eigen::Affine3d& ground2Body, bool setZToZero);
 

@@ -89,7 +89,9 @@ protected:
     /**Contains the distance from each travNode to start-node and goal-node
      * Stored in real-world coordinates (i.e. do NOT scale with gridResolution before use)*/
     std::vector<Distance> travNodeIdToDistance;
-    std::shared_ptr<const traversability_generator3d::TravMap3d > travMap;
+    std::shared_ptr<const traversability_generator3d::TravMap3d> travMap;
+    std::shared_ptr<const traversability_generator3d::SoilMap3d> soilMap;
+
     PreComputedMotions availableMotions;
 
     ThetaNode *startThetaNode;
@@ -122,6 +124,7 @@ public:
     virtual ~EnvironmentXYZTheta();
 
     void updateMap(std::shared_ptr<const traversability_generator3d::TravMap3d > travMap);
+    void updateSoilMap(std::shared_ptr<const traversability_generator3d::SoilMap3d > soilMap);
 
     virtual bool InitializeEnv(const char* sEnvFile);
     virtual bool InitializeMDPCfg(MDPConfig* MDPCfg);

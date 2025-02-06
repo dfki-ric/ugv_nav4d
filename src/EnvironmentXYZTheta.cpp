@@ -34,7 +34,7 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(std::shared_ptr<const traversability_ge
                                          const traversability_generator3d::TraversabilityConfig& travConf,
                                          const SplinePrimitivesConfig& primitiveConfig,
                                          const Mobility& mobilityConfig) :
-    travMap(travMap)
+      travMap(travMap)
     , availableMotions(primitiveConfig, mobilityConfig)
     , startThetaNode(nullptr)
     , startXYZNode(nullptr)
@@ -107,6 +107,12 @@ void EnvironmentXYZTheta::updateMap(shared_ptr<const traversability_generator3d:
     this->travMap = travMap;
 
     clear();
+}
+
+void EnvironmentXYZTheta::updateSoilMap(shared_ptr<const traversability_generator3d::SoilMap3d > soilMap)
+{
+
+    this->soilMap = soilMap;
 }
 
 EnvironmentXYZTheta::XYZNode* EnvironmentXYZTheta::createNewXYZState(traversability_generator3d::TravGenNode* travNode)
@@ -269,7 +275,7 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     }
 
     const auto nodeType = goalXYZNode->getUserData().travNode->getUserData().nodeType;
-    if(nodeType != maps::grid::TraversabilityNodeBase::TRAVERSABLE) {
+    if(static_cast<int>(nodeType) != maps::grid::TraversabilityNodeBase::TRAVERSABLE) {
         throw std::runtime_error("Error, goal has to be a traversable patch");
     }
 
@@ -811,6 +817,49 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
                 cost += cost * impactFactor;
             }
+        }
+
+        for(auto node : nodesOnTravPath){
+            maps::grid::Index idx = node->getIndex();
+            const auto &candidateMap = soilMap->at(idx);
+            for(traversability_generator3d::SoilNode *n : candidateMap)
+            {
+                //Soil Types
+                //-1 Unknown
+                // 0 Concrete
+                // 1 Rocks
+                // 2 Sand
+                // 3 Gravel
+                //
+                switch(n->getUserData().soilType)
+                {
+                    case -1:    
+                        cost += travConf.costUnknownSoil; 
+                        break;
+                    case 0:  
+                        //concrete is preferred over all other soils
+                        cost += travConf.costConcreteSoil; 
+                        break;
+                    case 1:    
+                        //rocky soil is not preferred over all other soils
+                        cost += travConf.costRockySoil; 
+                        break;
+                    case 2:     
+                        //sand is preferred over unknown soil 
+                        //sand is preferred over rocky soil
+                        cost += travConf.costSandSoil; 
+                        break;
+                    case 3:     
+                        //gravel is preferred over unknown soil 
+                        //gravel is preferred over rocky soil 
+                        //gravel is preferred over sand
+                        cost += travConf.costGravelSoil; 
+                        break;
+                    default:
+                        break;
+                }
+            }
+           
         }
 
         oassert(cost <= std::numeric_limits<int>::max() && cost >= std::numeric_limits< int >::min());
