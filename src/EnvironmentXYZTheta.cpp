@@ -938,8 +938,10 @@ vector<Motion> EnvironmentXYZTheta::getMotions(const vector< int >& stateIDPath)
 
 void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                                         vector<SubTrajectory>& result,
-                                        bool setZToZero, const Eigen::Vector3d &startPos,
-                                        const Eigen::Vector3d &goalPos, const double& goalHeading, const Eigen::Affine3d &plan2Body)
+                                        const Eigen::Vector3d &startPos,
+                                        const Eigen::Vector3d &goalPos, 
+                                        const double& goalHeading, 
+                                        const Eigen::Affine3d &plan2Body)
 {
     if(stateIDPath.size() < 2)
         return;
@@ -1001,11 +1003,6 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
 #ifdef ENABLE_DEBUG_DRAWINGS
                 V3DD::DRAW_SPHERE("ugv_nav4d_trajectory_poses", pointOnTravPlane, 0.01, V3DD::Color::red);
 #endif
-                //TODO: Only left here until software which still uses trajectory2D is updated to use trajectory3D
-                if (setZToZero){
-                    pointOnTravPlane.z() = 0;
-                }
-
                 Eigen::Vector3d pointOnBody = plan2Body.inverse(Eigen::Isometry) * pointOnTravPlane;
                 if (positions.empty() || !(positions.back().isApprox(pointOnBody)))
                 {
