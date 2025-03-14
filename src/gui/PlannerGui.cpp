@@ -71,7 +71,6 @@ void PlannerGui::setupUI()
     V3DD::CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(widget);
 #endif
     trav3dViz.setPluginName("TravMap");
-    obstacleMapViz.setPluginName("ObstacleMap");
     
     startViz.setPluginName("Start Pose");
     goalViz.setPluginName("Goal Pose");
@@ -82,7 +81,6 @@ void PlannerGui::setupUI()
     widget->addPlugin(&trajViz2);
     widget->addPlugin(&mlsViz);
     widget->addPlugin(&trav3dViz);
-    widget->addPlugin(&obstacleMapViz);
     widget->addPlugin(&startViz);
     widget->addPlugin(&goalViz);
     widget->addPlugin(&gridViz);
@@ -288,7 +286,6 @@ void PlannerGui::setupUI()
 
     connect(&mlsViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
     connect(&trav3dViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
-    connect(&obstacleMapViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
     connect(this, SIGNAL(plannerDone()), this, SLOT(plannerIsDone()));
 
 }
@@ -316,7 +313,7 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     mobilityConfig.translationSpeed = 0.5;
     mobilityConfig.rotationSpeed = 0.5;
     mobilityConfig.minTurningRadius = 1; // increase this to reduce the number of available motion primitives
-    mobilityConfig.searchRadius = 1.0;
+    mobilityConfig.searchRadius = 0.0;
     mobilityConfig.searchProgressSteps = 0.1;
     mobilityConfig.multiplierForward = 1;
     mobilityConfig.multiplierForwardTurn = 2;
@@ -619,7 +616,6 @@ void PlannerGui::plannerIsDone()
     trajViz2.setLineWidth(8);    
     
     trav3dViz.updateData((planner->getTraversabilityMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
-    obstacleMapViz.updateData((planner->getObstacleMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
     
     bar->setMaximum(1);
 }

@@ -97,7 +97,6 @@ private:
     vizkit3d::SubTrajectoryVisualization trajViz2;
     vizkit3d::MLSMapVisualization mlsViz;
     vizkit3d::TraversabilityMap3dVisualization trav3dViz;
-    vizkit3d::TraversabilityMap3dVisualization obstacleMapViz;
     vizkit3d::RigidBodyStateVisualization startViz;
     vizkit3d::RigidBodyStateVisualization goalViz;
     vizkit3d::GridVisualization gridViz;

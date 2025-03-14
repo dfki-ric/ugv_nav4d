@@ -3,7 +3,6 @@
 #include <sbpl/discrete_space_information/environment.h>
 #undef DEBUG //sbpl defines DEBUG 0 but the word debug is also used in base-logging which is included from TraversabilityGenerator3d
 #include <traversability_generator3d/TraversabilityGenerator3d.hpp>
-#include "ObstacleMapGenerator3D.hpp"
 #include <maps/grid/TraversabilityMap3d.hpp>
 #include <base/Pose.hpp>
 #include "DiscreteTheta.hpp"
@@ -27,7 +26,6 @@ public:
     typedef traversability_generator3d::TraversabilityGenerator3d::MLGrid MLGrid;
 protected:
     traversability_generator3d::TraversabilityGenerator3d travGen;
-    ObstacleMapGenerator3D obsGen;
     std::shared_ptr<MLGrid > mlsGrid;
 
     struct EnvironmentXYZThetaException : public SBPL_Exception
@@ -103,23 +101,16 @@ protected:
     ThetaNode *goalThetaNode;
     XYZNode *goalXYZNode; //part of the goal state
 
-    /**Start node in obstacle map */
-    traversability_generator3d::TravGenNode* obstacleStartNode;
-
     ThetaNode *createNewState(const DiscreteTheta& curTheta, EnvironmentXYZTheta::XYZNode* curNode);
     XYZNode *createNewXYZState(traversability_generator3d::TravGenNode* travNode);
     ThetaNode *createNewStateFromPose(const std::string& name, const Eigen::Vector3d& pos, double theta, ugv_nav4d::EnvironmentXYZTheta::XYZNode** xyzBackNode);
 
     bool checkStartGoalNode(const std::string& name, traversability_generator3d::TravGenNode* node, double theta);
 
-
-    /** Find the obstacle node corresponding to @p travNode */
-    traversability_generator3d::TravGenNode* findObstacleNode(const traversability_generator3d::TravGenNode* travNode) const;
-
 public:
 
     /** @param pos Position in map frame */
-    bool obstacleCheck(const maps::grid::Vector3d& pos, double theta, const ObstacleMapGenerator3D& obsGen,
+    bool obstacleCheck(const maps::grid::Vector3d& pos, double theta, const traversability_generator3d::TraversabilityGenerator3d& travGen,
                               const traversability_generator3d::TraversabilityConfig& travConf,
                               const sbpl_spline_primitives::SplinePrimitivesConfig& splineConf,
                               const std::string& nodeName="node");
@@ -141,7 +132,7 @@ public:
     virtual bool InitializeMDPCfg(MDPConfig* MDPCfg);
 
 
-    /**Expand the underlying travmap and obstacle map starting from all given positions. */
+    /**Expand the underlying travmap starting from all given positions. */
     void expandMap(const std::vector<Eigen::Vector3d>& positions);
 
     /**Returns the trajectory of least resistance to leave the obstacle.
@@ -190,10 +181,8 @@ public:
     const Motion& getMotion(const int fromStateID, const int toStateID);
 
     const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode *> &getTraversabilityMap() const;
-    const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode *> &getObstacleMap() const;
 
     traversability_generator3d::TraversabilityGenerator3d& getTravGen();
-    traversability_generator3d::TraversabilityGenerator3d& getObstacleGen();
 
     const MLGrid &getMlsMap() const;
 

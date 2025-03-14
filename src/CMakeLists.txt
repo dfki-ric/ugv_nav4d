@@ -27,7 +27,6 @@ rock_library(ugv_nav4d
         PlannerDump.cpp
         PreComputedMotions.cpp
         Dijkstra.cpp
-        ObstacleMapGenerator3D.cpp
         DebugDrawingDeclarations.cpp
     HEADERS 
         Mobility.hpp
@@ -38,7 +37,6 @@ rock_library(ugv_nav4d
         PlannerConfig.hpp
         PreComputedMotions.hpp
         Dijkstra.hpp
-        ObstacleMapGenerator3D.hpp
     DEPS_PKGCONFIG 
         ${DEPS_PKGCONFIG_LIST}
     LIBS 
