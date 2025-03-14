@@ -1,19 +1,15 @@
 <map id="EnvironmentXYZThetaTest" name="EnvironmentXYZThetaTest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="561,1184,782,1309"/>
-<area shape="rect" id="Node000002" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html" title=" " alt="" coords="429,596,668,1121"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="635,1121,649,1167,644,1169,629,1123"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="402,1144,623,1269"/>
+<area shape="rect" id="Node000002" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html" title=" " alt="" coords="212,596,451,1081"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="406,1080,427,1119,434,1129,430,1132,422,1121,401,1083"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="5,373,188,439"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="137,447,203,517,431,742,427,746,199,521,133,451"/>
-<area shape="rect" id="Node000004" href="$classugv__nav4d_1_1ObstacleMapGenerator3D.html" title=" " alt="" coords="213,353,474,459"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="369,458,425,580,420,582,364,460"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="248,78,439,158"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="346,172,346,353,341,353,341,172"/>
-<area shape="rect" id="Node000006" href="$classugv__nav4d_1_1PreComputedMotions.html" title=" " alt="" coords="499,293,737,519"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="603,520,594,580,589,579,598,519"/>
-<area shape="rect" id="Node000007" href="$structugv__nav4d_1_1EnvironmentXYZTheta_1_1ThetaNode.html" title=" " alt="" coords="761,366,1000,446"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="854,448,801,511,767,544,732,574,718,582,705,586,694,589,682,598,682,599,678,595,679,594,692,585,704,581,715,577,728,570,764,540,797,507,850,444"/>
-<area shape="rect" id="Node000008" href="$classDiscreteTheta.html" title=" " alt="" coords="813,5,948,231"/>
-<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="883,231,883,350,878,350,878,231"/>
-<area shape="rect" id="Node000009" href="$structugv__nav4d_1_1Mobility.html" title=" " alt="" coords="692,676,899,1041"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="785,1042,770,1103,748,1161,743,1171,738,1169,744,1159,765,1101,779,1041"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="123,449,214,617,210,620,118,452"/>
+<area shape="rect" id="Node000004" href="$classugv__nav4d_1_1PreComputedMotions.html" title=" " alt="" coords="212,293,451,519"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="334,519,334,580,329,580,329,519"/>
+<area shape="rect" id="Node000005" href="$structugv__nav4d_1_1EnvironmentXYZTheta_1_1ThetaNode.html" title=" " alt="" coords="475,366,713,446"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="567,448,518,517,464,597,461,602,457,599,460,595,513,514,563,445"/>
+<area shape="rect" id="Node000006" href="$classDiscreteTheta.html" title=" " alt="" coords="527,5,661,231"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="597,231,597,350,591,350,591,231"/>
+<area shape="rect" id="Node000007" href="$structugv__nav4d_1_1Mobility.html" title=" " alt="" coords="475,656,681,1021"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="548,1022,529,1128,524,1128,543,1021"/>
 </map>

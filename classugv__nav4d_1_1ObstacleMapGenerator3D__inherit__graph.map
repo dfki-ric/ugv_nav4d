@@ -1,5 +1,0 @@
-<map id="ugv_nav4d::ObstacleMapGenerator3D" name="ugv_nav4d::ObstacleMapGenerator3D">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,133,267,239"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="41,5,231,85"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,99,139,133,133,133,133,99"/>
-</map>
