@@ -60,17 +60,7 @@ public:
             env->updateMap(mapPtr);
         }
     }
-
-    void updateSoilMap(const traversability_generator3d::SoilMap3d &map)
-    {
-        std::shared_ptr<traversability_generator3d::SoilMap3d> mapPtr = std::make_shared<traversability_generator3d::SoilMap3d>(map);
-
-        if(env)
-        {
-            env->updateSoilMap(mapPtr);
-        }
-    }
-
+    
     void enablePathStatistics(bool enable);
 
     /**
