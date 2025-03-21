@@ -128,6 +128,7 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
         return nullptr;
     }
 
+    //check if intitial patch is unknown
     if(!travNode->isExpanded())
     {
         LOG_ERROR_S << "createNewStateFromPose: Error: " << name << " Pose " << pos.transpose() << " is not traversable";
