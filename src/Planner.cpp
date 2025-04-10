@@ -44,10 +44,12 @@ void Planner::setTravMapCallback(const std::function< void ()>& callback)
 bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& goal_translation, const double yaw) noexcept
 {
     static constexpr double theta_step = EIGEN_PI / 10.;
-    if(mobility.searchRadius < std::numeric_limits<double>::epsilon()) {
-        return tryGoal(goal_translation, yaw);
+
+    if (tryGoal(goal_translation, yaw)){
+        return true;
     }
-    else {
+
+    if(mobility.searchRadius > 0.0) {
         bool is_invalid = true;
         const double start_angle = std::atan2(start_translation.y() - goal_translation.y(), start_translation.x() - goal_translation.x());
         LOG_PLAN("start_angle", start_angle);
