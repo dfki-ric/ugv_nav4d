@@ -52,8 +52,6 @@ bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vec
     if(mobility.searchRadius > 0.0) {
         bool is_invalid = true;
         const double start_angle = std::atan2(start_translation.y() - goal_translation.y(), start_translation.x() - goal_translation.x());
-        LOG_PLAN("start_angle", start_angle);
-        LOG_PLAN("goal", goal_translation);
 
         double current_radius = mobility.searchProgressSteps;
         double theta = start_angle;
@@ -61,7 +59,6 @@ bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vec
         int multiplier = 1;
         Eigen::Vector2d pos(0, 0);
         while(is_invalid) {
-            LOG_PLAN("translation change", pos.x(), pos.y());
             Eigen::Vector3d temp = goal_translation;
             temp.x() += pos.x();
             temp.y() += pos.y();
@@ -76,8 +73,6 @@ bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vec
             if(std::abs(theta_pi - EIGEN_PI) < std::numeric_limits<double>::epsilon()) {
                 current_radius += mobility.searchProgressSteps;
                 theta_pi = 0;
-                LOG_PLAN("reset theta", theta_pi);
-
                 // do we have reached our max. search radius?
                 if(current_radius > mobility.searchRadius) {
                     return false;
@@ -92,7 +87,6 @@ bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vec
                 theta = std::remainder(start_angle - theta_pi, 2 * EIGEN_PI);
                 multiplier = 1;
             }
-            LOG_PLAN("Calc pos", current_radius, theta);
             // calculate new position
             pos.y() = current_radius * std::sin(theta);
             pos.x() = current_radius * std::cos(theta);
