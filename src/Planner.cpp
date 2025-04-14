@@ -8,6 +8,8 @@
 #include <cmath>
 #include <base-logging/Logging.hpp>
 #include "Logger.hpp"
+#include <deque>
+#include <unordered_set>
 
 #ifdef ENABLE_DEBUG_DRAWINGS
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
@@ -41,60 +43,52 @@ void Planner::setTravMapCallback(const std::function< void ()>& callback)
     travMapCallback = callback;
 }
 
-bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& goal_translation, const double yaw) noexcept
+bool Planner::calculateGoal(Eigen::Vector3d& goal_translation, const double yaw) noexcept
 {
-    static constexpr double theta_step = EIGEN_PI / 10.;
-
     if (tryGoal(goal_translation, yaw)){
         return true;
     }
 
-    if(mobility.searchRadius > 0.0) {
-        bool is_invalid = true;
-        const double start_angle = std::atan2(start_translation.y() - goal_translation.y(), start_translation.x() - goal_translation.x());
+    traversability_generator3d::TravGenNode* travNode = env->findMatchingTraversabilityPatchAt(goal_translation);
+    if (!travNode){
+        return false;
+    }
 
-        double current_radius = mobility.searchProgressSteps;
-        double theta = start_angle;
-        double theta_pi = 0;
-        int multiplier = 1;
-        Eigen::Vector2d pos(0, 0);
-        while(is_invalid) {
-            Eigen::Vector3d temp = goal_translation;
-            temp.x() += pos.x();
-            temp.y() += pos.y();
+    auto trMap = env->getTraversabilityMap();
+    auto pos1 = travNode->getPosition(*trMap);
 
-            if(tryGoal(temp, yaw)) {
-                goal_translation = temp; // for future use by calling function
+    std::deque<maps::grid::TraversabilityNodeBase*> candidates;
+    std::unordered_set<maps::grid::TraversabilityNodeBase *> visited;
+
+    candidates.push_back(travNode);
+    visited.insert(travNode);
+
+    while(!candidates.empty())
+    {
+        auto *node = candidates.front();
+        candidates.pop_front();
+
+        for(auto *n : node->getConnections()){
+            if (visited.count(n)) continue;  // Skip visited
+
+            auto pos2 = n->getPosition(*trMap);
+            if ((pos1 - pos2).norm() > mobility.searchRadius){
+                continue;
+            }
+
+            if (tryGoal(pos2, yaw)){
+                goal_translation = pos2;
+                LOG_INFO_S << "Estimated Goal Position: " << goal_translation.transpose();
                 return true;
             }
 
-
-            // if the circle is completed and still no valid goal is found, increase the radius and try again
-            if(std::abs(theta_pi - EIGEN_PI) < std::numeric_limits<double>::epsilon()) {
-                current_radius += mobility.searchProgressSteps;
-                theta_pi = 0;
-                // do we have reached our max. search radius?
-                if(current_radius > mobility.searchRadius) {
-                    return false;
-                }
-            }
-            // only add a new value if we are positive, so we can explore on both sides.
-            if(multiplier == 1) {
-                theta_pi += theta_step;
-                theta = std::remainder(start_angle + theta_pi, 2 * EIGEN_PI);
-                multiplier = -1;
-            } else {
-                theta = std::remainder(start_angle - theta_pi, 2 * EIGEN_PI);
-                multiplier = 1;
-            }
-            // calculate new position
-            pos.y() = current_radius * std::sin(theta);
-            pos.x() = current_radius * std::cos(theta);
+            candidates.push_back(n);
+            visited.insert(n);
         }
     }
-    return false;
-}
 
+    return false; // Add this to cover all control paths
+}
 
 bool Planner::tryGoal(const Eigen::Vector3d& translation, const double yaw) noexcept
 {
@@ -178,7 +172,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     Eigen::Vector3d start_translation = startGround2Mls.translation();
     Eigen::Vector3d goal_translation = endGround2Mls.translation();
 
-    if(!calculateGoal(startGround2Mls.translation(), goal_translation, base::getYaw(Eigen::Quaterniond(endGround2Mls.linear())))) {
+    if(!calculateGoal(goal_translation, base::getYaw(Eigen::Quaterniond(endGround2Mls.linear())))) {
         if(dumpOnError) {
             PlannerDump dump(*this, "bad_goal", maxTime, startbody2Mls, endbody2Mls);
         }
