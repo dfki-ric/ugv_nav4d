@@ -17,7 +17,7 @@ PreComputedMotions::PreComputedMotions(const SplinePrimitivesConfig& primitiveCo
 }
 
 
-void PreComputedMotions::computeMotions(double obstGridResolution, double travGridResolution)
+void PreComputedMotions::computeMotions(double travGridResolution)
 {
     if(fabs(primitives.getConfig().gridSize - travGridResolution) > 1E-5)
     {
@@ -25,7 +25,7 @@ void PreComputedMotions::computeMotions(double obstGridResolution, double travGr
         throw std::runtime_error("PreComputedMotions::computeMotions: Error grid size and trav size do not match");
     }
 
-    readMotionPrimitives(primitives, mobilityConfig, obstGridResolution, travGridResolution);
+    readMotionPrimitives(primitives, mobilityConfig, travGridResolution);
 }
 
 void PreComputedMotions::sampleOnResolution(double gridResolution,base::geometry::Spline2 spline, std::vector<PoseWithCell> &result, std::vector<CellWithPoses> &fullResult)
@@ -90,8 +90,7 @@ void PreComputedMotions::sampleOnResolution(double gridResolution,base::geometry
 }
 
 void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& primGen,
-                                              const Mobility& mobilityConfig,
-                                              double obstGridResolution, double travGridResolution)
+                                              const Mobility& mobilityConfig, double travGridResolution)
 {
     const int numAngles = primGen.getConfig().numAngles;
     const double maxCurvature = calculateCurvatureFromRadius(mobilityConfig.minTurningRadius);
@@ -165,8 +164,6 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
             if(prim.motionType != SplinePrimitive::SPLINE_POINT_TURN)
             {
                 sampleOnResolution(travGridResolution, prim.spline, motion.intermediateStepsTravMap, motion.fullSplineSamples);
-                std::vector<CellWithPoses> dummy;
-                sampleOnResolution(obstGridResolution, prim.spline, motion.intermediateStepsObstMap, dummy);
             }
             computeSplinePrimCost(prim, mobilityConfig, motion);
 
@@ -177,8 +174,6 @@ void PreComputedMotions::readMotionPrimitives(const SbplSplineMotionPrimitives& 
             if(motion.type == Motion::Type::MOV_BACKWARD)
             {
                 for(PoseWithCell& pwc : motion.intermediateStepsTravMap)
-                    pwc.pose.orientation = base::Angle::fromRad(pwc.pose.orientation).flipped().getRad();
-                for(PoseWithCell& pwc : motion.intermediateStepsObstMap)
                     pwc.pose.orientation = base::Angle::fromRad(pwc.pose.orientation).flipped().getRad();
             }
 

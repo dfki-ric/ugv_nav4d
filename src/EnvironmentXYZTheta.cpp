@@ -50,7 +50,7 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(std::shared_ptr<const traversability_ge
     robotHalfSize << travConf.robotSizeX / 2, travConf.robotSizeY / 2, travConf.robotHeight/2;
     if(travMap)
     {
-        availableMotions.computeMotions(travMap->getResolution().x(), travConf.gridResolution);
+        availableMotions.computeMotions(travConf.gridResolution);
     }
 }
 
@@ -102,7 +102,7 @@ void EnvironmentXYZTheta::updateMap(shared_ptr<const traversability_generator3d:
     }
     if(!this->travMap)
     {
-        availableMotions.computeMotions(travMap->getResolution().x(), travConf.gridResolution);
+        availableMotions.computeMotions(travConf.gridResolution);
     }
     this->travMap = travMap;
 
@@ -1235,18 +1235,18 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
 
         //Currently the function only selects a single motion so the pointturn will not help us.
         //TODO: If multiple motions are agreegated to get the final recovery trajectory then pointturns can be used.
-        //NOTE: Pointturns have no intermediateStepsObstMap, so are skipped at the moment.
+        //NOTE: Pointturns have no intermediateStepsTravMap, so are skipped at the moment.
         if (motion.type == ugv_nav4d::Motion::MOV_POINTTURN){
              continue;
         }
-        firstPose = motion.intermediateStepsObstMap[0].pose;
+        firstPose = motion.intermediateStepsTravMap[0].pose;
         firstPose.position += startPosWorld.head<2>();
         posesOnPath.push_back(firstPose);
 
         intermediateStepsOk = true;
-        for(size_t j = 1; j < motion.intermediateStepsObstMap.size(); ++j)
+        for(size_t j = 1; j < motion.intermediateStepsTravMap.size(); ++j)
         {
-            const PoseWithCell& pwc = motion.intermediateStepsObstMap[j];
+            const PoseWithCell& pwc = motion.intermediateStepsTravMap[j];
             //diff is always a full offset to the start position
             const maps::grid::Index newIndex =  startIdxTravMap + pwc.cell;
             currentNode = currentNode->getConnectedNode(newIndex);
