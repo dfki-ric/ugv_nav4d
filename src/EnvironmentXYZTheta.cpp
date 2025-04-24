@@ -644,12 +644,16 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         maps::grid::Index curIdx = sourceTravNode->getIndex();
         traversability_generator3d::TravGenNode *travNode = sourceTravNode;
         bool intermediateStepsOk = true;
-        for(const PoseWithCell &diff : motion.intermediateStepsObstMap)
+        int nodeBaseCost = 0;
+        for(const PoseWithCell &diff : motion.intermediateStepsTravMap)
         {
             //diff is always a full offset to the start position
             const maps::grid::Index newIndex =  sourceTravNode->getIndex() + diff.cell;
             travNode = movementPossible(travNode, curIdx, newIndex);
             nodesOnTravPath.push_back(travNode);
+
+            nodeBaseCost += travNode->getUserData().cost;
+
             base::Pose2D curPose = diff.pose;
             curPose.position += sourcePosWorld.head<2>();
             posesOnPath.push_back(curPose);
@@ -811,6 +815,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 cost += cost * impactFactor;
             }
         }
+
+        cost += nodeBaseCost;
 
         oassert(cost <= std::numeric_limits<int>::max() && cost >= std::numeric_limits< int >::min());
         oassert(int(cost) >= motion.baseCost);
