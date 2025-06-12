@@ -149,7 +149,8 @@ GUI Usage &amp; Tests</h4>
 <p>'teleop_twist_config_file': Full path to the teleop twist joy config (default: 'teleop_twist_config_file') </p><div class="fragment"><div class="line">In a new terminal, source your workspace and start SLAM. Remap the node scanmatcher&#39;s topic `/input_cloud` to `/husky/scan/points` in the `lidarslam.launch.py`</div>
 </div><!-- fragment --><p> ros2 launch lidarslam lidarslam.launch.py main_param_dir:=/path/to/your/lidarslam.yaml </p><div class="fragment"><div class="line">In a new terminal, source your workspace, ugv_nav4d library, and launch the ugv_nav4d_ros2. Replace the /path/to/your/ugv_nav4d with the location of the ugv_nav4d library. Add this command to your terminal:</div>
 </div><!-- fragment --><p> source ~/your_ros2_workspace/install/setup.bash source /path/to/your/ugv_nav4d/build/install/env.sh</p>
-<p>ros2 launch ugv_nav4d_ros2 ugv_nav4d.launch.py pointcloud_topic:=/map goal_topic:=/goal_pose </p><div class="fragment"><div class="line">### 7. Plan</div>
+<p>ros2 launch ugv_nav4d_ros2 ugv_nav4d.launch.py pointcloud_topic:=/map goal_topic:=/goal_pose </p><div class="fragment"><div class="line">In a new terminal, start a python script to visualize the labeled path in rviz2.</div>
+</div><!-- fragment --><p> cd ~/your_ros2_workspace/src/ugv_nav4d_ros2/scripts python3 visualize_path.py </p><div class="fragment"><div class="line">### 7. Plan</div>
 <div class="line"> </div>
 <div class="line">In a new terminal, start Rviz2.</div>
 </div><!-- fragment --><p> cd ~/your_ros2_workspace source ~/your_ros2_workspace/install/setup.bash source /path/to/your/ugv_nav4d/build/install/env.sh rviz2 -d src/ugv_nav4d_ros2/config/ugv_nav4d.rviz </p><div class="fragment"><div class="line">After you start to move the robot, the planner will show the following status:</div>
