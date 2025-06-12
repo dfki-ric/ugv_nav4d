@@ -224,7 +224,12 @@ source /path/to/your/ugv_nav4d/build/install/env.sh
 
 ros2 launch ugv_nav4d_ros2 ugv_nav4d.launch.py pointcloud_topic:=/map goal_topic:=/goal_pose
 ```
+In a new terminal, start a python script to visualize the labeled path in rviz2.
 
+```
+cd ~/your_ros2_workspace/src/ugv_nav4d_ros2/scripts
+python3 visualize_path.py
+```
 ### 7. Plan
 
 In a new terminal, start Rviz2.
