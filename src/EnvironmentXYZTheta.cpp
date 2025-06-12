@@ -1026,7 +1026,9 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             updateGoalPose = true;
         }
 
-        curPart.spline.interpolate(positions);
+        if (positions.size() > 0){
+            curPart.spline.interpolate(positions);
+        }
 
 #ifdef ENABLE_DEBUG_DRAWINGS
             V3DD::COMPLEX_DRAWING([&]()
@@ -1062,28 +1064,30 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
 #endif
 
         if (curMotion.type == Motion::Type::MOV_POINTTURN)
-        {
-            SubTrajectory subtraj;
-            subtraj.driveMode = DriveMode::ModeTurnOnTheSpot;
+        {    
+            SubTrajectory curPartSub;
+            curPartSub.driveMode = DriveMode::ModeTurnOnTheSpot;
 
-            std::vector<base::Angle> angles;
-            angles.emplace_back(base::Angle::fromRad(curMotion.startTheta.getRadian()));
-            angles.emplace_back(base::Angle::fromRad(curMotion.endTheta.getRadian()));
+            curPartSub.posSpline.setSingleton(start);
+
+            std::vector<double> anglesd;
+            anglesd.emplace_back(curMotion.startTheta.getRadian());
+            anglesd.emplace_back(curMotion.endTheta.getRadian());
+            curPartSub.orientationSpline.interpolate(anglesd);
 
             base::Pose2D startPose;
             startPose.position.x() = start.x();
             startPose.position.y() = start.y();
             startPose.orientation  = curMotion.startTheta.getRadian();
+            curPartSub.startPose     = startPose;
 
             base::Pose2D goalPose;
             goalPose.position.x() = start.x();
             goalPose.position.y() = start.y();
             goalPose.orientation  = curMotion.endTheta.getRadian();
+            curPartSub.goalPose      = goalPose;
 
-            subtraj.interpolate(startPose,angles);
-            subtraj.startPose     = startPose;
-            subtraj.goalPose      = goalPose;
-            result.push_back(subtraj);
+            result.push_back(curPartSub);
         }
         else
         {
