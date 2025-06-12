@@ -112,9 +112,9 @@ GUI Usage &amp; Tests</h4>
 </div><!-- fragment --><p> cd build cmake -DCMAKE_INSTALL_PREFIX=./install -DTESTS_ENABLED=ON -DENABLE_DEBUG_DRAWINGS=OFF -DCMAKE_BUILD_TYPE=RELEASE .. make install </p><div class="fragment"><div class="line">The test executables are in the folder: `build/src/test/`.</div>
 <div class="line"> </div>
 <div class="line">---</div>
-<div class="line"># ROS 2 Humble Test Environment with Gazebo Fortress</div>
+<div class="line"># ROS 2 Humble Test Environment with Turtlebot3 and Husky</div>
 <div class="line"> </div>
-<div class="line">This provides instructions for setting up a test environment using **Gazebo Fortress** and **ROS 2 Humble**. The setup includes configurations for using the Husky robot and ensures that the necessary resources are in place for smooth operation.</div>
+<div class="line">This provides instructions for setting up a test environment using **Gazebo Fortress** for Husky and **Gazebo Classic** for Turtlebot3 with **ROS 2 Humble**. The setup includes configurations for using the Husky robot and ensures that the necessary resources are in place for smooth operation.</div>
 <div class="line"> </div>
 <div class="line">## Prerequisites</div>
 <div class="line"> </div>
@@ -129,12 +129,29 @@ GUI Usage &amp; Tests</h4>
 <div class="line"> </div>
 <div class="line">Install libg2o:</div>
 </div><!-- fragment --><p> sudo apt-get install -y ros-humble-libg2o </p><div class="fragment"><div class="line">### 3. Get ugv_nav4d_ros2 and a test environment for robot husky in gazebo</div>
-</div><!-- fragment --><p> mkdir -p your_ros2_workspace/src cd ~/your_ros2_workspace/src git clone <a href="https://github.com/dfki-ric/ugv_nav4d_ros2.git">https://github.com/dfki-ric/ugv_nav4d_ros2.git</a> </p><div class="fragment"><div class="line">You can clone the repo `ros2_humble_gazebo_sim` anywhere in your system. Here we clone it in the `your_ros2_workspace` folder.</div>
+</div><!-- fragment --><p> mkdir -p ~/your_ros2_workspace/src cd ~/your_ros2_workspace/src git clone <a href="https://github.com/dfki-ric/ugv_nav4d_ros2.git">https://github.com/dfki-ric/ugv_nav4d_ros2.git</a> </p><div class="fragment"><div class="line">You can clone the repo `ros2_humble_gazebo_sim` anywhere in your system. Here we clone it in the `your_ros2_workspace` folder.</div>
 </div><!-- fragment --><p> cd ~/your_ros2_workspace git clone <a href="https://github.com/dfki-ric/ros2_humble_gazebo_sim.git">https://github.com/dfki-ric/ros2_humble_gazebo_sim.git</a> cd ros2_humble_gazebo_sim bash install_dependencies.bash </p><div class="fragment"><div class="line">### 4. Husky Configuration</div>
 <div class="line">To ensure that Gazebo can find the robot model, you need to export the following environment variable. Replace /path/to/ with the actual **complete** path where you clone the repository `ros2_humble_gazebo_sim`. Add this command to your terminal:</div>
 </div><!-- fragment --><p> export IGN_GAZEBO_RESOURCE_PATH=/path/to/your_ros2_workspace/ros2_humble_gazebo_sim/resource:$IGN_GAZEBO_RESOURCE_PATH </p><div class="fragment"><div class="line">### 5. Building the ROS 2 Workspace</div>
 <div class="line">Before launching the simulation, source your env.sh from ugv_nav4d and build your ROS 2 workspace:</div>
-</div><!-- fragment --><p> cd ~/your_ros2_workspace source path/to/ugv_nav4d/build/install/env.sh colcon build &ndash;cmake-args -DCMAKE_BUILD_TYPE=Release </p><div class="fragment"><div class="line">### 6. Start the Test Environment</div>
+</div><!-- fragment --><p> cd ~/your_ros2_workspace source path/to/ugv_nav4d/build/install/env.sh colcon build &ndash;cmake-args -DCMAKE_BUILD_TYPE=Release </p><div class="fragment"><div class="line">### 6. Test Environment with Turlebot3 and Nav2 Integration</div>
+<div class="line">Follow the steps in this section to play around with a Turtlebot3 and Nav2. Ugv_nav4d expects a pointcloud map. The map can be provided by SLAM or static pointclouds as `PLY`. A dummp flat plane `PLY` file is used in these steps.</div>
+<div class="line"> </div>
+<div class="line">Install turtlebot3-gazebo package and launch simulation</div>
+</div><!-- fragment --><p> sudo apt-get install ros-humble-turtlebot3-gazebo ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py headless:=false x_pose:=2.0 y_pose:=2.0 </p><div class="fragment"><div class="line">Clone a repo with config files for nav2 and ugv_nav4d</div>
+</div><!-- fragment --><p> cd ~/your_ros2_workspace git clone <a href="#" onclick="location.href='mai'+'lto:'+'git'+'@g'+'ith'+'ub'+'.co'+'m'; return false;">git@g<span class="obfuscator">.nosp@m.</span>ithu<span class="obfuscator">.nosp@m.</span>b.com</a>:haider8645/turtlebot3_nav2_ugv_nav4d_config.git </p><div class="fragment"><div class="line">Start nav2 controller_server</div>
+<div class="line"> </div>
+<div class="line">Note: Please provide the fullpath for `your_ros2_workspace` in the launch file arguments.</div>
+</div><!-- fragment --><p> cd turtlebot3_nav2_ugv_nav4d_config ros2 launch turtle_nav2.launch.py nav2_param_path:=/path/to/your_ros2_workspace/turtlebot3_nav2_ugv_nav4d_config/turtle_nav2.yaml rviz_config_path:=/path/to/your_ros2_workspace/turtlebot3_nav2_ugv_nav4d_config/turtle.rviz </p><div class="fragment"><div class="line">In a new terminal, configure and activate the nav2 controller_server</div>
+</div><!-- fragment --><p> ros2 lifecycle set /controller_server configure ros2 lifecycle set /controller_server activate </p><div class="fragment"><div class="line">In a new terminal, start ugv_nav4d</div>
+<div class="line"> </div>
+<div class="line">Note: Please provide the fullpath for `your_ros2_workspace` in the launch file arguments and accordingly edit the parameter `mls_file_path` in `turtle_ugv_nav4d.yaml`.</div>
+</div><!-- fragment --><p> ros2 launch ugv_nav4d_ros2 ugv_nav4d.launch.py goal_topic:=/goal_pose main_param_file:=/path/to/your_ros2_workspace/turtlebot3_nav2_ugv_nav4d_config/turtle_ugv_nav4d.yaml </p><div class="fragment"><div class="line">In new terminals, start scripts to send FollowPath action calls to nav2 and for Path visualization</div>
+</div><!-- fragment --><p> cd ~/your_ros2_workspace/src/ugv_nav4d_ros2/scripts python3 follow_path_client.py </p><div class="fragment"><div class="line">and </div>
+</div><!-- fragment --><p> cd ~/your_ros2_workspace/src/ugv_nav4d_ros2/scripts python3 visualize_path.py </p><div class="fragment"><div class="line">Visualize the MLS Map using</div>
+</div><!-- fragment --><p> ros2 service call /ugv_nav4d_ros2/map_publish std_srvs/srv/Trigger </p><div class="fragment"><div class="line">You can now send goals to the planner using `2D Goal Pose` in rviz and visualize the results.</div>
+<div class="line"> </div>
+<div class="line">### 7. Test Environment with Husky</div>
 <div class="line">Launch the Gazebo simulation by executing the following command in your terminal:</div>
 </div><!-- fragment --><p> source ~/your_ros2_workspace/install/setup.bash cd ~/your_ros2_workspace/ros2_humble_gazebo_sim/simulation ros2 launch start.launch.py </p><div class="fragment"><div class="line">You can use the `Teleop` plugin of Gazebo for sending velocity commands to the robot. Click on the three dots in top-right corner of Gazebo window and search for `Teleop`. Select the plugin and adjust the values as shown in figure.</div>
 <div class="line"> </div>
@@ -150,7 +167,7 @@ GUI Usage &amp; Tests</h4>
 </div><!-- fragment --><p> ros2 launch lidarslam lidarslam.launch.py main_param_dir:=/path/to/your/lidarslam.yaml </p><div class="fragment"><div class="line">In a new terminal, source your workspace, ugv_nav4d library, and launch the ugv_nav4d_ros2. Replace the /path/to/your/ugv_nav4d with the location of the ugv_nav4d library. Add this command to your terminal:</div>
 </div><!-- fragment --><p> source ~/your_ros2_workspace/install/setup.bash source /path/to/your/ugv_nav4d/build/install/env.sh</p>
 <p>ros2 launch ugv_nav4d_ros2 ugv_nav4d.launch.py pointcloud_topic:=/map goal_topic:=/goal_pose </p><div class="fragment"><div class="line">In a new terminal, start a python script to visualize the labeled path in rviz2.</div>
-</div><!-- fragment --><p> cd ~/your_ros2_workspace/src/ugv_nav4d_ros2/scripts python3 visualize_path.py </p><div class="fragment"><div class="line">### 7. Plan</div>
+</div><!-- fragment --><p> cd ~/your_ros2_workspace/src/ugv_nav4d_ros2/scripts python3 visualize_path.py </p><div class="fragment"><div class="line">### 8. Plan</div>
 <div class="line"> </div>
 <div class="line">In a new terminal, start Rviz2.</div>
 </div><!-- fragment --><p> cd ~/your_ros2_workspace source ~/your_ros2_workspace/install/setup.bash source /path/to/your/ugv_nav4d/build/install/env.sh rviz2 -d src/ugv_nav4d_ros2/config/ugv_nav4d.rviz </p><div class="fragment"><div class="line">After you start to move the robot, the planner will show the following status:</div>
