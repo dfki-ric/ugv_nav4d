@@ -138,7 +138,7 @@ GUI Usage &amp; Tests</h4>
 <div class="line">Follow the steps in this section to play around with a Turtlebot3 and Nav2. Ugv_nav4d expects a pointcloud map. The map can be provided by SLAM or static pointclouds as `PLY`. A dummp flat plane `PLY` file is used in these steps.</div>
 <div class="line"> </div>
 <div class="line">Install turtlebot3-gazebo package and launch simulation</div>
-</div><!-- fragment --><p> sudo apt-get install ros-humble-turtlebot3-gazebo ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py headless:=false x_pose:=2.0 y_pose:=2.0 </p><div class="fragment"><div class="line">Clone a repo with config files for nav2 and ugv_nav4d</div>
+</div><!-- fragment --><p> sudo apt-get install ros-humble-turtlebot3-gazebo export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/opt/ros/humble/share/turtlebot3_gazebo/models export TURTLEBOT3_MODEL=waffle ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py headless:=false x_pose:=2.0 y_pose:=2.0 </p><div class="fragment"><div class="line">Clone a repo with config files for nav2 and ugv_nav4d</div>
 </div><!-- fragment --><p> cd ~/your_ros2_workspace git clone <a href="#" onclick="location.href='mai'+'lto:'+'git'+'@g'+'ith'+'ub'+'.co'+'m'; return false;">git@g<span class="obfuscator">.nosp@m.</span>ithu<span class="obfuscator">.nosp@m.</span>b.com</a>:haider8645/turtlebot3_nav2_ugv_nav4d_config.git </p><div class="fragment"><div class="line">Start nav2 controller_server</div>
 <div class="line"> </div>
 <div class="line">Note: Please provide the fullpath for `your_ros2_workspace` in the launch file arguments.</div>
