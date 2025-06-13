@@ -176,6 +176,8 @@ Follow the steps in this section to play around with a Turtlebot3 and Nav2. Ugv_
 Install turtlebot3-gazebo package and launch simulation
 ```
 sudo apt-get install ros-humble-turtlebot3-gazebo
+export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/opt/ros/humble/share/turtlebot3_gazebo/models
+export TURTLEBOT3_MODEL=waffle
 ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py headless:=false x_pose:=2.0 y_pose:=2.0
 ```
 Clone a repo with config files for nav2 and ugv_nav4d
