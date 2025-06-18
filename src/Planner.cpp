@@ -38,11 +38,6 @@ void Planner::enablePathStatistics(bool enable){
     }
 }
 
-void Planner::setTravMapCallback(const std::function< void ()>& callback)
-{
-    travMapCallback = callback;
-}
-
 bool Planner::calculateGoal(Eigen::Vector3d& goal_translation, const double yaw) noexcept
 {
     if (tryGoal(goal_translation, yaw)){
@@ -148,8 +143,6 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     startbody2Mls.setTransform(startGround2Mls);
     endbody2Mls.setTransform(endGround2Mls);
 
-    if(travMapCallback)
-        travMapCallback();
     try
     {
         env->setStart(startGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())));

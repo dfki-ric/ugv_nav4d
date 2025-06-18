@@ -26,9 +26,7 @@ protected:
     traversability_generator3d::TraversabilityConfig traversabilityConfig;
     PlannerConfig plannerConfig;
     std::vector<int> solutionIds;
-    
-    std::function<void ()> travMapCallback;
-    
+        
     /**are buffered and reused for a more robust map generation */
     std::vector<Eigen::Vector3d> previousStartPositions;
     
@@ -63,12 +61,6 @@ public:
     
     void enablePathStatistics(bool enable);
 
-    /**
-     * This callback is executed, whenever a new traverability map
-     * was expanded
-     * */
-    void setTravMapCallback(const std::function<void ()> &callback);
-    
     std::vector<Motion> getMotions() const;
     
     /** Plan a path from @p start to @p end.
