@@ -140,7 +140,7 @@ Install libg2o:
 sudo apt-get install -y ros-humble-libg2o
 ```
 
-### 3. Get ugv_nav4d_ros2 and a test environment for robot husky in gazebo
+### 4. Get ugv_nav4d_ros2 and a test environment for robot husky in gazebo
 
 ```
 mkdir -p ~/your_ros2_workspace/src
@@ -155,12 +155,6 @@ cd ros2_humble_gazebo_sim
 bash install_dependencies.bash
 ```
 
-### 4. Husky Configuration
-To ensure that Gazebo can find the robot model, you need to export the following environment variable. Replace /path/to/ with the actual **complete** path where you clone the repository `ros2_humble_gazebo_sim`. Add this command to your terminal:
-```
-export IGN_GAZEBO_RESOURCE_PATH=/path/to/your_ros2_workspace/ros2_humble_gazebo_sim/resource:$IGN_GAZEBO_RESOURCE_PATH
-```
-
 ### 5. Building the ROS 2 Workspace
 Before launching the simulation, source your env.sh from ugv_nav4d and build your ROS 2 workspace:
 
@@ -170,8 +164,10 @@ source path/to/ugv_nav4d/build/install/env.sh
 colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
 ```
 
-### 6. Test Environment with Turlebot3 and Nav2 Integration
-Follow the steps in this section to play around with a Turtlebot3 and Nav2. Ugv_nav4d expects a pointcloud map. The map can be provided by SLAM or static pointclouds as `PLY`. A dummp flat plane `PLY` file is used in these steps.
+# Turlebot3 and Nav2 Integration
+Install [Nav2](https://docs.nav2.org/development_guides/build_docs/index.html) from the instructions on the homepage.
+
+Follow the steps in this section to play around with a Turtlebot3 and Nav2. Ugv_nav4d expects a pointcloud map. The map can be provided by SLAM or static pointclouds as `PLY`. An example flat plane `PLY` file is used in these steps.
 
 Install turtlebot3-gazebo package and launch simulation
 ```
@@ -185,7 +181,7 @@ Clone a repo with config files for nav2 and ugv_nav4d
 cd ~/your_ros2_workspace
 git clone git@github.com:haider8645/turtlebot3_nav2_ugv_nav4d_config.git
 ```
-Start nav2 controller_server
+Start the nav2 controller_server.
 
 Note: Please provide the fullpath for `your_ros2_workspace` in the launch file arguments.
 ```
@@ -220,7 +216,13 @@ ros2 service call /ugv_nav4d_ros2/map_publish std_srvs/srv/Trigger
 
 You can now send goals to the planner using `2D Goal Pose` in rviz and visualize the results.
 
-### 7. Test Environment with Husky
+# Husky Integration
+
+To ensure that Gazebo can find the robot model, you need to export the following environment variable. Replace /path/to/ with the actual **complete** path where you clone the repository `ros2_humble_gazebo_sim`. Add this command to your terminal:
+```
+export IGN_GAZEBO_RESOURCE_PATH=/path/to/your_ros2_workspace/ros2_humble_gazebo_sim/resource:$IGN_GAZEBO_RESOURCE_PATH
+```
+
 Launch the Gazebo simulation by executing the following command in your terminal:
 ```
 source ~/your_ros2_workspace/install/setup.bash
@@ -281,7 +283,6 @@ In a new terminal, start a python script to visualize the labeled path in rviz2.
 cd ~/your_ros2_workspace/src/ugv_nav4d_ros2/scripts
 python3 visualize_path.py
 ```
-### 8. Plan
 
 In a new terminal, start Rviz2.
 ```
