@@ -5,7 +5,7 @@ JOSS Paper:
 
 ugv_nav4d: Advanced Multi-Surface Navigation for Unmanned Ground Vehicles Using 4D Path Planning Techniques
 =============
-A 4D (X,Y,Z, Theta) Planner for Unmaned Ground Vehicles.
+A 4D (X,Y,Z, Theta) Planner for Unmanned Ground Vehicles.
 
 <figure>
 <img src="doc/figures/ugv_nav4d_logo.jpeg" height= "200" width="200"/>
