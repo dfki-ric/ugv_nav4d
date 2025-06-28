@@ -112,7 +112,5 @@ private:
     traversability_generator3d::TraversabilityConfig travConfig;
     ugv_nav4d::PlannerConfig plannerConfig;
     std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
-    std::vector<trajectory_follower::SubTrajectory> path;
-    std::vector<trajectory_follower::SubTrajectory> beautifiedPath;
-    
+    std::vector<trajectory_follower::SubTrajectory> path;    
 };
