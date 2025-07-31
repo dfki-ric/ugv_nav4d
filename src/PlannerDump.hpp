@@ -7,6 +7,8 @@
 #include <base/samples/RigidBodyState.hpp>
 #include "Planner.hpp"
 
+#include <memory>
+
 namespace ugv_nav4d {
 
 class Planner;
@@ -22,10 +24,10 @@ class PlannerDump
     base::samples::RigidBodyState goal;
     base::Time maxTime;
     
-    typedef traversability_generator3d::TraversabilityGenerator3d::MLGrid MLSBase;
     std::string getUnusedFilename(const std::string& filePostfix) const;
 
-    MLSBase mlsMap;
+    traversability_generator3d::TravMap3d travMap;
+
 public:
     
     /**
@@ -67,9 +69,9 @@ public:
     {
         return maxTime;
     }
-    const MLSBase &getMlsMap() const
+    const traversability_generator3d::TravMap3d& getTravMap() const
     {
-        return mlsMap;
+        return travMap;
     }
 
 };

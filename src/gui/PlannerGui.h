@@ -6,7 +6,7 @@
 #ifndef Q_MOC_RUN
 #include <vizkit3d/SubTrajectoryVisualization.hpp>
 #include <vizkit3d/MLSMapVisualization.hpp>
-#include <vizkit3d/TraversabilityMap3dVisualization.hpp>
+#include <vizkit3d/TravMap3dVisualization.hpp>
 #include <vizkit3d/GridVisualization.hpp>
 #include <vizkit3d/SbplSplineVisualization.hpp>
 #include <vizkit3d/RigidBodyStateVisualization.hpp>
@@ -14,6 +14,7 @@
 #include <base/Eigen.hpp>
 #include <ugv_nav4d/Planner.hpp>
 #include <traversability_generator3d/TraversabilityConfig.hpp>
+#include <traversability_generator3d/TraversabilityGenerator3d.hpp>
 #include <trajectory_follower/SubTrajectory.hpp>
 #endif
 
@@ -96,7 +97,7 @@ private:
     vizkit3d::SubTrajectoryVisualization trajViz;
     vizkit3d::SubTrajectoryVisualization trajViz2;
     vizkit3d::MLSMapVisualization mlsViz;
-    vizkit3d::TraversabilityMap3dVisualization trav3dViz;
+    vizkit3d::TravMap3dVisualization trav3dViz;
     vizkit3d::RigidBodyStateVisualization startViz;
     vizkit3d::RigidBodyStateVisualization goalViz;
     vizkit3d::GridVisualization gridViz;
@@ -107,12 +108,13 @@ private:
     bool startPicked = false;
     bool goalPicked = false;
     bool threadRunning = false;
+    bool usingPlannerDump = false;
     sbpl_spline_primitives::SplinePrimitivesConfig splineConfig;
     ugv_nav4d::Mobility mobilityConfig;
     traversability_generator3d::TraversabilityConfig travConfig;
     ugv_nav4d::PlannerConfig plannerConfig;
     std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
     std::vector<trajectory_follower::SubTrajectory> path;
-    std::vector<trajectory_follower::SubTrajectory> beautifiedPath;
-    
+    std::vector<trajectory_follower::SubTrajectory> beautifiedPath;    
+    std::shared_ptr<traversability_generator3d::TraversabilityGenerator3d> travGen;
 };

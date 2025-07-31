@@ -22,11 +22,7 @@ namespace ugv_nav4d
 
 class EnvironmentXYZTheta : public DiscreteSpaceInformation
 {
-public:
-    typedef traversability_generator3d::TraversabilityGenerator3d::MLGrid MLGrid;
 protected:
-    traversability_generator3d::TraversabilityGenerator3d travGen;
-    std::shared_ptr<MLGrid > mlsGrid;
 
     struct EnvironmentXYZThetaException : public SBPL_Exception
     {
@@ -93,6 +89,7 @@ protected:
     /**Contains the distance from each travNode to start-node and goal-node
      * Stored in real-world coordinates (i.e. do NOT scale with gridResolution before use)*/
     std::vector<Distance> travNodeIdToDistance;
+    std::shared_ptr<const traversability_generator3d::TravMap3d> travMap;
 
     PreComputedMotions availableMotions;
 
@@ -110,7 +107,7 @@ protected:
 public:
 
     /** @param pos Position in map frame */
-    bool obstacleCheck(const maps::grid::Vector3d& pos, double theta, const traversability_generator3d::TraversabilityGenerator3d& travGen,
+    bool obstacleCheck(const maps::grid::Vector3d& pos, double theta, 
                               const traversability_generator3d::TraversabilityConfig& travConf,
                               const sbpl_spline_primitives::SplinePrimitivesConfig& splineConf,
                               const std::string& nodeName="node");
@@ -118,22 +115,17 @@ public:
 
     /** @param generateDebugData If true, lots of debug information will becollected
      *                           and stored in members starting with debug*/
-    EnvironmentXYZTheta(std::shared_ptr<MLGrid > mlsGrid,
+    EnvironmentXYZTheta(std::shared_ptr<const traversability_generator3d::TravMap3d > travMap,
                         const traversability_generator3d::TraversabilityConfig &travConf,
                         const sbpl_spline_primitives::SplinePrimitivesConfig &primitiveConfig,
                         const Mobility& mobilityConfig);
 
     virtual ~EnvironmentXYZTheta();
 
-    void updateMap(std::shared_ptr<MLGrid > mlsGrid);
-    void setInitialPatch(const Eigen::Affine3d &ground2Mls, double patchRadius);
+    void updateMap(std::shared_ptr<const traversability_generator3d::TravMap3d > travMap);
 
     virtual bool InitializeEnv(const char* sEnvFile);
     virtual bool InitializeMDPCfg(MDPConfig* MDPCfg);
-
-
-    /**Expand the underlying travmap starting from all given positions. */
-    void expandMap(const std::vector<Eigen::Vector3d>& positions);
 
     /**Returns the trajectory of least resistance to leave the obstacle.
      * @param start start position that is inside an obstacle
@@ -142,7 +134,7 @@ public:
      * @return the best trajectory that gets the robot out of the obstacle.
      *         Or an empty trajectory if no way out can be found*/
     std::shared_ptr<trajectory_follower::SubTrajectory> findTrajectoryOutOfObstacle(const Eigen::Vector3d& start, double theta,
-            const Eigen::Affine3d& ground2Body);
+            const Eigen::Affine3d& ground2Body, bool setZToZero);
 
 
      /**
@@ -175,16 +167,13 @@ public:
 
     maps::grid::Vector3d getStatePosition(const int stateID) const;
 
+    traversability_generator3d::TravGenNode* findMatchingTraversabilityPatchAt(const Eigen::Vector3d &pos);
 
     /**returns the motion connection @p fromStateID and @p toStateID.
      * @throw std::runtime_error if no matching motion exists*/
     const Motion& getMotion(const int fromStateID, const int toStateID);
 
-    const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode *> &getTraversabilityMap() const;
-
-    traversability_generator3d::TraversabilityGenerator3d& getTravGen();
-
-    const MLGrid &getMlsMap() const;
+    const std::shared_ptr<const traversability_generator3d::TravMap3d> getTraversabilityMap() const;
 
     std::vector<Motion> getMotions(const std::vector<int> &stateIDPath);
 
@@ -193,7 +182,7 @@ public:
 
     const PreComputedMotions& getAvailableMotions() const;
 
-    /**Clears the state of the environment. Clears everything except the mls map. */
+    /**Clears the state of the environment. */
     void clear();
 
     void setTravConfig(const traversability_generator3d::TraversabilityConfig& cfg);

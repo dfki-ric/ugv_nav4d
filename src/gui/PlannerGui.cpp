@@ -37,7 +37,8 @@ PlannerGui::PlannerGui(const std::string& dumpName): QObject()
     plannerConfig = dump.getPlannerConfig();
     
     planner.reset(new ugv_nav4d::Planner(splineConfig, travConfig, mobilityConfig, plannerConfig));
-    
+    travGen.reset(new traversability_generator3d::TraversabilityGenerator3d(travConfig));
+
     sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(splineConfig);
     splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobilityConfig.minTurningRadius));
     splineViz.updateData(primitives);
@@ -47,17 +48,17 @@ PlannerGui::PlannerGui(const std::string& dumpName): QObject()
 
     startViz.updateData(dump.getStart());
     goalViz.updateData(dump.getGoal());
-
-    planner->updateMap(dump.getMlsMap());
-
+    planner->updateMap(dump.getTravMap());
+    trav3dViz.updateData(*(planner->getTraversabilityMap()));
     inplanningphase = false;
+    usingPlannerDump = true;
 }
 
 
 PlannerGui::PlannerGui(int argc, char** argv): QObject()
 {
+    usingPlannerDump = false;
     setupUI();
-
     setupPlanner(argc, argv);
 }
 
@@ -328,7 +329,7 @@ void PlannerGui::setupPlanner(int argc, char** argv)
 
     travConfig.gridResolution = res;
     travConfig.maxSlope = 0.45; //40.0/180.0 * M_PI;
-    travConfig.maxStepHeight = 0.20; //space below robot
+    travConfig.maxStepHeight = 0.25; //space below robot
     travConfig.robotSizeX = 0.5;
     travConfig.robotSizeY =  0.5;
     travConfig.robotHeight = 0.5; //incl space below body
@@ -347,6 +348,7 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     plannerConfig.numThreads = 4;
 
     planner.reset(new ugv_nav4d::Planner(splineConfig, travConfig, mobilityConfig, plannerConfig));
+    travGen.reset(new traversability_generator3d::TraversabilityGenerator3d(travConfig));
 
     sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(splineConfig);
 
@@ -421,20 +423,21 @@ void PlannerGui::loadMls(const std::string& path)
             mlsMap.translate(offset);
             mlsMap.mergePointCloud(*cloud, base::Transform3d::Identity());
             mlsViz.updateMLSSloped(mlsMap);
-            planner->updateMap(mlsMap);
+
+            std::shared_ptr<maps::grid::MLSMapSloped> mlsPtr = std::make_shared<maps::grid::MLSMapSloped>(mlsMap);
+            travGen->setMLSGrid(mlsPtr);            
         }
         return;
     }
-
-    
-    
     try
     {
         LOG_INFO_S << "Loading MLS";
         boost::archive::binary_iarchive mlsIn(fileIn);
         mlsIn >> mlsMap;
         mlsViz.updateMLSSloped(mlsMap);
-        planner->updateMap(mlsMap);
+
+        std::shared_ptr<maps::grid::MLSMapSloped> mlsPtr = std::make_shared<maps::grid::MLSMapSloped>(mlsMap);
+        travGen->setMLSGrid(mlsPtr);    
         return;
     }
     catch(...) {}
@@ -597,6 +600,15 @@ void PlannerGui::startPlanThread()
 #ifdef ENABLE_DEBUG_DRAWINGS
         V3DD::CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(this->widget);
 #endif
+        if (!usingPlannerDump){
+            std::vector<Eigen::Vector3d> startPositions;
+            startPositions.emplace_back(Eigen::Vector3d(this->start.position.x(),
+                                                        this->start.position.y(),
+                                                        this->start.position.z()));
+
+            travGen->expandAll(startPositions);
+            planner->updateMap(travGen->getTraversabilityMap());
+        }
         this->plan(this->start, this->goal);
 
         // Mark the end of the planning phase after work is done
@@ -615,7 +627,7 @@ void PlannerGui::plannerIsDone()
     trajViz2.updateData(beautifiedPath);
     trajViz2.setLineWidth(8);    
     
-    trav3dViz.updateData((planner->getTraversabilityMap().copyCast<maps::grid::TraversabilityNodeBase *>()));
+    trav3dViz.updateData(*(planner->getTraversabilityMap()));
     
     bar->setMaximum(1);
 }

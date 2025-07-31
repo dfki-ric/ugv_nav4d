@@ -68,11 +68,14 @@ public:
      * @param poses List of poses on the path. There should be one pose for each patch.
      * @param debugObstacleName optional name of the debug drawing that should be used for this path
      */
-    void calculateStatistics(const std::vector<const traversability_generator3d::TravGenNode*> &path, const std::vector<base::Pose2D> &poses, 
-                             const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode *> &trMap, const std::string &debugObstacleName = std::string());
+    void calculateStatistics(const std::vector<const traversability_generator3d::TravGenNode*> &path, 
+                             const std::vector<base::Pose2D> &poses, 
+                             const traversability_generator3d::TravMap3d& trMap, 
+                             const std::string &debugObstacleName = std::string());
 
-    bool isPathFeasible(const std::vector<const traversability_generator3d::TravGenNode*> &path, const std::vector<base::Pose2D> &poses, 
-                             const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode *> &trMap);                             
+    bool isPathFeasible(const std::vector<const traversability_generator3d::TravGenNode*> &path, 
+                        const std::vector<base::Pose2D> &poses, 
+                        const traversability_generator3d::TravMap3d& trMap);                             
     
     const Stats &getRobotStats() const
     {

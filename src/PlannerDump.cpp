@@ -25,12 +25,16 @@ ugv_nav4d::PlannerDump::PlannerDump(const std::string& dumpName)
     goal.setPose(tmp);
     double maxTimed;
     READ(maxTimed);
-
+    
     boost::archive::binary_iarchive ia(input);
-    ia >> mlsMap;
+    ia >> travMap;
 }
 
-ugv_nav4d::PlannerDump::PlannerDump(const ugv_nav4d::Planner& planner, const std::string& filePostfix, const base::Time& maxTimeA, const base::samples::RigidBodyState& startbody2Mls, const base::samples::RigidBodyState& endbody2Mls)
+ugv_nav4d::PlannerDump::PlannerDump(const ugv_nav4d::Planner& planner, 
+                                    const std::string& filePostfix, 
+                                    const base::Time& maxTimeA, 
+                                    const base::samples::RigidBodyState& startbody2Mls, 
+                                    const base::samples::RigidBodyState& endbody2Mls)
 {
     const std::string targetFile = getUnusedFilename(filePostfix);
     LOG_INFO_S << "Dumping planner state to: " << targetFile;
@@ -49,7 +53,7 @@ ugv_nav4d::PlannerDump::PlannerDump(const ugv_nav4d::Planner& planner, const std
     WRITE(maxTimeD);
     
     boost::archive::binary_oarchive oa(output);
-    oa << planner.env->getMlsMap();
+    oa << *(planner.env->getTraversabilityMap());
     output.flush();
     output.close();
 }
