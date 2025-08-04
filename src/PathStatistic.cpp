@@ -65,7 +65,7 @@ ugv_nav4d::PathStatistic::PathStatistic(const traversability_generator3d::Traver
 
 void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const traversability_generator3d::TravGenNode* >& path, 
                                                    const std::vector< base::Pose2D >& poses, 
-                                                   const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode *> &trMap,
+                                                   const traversability_generator3d::TravMap3d& trMap,
                                                    const std::string &debugObstacleName)
 {
     assert(path.size() == poses.size());
@@ -205,7 +205,7 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const trave
 
 bool ugv_nav4d::PathStatistic::isPathFeasible(const std::vector<const traversability_generator3d::TravGenNode* >& path, 
                                                    const std::vector< base::Pose2D >& poses, 
-                                                   const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode *> &trMap)
+                                                   const traversability_generator3d::TravMap3d& trMap)
 {    
     assert(path.size() == poses.size());
  

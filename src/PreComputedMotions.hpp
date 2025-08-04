@@ -57,13 +57,6 @@ public:
      * cell idx is computed from the center of the start cell + pose
     */
     std::vector<PoseWithCell> intermediateStepsTravMap;
-
-    /**the intermediate poses are not discrete.
-     * They are relative to the starting cell.
-     * The Poses start from (0/0), while the 
-     * cell idx is computed from the center of the start cell + pose
-    */
-    std::vector<PoseWithCell> intermediateStepsObstMap;
     
     /**
      * This vector contains a full resolution
@@ -100,10 +93,9 @@ public:
                        const Mobility& mobilityConfig);
     
     void readMotionPrimitives(const sbpl_spline_primitives::SbplSplineMotionPrimitives& primGen,
-                              const Mobility& mobilityConfig,
-                              double obstGridResolution, double travGridResolution);
+                              const Mobility& mobilityConfig, double travGridResolution);
     
-    void computeMotions(double obstGridResolution, double travGridResolution);
+    void computeMotions(double travGridResolution);
     
     void setMotionForTheta(const Motion &motion, const DiscreteTheta &theta);
     

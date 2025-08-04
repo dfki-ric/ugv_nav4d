@@ -8,6 +8,8 @@
 #include <cmath>
 #include <base-logging/Logging.hpp>
 #include "Logger.hpp"
+#include <deque>
+#include <unordered_set>
 
 #ifdef ENABLE_DEBUG_DRAWINGS
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
@@ -30,96 +32,58 @@ Planner::Planner(const sbpl_spline_primitives::SplinePrimitivesConfig& primitive
     setTravConfig(traversabilityConfig);
 }
 
-void Planner::setInitialPatch(const Eigen::Affine3d& body2Mls, double patchRadius)
-{
-    Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
-    ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
-    if (env){
-        env->setInitialPatch(body2Mls * ground2Body , patchRadius);
-    }
-}
-
 void Planner::enablePathStatistics(bool enable){
     if (env){
         env->enablePathStatistics(enable);
     }
 }
 
-void Planner::setTravMapCallback(const std::function< void ()>& callback)
+bool Planner::calculateGoal(Eigen::Vector3d& goal_translation, const double yaw) noexcept
 {
-    travMapCallback = callback;
-}
-
-bool Planner::calculateGoal(const Eigen::Vector3d& start_translation, Eigen::Vector3d& goal_translation, const double yaw) noexcept
-{
-    static constexpr double theta_step = EIGEN_PI / 10.;
-    if(mobility.searchRadius < std::numeric_limits<double>::epsilon()) {
-        double z{0.0};
-        Eigen::Vector3d temp = goal_translation;
-        if (env->getMlsMap().getClosestSurfacePos(temp, z)){
-            temp.z() = z;
-        }
-        return tryGoal(temp, yaw);
+    if (tryGoal(goal_translation, yaw)){
+        return true;
     }
-    else {
-        bool is_invalid = true;
-        const double start_angle = std::atan2(start_translation.y() - goal_translation.y(), start_translation.x() - goal_translation.x());
-        LOG_PLAN("start_angle", start_angle);
-        LOG_PLAN("goal", goal_translation);
 
-        double current_radius = mobility.searchProgressSteps;
-        double theta = start_angle;
-        double theta_pi = 0;
-        int multiplier = 1;
-        Eigen::Vector2d pos(0, 0);
-        while(is_invalid) {
-            LOG_PLAN("translation change", pos.x(), pos.y());
-            Eigen::Vector3d temp = goal_translation;
-            temp.x() += pos.x();
-            temp.y() += pos.y();
-            temp.z() = [&]{
-                double z;
-                if(env->getMlsMap().getClosestSurfacePos(temp, z)) {
-                    return z;
-                }
-                return temp.z();
-            }();
+    traversability_generator3d::TravGenNode* travNode = env->findMatchingTraversabilityPatchAt(goal_translation);
+    if (!travNode){
+        return false;
+    }
 
-            if(tryGoal(temp, yaw)) {
-                goal_translation = temp; // for future use by calling function
+    auto trMap = env->getTraversabilityMap();
+    auto pos1 = travNode->getPosition(*trMap);
+
+    std::deque<maps::grid::TraversabilityNodeBase*> candidates;
+    std::unordered_set<maps::grid::TraversabilityNodeBase *> visited;
+
+    candidates.push_back(travNode);
+    visited.insert(travNode);
+
+    while(!candidates.empty())
+    {
+        auto *node = candidates.front();
+        candidates.pop_front();
+
+        for(auto *n : node->getConnections()){
+            if (visited.count(n)) continue;  // Skip visited
+
+            auto pos2 = n->getPosition(*trMap);
+            if ((pos1 - pos2).norm() > mobility.searchRadius){
+                continue;
+            }
+
+            if (tryGoal(pos2, yaw)){
+                goal_translation = pos2;
+                LOG_INFO_S << "Estimated Goal Position: " << goal_translation.transpose();
                 return true;
             }
 
-
-            // if the circle is completed and still no valid goal is found, increase the radius and try again
-            if(std::abs(theta_pi - EIGEN_PI) < std::numeric_limits<double>::epsilon()) {
-                current_radius += mobility.searchProgressSteps;
-                theta_pi = 0;
-                LOG_PLAN("reset theta", theta_pi);
-
-                // do we have reached our max. search radius?
-                if(current_radius > mobility.searchRadius) {
-                    return false;
-                }
-            }
-            // only add a new value if we are positive, so we can explore on both sides.
-            if(multiplier == 1) {
-                theta_pi += theta_step;
-                theta = std::remainder(start_angle + theta_pi, 2 * EIGEN_PI);
-                multiplier = -1;
-            } else {
-                theta = std::remainder(start_angle - theta_pi, 2 * EIGEN_PI);
-                multiplier = 1;
-            }
-            LOG_PLAN("Calc pos", current_radius, theta);
-            // calculate new position
-            pos.y() = current_radius * std::sin(theta);
-            pos.x() = current_radius * std::cos(theta);
+            candidates.push_back(n);
+            visited.insert(n);
         }
     }
-    return false;
-}
 
+    return false; // Add this to cover all control paths
+}
 
 bool Planner::tryGoal(const Eigen::Vector3d& translation, const double yaw) noexcept
 {
@@ -179,12 +143,6 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     startbody2Mls.setTransform(startGround2Mls);
     endbody2Mls.setTransform(endGround2Mls);
 
-    //TODO maybe use a deque and limit to last 30 starts?
-    previousStartPositions.push_back(startGround2Mls.translation());
-
-    env->expandMap(previousStartPositions);
-    if(travMapCallback)
-        travMapCallback();
     try
     {
         env->setStart(startGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())));
@@ -207,7 +165,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     Eigen::Vector3d start_translation = startGround2Mls.translation();
     Eigen::Vector3d goal_translation = endGround2Mls.translation();
 
-    if(!calculateGoal(startGround2Mls.translation(), goal_translation, base::getYaw(Eigen::Quaterniond(endGround2Mls.linear())))) {
+    if(!calculateGoal(goal_translation, base::getYaw(Eigen::Quaterniond(endGround2Mls.linear())))) {
         if(dumpOnError) {
             PlannerDump dump(*this, "bad_goal", maxTime, startbody2Mls, endbody2Mls);
         }
@@ -286,17 +244,18 @@ std::vector< Motion > Planner::getMotions() const
     return env->getMotions(solutionIds);
 }
 
-const maps::grid::TraversabilityMap3d<traversability_generator3d::TravGenNode*> &Planner::getTraversabilityMap() const
+const std::shared_ptr<const traversability_generator3d::TravMap3d > Planner::getTraversabilityMap() const
 {
     return env->getTraversabilityMap();
 }
 
 std::shared_ptr<SubTrajectory> Planner::findTrajectoryOutOfObstacle(const Eigen::Vector3d& start,
                                                                                 double theta,
-                                                                                const Eigen::Affine3d& ground2Body){
+                                                                                const Eigen::Affine3d& ground2Body,
+                                                                                bool setZToZero){
     if(env){
         try{
-            return env->findTrajectoryOutOfObstacle(start, theta, ground2Body);
+            return env->findTrajectoryOutOfObstacle(start, theta, ground2Body, setZToZero);
         }
         catch (const std::exception& e){
             LOG_ERROR_S << "Caught exception when finding trajectory out of obstacle: " << e.what();
