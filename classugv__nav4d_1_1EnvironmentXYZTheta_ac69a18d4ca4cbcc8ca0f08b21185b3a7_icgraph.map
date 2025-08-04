@@ -1,0 +1,17 @@
+<map id="ugv_nav4d::EnvironmentXYZTheta::findMatchingTraversabilityPatchAt" name="ugv_nav4d::EnvironmentXYZTheta::findMatchingTraversabilityPatchAt">
+<area shape="rect" id="Node000001" title=" " alt="" coords="889,67,1140,107"/>
+<area shape="rect" id="Node000002" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#aef49e881b97f5d3dd26d1a7f7c1c4404" title=" " alt="" coords="300,5,547,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="903,67,841,57,688,42,547,33,547,28,688,37,842,52,903,62"/>
+<area shape="rect" id="Node000005" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a82e339c226fe7029347464a653bda181" title=" " alt="" coords="595,131,841,171"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="908,112,812,133,811,128,907,107"/>
+<area shape="rect" id="Node000006" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a1fb4ee62813a812705c9f77b9d7f9307" title=" " alt="" coords="595,67,841,107"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="875,89,842,89,842,84,875,84"/>
+<area shape="rect" id="Node000003" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#ae01babb4bc4d1980daaef7037f488bd3" title=" " alt="" coords="5,5,252,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="286,28,252,28,252,23,286,23"/>
+<area shape="rect" id="Node000004" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a32b1928d835d0cd4504e8525b7d67427" title=" " alt="" coords="5,69,252,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="318,51,222,72,221,67,317,46"/>
+<area shape="rect" id="Node000007" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="300,69,547,109"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="581,91,547,91,547,86,581,85"/>
+<area shape="poly" id="edge7_Node000007_Node000003" title=" " alt="" coords="317,69,221,48,222,43,318,64"/>
+<area shape="poly" id="edge8_Node000007_Node000004" title=" " alt="" coords="286,92,252,92,252,87,286,87"/>
+</map>

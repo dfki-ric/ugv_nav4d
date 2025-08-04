@@ -1,8 +1,8 @@
 <map id="ugv_nav4d::PathStatistic::Stats::getNumFrontiers" name="ugv_nav4d::PathStatistic::Stats::getNumFrontiers">
 <area shape="rect" id="Node000001" title=" " alt="" coords="889,37,1072,77"/>
-<area shape="rect" id="Node000002" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#ab087eb2361160a03a2c47aebb95cd18d" title=" " alt="" coords="595,5,841,45"/>
+<area shape="rect" id="Node000002" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a82e339c226fe7029347464a653bda181" title=" " alt="" coords="595,5,841,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="875,47,841,43,842,38,876,42"/>
-<area shape="rect" id="Node000003" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a1b9fba31bef6a8c14684fc75768262b8" title=" " alt="" coords="595,69,841,109"/>
+<area shape="rect" id="Node000003" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a1fb4ee62813a812705c9f77b9d7f9307" title=" " alt="" coords="595,69,841,109"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="876,73,842,77,841,72,875,67"/>
 <area shape="rect" id="Node000004" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="300,69,547,109"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="581,92,547,92,547,87,581,87"/>

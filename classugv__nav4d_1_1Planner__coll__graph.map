@@ -1,7 +1,7 @@
 <map id="ugv_nav4d::Planner" name="ugv_nav4d::Planner">
-<area shape="rect" id="Node000001" title=" " alt="" coords="107,433,329,839"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="107,433,329,759"/>
 <area shape="rect" id="Node000002" href="$structugv__nav4d_1_1Mobility.html" title=" " alt="" coords="5,5,212,371"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,370,167,417,162,418,151,372"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,371,173,417,168,418,155,372"/>
 <area shape="rect" id="Node000003" href="$structugv__nav4d_1_1PlannerConfig.html" title=" " alt="" coords="237,115,421,261"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="313,262,275,418,269,417,308,260"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="312,262,269,418,264,417,307,260"/>
 </map>

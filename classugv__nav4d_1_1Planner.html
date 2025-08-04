@@ -46,7 +46,6 @@ $(function() {
   <div class="summary">
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pro-types">Protected Types</a> &#124;
 <a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="#friends">Friends</a> &#124;
 <a href="classugv__nav4d_1_1Planner-members.html">List of all members</a>  </div>
@@ -60,11 +59,11 @@ Collaboration diagram for ugv_nav4d::Planner:</div>
 <div class="dyncontent">
 <div class="center"><img src="classugv__nav4d_1_1Planner__coll__graph.png" border="0" usemap="#augv__nav4d_1_1Planner_coll__map" alt="Collaboration graph"/></div>
 <map name="augv__nav4d_1_1Planner_coll__map" id="augv__nav4d_1_1Planner_coll__map">
-<area shape="rect" title=" " alt="" coords="107,433,329,839"/>
+<area shape="rect" title=" " alt="" coords="107,433,329,759"/>
 <area shape="rect" href="structugv__nav4d_1_1Mobility.html" title=" " alt="" coords="5,5,212,371"/>
-<area shape="poly" title=" " alt="" coords="156,370,167,417,162,418,151,372"/>
+<area shape="poly" title=" " alt="" coords="160,371,173,417,168,418,155,372"/>
 <area shape="rect" href="structugv__nav4d_1_1PlannerConfig.html" title=" " alt="" coords="237,115,421,261"/>
-<area shape="poly" title=" " alt="" coords="313,262,275,418,269,417,308,260"/>
+<area shape="poly" title=" " alt="" coords="312,262,269,418,264,417,307,260"/>
 </map>
 </div>
 <table class="memberdecls">
@@ -86,17 +85,10 @@ Public Types</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a6e6ebefa26b206365484bb8b4705eb6a" id="r_a6e6ebefa26b206365484bb8b4705eb6a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a6e6ebefa26b206365484bb8b4705eb6a">Planner</a> (const sbpl_spline_primitives::SplinePrimitivesConfig &amp;primitiveConfig, const traversability_generator3d::TraversabilityConfig &amp;<a class="el" href="classugv__nav4d_1_1Planner.html#a10019154f546e3fa1597da40ce621a24">traversabilityConfig</a>, const <a class="el" href="structugv__nav4d_1_1Mobility.html">Mobility</a> &amp;<a class="el" href="classugv__nav4d_1_1Planner.html#a0c0d12b2bd50e7faaaeb6b219e03c85f">mobility</a>, const <a class="el" href="structugv__nav4d_1_1PlannerConfig.html">PlannerConfig</a> &amp;<a class="el" href="classugv__nav4d_1_1Planner.html#a6a56c878b051c65a716b8d001ddc7398">plannerConfig</a>)</td></tr>
 <tr class="separator:a6e6ebefa26b206365484bb8b4705eb6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac6cae990c07654ffd70fbb44217ae1ca" id="r_ac6cae990c07654ffd70fbb44217ae1ca"><td class="memTemplParams" colspan="2">template&lt;maps::grid::MLSConfig::update_model SurfacePatch&gt; </td></tr>
-<tr class="memitem:ac6cae990c07654ffd70fbb44217ae1ca"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#ac6cae990c07654ffd70fbb44217ae1ca">updateMap</a> (const maps::grid::MLSMap&lt; SurfacePatch &gt; &amp;mls)</td></tr>
-<tr class="separator:ac6cae990c07654ffd70fbb44217ae1ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a21886a4c77a4b6aa9dba9a81ba8caf56" id="r_a21886a4c77a4b6aa9dba9a81ba8caf56"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a21886a4c77a4b6aa9dba9a81ba8caf56">updateMap</a> (const <a class="el" href="classugv__nav4d_1_1Planner.html#a100d39ec1acbde88dabe4f5bf2b42f1e">MLSBase</a> &amp;mls)</td></tr>
-<tr class="separator:a21886a4c77a4b6aa9dba9a81ba8caf56"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9c71e38f7c2a2df90a324027d4302a44" id="r_a9c71e38f7c2a2df90a324027d4302a44"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a9c71e38f7c2a2df90a324027d4302a44">setInitialPatch</a> (const Eigen::Affine3d &amp;body2Mls, double patchRadius)</td></tr>
-<tr class="separator:a9c71e38f7c2a2df90a324027d4302a44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad12ad75ca2c58e49b80910fedcc82a14" id="r_ad12ad75ca2c58e49b80910fedcc82a14"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#ad12ad75ca2c58e49b80910fedcc82a14">updateMap</a> (const traversability_generator3d::TravMap3d &amp;map)</td></tr>
+<tr class="separator:ad12ad75ca2c58e49b80910fedcc82a14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a13ae94bc58c34af9e6cd82f6c5deb995" id="r_a13ae94bc58c34af9e6cd82f6c5deb995"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a13ae94bc58c34af9e6cd82f6c5deb995">enablePathStatistics</a> (bool enable)</td></tr>
 <tr class="separator:a13ae94bc58c34af9e6cd82f6c5deb995"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8c189dee5e2e2f574d3f78f0db1fd82e" id="r_a8c189dee5e2e2f574d3f78f0db1fd82e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a8c189dee5e2e2f574d3f78f0db1fd82e">setTravMapCallback</a> (const std::function&lt; void()&gt; &amp;callback)</td></tr>
-<tr class="separator:a8c189dee5e2e2f574d3f78f0db1fd82e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a468e437f6fa4c5d12d6debc14b4de164" id="r_a468e437f6fa4c5d12d6debc14b4de164"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classugv__nav4d_1_1Motion.html">Motion</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a468e437f6fa4c5d12d6debc14b4de164">getMotions</a> () const</td></tr>
 <tr class="separator:a468e437f6fa4c5d12d6debc14b4de164"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab4cdd5fa067cadc645e039802e7a7f3d" id="r_ab4cdd5fa067cadc645e039802e7a7f3d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classugv__nav4d_1_1Planner.html#a67f733c96fd5fe78709a25c3ef013635">PLANNING_RESULT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#ab4cdd5fa067cadc645e039802e7a7f3d">plan</a> (const base::Time &amp;maxTime, const base::samples::RigidBodyState &amp;start_pose, const base::samples::RigidBodyState &amp;end_pose, std::vector&lt; trajectory_follower::SubTrajectory &gt; &amp;resultTrajectory2D, std::vector&lt; trajectory_follower::SubTrajectory &gt; &amp;resultTrajectory3D, bool dumpOnError=false, bool dumpOnSuccess=false)</td></tr>
@@ -105,15 +97,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a6811240734bc96e783969bb36d478a55"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ada8f90ee8b6bd27bea660b25865dd6c6" id="r_ada8f90ee8b6bd27bea660b25865dd6c6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#ada8f90ee8b6bd27bea660b25865dd6c6">setPlannerConfig</a> (const <a class="el" href="structugv__nav4d_1_1PlannerConfig.html">PlannerConfig</a> &amp;config)</td></tr>
 <tr class="separator:ada8f90ee8b6bd27bea660b25865dd6c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a232636df072133d9f994f9db125b39d8" id="r_a232636df072133d9f994f9db125b39d8"><td class="memItemLeft" align="right" valign="top">const maps::grid::TraversabilityMap3d&lt; traversability_generator3d::TravGenNode * &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a232636df072133d9f994f9db125b39d8">getTraversabilityMap</a> () const</td></tr>
-<tr class="separator:a232636df072133d9f994f9db125b39d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6c320a80929c4a30446b38b59daf1852" id="r_a6c320a80929c4a30446b38b59daf1852"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; trajectory_follower::SubTrajectory &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a6c320a80929c4a30446b38b59daf1852">findTrajectoryOutOfObstacle</a> (const Eigen::Vector3d &amp;start, double theta, const Eigen::Affine3d &amp;ground2Body)</td></tr>
-<tr class="separator:a6c320a80929c4a30446b38b59daf1852"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-types" name="pro-types"></a>
-Protected Types</h2></td></tr>
-<tr class="memitem:a100d39ec1acbde88dabe4f5bf2b42f1e" id="r_a100d39ec1acbde88dabe4f5bf2b42f1e"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aeac667298c3fd7dfa57e14a249ed697f">EnvironmentXYZTheta::MLGrid</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a100d39ec1acbde88dabe4f5bf2b42f1e">MLSBase</a></td></tr>
-<tr class="separator:a100d39ec1acbde88dabe4f5bf2b42f1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f6df33256b350f0f5bdf6a852156fe1" id="r_a2f6df33256b350f0f5bdf6a852156fe1"><td class="memItemLeft" align="right" valign="top">const std::shared_ptr&lt; const traversability_generator3d::TravMap3d &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a2f6df33256b350f0f5bdf6a852156fe1">getTraversabilityMap</a> () const</td></tr>
+<tr class="separator:a2f6df33256b350f0f5bdf6a852156fe1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a974e83136b05e37fcd95598b788248a9" id="r_a974e83136b05e37fcd95598b788248a9"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; trajectory_follower::SubTrajectory &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a974e83136b05e37fcd95598b788248a9">findTrajectoryOutOfObstacle</a> (const Eigen::Vector3d &amp;start, double theta, const Eigen::Affine3d &amp;ground2Body, bool setZToZero)</td></tr>
+<tr class="separator:a974e83136b05e37fcd95598b788248a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
@@ -131,8 +118,6 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:a6a56c878b051c65a716b8d001ddc7398"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a284fead89d8cf3129b1ace1e41ed8fec" id="r_a284fead89d8cf3129b1ace1e41ed8fec"><td class="memItemLeft" align="right" valign="top">std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a284fead89d8cf3129b1ace1e41ed8fec">solutionIds</a></td></tr>
 <tr class="separator:a284fead89d8cf3129b1ace1e41ed8fec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6df1105bf48bc7ef48f15ab166f564ef" id="r_a6df1105bf48bc7ef48f15ab166f564ef"><td class="memItemLeft" align="right" valign="top">std::function&lt; void()&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a6df1105bf48bc7ef48f15ab166f564ef">travMapCallback</a></td></tr>
-<tr class="separator:a6df1105bf48bc7ef48f15ab166f564ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a40bb794db729a61f97e643936ed3f0e8" id="r_a40bb794db729a61f97e643936ed3f0e8"><td class="memItemLeft" align="right" valign="top">std::vector&lt; Eigen::Vector3d &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a40bb794db729a61f97e643936ed3f0e8">previousStartPositions</a></td></tr>
 <tr class="separator:a40bb794db729a61f97e643936ed3f0e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -141,29 +126,6 @@ Friends</h2></td></tr>
 <tr class="memitem:a164b72d77c23633e8ec256f029d334ef" id="r_a164b72d77c23633e8ec256f029d334ef"><td class="memItemLeft" align="right" valign="top">class&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a164b72d77c23633e8ec256f029d334ef">PlannerDump</a></td></tr>
 <tr class="separator:a164b72d77c23633e8ec256f029d334ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="a100d39ec1acbde88dabe4f5bf2b42f1e" name="a100d39ec1acbde88dabe4f5bf2b42f1e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a100d39ec1acbde88dabe4f5bf2b42f1e">&#9670;&#160;</a></span>MLSBase</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef <a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aeac667298c3fd7dfa57e14a249ed697f">EnvironmentXYZTheta::MLGrid</a> <a class="el" href="classugv__nav4d_1_1Planner.html#a100d39ec1acbde88dabe4f5bf2b42f1e">ugv_nav4d::Planner::MLSBase</a></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <h2 class="groupheader">Member Enumeration Documentation</h2>
 <a id="a67f733c96fd5fe78709a25c3ef013635" name="a67f733c96fd5fe78709a25c3ef013635"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a67f733c96fd5fe78709a25c3ef013635">&#9670;&#160;</a></span>PLANNING_RESULT</h2>
@@ -258,8 +220,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a6c320a80929c4a30446b38b59daf1852" name="a6c320a80929c4a30446b38b59daf1852"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6c320a80929c4a30446b38b59daf1852">&#9670;&#160;</a></span>findTrajectoryOutOfObstacle()</h2>
+<a id="a974e83136b05e37fcd95598b788248a9" name="a974e83136b05e37fcd95598b788248a9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a974e83136b05e37fcd95598b788248a9">&#9670;&#160;</a></span>findTrajectoryOutOfObstacle()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -280,7 +242,13 @@ Here is the call graph for this function:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const Eigen::Affine3d &amp;&#160;</td>
-          <td class="paramname"><em>ground2Body</em>&#160;</td>
+          <td class="paramname"><em>ground2Body</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>setZToZero</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -309,14 +277,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a232636df072133d9f994f9db125b39d8" name="a232636df072133d9f994f9db125b39d8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a232636df072133d9f994f9db125b39d8">&#9670;&#160;</a></span>getTraversabilityMap()</h2>
+<a id="a2f6df33256b350f0f5bdf6a852156fe1" name="a2f6df33256b350f0f5bdf6a852156fe1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f6df33256b350f0f5bdf6a852156fe1">&#9670;&#160;</a></span>getTraversabilityMap()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const maps::grid::TraversabilityMap3d&lt; traversability_generator3d::TravGenNode * &gt; &amp; ugv_nav4d::Planner::getTraversabilityMap </td>
+          <td class="memname">const std::shared_ptr&lt; const traversability_generator3d::TravMap3d &gt; ugv_nav4d::Planner::getTraversabilityMap </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -400,34 +368,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a9c71e38f7c2a2df90a324027d4302a44" name="a9c71e38f7c2a2df90a324027d4302a44"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9c71e38f7c2a2df90a324027d4302a44">&#9670;&#160;</a></span>setInitialPatch()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ugv_nav4d::Planner::setInitialPatch </td>
-          <td>(</td>
-          <td class="paramtype">const Eigen::Affine3d &amp;&#160;</td>
-          <td class="paramname"><em>body2Mls</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>patchRadius</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="ada8f90ee8b6bd27bea660b25865dd6c6" name="ada8f90ee8b6bd27bea660b25865dd6c6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ada8f90ee8b6bd27bea660b25865dd6c6">&#9670;&#160;</a></span>setPlannerConfig()</h2>
 
@@ -474,55 +414,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a8c189dee5e2e2f574d3f78f0db1fd82e" name="a8c189dee5e2e2f574d3f78f0db1fd82e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8c189dee5e2e2f574d3f78f0db1fd82e">&#9670;&#160;</a></span>setTravMapCallback()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ugv_nav4d::Planner::setTravMapCallback </td>
-          <td>(</td>
-          <td class="paramtype">const std::function&lt; void()&gt; &amp;&#160;</td>
-          <td class="paramname"><em>callback</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>This callback is executed, whenever a new traverability map was expanded </p>
-
-</div>
-</div>
-<a id="ac6cae990c07654ffd70fbb44217ae1ca" name="ac6cae990c07654ffd70fbb44217ae1ca"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac6cae990c07654ffd70fbb44217ae1ca">&#9670;&#160;</a></span>updateMap() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;maps::grid::MLSConfig::update_model SurfacePatch&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ugv_nav4d::Planner::updateMap </td>
-          <td>(</td>
-          <td class="paramtype">const maps::grid::MLSMap&lt; SurfacePatch &gt; &amp;&#160;</td>
-          <td class="paramname"><em>mls</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a21886a4c77a4b6aa9dba9a81ba8caf56" name="a21886a4c77a4b6aa9dba9a81ba8caf56"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a21886a4c77a4b6aa9dba9a81ba8caf56">&#9670;&#160;</a></span>updateMap() <span class="overload">[2/2]</span></h2>
+<a id="ad12ad75ca2c58e49b80910fedcc82a14" name="ad12ad75ca2c58e49b80910fedcc82a14"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad12ad75ca2c58e49b80910fedcc82a14">&#9670;&#160;</a></span>updateMap()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -533,8 +426,8 @@ template&lt;maps::grid::MLSConfig::update_model SurfacePatch&gt; </div>
         <tr>
           <td class="memname">void ugv_nav4d::Planner::updateMap </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classugv__nav4d_1_1Planner.html#a100d39ec1acbde88dabe4f5bf2b42f1e">MLSBase</a> &amp;&#160;</td>
-          <td class="paramname"><em>mls</em></td><td>)</td>
+          <td class="paramtype">const traversability_generator3d::TravMap3d &amp;&#160;</td>
+          <td class="paramname"><em>map</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -737,28 +630,6 @@ template&lt;maps::grid::MLSConfig::update_model SurfacePatch&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">traversability_generator3d::TraversabilityConfig ugv_nav4d::Planner::traversabilityConfig</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a6df1105bf48bc7ef48f15ab166f564ef" name="a6df1105bf48bc7ef48f15ab166f564ef"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6df1105bf48bc7ef48f15ab166f564ef">&#9670;&#160;</a></span>travMapCallback</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::function&lt;void ()&gt; ugv_nav4d::Planner::travMapCallback</td>
         </tr>
       </table>
   </td>

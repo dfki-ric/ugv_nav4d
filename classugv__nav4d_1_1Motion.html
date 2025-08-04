@@ -60,9 +60,9 @@ Collaboration diagram for ugv_nav4d::Motion:</div>
 <div class="dyncontent">
 <div class="center"><img src="classugv__nav4d_1_1Motion__coll__graph.png" border="0" usemap="#augv__nav4d_1_1Motion_coll__map" alt="Collaboration graph"/></div>
 <map name="augv__nav4d_1_1Motion_coll__map" id="augv__nav4d_1_1Motion_coll__map">
-<area shape="rect" title=" " alt="" coords="5,308,212,613"/>
-<area shape="rect" href="classDiscreteTheta.html" title=" " alt="" coords="41,5,176,231"/>
-<area shape="poly" title=" " alt="" coords="111,231,111,292,106,292,106,231"/>
+<area shape="rect" title=" " alt="" coords="5,308,209,593"/>
+<area shape="rect" href="classDiscreteTheta.html" title=" " alt="" coords="40,5,175,231"/>
+<area shape="poly" title=" " alt="" coords="110,231,110,292,105,292,105,231"/>
 </map>
 </div>
 <table class="memberdecls">
@@ -99,8 +99,6 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a3f658b8406a16aee02b145ef39fa75a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a39ce69402c492acf9d904e54ea651973" id="r_a39ce69402c492acf9d904e54ea651973"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structugv__nav4d_1_1PoseWithCell.html">PoseWithCell</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Motion.html#a39ce69402c492acf9d904e54ea651973">intermediateStepsTravMap</a></td></tr>
 <tr class="separator:a39ce69402c492acf9d904e54ea651973"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af01a8f4eff7b19abd429ccdc25fc06cb" id="r_af01a8f4eff7b19abd429ccdc25fc06cb"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structugv__nav4d_1_1PoseWithCell.html">PoseWithCell</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Motion.html#af01a8f4eff7b19abd429ccdc25fc06cb">intermediateStepsObstMap</a></td></tr>
-<tr class="separator:af01a8f4eff7b19abd429ccdc25fc06cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7a63f8a48ef51bdf8de89396bd913433" id="r_a7a63f8a48ef51bdf8de89396bd913433"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structugv__nav4d_1_1CellWithPoses.html">CellWithPoses</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Motion.html#a7a63f8a48ef51bdf8de89396bd913433">fullSplineSamples</a></td></tr>
 <tr class="separator:a7a63f8a48ef51bdf8de89396bd913433"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ec6691fa83c62c6e5767cdeef791dfc" id="r_a7ec6691fa83c62c6e5767cdeef791dfc"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Motion.html#a7ec6691fa83c62c6e5767cdeef791dfc">baseCost</a></td></tr>
@@ -328,21 +326,6 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
-</div>
-</div>
-<a id="af01a8f4eff7b19abd429ccdc25fc06cb" name="af01a8f4eff7b19abd429ccdc25fc06cb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af01a8f4eff7b19abd429ccdc25fc06cb">&#9670;&#160;</a></span>intermediateStepsObstMap</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt;<a class="el" href="structugv__nav4d_1_1PoseWithCell.html">PoseWithCell</a>&gt; ugv_nav4d::Motion::intermediateStepsObstMap</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>the intermediate poses are not discrete. They are relative to the starting cell. The Poses start from (0/0), while the cell idx is computed from the center of the start cell + pose </p>
 
 </div>
 </div>

@@ -1,24 +1,27 @@
 <map id="ugv_nav4d::EnvironmentXYZTheta::setStart" name="ugv_nav4d::EnvironmentXYZTheta::setStart">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,247,252,287"/>
-<area shape="rect" id="Node000002" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="300,173,547,213"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,244,328,214,330,219,210,249"/>
-<area shape="rect" id="Node000007" href="$classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="889,262,1076,287"/>
-<area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="252,265,876,271,876,276,252,270"/>
-<area shape="rect" id="Node000009" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#aef49e881b97f5d3dd26d1a7f7c1c4404" title=" " alt="" coords="300,304,547,344"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="233,284,307,299,306,304,232,289"/>
-<area shape="rect" id="Node000003" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a1b9fba31bef6a8c14684fc75768262b8" title=" " alt="" coords="595,141,841,181"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="547,177,581,174,581,179,547,183"/>
-<area shape="rect" id="Node000004" href="$classugv__nav4d_1_1PathStatistic.html#a221bc5459de68c5a22c299ee3e0bea60" title=" " alt="" coords="891,5,1074,45"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="746,139,810,98,888,55,904,48,906,53,891,60,813,102,749,144"/>
-<area shape="rect" id="Node000005" href="$classugv__nav4d_1_1PathStatistic_1_1Stats.html#a08873630b22f5ea72e12c8f18a93767e" title=" " alt="" coords="891,69,1074,109"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="792,139,895,110,896,116,793,144"/>
-<area shape="rect" id="Node000006" href="$classugv__nav4d_1_1PathStatistic_1_1Stats.html#a73ca74d39a12c5c96b01832475c78d9f" title=" " alt="" coords="889,133,1076,173"/>
-<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="841,155,875,154,876,159,842,160"/>
-<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="754,179,816,213,890,247,915,255,914,261,888,252,814,218,752,184"/>
-<area shape="rect" id="Node000008" href="$classugv__nav4d_1_1PathStatistic.html#ab3f90867649113c6448d9c59f5408139" title=" " alt="" coords="891,197,1074,237"/>
-<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="814,179,879,193,877,198,813,184"/>
-<area shape="rect" id="Node000010" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="595,304,841,344"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="547,321,581,321,581,327,547,327"/>
-<area shape="rect" id="Node000011" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="595,368,841,408"/>
-<area shape="poly" id="edge10_Node000009_Node000011" title=" " alt="" coords="517,341,613,362,612,368,516,347"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,255,252,295"/>
+<area shape="rect" id="Node000002" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="300,159,547,199"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="190,252,347,200,349,206,192,257"/>
+<area shape="rect" id="Node000008" href="$classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="921,345,1108,370"/>
+<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="226,292,300,304,466,322,632,336,908,351,908,356,632,341,466,328,300,309,225,297"/>
+<area shape="rect" id="Node000010" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#aef49e881b97f5d3dd26d1a7f7c1c4404" title=" " alt="" coords="300,255,547,295"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="252,272,286,272,286,277,252,277"/>
+<area shape="rect" id="Node000003" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a1fb4ee62813a812705c9f77b9d7f9307" title=" " alt="" coords="595,127,841,167"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="547,163,581,159,581,164,547,168"/>
+<area shape="rect" id="Node000004" href="$classugv__nav4d_1_1PathStatistic.html#ac9e23aabdbd37e06992fc638c05c3d33" title=" " alt="" coords="923,133,1106,173"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="842,147,910,148,909,154,841,152"/>
+<area shape="rect" id="Node000005" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="889,268,1140,308"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="822,165,843,177,860,194,868,213,876,230,891,247,912,260,910,265,888,251,871,233,863,215,855,197,840,181,819,169"/>
+<area shape="rect" id="Node000006" href="$classugv__nav4d_1_1PathStatistic_1_1Stats.html#a08873630b22f5ea72e12c8f18a93767e" title=" " alt="" coords="923,197,1106,237"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="803,164,917,191,916,197,802,169"/>
+<area shape="rect" id="Node000007" href="$classugv__nav4d_1_1PathStatistic_1_1Stats.html#a73ca74d39a12c5c96b01832475c78d9f" title=" " alt="" coords="921,5,1108,45"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="751,124,813,89,888,55,911,47,913,52,890,60,816,94,753,129"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="827,165,843,177,858,194,865,213,868,249,871,284,878,301,891,318,920,337,917,342,888,322,873,304,866,285,863,249,860,214,853,197,839,181,824,169"/>
+<area shape="rect" id="Node000009" href="$classugv__nav4d_1_1PathStatistic.html#ab3f90867649113c6448d9c59f5408139" title=" " alt="" coords="923,69,1106,109"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="822,124,909,107,910,112,823,129"/>
+<area shape="poly" id="edge12_Node000010_Node000005" title=" " alt="" coords="514,292,595,304,718,310,841,304,875,302,876,307,841,309,718,315,594,309,513,297"/>
+<area shape="rect" id="Node000011" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="595,255,841,295"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="547,272,581,272,581,277,547,277"/>
+<area shape="rect" id="Node000012" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="595,191,841,231"/>
+<area shape="poly" id="edge11_Node000010_Node000012" title=" " alt="" coords="516,252,612,231,613,236,517,257"/>
 </map>
