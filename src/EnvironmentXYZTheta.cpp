@@ -124,7 +124,7 @@ EnvironmentXYZTheta::ThetaNode* EnvironmentXYZTheta::createNewStateFromPose(cons
 
     if(!travNode)
     {
-        LOG_ERROR_S << "Error, could not find matching trav node for " << name;
+        LOG_ERROR_S << "createNewStateFromPose: could not find matching trav node for " << name << " at " << pos.transpose() << std::endl;
         return nullptr;
     }
 
@@ -182,7 +182,7 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
     traversability_generator3d::TravGenNode* travNode = findMatchingTraversabilityPatchAt(pos);
     if(!travNode)
     {
-        LOG_ERROR_S << "Error, could not find matching trav node for " << nodeName;
+        LOG_ERROR_S << "obstacleCheck: could not find matching trav node for " << nodeName << " at " << pos.transpose() << std::endl;
         return false;
     }
 

@@ -604,7 +604,7 @@ void PlannerGui::startPlanThread()
             std::vector<Eigen::Vector3d> startPositions;
             startPositions.emplace_back(Eigen::Vector3d(this->start.position.x(),
                                                         this->start.position.y(),
-                                                        this->start.position.z()));
+                                                        this->start.position.z()-travConfig.distToGround));
 
             travGen->expandAll(startPositions);
             planner->updateMap(travGen->getTraversabilityMap());
