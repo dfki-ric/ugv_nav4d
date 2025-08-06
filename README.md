@@ -377,17 +377,17 @@ The planner uses the `TraversabilityMap3D` to find valid successor states during
 
 #### Color Codes
 
-![ColorCodes](doc/figures/color_codes.png)
-
 The visualizer of the `TraversabilityMap3D` uses color coding to indicate the different patch types:
-- **Traversable**: The robot can stand (with its center) on this patch in at least one orientation without hitting an obstacle.
-- **Not Traversable**: There is no way that the robot can stand (with its center) on this patch.
-- **Frontier**: Borders to the end of the map. Should be traversable (I am not 100% sure about this. check the code!)
-- **Unknown**: This is a virtual patch that serves as boundary for algorithms. This patch does not exist in reality. Patches also become unknown if there is not enough support in the MLS to be sure that a patch exists in this location.
-- **Hole**: This is part of the map specification but is not used by ugv_nav4d. It might be used elsewhere but the planner cannot handle it.
-- **Unset**: This is the starting state of a new patch. It should not be visible in a fully explored map. If you see a yellow patch after map expansion is done, you have found a bug in the `TraversabilityMapGenerator` and should investigate.
+- 🟩 **Traversable**: The robot can stand (with its center) on this patch in at least one orientation without hitting an obstacle.
+- 🟥 **Obstacle**: There is no way that the robot can stand (with its center) on this patch.
+- 🟦 **Frontier**: Borders to the end of the map. Should be traversable (I am not 100% sure about this. check the code!)
+- 🟪 **Unknown**: This is a virtual patch that serves as boundary for algorithms. This patch does not exist in reality. Patches also become unknown if there is not enough support in the MLS to be sure that a patch exists in this location.
+- ⬛ **Hole**: This is part of the map specification but is not used by ugv_nav4d. It might be used elsewhere but the planner cannot handle it.
+- 🟨 **Unset**: This is the starting state of a new patch. It should not be visible in a fully explored map. If you see a yellow patch after map expansion is done, you have found a bug in the `TraversabilityMapGenerator` and should investigate.
+- 🟧 **Inflated Obstacle**: An obstacle patch expanded to include a safety buffer around the actual obstacle. These are not traversable.
+- <img width="28" height="28" alt="image" src="https://github.com/user-attachments/assets/775162ac-be4c-4a32-a24b-8ab41f5cea99" style="border: none;" />**Inflated Frontier**: A frontier patch that has been inflated for planning safety margins. Indicates proximity to exploration boundaries.
 
-![TravMap1](doc/figures/trav_map_1.png)
+<img width="1028" height="763" alt="image" src="https://github.com/user-attachments/assets/82e77547-74d2-40ff-9c15-a0d37f7187a1" />
 
 #### Obstacle Checking
 To ensure that the robot can traverse a certain area, obstacle checks have to be done.
