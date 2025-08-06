@@ -8,6 +8,7 @@
 #include "DiscreteTheta.hpp"
 #include "PreComputedMotions.hpp"
 #include <trajectory_follower/SubTrajectory.hpp>
+#include <collide/Collide.hpp>
 
 std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle);
 

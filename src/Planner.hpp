@@ -45,6 +45,8 @@ public:
         const Mobility& mobility, 
         const PlannerConfig& plannerConfig);
       
+    void updateObstacleHulls(const std::vector<std::vector<Eigen::Vector2d>> hulls_in_map);     
+
     void updateMap(const traversability_generator3d::TravMap3d &map)
     {
         std::shared_ptr<traversability_generator3d::TravMap3d> mapPtr = std::make_shared<traversability_generator3d::TravMap3d>(map);

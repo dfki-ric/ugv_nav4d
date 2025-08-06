@@ -85,6 +85,12 @@ bool Planner::calculateGoal(Eigen::Vector3d& goal_translation, const double yaw)
     return false; // Add this to cover all control paths
 }
 
+
+void Planner::updateObstacleHulls(const std::vector<std::vector<Eigen::Vector2d>> hulls_in_map){
+    env->updateObstacleHulls(hulls_in_map);
+}
+
+
 bool Planner::tryGoal(const Eigen::Vector3d& translation, const double yaw) noexcept
 {
     try

@@ -6,6 +6,7 @@ set(DEPS_PKGCONFIG_LIST
     sbpl_spline_primitives
     traversability_generator3d
     trajectory_follower
+    collide
 )
 
 if(ENABLE_DEBUG_DRAWINGS AND vizkit3d_debug_drawings-commands_FOUND)
