@@ -196,7 +196,13 @@ public:
      *  is in collision with obstacles. This mode is useful for highly cluttered and tight spaced environments */
     void enablePathStatistics(bool enable);
 
+    void updateObstacleHulls(const std::vector<std::vector<Eigen::Vector2d>> hulls_in_map);     
+    bool collisionCheckWithHulls(const base::Pose2D& next_pose);
+
 private:
+
+    collide::Collide collision_detection;
+    std::vector<std::vector<Eigen::Vector2d>> hulls;
 
     /** Check if all nodes on the path from @p sourceNode following @p motion are traversable.
      * @return the target node of the motion or nullptr if motion not possible */

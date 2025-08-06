@@ -464,6 +464,27 @@ void EnvironmentXYZTheta::enablePathStatistics(bool enable){
     usePathStatistics = enable;
 }
 
+void EnvironmentXYZTheta::updateObstacleHulls(const std::vector<std::vector<Eigen::Vector2d>> hulls_in_map){
+    hulls = hulls_in_map;
+}
+
+bool EnvironmentXYZTheta::collisionCheckWithHulls(const base::Pose2D& next_pose){
+
+    if (hulls.size() == 0){
+        return false;
+    }
+
+    const std::vector<Eigen::Vector2d> robotBB2D = collision_detection.computeBoundingBox2D(next_pose.position.x(), next_pose.position.y(), next_pose.orientation, travConf.robotSizeX/2, travConf.robotSizeX/2, travConf.robotSizeY/2);                    
+
+    for (unsigned int i{0}; i<hulls.size();++i){      
+        if (collision_detection.polygonsIntersect2D(robotBB2D, hulls.at(i)))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 int EnvironmentXYZTheta::GetStartHeuristic(int stateID)
 {
     const Hash &targetHash(idToHash[stateID]);
@@ -671,6 +692,12 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                     break;
                 }
             }
+
+            if(collisionCheckWithHulls(curPose)){
+                intermediateStepsOk = false;
+                break;
+            }
+
             curIdx = newIndex;
         }
 
