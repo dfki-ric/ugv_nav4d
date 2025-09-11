@@ -214,7 +214,7 @@ GUI Usage &amp; Tests</h4>
 <div class="line">The `searchGrid` is a `TraversabilityMap` but the traversability information is not used (and never set).</div>
 <div class="line">The `TraversabilityMap` was chosen because it enables O(n) (n &lt;= maximum number of layers in the map) lookup of nodes based on their xyz position. The choice was made due to time constraints (the map was there and it worked and there was no time). Semantically the usage of a `TraversabilityMap` to store the `XYZNodes`is wrong and it should be changed (e.g. to a hashmap), but it works and thus was never changed.</div>
 <div class="line"> </div>
-<div class="line">#### The `TraversabilityMap`</div>
+<div class="line">#### The `TraversabilityMap3D`</div>
 <div class="line">In addion to the `searchGrid` the environment has access to a `TraversabilityMap3D` (accessed through the `travGen` attribute). A `TraversabilityMap3D` is generated from a MLS using [traversability_generator3d](https://github.com/dfki-ric/traversability_generator3d) library and it separates the MLS into traversable, non-traversabel and unknown terrain. Addtionally it contains meta data (e.g. slope of the patch, supporting plane, etc.).</div>
 <div class="line"> </div>
 <div class="line">The `TraversabilityMap3D` has to be fully expanded (i.e. generated from the MLS) before planning. In theory it could be expanded on the fly during planning and the code is prepared to do that, however this was never tested and there is a good chance that on-the-fly expansion will trigger bugs (especially if parallelism is enabled).</div>
@@ -233,20 +233,9 @@ GUI Usage &amp; Tests</h4>
 <div class="line">- **Step height check**: A patch is an obstacle if the height between the patch and its neighbors is higher than the maximum step height of the robot. If the robot would stand on this patch, the neighboring patch would be inside the robots body. </div>
 <div class="line">- **Slope check**: A patch is an obstacle if the slope of the patch is above the slope limit.</div>
 <div class="line">- **Map limit check**: A patch is an obstacle if the bounding box of the robot (again just using the smaller side length) leaves the map (maximum possible map, not currently known map).</div>
+<div class="line">- **Height check**: Patches are marked as obstacle if there is a patch above the marked patch and below robot height. I.e. if the robot would stand on this patch, the patch above would be inside the robot. This is a tiny but important difference. It means that, if the robot is on this patch with even a tiny bit of its body, it would touch an obstacle.</div>
 <div class="line"> </div>
-<div class="line">I.e. this step marks patches in the `TraversabilityMap3D` as obstacle if the robot would touch an obstacle when standing (centered) on this patch, or when the slope is too steep.</div>
-<div class="line"> </div>
-<div class="line">##### 2. The `ObstacleMap`</div>
-<div class="line">The `ObstacleMap` is a `TraversabilityMap3D` and is created by the `ObstacleMapGenerator`.</div>
-<div class="line">The generator shares a lot of code with the `TraversabilityMapGenerator`. It differs only in how obstacle checks are done, i.e. what patches are marked as obstacles.</div>
-<div class="line"> </div>
-<div class="line">Patches are marked as obstacle if there is a patch above the marked patch and below robot height. I.e. if the robot would stand on this patch, the patch above would be inside the robot.</div>
-<div class="line">This is a tiny but important difference. It means that, if the robot is on this patch with even a tiny bit of its body, it would touch an obstacle.</div>
-<div class="line"> </div>
-<div class="line">Using the obstacle map, the 3D collision test (that is necessary during planning) is reduced to a 2D oriented bounding box test. This is the only reason for the existence of the obstacle map. It reduces the complexity of the 3D collison check to 2D. Basically the height check is pre-computed for each patch and stored in the obstacle map. </div>
-<div class="line"> </div>
-<div class="line">The `ObstacleMap` is used during planning to check if the robot would hit an obstacle when moving to a certain state. </div>
-<div class="line"> </div>
+<div class="line">This step marks patches in the `TraversabilityMap3D` as obstacle if the robot would touch an obstacle when standing (centered) on this patch, or when the slope is too steep.</div>
 <div class="line"> </div>
 <div class="line">#### Heuristic</div>
 <div class="line">ARA* is a real-timeish version of A*. Thus it needs a heuristic.</div>
