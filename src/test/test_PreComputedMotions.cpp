@@ -34,8 +34,16 @@ BOOST_AUTO_TEST_CASE(generate_motions) {
     mobilityConfig.minTurningRadius = 1.0;
     
     PreComputedMotions* motions = new PreComputedMotions(splinePrimitiveConfig,mobilityConfig);
-    motions->computeMotions(splinePrimitiveConfig.gridSize, splinePrimitiveConfig.gridSize);
+    motions->computeMotions(splinePrimitiveConfig.gridSize);
     delete motions;
+}
+
+inline double angleDiff(double a, double b)
+{
+    double d = std::fmod(a - b + M_PI, 2.0 * M_PI);
+    if (d < 0)
+        d += 2.0 * M_PI;
+    return d - M_PI;
 }
 
 BOOST_AUTO_TEST_CASE(check_motions) {
@@ -45,7 +53,7 @@ BOOST_AUTO_TEST_CASE(check_motions) {
     mobilityConfig.minTurningRadius = 1.0;
     
     PreComputedMotions* motions = new PreComputedMotions(splinePrimitiveConfig,mobilityConfig);
-    motions->computeMotions(splinePrimitiveConfig.gridSize, splinePrimitiveConfig.gridSize);
+    motions->computeMotions(splinePrimitiveConfig.gridSize);
 
     //We generate primitives for 16 start angles.
     for (int i = 1; i <= 16; ++i) {
@@ -61,17 +69,14 @@ BOOST_AUTO_TEST_CASE(check_motions) {
                 case Motion::MOV_FORWARD:
                     BOOST_CHECK_GT(motion.fullSplineSamples.size(), 0);
                     BOOST_CHECK_GT(motion.intermediateStepsTravMap.size(), 0);
-                    BOOST_CHECK_GT(motion.intermediateStepsObstMap.size(), 0);
                     break;
                 case Motion::MOV_BACKWARD:
                     BOOST_CHECK_GT(motion.fullSplineSamples.size(), 0);
                     BOOST_CHECK_GT(motion.intermediateStepsTravMap.size(), 0);
-                    BOOST_CHECK_GT(motion.intermediateStepsObstMap.size(), 0);
                     break;
                 case Motion::MOV_LATERAL:
                     BOOST_CHECK_GT(motion.fullSplineSamples.size(), 0);
                     BOOST_CHECK_GT(motion.intermediateStepsTravMap.size(), 0);
-                    BOOST_CHECK_GT(motion.intermediateStepsObstMap.size(), 0);
                     BOOST_CHECK_EQUAL(motion.startTheta.getRadian(), 
                                       motion.endTheta.getRadian());
                     break;
@@ -98,29 +103,27 @@ BOOST_AUTO_TEST_CASE(check_motions) {
                 base::Angle motionEndAngle = base::Angle::fromRad(motion.endTheta.getRadian());
 
                 if (motion.type == Motion::MOV_FORWARD){
-                    BOOST_CHECK_CLOSE_FRACTION(splineStartAngle.getRad(), motionStartAngle.getRad(), 0.01);   
-                    BOOST_CHECK_CLOSE_FRACTION(splineEndAngle.getRad(), motionEndAngle.getRad(), 0.01); 
+                    BOOST_CHECK_SMALL(angleDiff(splineStartAngle.getRad(), motionStartAngle.getRad()), 0.01);
+                    BOOST_CHECK_SMALL(angleDiff(splineEndAngle.getRad(), motionEndAngle.getRad()), 0.01);
                 }
 
                 //Backward motions have a 180 degree angle diff between spline and motion
                 else if (motion.type == Motion::MOV_BACKWARD){
-                    BOOST_CHECK_CLOSE_FRACTION(std::abs((splineStartAngle - motionStartAngle).getRad()), 3.142, 0.01);   
-                    BOOST_CHECK_CLOSE_FRACTION(std::abs((splineEndAngle - motionEndAngle).getRad()), 3.142, 0.01);  
+                    BOOST_CHECK_SMALL(std::abs(angleDiff(splineStartAngle.getRad(), motionStartAngle.getRad())) - M_PI, 0.01);
+                    BOOST_CHECK_SMALL(std::abs(angleDiff(splineEndAngle.getRad(), motionEndAngle.getRad())) - M_PI, 0.01); 
                 }
 
                 //Lateral motions have a 90 degree angle diff between spline and motion (robot maintains heading)
                 else if (motion.type == Motion::MOV_LATERAL){
-                    BOOST_CHECK_CLOSE_FRACTION(std::abs((splineStartAngle - motionStartAngle).getRad()), 1.57, 0.01);   
-                    BOOST_CHECK_CLOSE_FRACTION(std::abs((splineEndAngle - motionEndAngle).getRad()), 1.57, 0.01);             
+                    BOOST_CHECK_SMALL(std::abs(angleDiff(splineStartAngle.getRad(), motionStartAngle.getRad())) - M_PI_2, 0.01);
+                    BOOST_CHECK_SMALL(std::abs(angleDiff(splineEndAngle.getRad(), motionEndAngle.getRad())) - M_PI_2, 0.01);         
                 }
 
                 const base::Pose2D& splineFinalPosition = motion.fullSplineSamples.back().poses.back();
                 const base::Pose2D& travMapFinalPosition = motion.intermediateStepsTravMap.back().pose;
-                const base::Pose2D& obstMapFinalPosition = motion.intermediateStepsObstMap.back().pose;
 
                 //Check if end position of full spline and sampled spline are same
                 BOOST_REQUIRE(splineFinalPosition.position.isApprox(travMapFinalPosition.position, 1e-6));
-                BOOST_REQUIRE(splineFinalPosition.position.isApprox(obstMapFinalPosition.position, 1e-6));
             }
         }    
     }
@@ -134,7 +137,7 @@ BOOST_AUTO_TEST_CASE(calculate_cost) {
     Mobility mobilityConfig;
 
     PreComputedMotions* motions = new PreComputedMotions(splinePrimitiveConfig,mobilityConfig);
-    motions->computeMotions(splinePrimitiveConfig.gridSize, splinePrimitiveConfig.gridSize);
+    motions->computeMotions(splinePrimitiveConfig.gridSize);
 
     //Start angle 0 degrees (First set of primitives from 16 sets)
     DiscreteTheta theta(1,16);

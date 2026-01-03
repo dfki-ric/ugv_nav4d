@@ -2,7 +2,10 @@
 #include <boost/test/included/unit_test.hpp>
 
 #include "ugv_nav4d/Planner.hpp"
+#include "traversability_generator3d/TraversabilityGenerator3d.hpp"
 #include <base/Angle.hpp>
+
+#include <memory>
 
 using namespace ugv_nav4d;
 
@@ -13,7 +16,8 @@ public:
     std::string getResult(const Planner::PLANNING_RESULT& result);
 
     Planner* planner;
-    maps::grid::MLSMapSloped* mlsMap;
+    traversability_generator3d::TraversabilityGenerator3d* travGen;
+    std::shared_ptr<maps::grid::MLSMapSloped> mlsMap;
     PlannerConfig plannerConfig;
     Mobility mobility;
     sbpl_spline_primitives::SplinePrimitivesConfig splinePrimitiveConfig;
@@ -74,7 +78,7 @@ PlannerTest::PlannerTest() {
     mls_config.gapSize = 0.1;
     mls_config.updateModel = maps::grid::MLSConfig::SLOPE;
     
-    mlsMap = new maps::grid::MLSMapSloped(numCells, res, mls_config);
+    mlsMap = std::make_shared<maps::grid::MLSMapSloped>(maps::grid::MLSMapSloped(numCells, res, mls_config));
 
     /** Translate the local frame (offset) **/
     mlsMap->getLocalFrame().translation() << 0.5*mlsMap->getSize(), 0;
@@ -93,7 +97,6 @@ PlannerTest::PlannerTest() {
 
 PlannerTest::~PlannerTest() {
     delete planner;
-    delete mlsMap;
 }
 
 std::string PlannerTest::getResult(const Planner::PLANNING_RESULT& result) {
@@ -118,7 +121,15 @@ BOOST_AUTO_TEST_CASE(check_planner_init_success) {
 BOOST_AUTO_TEST_CASE(check_planner_goal_invalid) {
     planner = new Planner(splinePrimitiveConfig, traversabilityConfig, mobility, plannerConfig);
     BOOST_REQUIRE(planner != nullptr);
-    planner->updateMap(*mlsMap);
+
+    travGen = new traversability_generator3d::TraversabilityGenerator3d(traversabilityConfig);
+    travGen->setMLSGrid(mlsMap);       
+
+    std::vector<Eigen::Vector3d> startPositions;
+    startPositions.emplace_back(Eigen::Vector3d(0,0,0));
+    travGen->expandAll(startPositions);
+    auto travMap = travGen->getTraversabilityMap();
+    planner->updateMap(travMap);
 
     base::samples::RigidBodyState startState;
     startState.position.x() = 0;
@@ -143,7 +154,15 @@ BOOST_AUTO_TEST_CASE(check_planner_goal_invalid) {
 BOOST_AUTO_TEST_CASE(check_planner_start_invalid) {
     planner = new Planner(splinePrimitiveConfig, traversabilityConfig, mobility, plannerConfig);
     BOOST_REQUIRE(planner != nullptr);
-    planner->updateMap(*mlsMap);
+
+    travGen = new traversability_generator3d::TraversabilityGenerator3d(traversabilityConfig);
+    travGen->setMLSGrid(mlsMap);       
+
+    std::vector<Eigen::Vector3d> startPositions;
+    startPositions.emplace_back(Eigen::Vector3d(0,0,0));
+    travGen->expandAll(startPositions);
+    auto travMap = travGen->getTraversabilityMap();
+    planner->updateMap(travMap);
 
     base::samples::RigidBodyState startState;
     startState.position.x() = 40.0;
@@ -168,7 +187,15 @@ BOOST_AUTO_TEST_CASE(check_planner_start_invalid) {
 BOOST_AUTO_TEST_CASE(check_planner_success) {
     planner = new Planner(splinePrimitiveConfig, traversabilityConfig, mobility, plannerConfig);
     BOOST_REQUIRE(planner != nullptr);
-    planner->updateMap(*mlsMap);
+    
+    travGen = new traversability_generator3d::TraversabilityGenerator3d(traversabilityConfig);
+    travGen->setMLSGrid(mlsMap);       
+
+    std::vector<Eigen::Vector3d> startPositions;
+    startPositions.emplace_back(Eigen::Vector3d(0,0,0));
+    travGen->expandAll(startPositions);
+    auto travMap = travGen->getTraversabilityMap();
+    planner->updateMap(travMap);
 
     base::samples::RigidBodyState startState;
     startState.position.x() = 2.3;
