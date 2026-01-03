@@ -46,29 +46,28 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#define-members">Macros</a> &#124;
-<a href="#func-members">Functions</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">test_EnvironmentXYZTheta.cpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;boost/test/included/unit_test.hpp&gt;</code><br />
-<code>#include &lt;boost/archive/binary_oarchive.hpp&gt;</code><br />
-<code>#include &lt;boost/archive/binary_iarchive.hpp&gt;</code><br />
 <code>#include &quot;ugv_nav4d/EnvironmentXYZTheta.hpp&quot;</code><br />
+<code>#include &quot;traversability_generator3d/TraversabilityGenerator3d.hpp&quot;</code><br />
+<code>#include &lt;memory&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for test_EnvironmentXYZTheta.cpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="test__EnvironmentXYZTheta_8cpp__incl.png" border="0" usemap="#asrc_2test_2test__EnvironmentXYZTheta_8cpp" alt=""/></div>
 <map name="asrc_2test_2test__EnvironmentXYZTheta_8cpp" id="asrc_2test_2test__EnvironmentXYZTheta_8cpp">
-<area shape="rect" title=" " alt="" coords="248,5,437,45"/>
+<area shape="rect" title=" " alt="" coords="352,5,541,45"/>
 <area shape="rect" title=" " alt="" coords="5,93,152,133"/>
-<area shape="poly" title=" " alt="" coords="286,48,150,92,148,87,284,43"/>
-<area shape="rect" title=" " alt="" coords="176,93,331,133"/>
-<area shape="poly" title=" " alt="" coords="325,48,285,86,281,82,321,44"/>
-<area shape="rect" title=" " alt="" coords="355,93,509,133"/>
-<area shape="poly" title=" " alt="" coords="364,44,404,82,400,86,361,48"/>
-<area shape="rect" title=" " alt="" coords="534,101,805,126"/>
-<area shape="poly" title=" " alt="" coords="415,43,614,95,612,100,414,48"/>
+<area shape="poly" title=" " alt="" coords="367,48,166,94,165,89,365,43"/>
+<area shape="rect" title=" " alt="" coords="177,101,447,126"/>
+<area shape="poly" title=" " alt="" coords="418,48,343,95,340,91,415,43"/>
+<area shape="rect" title=" " alt="" coords="471,93,694,133"/>
+<area shape="poly" title=" " alt="" coords="478,43,543,84,540,88,475,48"/>
+<area shape="rect" title=" " alt="" coords="717,101,795,126"/>
+<area shape="poly" title=" " alt="" coords="530,43,707,91,715,93,714,98,706,96,529,48"/>
 </map>
 </div>
 </div><table class="memberdecls">
@@ -84,23 +83,32 @@ Macros</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:adbc90e4981e48712fdaa9722aadca2cf" id="r_adbc90e4981e48712fdaa9722aadca2cf"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#adbc90e4981e48712fdaa9722aadca2cf">BOOST_FIXTURE_TEST_CASE</a> (travmap_resolution_not_equal_to_mls_resolution, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
-<tr class="separator:adbc90e4981e48712fdaa9722aadca2cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4b1429666f6b0825ff29ba88c8f2fadb" id="r_a4b1429666f6b0825ff29ba88c8f2fadb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#a4b1429666f6b0825ff29ba88c8f2fadb">BOOST_FIXTURE_TEST_CASE</a> (travmap_resolution_equal_to_mls_resolution, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
-<tr class="separator:a4b1429666f6b0825ff29ba88c8f2fadb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7c294ae491b54c50008c998d6f82cab6" id="r_a7c294ae491b54c50008c998d6f82cab6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#a7c294ae491b54c50008c998d6f82cab6">BOOST_FIXTURE_TEST_CASE</a> (check_travmap, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
-<tr class="separator:a7c294ae491b54c50008c998d6f82cab6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a561fd297fcebc7513aceec1499c5a2d5" id="r_a561fd297fcebc7513aceec1499c5a2d5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#a561fd297fcebc7513aceec1499c5a2d5">BOOST_FIXTURE_TEST_CASE</a> (check_stepheight, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
-<tr class="separator:a561fd297fcebc7513aceec1499c5a2d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3a4fb93e8ca959bc903fb4e72b8fb220" id="r_a3a4fb93e8ca959bc903fb4e72b8fb220"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#a3a4fb93e8ca959bc903fb4e72b8fb220">BOOST_FIXTURE_TEST_CASE</a> (set_start_and_goal, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
 <tr class="separator:a3a4fb93e8ca959bc903fb4e72b8fb220"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:a3815504f9076745f32efe4a276a63f3d" id="r_a3815504f9076745f32efe4a276a63f3d"><td class="memItemLeft" align="right" valign="top">std::vector&lt; Eigen::Vector3d &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#a3815504f9076745f32efe4a276a63f3d">startPositions</a></td></tr>
-<tr class="separator:a3815504f9076745f32efe4a276a63f3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab02a8508ab97ab8fca2dad34866e323a" id="r_ab02a8508ab97ab8fca2dad34866e323a"><td class="memItemLeft" align="right" valign="top">std::vector&lt; Eigen::Vector3d &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#ab02a8508ab97ab8fca2dad34866e323a">goalPositions</a></td></tr>
-<tr class="separator:ab02a8508ab97ab8fca2dad34866e323a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69eddb95e7d153abbdaca3782fa2ae2f" id="r_a69eddb95e7d153abbdaca3782fa2ae2f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#a69eddb95e7d153abbdaca3782fa2ae2f">BOOST_FIXTURE_TEST_CASE</a> (goal_outside_map_throws, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
+<tr class="separator:a69eddb95e7d153abbdaca3782fa2ae2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e0804c2c3664909548cfb6e587b1ac6" id="r_a4e0804c2c3664909548cfb6e587b1ac6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#a4e0804c2c3664909548cfb6e587b1ac6">BOOST_FIXTURE_TEST_CASE</a> (goal_heuristic_is_finite, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
+<tr class="separator:a4e0804c2c3664909548cfb6e587b1ac6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59a5868a385aa32337c31cfa2b9fb5b4" id="r_a59a5868a385aa32337c31cfa2b9fb5b4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#a59a5868a385aa32337c31cfa2b9fb5b4">BOOST_FIXTURE_TEST_CASE</a> (successors_are_generated, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
+<tr class="separator:a59a5868a385aa32337c31cfa2b9fb5b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8ab6df217a51fe68f5dadd8b1d7233d7" id="r_a8ab6df217a51fe68f5dadd8b1d7233d7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#a8ab6df217a51fe68f5dadd8b1d7233d7">BOOST_FIXTURE_TEST_CASE</a> (motion_extraction_valid, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
+<tr class="separator:a8ab6df217a51fe68f5dadd8b1d7233d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c5c5c4ec029587c4d1ac27a467be061" id="r_a0c5c5c4ec029587c4d1ac27a467be061"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#a0c5c5c4ec029587c4d1ac27a467be061">BOOST_FIXTURE_TEST_CASE</a> (state_space_grows, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
+<tr class="separator:a0c5c5c4ec029587c4d1ac27a467be061"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a352bee7076a5de2565bd3b387e092c3f" id="r_a352bee7076a5de2565bd3b387e092c3f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#a352bee7076a5de2565bd3b387e092c3f">BOOST_FIXTURE_TEST_CASE</a> (goal_before_start_throws, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
+<tr class="separator:a352bee7076a5de2565bd3b387e092c3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac8b2e8e274e1db0e32bbf4598f09635d" id="r_ac8b2e8e274e1db0e32bbf4598f09635d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#ac8b2e8e274e1db0e32bbf4598f09635d">BOOST_FIXTURE_TEST_CASE</a> (theta_discretization, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
+<tr class="separator:ac8b2e8e274e1db0e32bbf4598f09635d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0cf9cb94c109437a6fad97325d9635f7" id="r_a0cf9cb94c109437a6fad97325d9635f7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#a0cf9cb94c109437a6fad97325d9635f7">BOOST_FIXTURE_TEST_CASE</a> (motion_cost_positive, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
+<tr class="separator:a0cf9cb94c109437a6fad97325d9635f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9a6de3a305d668c43b90845907a5c82" id="r_aa9a6de3a305d668c43b90845907a5c82"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#aa9a6de3a305d668c43b90845907a5c82">BOOST_FIXTURE_TEST_CASE</a> (state_position_matches_map, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
+<tr class="separator:aa9a6de3a305d668c43b90845907a5c82"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8799a43f3f9329a4a773924e5025b9da" id="r_a8799a43f3f9329a4a773924e5025b9da"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#a8799a43f3f9329a4a773924e5025b9da">BOOST_FIXTURE_TEST_CASE</a> (trajectory_generation, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
+<tr class="separator:a8799a43f3f9329a4a773924e5025b9da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add1ec2f138bc843c8137fdfaccf0b3ee" id="r_add1ec2f138bc843c8137fdfaccf0b3ee"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#add1ec2f138bc843c8137fdfaccf0b3ee">BOOST_FIXTURE_TEST_CASE</a> (successors_generated, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
+<tr class="separator:add1ec2f138bc843c8137fdfaccf0b3ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a04b2749fd3b2a3e5347bfe2fe9e08734" id="r_a04b2749fd3b2a3e5347bfe2fe9e08734"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__EnvironmentXYZTheta_8cpp.html#a04b2749fd3b2a3e5347bfe2fe9e08734">BOOST_FIXTURE_TEST_CASE</a> (successor_costs_positive, <a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>)</td></tr>
+<tr class="separator:a04b2749fd3b2a3e5347bfe2fe9e08734"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a6b2a3852db8bb19ab6909bac01859985" name="a6b2a3852db8bb19ab6909bac01859985"></a>
@@ -118,8 +126,8 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a561fd297fcebc7513aceec1499c5a2d5" name="a561fd297fcebc7513aceec1499c5a2d5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a561fd297fcebc7513aceec1499c5a2d5">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[1/5]</span></h2>
+<a id="a352bee7076a5de2565bd3b387e092c3f" name="a352bee7076a5de2565bd3b387e092c3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a352bee7076a5de2565bd3b387e092c3f">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[1/13]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -127,7 +135,7 @@ Variables</h2></td></tr>
         <tr>
           <td class="memname">BOOST_FIXTURE_TEST_CASE </td>
           <td>(</td>
-          <td class="paramtype">check_stepheight&#160;</td>
+          <td class="paramtype">goal_before_start_throws&#160;</td>
           <td class="paramname">, </td>
         </tr>
         <tr>
@@ -143,12 +151,45 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Translate the local frame (offset)</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="test__EnvironmentXYZTheta_8cpp_a352bee7076a5de2565bd3b387e092c3f_cgraph.png" border="0" usemap="#atest__EnvironmentXYZTheta_8cpp_a352bee7076a5de2565bd3b387e092c3f_cgraph" alt=""/></div>
+<map name="atest__EnvironmentXYZTheta_8cpp_a352bee7076a5de2565bd3b387e092c3f_cgraph" id="atest__EnvironmentXYZTheta_8cpp_a352bee7076a5de2565bd3b387e092c3f_cgraph">
+<area shape="rect" title=" " alt="" coords="5,262,216,287"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae01babb4bc4d1980daaef7037f488bd3" title=" " alt="" coords="264,255,511,295"/>
+<area shape="poly" title=" " alt="" coords="216,272,250,272,250,277,216,277"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="559,159,805,199"/>
+<area shape="poly" title=" " alt="" coords="449,252,606,200,608,206,450,257"/>
+<area shape="rect" href="classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="1180,345,1367,370"/>
+<area shape="poly" title=" " alt="" coords="485,292,559,304,725,322,891,336,1166,351,1166,356,891,341,724,328,558,309,484,297"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aef49e881b97f5d3dd26d1a7f7c1c4404" title=" " alt="" coords="559,255,805,295"/>
+<area shape="poly" title=" " alt="" coords="511,272,545,272,545,277,511,277"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1fb4ee62813a812705c9f77b9d7f9307" title=" " alt="" coords="853,127,1100,167"/>
+<area shape="poly" title=" " alt="" coords="805,163,840,159,840,164,806,168"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ac9e23aabdbd37e06992fc638c05c3d33" title=" " alt="" coords="1182,133,1365,173"/>
+<area shape="poly" title=" " alt="" coords="1100,147,1168,148,1168,154,1100,152"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="1148,268,1399,308"/>
+<area shape="poly" title=" " alt="" coords="1080,165,1102,177,1119,194,1127,213,1134,230,1150,247,1171,260,1168,265,1146,251,1130,233,1122,215,1114,197,1098,181,1078,169"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a08873630b22f5ea72e12c8f18a93767e" title=" " alt="" coords="1182,197,1365,237"/>
+<area shape="poly" title=" " alt="" coords="1062,164,1176,191,1174,197,1061,169"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a73ca74d39a12c5c96b01832475c78d9f" title=" " alt="" coords="1180,5,1367,45"/>
+<area shape="poly" title=" " alt="" coords="1009,124,1072,89,1147,55,1170,47,1172,52,1149,60,1074,94,1012,129"/>
+<area shape="poly" title=" " alt="" coords="1086,165,1102,177,1116,194,1124,213,1127,249,1130,284,1137,301,1150,318,1179,337,1176,342,1146,322,1132,304,1125,285,1122,249,1119,214,1112,197,1098,181,1083,169"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ab3f90867649113c6448d9c59f5408139" title=" " alt="" coords="1182,69,1365,109"/>
+<area shape="poly" title=" " alt="" coords="1080,124,1168,107,1169,112,1081,129"/>
+<area shape="poly" title=" " alt="" coords="773,292,854,304,977,310,1100,304,1134,302,1134,307,1100,309,977,315,853,309,772,297"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="853,255,1100,295"/>
+<area shape="poly" title=" " alt="" coords="805,272,840,272,840,277,805,277"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="853,191,1100,231"/>
+<area shape="poly" title=" " alt="" coords="774,252,870,231,871,236,775,257"/>
+</map>
+</div>
 
 </div>
 </div>
-<a id="a7c294ae491b54c50008c998d6f82cab6" name="a7c294ae491b54c50008c998d6f82cab6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7c294ae491b54c50008c998d6f82cab6">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[2/5]</span></h2>
+<a id="a4e0804c2c3664909548cfb6e587b1ac6" name="a4e0804c2c3664909548cfb6e587b1ac6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e0804c2c3664909548cfb6e587b1ac6">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[2/13]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -156,7 +197,7 @@ Variables</h2></td></tr>
         <tr>
           <td class="memname">BOOST_FIXTURE_TEST_CASE </td>
           <td>(</td>
-          <td class="paramtype">check_travmap&#160;</td>
+          <td class="paramtype">goal_heuristic_is_finite&#160;</td>
           <td class="paramname">, </td>
         </tr>
         <tr>
@@ -172,12 +213,265 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Translate the local frame (offset)</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="test__EnvironmentXYZTheta_8cpp_a4e0804c2c3664909548cfb6e587b1ac6_cgraph.png" border="0" usemap="#atest__EnvironmentXYZTheta_8cpp_a4e0804c2c3664909548cfb6e587b1ac6_cgraph" alt=""/></div>
+<map name="atest__EnvironmentXYZTheta_8cpp_a4e0804c2c3664909548cfb6e587b1ac6_cgraph" id="atest__EnvironmentXYZTheta_8cpp_a4e0804c2c3664909548cfb6e587b1ac6_cgraph">
+<area shape="rect" title=" " alt="" coords="5,125,216,151"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ac300f19b6d70d26a25ccec530a7d1dec" title="heuristic estimate from state with stateID to goal state" alt="" coords="264,17,511,57"/>
+<area shape="poly" title=" " alt="" coords="146,123,318,59,320,64,148,128"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae01babb4bc4d1980daaef7037f488bd3" title=" " alt="" coords="264,118,511,158"/>
+<area shape="poly" title=" " alt="" coords="216,135,250,135,250,141,216,141"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a32b1928d835d0cd4504e8525b7d67427" title=" " alt="" coords="264,182,511,222"/>
+<area shape="poly" title=" " alt="" coords="167,148,287,176,286,181,166,153"/>
+<area shape="rect" href="classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="1180,68,1367,93"/>
+<area shape="poly" title=" " alt="" coords="507,14,558,9,682,3,806,9,912,19,1017,33,1195,63,1194,68,1016,39,911,24,805,14,682,8,559,14,508,19"/>
+<area shape="rect" href="classDiscreteTheta.html#adee78f133a8dee7d09233b25de058998" title=" " alt="" coords="582,24,782,49"/>
+<area shape="poly" title=" " alt="" coords="511,34,568,34,568,39,511,39"/>
+<area shape="poly" title=" " alt="" coords="511,116,558,110,724,97,890,88,1166,79,1166,85,891,93,725,102,559,115,511,121"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="559,125,805,165"/>
+<area shape="poly" title=" " alt="" coords="511,138,545,139,545,144,511,144"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aef49e881b97f5d3dd26d1a7f7c1c4404" title=" " alt="" coords="559,297,805,337"/>
+<area shape="poly" title=" " alt="" coords="484,156,512,168,554,194,594,225,656,284,652,288,590,229,551,198,509,172,482,161"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1fb4ee62813a812705c9f77b9d7f9307" title=" " alt="" coords="853,239,1100,279"/>
+<area shape="poly" title=" " alt="" coords="736,162,912,232,911,237,734,167"/>
+<area shape="poly" title=" " alt="" coords="1070,237,1098,219,1110,205,1116,191,1121,162,1126,133,1133,118,1146,104,1166,92,1169,96,1150,108,1138,121,1131,134,1126,163,1121,193,1114,208,1102,223,1073,241"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ac9e23aabdbd37e06992fc638c05c3d33" title=" " alt="" coords="1182,118,1365,158"/>
+<area shape="poly" title=" " alt="" coords="1060,237,1099,219,1113,206,1122,194,1131,180,1147,168,1168,157,1170,162,1149,172,1135,184,1126,197,1117,210,1101,223,1062,242"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="1148,374,1399,414"/>
+<area shape="poly" title=" " alt="" coords="1066,277,1102,296,1118,312,1126,329,1134,345,1150,360,1159,366,1157,370,1146,364,1130,348,1121,332,1113,316,1098,300,1064,282"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a08873630b22f5ea72e12c8f18a93767e" title=" " alt="" coords="1182,182,1365,222"/>
+<area shape="poly" title=" " alt="" coords="1080,237,1168,220,1169,225,1081,242"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a73ca74d39a12c5c96b01832475c78d9f" title=" " alt="" coords="1180,246,1367,286"/>
+<area shape="poly" title=" " alt="" coords="1100,260,1166,261,1166,266,1100,265"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ab3f90867649113c6448d9c59f5408139" title=" " alt="" coords="1182,310,1365,350"/>
+<area shape="poly" title=" " alt="" coords="1062,277,1176,304,1174,309,1061,282"/>
+<area shape="poly" title=" " alt="" coords="806,311,948,317,1025,326,1101,340,1125,349,1149,360,1175,368,1174,373,1147,365,1123,354,1099,345,1024,331,948,322,806,316"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="853,354,1100,394"/>
+<area shape="poly" title=" " alt="" coords="786,334,861,349,860,354,785,339"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="853,418,1100,458"/>
+<area shape="poly" title=" " alt="" coords="717,335,780,369,854,404,877,411,875,416,852,409,777,374,715,339"/>
+<area shape="poly" title=" " alt="" coords="511,197,652,189,805,174,902,159,977,143,1147,103,1196,94,1197,99,1149,109,978,148,903,164,806,179,653,194,511,202"/>
+<area shape="poly" title=" " alt="" coords="490,179,565,165,566,170,491,185"/>
+<area shape="poly" title=" " alt="" coords="441,220,618,289,616,294,439,225"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a69eddb95e7d153abbdaca3782fa2ae2f" name="a69eddb95e7d153abbdaca3782fa2ae2f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69eddb95e7d153abbdaca3782fa2ae2f">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[3/13]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BOOST_FIXTURE_TEST_CASE </td>
+          <td>(</td>
+          <td class="paramtype">goal_outside_map_throws&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="test__EnvironmentXYZTheta_8cpp_a69eddb95e7d153abbdaca3782fa2ae2f_cgraph.png" border="0" usemap="#atest__EnvironmentXYZTheta_8cpp_a69eddb95e7d153abbdaca3782fa2ae2f_cgraph" alt=""/></div>
+<map name="atest__EnvironmentXYZTheta_8cpp_a69eddb95e7d153abbdaca3782fa2ae2f_cgraph" id="atest__EnvironmentXYZTheta_8cpp_a69eddb95e7d153abbdaca3782fa2ae2f_cgraph">
+<area shape="rect" title=" " alt="" coords="5,130,216,155"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae01babb4bc4d1980daaef7037f488bd3" title=" " alt="" coords="264,90,511,130"/>
+<area shape="poly" title=" " alt="" coords="216,127,250,123,251,129,217,133"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a32b1928d835d0cd4504e8525b7d67427" title=" " alt="" coords="264,154,511,194"/>
+<area shape="poly" title=" " alt="" coords="217,152,251,156,250,161,216,157"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="559,154,805,194"/>
+<area shape="poly" title=" " alt="" coords="481,128,577,149,576,154,480,133"/>
+<area shape="rect" href="classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="1180,111,1367,136"/>
+<area shape="poly" title=" " alt="" coords="443,88,563,52,641,33,727,18,819,7,914,3,1009,8,1101,25,1143,40,1183,59,1246,100,1243,105,1180,64,1141,45,1099,30,1008,13,914,8,820,12,728,23,642,39,565,57,445,93"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aef49e881b97f5d3dd26d1a7f7c1c4404" title=" " alt="" coords="559,90,805,130"/>
+<area shape="poly" title=" " alt="" coords="511,108,545,108,545,113,511,113"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1fb4ee62813a812705c9f77b9d7f9307" title=" " alt="" coords="853,269,1100,309"/>
+<area shape="poly" title=" " alt="" coords="736,192,912,261,911,266,734,197"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ac9e23aabdbd37e06992fc638c05c3d33" title=" " alt="" coords="1182,353,1365,393"/>
+<area shape="poly" title=" " alt="" coords="1042,306,1149,338,1179,347,1178,352,1147,344,1040,312"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="1148,161,1399,201"/>
+<area shape="poly" title=" " alt="" coords="1055,266,1099,248,1122,229,1147,211,1163,203,1166,208,1149,215,1126,233,1101,253,1057,271"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a08873630b22f5ea72e12c8f18a93767e" title=" " alt="" coords="1182,417,1365,457"/>
+<area shape="poly" title=" " alt="" coords="1003,307,1067,355,1107,380,1149,403,1170,411,1168,416,1147,407,1104,385,1064,359,1000,311"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a73ca74d39a12c5c96b01832475c78d9f" title=" " alt="" coords="1180,225,1367,265"/>
+<area shape="poly" title=" " alt="" coords="1100,268,1166,258,1167,263,1101,273"/>
+<area shape="poly" title=" " alt="" coords="1069,267,1098,248,1109,236,1115,224,1121,198,1127,172,1134,159,1146,147,1166,135,1168,140,1150,151,1138,162,1132,174,1126,199,1120,226,1113,239,1102,252,1072,271"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ab3f90867649113c6448d9c59f5408139" title=" " alt="" coords="1182,289,1365,329"/>
+<area shape="poly" title=" " alt="" coords="1100,295,1168,299,1168,305,1100,300"/>
+<area shape="poly" title=" " alt="" coords="762,128,806,140,854,153,998,170,1134,177,1134,183,998,175,853,158,805,145,760,133"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="853,40,1100,80"/>
+<area shape="poly" title=" " alt="" coords="798,88,846,79,847,85,799,93"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="853,104,1100,144"/>
+<area shape="poly" title=" " alt="" coords="806,113,840,115,840,120,805,119"/>
+<area shape="poly" title=" " alt="" coords="511,172,545,172,545,177,511,177"/>
+<area shape="poly" title=" " alt="" coords="478,192,559,204,711,211,773,209,830,203,948,182,1100,153,1191,136,1192,141,1100,158,949,187,831,208,773,214,711,216,558,209,477,197"/>
+<area shape="poly" title=" " alt="" coords="480,152,576,131,577,136,481,157"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a0cf9cb94c109437a6fad97325d9635f7" name="a0cf9cb94c109437a6fad97325d9635f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0cf9cb94c109437a6fad97325d9635f7">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[4/13]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BOOST_FIXTURE_TEST_CASE </td>
+          <td>(</td>
+          <td class="paramtype">motion_cost_positive&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="test__EnvironmentXYZTheta_8cpp_a0cf9cb94c109437a6fad97325d9635f7_cgraph.png" border="0" usemap="#atest__EnvironmentXYZTheta_8cpp_a0cf9cb94c109437a6fad97325d9635f7_cgraph" alt=""/></div>
+<map name="atest__EnvironmentXYZTheta_8cpp_a0cf9cb94c109437a6fad97325d9635f7_cgraph" id="atest__EnvironmentXYZTheta_8cpp_a0cf9cb94c109437a6fad97325d9635f7_cgraph">
+<area shape="rect" title=" " alt="" coords="5,100,216,125"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a6dddb0bcc7fb30da66295b26b3a09779" title=" " alt="" coords="264,28,511,68"/>
+<area shape="poly" title=" " alt="" coords="166,97,286,69,287,74,167,102"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae01babb4bc4d1980daaef7037f488bd3" title=" " alt="" coords="264,92,511,132"/>
+<area shape="poly" title=" " alt="" coords="216,110,250,110,250,115,216,115"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a32b1928d835d0cd4504e8525b7d67427" title=" " alt="" coords="264,156,511,196"/>
+<area shape="poly" title=" " alt="" coords="167,123,287,151,286,156,166,128"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="559,156,805,196"/>
+<area shape="poly" title=" " alt="" coords="481,130,577,151,576,156,480,135"/>
+<area shape="rect" href="classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="1180,113,1367,138"/>
+<area shape="poly" title=" " alt="" coords="493,90,558,78,640,61,710,43,830,14,888,5,950,3,1020,10,1101,27,1143,42,1183,62,1246,103,1243,107,1180,66,1141,47,1099,32,1019,15,950,9,889,10,831,19,711,49,641,66,559,83,494,95"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aef49e881b97f5d3dd26d1a7f7c1c4404" title=" " alt="" coords="559,92,805,132"/>
+<area shape="poly" title=" " alt="" coords="511,110,545,110,545,115,511,115"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1fb4ee62813a812705c9f77b9d7f9307" title=" " alt="" coords="853,271,1100,311"/>
+<area shape="poly" title=" " alt="" coords="736,194,912,264,911,269,734,199"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ac9e23aabdbd37e06992fc638c05c3d33" title=" " alt="" coords="1182,355,1365,395"/>
+<area shape="poly" title=" " alt="" coords="1042,309,1149,341,1179,349,1178,354,1147,346,1040,314"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="1148,163,1399,203"/>
+<area shape="poly" title=" " alt="" coords="1055,269,1099,250,1122,231,1147,213,1163,205,1166,210,1149,217,1126,236,1101,255,1057,274"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a08873630b22f5ea72e12c8f18a93767e" title=" " alt="" coords="1182,419,1365,459"/>
+<area shape="poly" title=" " alt="" coords="1003,309,1067,357,1107,383,1149,405,1170,413,1168,418,1147,410,1104,387,1064,361,1000,313"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a73ca74d39a12c5c96b01832475c78d9f" title=" " alt="" coords="1180,227,1367,267"/>
+<area shape="poly" title=" " alt="" coords="1100,270,1166,260,1167,266,1101,276"/>
+<area shape="poly" title=" " alt="" coords="1069,269,1098,250,1109,238,1115,226,1121,200,1127,174,1134,161,1146,149,1166,137,1168,142,1150,153,1138,165,1132,176,1126,202,1120,228,1113,242,1102,255,1072,273"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ab3f90867649113c6448d9c59f5408139" title=" " alt="" coords="1182,291,1365,331"/>
+<area shape="poly" title=" " alt="" coords="1100,297,1168,301,1168,307,1100,302"/>
+<area shape="poly" title=" " alt="" coords="762,130,806,142,854,155,998,172,1134,179,1134,185,998,178,853,160,805,147,760,135"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="853,42,1100,82"/>
+<area shape="poly" title=" " alt="" coords="798,90,846,82,847,87,799,95"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="853,106,1100,146"/>
+<area shape="poly" title=" " alt="" coords="806,115,840,117,840,122,805,121"/>
+<area shape="poly" title=" " alt="" coords="511,174,545,174,545,179,511,179"/>
+<area shape="poly" title=" " alt="" coords="478,194,559,206,711,213,773,211,830,205,948,184,1100,155,1191,138,1192,144,1100,160,949,189,831,210,773,216,711,219,558,211,477,199"/>
+<area shape="poly" title=" " alt="" coords="480,154,576,133,577,138,481,159"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a8ab6df217a51fe68f5dadd8b1d7233d7" name="a8ab6df217a51fe68f5dadd8b1d7233d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8ab6df217a51fe68f5dadd8b1d7233d7">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[5/13]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BOOST_FIXTURE_TEST_CASE </td>
+          <td>(</td>
+          <td class="paramtype">motion_extraction_valid&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="test__EnvironmentXYZTheta_8cpp_a8ab6df217a51fe68f5dadd8b1d7233d7_cgraph.png" border="0" usemap="#atest__EnvironmentXYZTheta_8cpp_a8ab6df217a51fe68f5dadd8b1d7233d7_cgraph" alt=""/></div>
+<map name="atest__EnvironmentXYZTheta_8cpp_a8ab6df217a51fe68f5dadd8b1d7233d7_cgraph" id="atest__EnvironmentXYZTheta_8cpp_a8ab6df217a51fe68f5dadd8b1d7233d7_cgraph">
+<area shape="rect" title=" " alt="" coords="5,170,216,195"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae9c40da7aff8102dcd405d021dae49a5" title=" " alt="" coords="264,69,511,109"/>
+<area shape="poly" title=" " alt="" coords="149,167,313,111,315,116,150,172"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a6dddb0bcc7fb30da66295b26b3a09779" title=" " alt="" coords="559,69,805,109"/>
+<area shape="poly" title=" " alt="" coords="200,167,510,119,563,109,564,114,511,124,200,173"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae01babb4bc4d1980daaef7037f488bd3" title=" " alt="" coords="264,216,511,256"/>
+<area shape="poly" title=" " alt="" coords="178,193,270,211,269,216,177,198"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a32b1928d835d0cd4504e8525b7d67427" title=" " alt="" coords="264,280,511,320"/>
+<area shape="poly" title=" " alt="" coords="132,193,190,229,265,266,286,273,284,278,263,270,188,233,129,198"/>
+<area shape="rect" href="classugv__nav4d_1_1PreComputedMotions.html#a76f5d501aa5bc8cf8c0adddc488bd0f9" title=" " alt="" coords="561,5,803,45"/>
+<area shape="poly" title=" " alt="" coords="480,67,576,46,577,51,481,72"/>
+<area shape="poly" title=" " alt="" coords="511,87,545,87,545,92,511,92"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="559,287,805,327"/>
+<area shape="poly" title=" " alt="" coords="472,253,585,281,584,286,471,259"/>
+<area shape="rect" href="classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="1180,255,1367,281"/>
+<area shape="poly" title=" " alt="" coords="452,213,574,183,651,167,736,155,826,147,918,146,1011,152,1101,169,1143,184,1183,204,1246,245,1243,249,1180,208,1141,189,1099,175,1010,158,918,151,826,152,737,160,652,173,575,188,453,218"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aef49e881b97f5d3dd26d1a7f7c1c4404" title=" " alt="" coords="559,223,805,263"/>
+<area shape="poly" title=" " alt="" coords="511,236,545,237,545,242,511,241"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1fb4ee62813a812705c9f77b9d7f9307" title=" " alt="" coords="853,413,1100,453"/>
+<area shape="poly" title=" " alt="" coords="731,324,917,405,915,410,729,329"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ac9e23aabdbd37e06992fc638c05c3d33" title=" " alt="" coords="1182,497,1365,537"/>
+<area shape="poly" title=" " alt="" coords="1042,451,1149,483,1179,491,1178,496,1147,488,1040,456"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="1148,305,1399,345"/>
+<area shape="poly" title=" " alt="" coords="1055,411,1099,392,1122,374,1147,355,1163,348,1166,353,1149,360,1126,378,1101,397,1057,416"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a08873630b22f5ea72e12c8f18a93767e" title=" " alt="" coords="1182,561,1365,601"/>
+<area shape="poly" title=" " alt="" coords="1003,451,1067,499,1107,525,1149,547,1170,555,1168,560,1147,552,1104,529,1064,504,1000,456"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a73ca74d39a12c5c96b01832475c78d9f" title=" " alt="" coords="1180,369,1367,409"/>
+<area shape="poly" title=" " alt="" coords="1100,412,1166,402,1167,408,1101,418"/>
+<area shape="poly" title=" " alt="" coords="1069,411,1098,393,1109,381,1115,368,1121,343,1127,317,1134,304,1146,291,1166,280,1168,284,1150,295,1138,307,1132,318,1126,344,1120,370,1113,384,1102,397,1072,416"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ab3f90867649113c6448d9c59f5408139" title=" " alt="" coords="1182,433,1365,473"/>
+<area shape="poly" title=" " alt="" coords="1100,439,1168,444,1168,449,1100,444"/>
+<area shape="poly" title=" " alt="" coords="771,260,806,272,830,286,854,297,925,313,997,323,1134,329,1134,334,997,328,924,318,852,303,828,291,804,277,769,265"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="853,184,1100,224"/>
+<area shape="poly" title=" " alt="" coords="805,224,839,219,840,225,806,229"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="853,248,1100,288"/>
+<area shape="poly" title=" " alt="" coords="806,251,840,254,840,259,805,256"/>
+<area shape="poly" title=" " alt="" coords="511,300,545,301,545,306,511,305"/>
+<area shape="poly" title=" " alt="" coords="461,317,559,336,711,347,830,341,948,323,1100,297,1194,281,1195,286,1100,303,949,328,830,346,711,352,558,341,460,323"/>
+<area shape="poly" title=" " alt="" coords="490,277,565,263,566,268,491,283"/>
+</map>
+</div>
 
 </div>
 </div>
 <a id="a3a4fb93e8ca959bc903fb4e72b8fb220" name="a3a4fb93e8ca959bc903fb4e72b8fb220"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3a4fb93e8ca959bc903fb4e72b8fb220">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[3/5]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a3a4fb93e8ca959bc903fb4e72b8fb220">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[6/13]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -201,12 +495,11 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Translate the local frame (offset)</p>
 
 </div>
 </div>
-<a id="a4b1429666f6b0825ff29ba88c8f2fadb" name="a4b1429666f6b0825ff29ba88c8f2fadb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4b1429666f6b0825ff29ba88c8f2fadb">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[4/5]</span></h2>
+<a id="aa9a6de3a305d668c43b90845907a5c82" name="aa9a6de3a305d668c43b90845907a5c82"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9a6de3a305d668c43b90845907a5c82">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[7/13]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -214,7 +507,7 @@ Variables</h2></td></tr>
         <tr>
           <td class="memname">BOOST_FIXTURE_TEST_CASE </td>
           <td>(</td>
-          <td class="paramtype">travmap_resolution_equal_to_mls_resolution&#160;</td>
+          <td class="paramtype">state_position_matches_map&#160;</td>
           <td class="paramname">, </td>
         </tr>
         <tr>
@@ -230,12 +523,52 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Translate the local frame (offset)</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="test__EnvironmentXYZTheta_8cpp_aa9a6de3a305d668c43b90845907a5c82_cgraph.png" border="0" usemap="#atest__EnvironmentXYZTheta_8cpp_aa9a6de3a305d668c43b90845907a5c82_cgraph" alt=""/></div>
+<map name="atest__EnvironmentXYZTheta_8cpp_aa9a6de3a305d668c43b90845907a5c82_cgraph" id="atest__EnvironmentXYZTheta_8cpp_aa9a6de3a305d668c43b90845907a5c82_cgraph">
+<area shape="rect" title=" " alt="" coords="5,100,216,125"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#afe5b560fb96c0528b4bd62d58d2a416b" title=" " alt="" coords="264,28,511,68"/>
+<area shape="poly" title=" " alt="" coords="166,97,286,69,287,74,167,102"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae01babb4bc4d1980daaef7037f488bd3" title=" " alt="" coords="264,92,511,132"/>
+<area shape="poly" title=" " alt="" coords="216,110,250,110,250,115,216,115"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a32b1928d835d0cd4504e8525b7d67427" title=" " alt="" coords="264,156,511,196"/>
+<area shape="poly" title=" " alt="" coords="167,123,287,151,286,156,166,128"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="559,156,805,196"/>
+<area shape="poly" title=" " alt="" coords="481,130,577,151,576,156,480,135"/>
+<area shape="rect" href="classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="1180,113,1367,138"/>
+<area shape="poly" title=" " alt="" coords="493,90,558,78,640,61,710,43,830,14,888,5,950,3,1020,10,1101,27,1143,42,1183,62,1246,103,1243,107,1180,66,1141,47,1099,32,1019,15,950,9,889,10,831,19,711,49,641,66,559,83,494,95"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aef49e881b97f5d3dd26d1a7f7c1c4404" title=" " alt="" coords="559,92,805,132"/>
+<area shape="poly" title=" " alt="" coords="511,110,545,110,545,115,511,115"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1fb4ee62813a812705c9f77b9d7f9307" title=" " alt="" coords="853,271,1100,311"/>
+<area shape="poly" title=" " alt="" coords="736,194,912,264,911,269,734,199"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ac9e23aabdbd37e06992fc638c05c3d33" title=" " alt="" coords="1182,355,1365,395"/>
+<area shape="poly" title=" " alt="" coords="1042,309,1149,341,1179,349,1178,354,1147,346,1040,314"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="1148,163,1399,203"/>
+<area shape="poly" title=" " alt="" coords="1055,269,1099,250,1122,231,1147,213,1163,205,1166,210,1149,217,1126,236,1101,255,1057,274"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a08873630b22f5ea72e12c8f18a93767e" title=" " alt="" coords="1182,419,1365,459"/>
+<area shape="poly" title=" " alt="" coords="1003,309,1067,357,1107,383,1149,405,1170,413,1168,418,1147,410,1104,387,1064,361,1000,313"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a73ca74d39a12c5c96b01832475c78d9f" title=" " alt="" coords="1180,227,1367,267"/>
+<area shape="poly" title=" " alt="" coords="1100,270,1166,260,1167,266,1101,276"/>
+<area shape="poly" title=" " alt="" coords="1069,269,1098,250,1109,238,1115,226,1121,200,1127,174,1134,161,1146,149,1166,137,1168,142,1150,153,1138,165,1132,176,1126,202,1120,228,1113,242,1102,255,1072,273"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ab3f90867649113c6448d9c59f5408139" title=" " alt="" coords="1182,291,1365,331"/>
+<area shape="poly" title=" " alt="" coords="1100,297,1168,301,1168,307,1100,302"/>
+<area shape="poly" title=" " alt="" coords="762,130,806,142,854,155,998,172,1134,179,1134,185,998,178,853,160,805,147,760,135"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="853,42,1100,82"/>
+<area shape="poly" title=" " alt="" coords="798,90,846,82,847,87,799,95"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="853,106,1100,146"/>
+<area shape="poly" title=" " alt="" coords="806,115,840,117,840,122,805,121"/>
+<area shape="poly" title=" " alt="" coords="511,174,545,174,545,179,511,179"/>
+<area shape="poly" title=" " alt="" coords="478,194,559,206,711,213,773,211,830,205,948,184,1100,155,1191,138,1192,144,1100,160,949,189,831,210,773,216,711,219,558,211,477,199"/>
+<area shape="poly" title=" " alt="" coords="480,154,576,133,577,138,481,159"/>
+</map>
+</div>
 
 </div>
 </div>
-<a id="adbc90e4981e48712fdaa9722aadca2cf" name="adbc90e4981e48712fdaa9722aadca2cf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adbc90e4981e48712fdaa9722aadca2cf">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[5/5]</span></h2>
+<a id="a0c5c5c4ec029587c4d1ac27a467be061" name="a0c5c5c4ec029587c4d1ac27a467be061"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c5c5c4ec029587c4d1ac27a467be061">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[8/13]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -243,7 +576,7 @@ Variables</h2></td></tr>
         <tr>
           <td class="memname">BOOST_FIXTURE_TEST_CASE </td>
           <td>(</td>
-          <td class="paramtype">travmap_resolution_not_equal_to_mls_resolution&#160;</td>
+          <td class="paramtype">state_space_grows&#160;</td>
           <td class="paramname">, </td>
         </tr>
         <tr>
@@ -259,36 +592,404 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Translate the local frame (offset)</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="test__EnvironmentXYZTheta_8cpp_a0c5c5c4ec029587c4d1ac27a467be061_cgraph.png" border="0" usemap="#atest__EnvironmentXYZTheta_8cpp_a0c5c5c4ec029587c4d1ac27a467be061_cgraph" alt=""/></div>
+<map name="atest__EnvironmentXYZTheta_8cpp_a0c5c5c4ec029587c4d1ac27a467be061_cgraph" id="atest__EnvironmentXYZTheta_8cpp_a0c5c5c4ec029587c4d1ac27a467be061_cgraph">
+<area shape="rect" title=" " alt="" coords="5,132,216,157"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a6dddb0bcc7fb30da66295b26b3a09779" title=" " alt="" coords="264,28,511,68"/>
+<area shape="poly" title=" " alt="" coords="138,129,195,104,263,78,289,70,291,75,265,83,197,109,140,134"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae01babb4bc4d1980daaef7037f488bd3" title=" " alt="" coords="264,92,511,132"/>
+<area shape="poly" title=" " alt="" coords="216,130,250,126,251,131,217,135"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a32b1928d835d0cd4504e8525b7d67427" title=" " alt="" coords="264,156,511,196"/>
+<area shape="poly" title=" " alt="" coords="217,154,251,158,250,163,216,159"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a673943a7534855fb3605fdff4ae44dcb" title=" " alt="" coords="264,220,511,260"/>
+<area shape="poly" title=" " alt="" coords="140,155,197,180,265,206,291,214,289,219,263,211,195,185,138,160"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="559,156,805,196"/>
+<area shape="poly" title=" " alt="" coords="481,130,577,151,576,156,480,135"/>
+<area shape="rect" href="classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="1180,113,1367,138"/>
+<area shape="poly" title=" " alt="" coords="493,90,558,78,640,61,710,43,830,14,888,5,950,3,1020,10,1101,27,1143,42,1183,62,1246,103,1243,107,1180,66,1141,47,1099,32,1019,15,950,9,889,10,831,19,711,49,641,66,559,83,494,95"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aef49e881b97f5d3dd26d1a7f7c1c4404" title=" " alt="" coords="559,92,805,132"/>
+<area shape="poly" title=" " alt="" coords="511,110,545,110,545,115,511,115"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1fb4ee62813a812705c9f77b9d7f9307" title=" " alt="" coords="853,271,1100,311"/>
+<area shape="poly" title=" " alt="" coords="736,194,912,264,911,269,734,199"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ac9e23aabdbd37e06992fc638c05c3d33" title=" " alt="" coords="1182,355,1365,395"/>
+<area shape="poly" title=" " alt="" coords="1042,309,1149,341,1179,349,1178,354,1147,346,1040,314"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="1148,163,1399,203"/>
+<area shape="poly" title=" " alt="" coords="1055,269,1099,250,1122,231,1147,213,1163,205,1166,210,1149,217,1126,236,1101,255,1057,274"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a08873630b22f5ea72e12c8f18a93767e" title=" " alt="" coords="1182,419,1365,459"/>
+<area shape="poly" title=" " alt="" coords="1003,309,1067,357,1107,383,1149,405,1170,413,1168,418,1147,410,1104,387,1064,361,1000,313"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a73ca74d39a12c5c96b01832475c78d9f" title=" " alt="" coords="1180,227,1367,267"/>
+<area shape="poly" title=" " alt="" coords="1100,270,1166,260,1167,266,1101,276"/>
+<area shape="poly" title=" " alt="" coords="1069,269,1098,250,1109,238,1115,226,1121,200,1127,174,1134,161,1146,149,1166,137,1168,142,1150,153,1138,165,1132,176,1126,202,1120,228,1113,242,1102,255,1072,273"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ab3f90867649113c6448d9c59f5408139" title=" " alt="" coords="1182,291,1365,331"/>
+<area shape="poly" title=" " alt="" coords="1100,297,1168,301,1168,307,1100,302"/>
+<area shape="poly" title=" " alt="" coords="762,130,806,142,854,155,998,172,1134,179,1134,185,998,178,853,160,805,147,760,135"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="853,42,1100,82"/>
+<area shape="poly" title=" " alt="" coords="798,90,846,82,847,87,799,95"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="853,106,1100,146"/>
+<area shape="poly" title=" " alt="" coords="806,115,840,117,840,122,805,121"/>
+<area shape="poly" title=" " alt="" coords="511,174,545,174,545,179,511,179"/>
+<area shape="poly" title=" " alt="" coords="478,194,559,206,711,213,773,211,830,205,948,184,1100,155,1191,138,1192,144,1100,160,949,189,831,210,773,216,711,219,558,211,477,199"/>
+<area shape="poly" title=" " alt="" coords="480,154,576,133,577,138,481,159"/>
+</map>
+</div>
 
 </div>
 </div>
-<h2 class="groupheader">Variable Documentation</h2>
-<a id="ab02a8508ab97ab8fca2dad34866e323a" name="ab02a8508ab97ab8fca2dad34866e323a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab02a8508ab97ab8fca2dad34866e323a">&#9670;&#160;</a></span>goalPositions</h2>
+<a id="a04b2749fd3b2a3e5347bfe2fe9e08734" name="a04b2749fd3b2a3e5347bfe2fe9e08734"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a04b2749fd3b2a3e5347bfe2fe9e08734">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[9/13]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;Eigen::Vector3d&gt; goalPositions</td>
+          <td class="memname">BOOST_FIXTURE_TEST_CASE </td>
+          <td>(</td>
+          <td class="paramtype">successor_costs_positive&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="test__EnvironmentXYZTheta_8cpp_a04b2749fd3b2a3e5347bfe2fe9e08734_cgraph.png" border="0" usemap="#atest__EnvironmentXYZTheta_8cpp_a04b2749fd3b2a3e5347bfe2fe9e08734_cgraph" alt=""/></div>
+<map name="atest__EnvironmentXYZTheta_8cpp_a04b2749fd3b2a3e5347bfe2fe9e08734_cgraph" id="atest__EnvironmentXYZTheta_8cpp_a04b2749fd3b2a3e5347bfe2fe9e08734_cgraph">
+<area shape="rect" title=" " alt="" coords="5,100,216,125"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a6dddb0bcc7fb30da66295b26b3a09779" title=" " alt="" coords="264,28,511,68"/>
+<area shape="poly" title=" " alt="" coords="166,97,286,69,287,74,167,102"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae01babb4bc4d1980daaef7037f488bd3" title=" " alt="" coords="264,92,511,132"/>
+<area shape="poly" title=" " alt="" coords="216,110,250,110,250,115,216,115"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a32b1928d835d0cd4504e8525b7d67427" title=" " alt="" coords="264,156,511,196"/>
+<area shape="poly" title=" " alt="" coords="167,123,287,151,286,156,166,128"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="559,156,805,196"/>
+<area shape="poly" title=" " alt="" coords="481,130,577,151,576,156,480,135"/>
+<area shape="rect" href="classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="1180,113,1367,138"/>
+<area shape="poly" title=" " alt="" coords="493,90,558,78,640,61,710,43,830,14,888,5,950,3,1020,10,1101,27,1143,42,1183,62,1246,103,1243,107,1180,66,1141,47,1099,32,1019,15,950,9,889,10,831,19,711,49,641,66,559,83,494,95"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aef49e881b97f5d3dd26d1a7f7c1c4404" title=" " alt="" coords="559,92,805,132"/>
+<area shape="poly" title=" " alt="" coords="511,110,545,110,545,115,511,115"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1fb4ee62813a812705c9f77b9d7f9307" title=" " alt="" coords="853,271,1100,311"/>
+<area shape="poly" title=" " alt="" coords="736,194,912,264,911,269,734,199"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ac9e23aabdbd37e06992fc638c05c3d33" title=" " alt="" coords="1182,355,1365,395"/>
+<area shape="poly" title=" " alt="" coords="1042,309,1149,341,1179,349,1178,354,1147,346,1040,314"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="1148,163,1399,203"/>
+<area shape="poly" title=" " alt="" coords="1055,269,1099,250,1122,231,1147,213,1163,205,1166,210,1149,217,1126,236,1101,255,1057,274"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a08873630b22f5ea72e12c8f18a93767e" title=" " alt="" coords="1182,419,1365,459"/>
+<area shape="poly" title=" " alt="" coords="1003,309,1067,357,1107,383,1149,405,1170,413,1168,418,1147,410,1104,387,1064,361,1000,313"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a73ca74d39a12c5c96b01832475c78d9f" title=" " alt="" coords="1180,227,1367,267"/>
+<area shape="poly" title=" " alt="" coords="1100,270,1166,260,1167,266,1101,276"/>
+<area shape="poly" title=" " alt="" coords="1069,269,1098,250,1109,238,1115,226,1121,200,1127,174,1134,161,1146,149,1166,137,1168,142,1150,153,1138,165,1132,176,1126,202,1120,228,1113,242,1102,255,1072,273"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ab3f90867649113c6448d9c59f5408139" title=" " alt="" coords="1182,291,1365,331"/>
+<area shape="poly" title=" " alt="" coords="1100,297,1168,301,1168,307,1100,302"/>
+<area shape="poly" title=" " alt="" coords="762,130,806,142,854,155,998,172,1134,179,1134,185,998,178,853,160,805,147,760,135"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="853,42,1100,82"/>
+<area shape="poly" title=" " alt="" coords="798,90,846,82,847,87,799,95"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="853,106,1100,146"/>
+<area shape="poly" title=" " alt="" coords="806,115,840,117,840,122,805,121"/>
+<area shape="poly" title=" " alt="" coords="511,174,545,174,545,179,511,179"/>
+<area shape="poly" title=" " alt="" coords="478,194,559,206,711,213,773,211,830,205,948,184,1100,155,1191,138,1192,144,1100,160,949,189,831,210,773,216,711,219,558,211,477,199"/>
+<area shape="poly" title=" " alt="" coords="480,154,576,133,577,138,481,159"/>
+</map>
+</div>
 
 </div>
 </div>
-<a id="a3815504f9076745f32efe4a276a63f3d" name="a3815504f9076745f32efe4a276a63f3d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3815504f9076745f32efe4a276a63f3d">&#9670;&#160;</a></span>startPositions</h2>
+<a id="a59a5868a385aa32337c31cfa2b9fb5b4" name="a59a5868a385aa32337c31cfa2b9fb5b4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59a5868a385aa32337c31cfa2b9fb5b4">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[10/13]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;Eigen::Vector3d&gt; startPositions</td>
+          <td class="memname">BOOST_FIXTURE_TEST_CASE </td>
+          <td>(</td>
+          <td class="paramtype">successors_are_generated&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="test__EnvironmentXYZTheta_8cpp_a59a5868a385aa32337c31cfa2b9fb5b4_cgraph.png" border="0" usemap="#atest__EnvironmentXYZTheta_8cpp_a59a5868a385aa32337c31cfa2b9fb5b4_cgraph" alt=""/></div>
+<map name="atest__EnvironmentXYZTheta_8cpp_a59a5868a385aa32337c31cfa2b9fb5b4_cgraph" id="atest__EnvironmentXYZTheta_8cpp_a59a5868a385aa32337c31cfa2b9fb5b4_cgraph">
+<area shape="rect" title=" " alt="" coords="5,100,216,125"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a6dddb0bcc7fb30da66295b26b3a09779" title=" " alt="" coords="264,28,511,68"/>
+<area shape="poly" title=" " alt="" coords="166,97,286,69,287,74,167,102"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae01babb4bc4d1980daaef7037f488bd3" title=" " alt="" coords="264,92,511,132"/>
+<area shape="poly" title=" " alt="" coords="216,110,250,110,250,115,216,115"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a32b1928d835d0cd4504e8525b7d67427" title=" " alt="" coords="264,156,511,196"/>
+<area shape="poly" title=" " alt="" coords="167,123,287,151,286,156,166,128"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="559,156,805,196"/>
+<area shape="poly" title=" " alt="" coords="481,130,577,151,576,156,480,135"/>
+<area shape="rect" href="classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="1180,113,1367,138"/>
+<area shape="poly" title=" " alt="" coords="493,90,558,78,640,61,710,43,830,14,888,5,950,3,1020,10,1101,27,1143,42,1183,62,1246,103,1243,107,1180,66,1141,47,1099,32,1019,15,950,9,889,10,831,19,711,49,641,66,559,83,494,95"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aef49e881b97f5d3dd26d1a7f7c1c4404" title=" " alt="" coords="559,92,805,132"/>
+<area shape="poly" title=" " alt="" coords="511,110,545,110,545,115,511,115"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1fb4ee62813a812705c9f77b9d7f9307" title=" " alt="" coords="853,271,1100,311"/>
+<area shape="poly" title=" " alt="" coords="736,194,912,264,911,269,734,199"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ac9e23aabdbd37e06992fc638c05c3d33" title=" " alt="" coords="1182,355,1365,395"/>
+<area shape="poly" title=" " alt="" coords="1042,309,1149,341,1179,349,1178,354,1147,346,1040,314"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="1148,163,1399,203"/>
+<area shape="poly" title=" " alt="" coords="1055,269,1099,250,1122,231,1147,213,1163,205,1166,210,1149,217,1126,236,1101,255,1057,274"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a08873630b22f5ea72e12c8f18a93767e" title=" " alt="" coords="1182,419,1365,459"/>
+<area shape="poly" title=" " alt="" coords="1003,309,1067,357,1107,383,1149,405,1170,413,1168,418,1147,410,1104,387,1064,361,1000,313"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a73ca74d39a12c5c96b01832475c78d9f" title=" " alt="" coords="1180,227,1367,267"/>
+<area shape="poly" title=" " alt="" coords="1100,270,1166,260,1167,266,1101,276"/>
+<area shape="poly" title=" " alt="" coords="1069,269,1098,250,1109,238,1115,226,1121,200,1127,174,1134,161,1146,149,1166,137,1168,142,1150,153,1138,165,1132,176,1126,202,1120,228,1113,242,1102,255,1072,273"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ab3f90867649113c6448d9c59f5408139" title=" " alt="" coords="1182,291,1365,331"/>
+<area shape="poly" title=" " alt="" coords="1100,297,1168,301,1168,307,1100,302"/>
+<area shape="poly" title=" " alt="" coords="762,130,806,142,854,155,998,172,1134,179,1134,185,998,178,853,160,805,147,760,135"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="853,42,1100,82"/>
+<area shape="poly" title=" " alt="" coords="798,90,846,82,847,87,799,95"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="853,106,1100,146"/>
+<area shape="poly" title=" " alt="" coords="806,115,840,117,840,122,805,121"/>
+<area shape="poly" title=" " alt="" coords="511,174,545,174,545,179,511,179"/>
+<area shape="poly" title=" " alt="" coords="478,194,559,206,711,213,773,211,830,205,948,184,1100,155,1191,138,1192,144,1100,160,949,189,831,210,773,216,711,219,558,211,477,199"/>
+<area shape="poly" title=" " alt="" coords="480,154,576,133,577,138,481,159"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="add1ec2f138bc843c8137fdfaccf0b3ee" name="add1ec2f138bc843c8137fdfaccf0b3ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add1ec2f138bc843c8137fdfaccf0b3ee">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[11/13]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BOOST_FIXTURE_TEST_CASE </td>
+          <td>(</td>
+          <td class="paramtype">successors_generated&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="test__EnvironmentXYZTheta_8cpp_add1ec2f138bc843c8137fdfaccf0b3ee_cgraph.png" border="0" usemap="#atest__EnvironmentXYZTheta_8cpp_add1ec2f138bc843c8137fdfaccf0b3ee_cgraph" alt=""/></div>
+<map name="atest__EnvironmentXYZTheta_8cpp_add1ec2f138bc843c8137fdfaccf0b3ee_cgraph" id="atest__EnvironmentXYZTheta_8cpp_add1ec2f138bc843c8137fdfaccf0b3ee_cgraph">
+<area shape="rect" title=" " alt="" coords="5,100,216,125"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a6dddb0bcc7fb30da66295b26b3a09779" title=" " alt="" coords="264,28,511,68"/>
+<area shape="poly" title=" " alt="" coords="166,97,286,69,287,74,167,102"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae01babb4bc4d1980daaef7037f488bd3" title=" " alt="" coords="264,92,511,132"/>
+<area shape="poly" title=" " alt="" coords="216,110,250,110,250,115,216,115"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a32b1928d835d0cd4504e8525b7d67427" title=" " alt="" coords="264,156,511,196"/>
+<area shape="poly" title=" " alt="" coords="167,123,287,151,286,156,166,128"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="559,156,805,196"/>
+<area shape="poly" title=" " alt="" coords="481,130,577,151,576,156,480,135"/>
+<area shape="rect" href="classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="1180,113,1367,138"/>
+<area shape="poly" title=" " alt="" coords="493,90,558,78,640,61,710,43,830,14,888,5,950,3,1020,10,1101,27,1143,42,1183,62,1246,103,1243,107,1180,66,1141,47,1099,32,1019,15,950,9,889,10,831,19,711,49,641,66,559,83,494,95"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aef49e881b97f5d3dd26d1a7f7c1c4404" title=" " alt="" coords="559,92,805,132"/>
+<area shape="poly" title=" " alt="" coords="511,110,545,110,545,115,511,115"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1fb4ee62813a812705c9f77b9d7f9307" title=" " alt="" coords="853,271,1100,311"/>
+<area shape="poly" title=" " alt="" coords="736,194,912,264,911,269,734,199"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ac9e23aabdbd37e06992fc638c05c3d33" title=" " alt="" coords="1182,355,1365,395"/>
+<area shape="poly" title=" " alt="" coords="1042,309,1149,341,1179,349,1178,354,1147,346,1040,314"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="1148,163,1399,203"/>
+<area shape="poly" title=" " alt="" coords="1055,269,1099,250,1122,231,1147,213,1163,205,1166,210,1149,217,1126,236,1101,255,1057,274"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a08873630b22f5ea72e12c8f18a93767e" title=" " alt="" coords="1182,419,1365,459"/>
+<area shape="poly" title=" " alt="" coords="1003,309,1067,357,1107,383,1149,405,1170,413,1168,418,1147,410,1104,387,1064,361,1000,313"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a73ca74d39a12c5c96b01832475c78d9f" title=" " alt="" coords="1180,227,1367,267"/>
+<area shape="poly" title=" " alt="" coords="1100,270,1166,260,1167,266,1101,276"/>
+<area shape="poly" title=" " alt="" coords="1069,269,1098,250,1109,238,1115,226,1121,200,1127,174,1134,161,1146,149,1166,137,1168,142,1150,153,1138,165,1132,176,1126,202,1120,228,1113,242,1102,255,1072,273"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ab3f90867649113c6448d9c59f5408139" title=" " alt="" coords="1182,291,1365,331"/>
+<area shape="poly" title=" " alt="" coords="1100,297,1168,301,1168,307,1100,302"/>
+<area shape="poly" title=" " alt="" coords="762,130,806,142,854,155,998,172,1134,179,1134,185,998,178,853,160,805,147,760,135"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="853,42,1100,82"/>
+<area shape="poly" title=" " alt="" coords="798,90,846,82,847,87,799,95"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="853,106,1100,146"/>
+<area shape="poly" title=" " alt="" coords="806,115,840,117,840,122,805,121"/>
+<area shape="poly" title=" " alt="" coords="511,174,545,174,545,179,511,179"/>
+<area shape="poly" title=" " alt="" coords="478,194,559,206,711,213,773,211,830,205,948,184,1100,155,1191,138,1192,144,1100,160,949,189,831,210,773,216,711,219,558,211,477,199"/>
+<area shape="poly" title=" " alt="" coords="480,154,576,133,577,138,481,159"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ac8b2e8e274e1db0e32bbf4598f09635d" name="ac8b2e8e274e1db0e32bbf4598f09635d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac8b2e8e274e1db0e32bbf4598f09635d">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[12/13]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BOOST_FIXTURE_TEST_CASE </td>
+          <td>(</td>
+          <td class="paramtype">theta_discretization&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="test__EnvironmentXYZTheta_8cpp_ac8b2e8e274e1db0e32bbf4598f09635d_cgraph.png" border="0" usemap="#atest__EnvironmentXYZTheta_8cpp_ac8b2e8e274e1db0e32bbf4598f09635d_cgraph" alt=""/></div>
+<map name="atest__EnvironmentXYZTheta_8cpp_ac8b2e8e274e1db0e32bbf4598f09635d_cgraph" id="atest__EnvironmentXYZTheta_8cpp_ac8b2e8e274e1db0e32bbf4598f09635d_cgraph">
+<area shape="rect" title=" " alt="" coords="5,100,216,125"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a6dddb0bcc7fb30da66295b26b3a09779" title=" " alt="" coords="264,28,511,68"/>
+<area shape="poly" title=" " alt="" coords="166,97,286,69,287,74,167,102"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae01babb4bc4d1980daaef7037f488bd3" title=" " alt="" coords="264,92,511,132"/>
+<area shape="poly" title=" " alt="" coords="216,110,250,110,250,115,216,115"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a32b1928d835d0cd4504e8525b7d67427" title=" " alt="" coords="264,156,511,196"/>
+<area shape="poly" title=" " alt="" coords="167,123,287,151,286,156,166,128"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="559,156,805,196"/>
+<area shape="poly" title=" " alt="" coords="481,130,577,151,576,156,480,135"/>
+<area shape="rect" href="classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="1180,113,1367,138"/>
+<area shape="poly" title=" " alt="" coords="493,90,558,78,640,61,710,43,830,14,888,5,950,3,1020,10,1101,27,1143,42,1183,62,1246,103,1243,107,1180,66,1141,47,1099,32,1019,15,950,9,889,10,831,19,711,49,641,66,559,83,494,95"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aef49e881b97f5d3dd26d1a7f7c1c4404" title=" " alt="" coords="559,92,805,132"/>
+<area shape="poly" title=" " alt="" coords="511,110,545,110,545,115,511,115"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1fb4ee62813a812705c9f77b9d7f9307" title=" " alt="" coords="853,271,1100,311"/>
+<area shape="poly" title=" " alt="" coords="736,194,912,264,911,269,734,199"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ac9e23aabdbd37e06992fc638c05c3d33" title=" " alt="" coords="1182,355,1365,395"/>
+<area shape="poly" title=" " alt="" coords="1042,309,1149,341,1179,349,1178,354,1147,346,1040,314"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="1148,163,1399,203"/>
+<area shape="poly" title=" " alt="" coords="1055,269,1099,250,1122,231,1147,213,1163,205,1166,210,1149,217,1126,236,1101,255,1057,274"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a08873630b22f5ea72e12c8f18a93767e" title=" " alt="" coords="1182,419,1365,459"/>
+<area shape="poly" title=" " alt="" coords="1003,309,1067,357,1107,383,1149,405,1170,413,1168,418,1147,410,1104,387,1064,361,1000,313"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a73ca74d39a12c5c96b01832475c78d9f" title=" " alt="" coords="1180,227,1367,267"/>
+<area shape="poly" title=" " alt="" coords="1100,270,1166,260,1167,266,1101,276"/>
+<area shape="poly" title=" " alt="" coords="1069,269,1098,250,1109,238,1115,226,1121,200,1127,174,1134,161,1146,149,1166,137,1168,142,1150,153,1138,165,1132,176,1126,202,1120,228,1113,242,1102,255,1072,273"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ab3f90867649113c6448d9c59f5408139" title=" " alt="" coords="1182,291,1365,331"/>
+<area shape="poly" title=" " alt="" coords="1100,297,1168,301,1168,307,1100,302"/>
+<area shape="poly" title=" " alt="" coords="762,130,806,142,854,155,998,172,1134,179,1134,185,998,178,853,160,805,147,760,135"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="853,42,1100,82"/>
+<area shape="poly" title=" " alt="" coords="798,90,846,82,847,87,799,95"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="853,106,1100,146"/>
+<area shape="poly" title=" " alt="" coords="806,115,840,117,840,122,805,121"/>
+<area shape="poly" title=" " alt="" coords="511,174,545,174,545,179,511,179"/>
+<area shape="poly" title=" " alt="" coords="478,194,559,206,711,213,773,211,830,205,948,184,1100,155,1191,138,1192,144,1100,160,949,189,831,210,773,216,711,219,558,211,477,199"/>
+<area shape="poly" title=" " alt="" coords="480,154,576,133,577,138,481,159"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a8799a43f3f9329a4a773924e5025b9da" name="a8799a43f3f9329a4a773924e5025b9da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8799a43f3f9329a4a773924e5025b9da">&#9670;&#160;</a></span>BOOST_FIXTURE_TEST_CASE() <span class="overload">[13/13]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BOOST_FIXTURE_TEST_CASE </td>
+          <td>(</td>
+          <td class="paramtype">trajectory_generation&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structEnvironmentXYZThetaTest.html">EnvironmentXYZThetaTest</a>&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="test__EnvironmentXYZTheta_8cpp_a8799a43f3f9329a4a773924e5025b9da_cgraph.png" border="0" usemap="#atest__EnvironmentXYZTheta_8cpp_a8799a43f3f9329a4a773924e5025b9da_cgraph" alt=""/></div>
+<map name="atest__EnvironmentXYZTheta_8cpp_a8799a43f3f9329a4a773924e5025b9da_cgraph" id="atest__EnvironmentXYZTheta_8cpp_a8799a43f3f9329a4a773924e5025b9da_cgraph">
+<area shape="rect" title=" " alt="" coords="5,226,216,251"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a6dddb0bcc7fb30da66295b26b3a09779" title=" " alt="" coords="853,5,1100,45"/>
+<area shape="poly" title=" " alt="" coords="135,224,263,162,407,99,472,76,558,55,630,42,703,33,840,24,840,29,703,38,630,47,559,60,474,81,409,104,265,166,137,228"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ab054b616fdafb39010329cfbd62f1e0b" title=" " alt="" coords="264,176,511,216"/>
+<area shape="poly" title=" " alt="" coords="193,223,250,214,251,220,194,229"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae01babb4bc4d1980daaef7037f488bd3" title=" " alt="" coords="264,251,511,291"/>
+<area shape="poly" title=" " alt="" coords="217,248,251,252,250,257,216,254"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a32b1928d835d0cd4504e8525b7d67427" title=" " alt="" coords="264,336,511,376"/>
+<area shape="poly" title=" " alt="" coords="143,249,327,328,325,333,141,254"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae9c40da7aff8102dcd405d021dae49a5" title=" " alt="" coords="559,69,805,109"/>
+<area shape="poly" title=" " alt="" coords="435,173,558,125,600,111,602,116,560,131,437,178"/>
+<area shape="rect" href="classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="1180,242,1367,267"/>
+<area shape="poly" title=" " alt="" coords="511,174,558,169,682,163,806,169,916,182,1026,200,1205,236,1204,242,1025,205,915,188,805,175,682,168,559,175,511,179"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#afe5b560fb96c0528b4bd62d58d2a416b" title=" " alt="" coords="559,184,805,224"/>
+<area shape="poly" title=" " alt="" coords="511,197,545,198,545,203,511,202"/>
+<area shape="poly" title=" " alt="" coords="774,67,870,46,871,51,775,72"/>
+<area shape="rect" href="classugv__nav4d_1_1PreComputedMotions.html#a76f5d501aa5bc8cf8c0adddc488bd0f9" title=" " alt="" coords="856,69,1097,109"/>
+<area shape="poly" title=" " alt="" coords="805,87,842,87,842,92,805,92"/>
+<area shape="poly" title=" " alt="" coords="511,266,1166,254,1166,259,511,271"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="559,299,805,339"/>
+<area shape="poly" title=" " alt="" coords="511,288,546,294,545,299,510,293"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aef49e881b97f5d3dd26d1a7f7c1c4404" title=" " alt="" coords="559,471,805,511"/>
+<area shape="poly" title=" " alt="" coords="447,288,480,303,512,322,555,355,595,391,657,458,653,462,591,395,552,359,509,326,478,308,445,293"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1fb4ee62813a812705c9f77b9d7f9307" title=" " alt="" coords="853,413,1100,453"/>
+<area shape="poly" title=" " alt="" coords="736,336,912,406,911,411,734,341"/>
+<area shape="poly" title=" " alt="" coords="1070,411,1098,393,1110,379,1116,365,1121,336,1126,307,1133,292,1146,278,1166,266,1169,270,1150,282,1138,295,1131,308,1126,337,1121,367,1114,382,1102,397,1073,415"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ac9e23aabdbd37e06992fc638c05c3d33" title=" " alt="" coords="1182,292,1365,332"/>
+<area shape="poly" title=" " alt="" coords="1060,411,1099,392,1113,380,1122,368,1131,354,1147,342,1168,331,1170,336,1149,346,1135,358,1126,371,1117,384,1101,397,1062,416"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="1148,548,1399,588"/>
+<area shape="poly" title=" " alt="" coords="1066,451,1102,470,1118,486,1126,503,1134,519,1150,534,1159,540,1157,544,1146,538,1130,522,1121,506,1113,489,1098,474,1064,456"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a08873630b22f5ea72e12c8f18a93767e" title=" " alt="" coords="1182,356,1365,396"/>
+<area shape="poly" title=" " alt="" coords="1080,411,1168,394,1169,399,1081,416"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a73ca74d39a12c5c96b01832475c78d9f" title=" " alt="" coords="1180,420,1367,460"/>
+<area shape="poly" title=" " alt="" coords="1100,433,1166,435,1166,440,1100,439"/>
+<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ab3f90867649113c6448d9c59f5408139" title=" " alt="" coords="1182,484,1365,524"/>
+<area shape="poly" title=" " alt="" coords="1062,451,1176,478,1174,483,1061,456"/>
+<area shape="poly" title=" " alt="" coords="806,485,948,491,1025,499,1101,513,1125,523,1149,534,1175,542,1174,547,1147,538,1123,528,1099,519,1024,505,948,496,806,490"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="853,528,1100,568"/>
+<area shape="poly" title=" " alt="" coords="786,508,861,523,860,528,785,513"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="853,592,1100,632"/>
+<area shape="poly" title=" " alt="" coords="717,508,780,543,854,578,877,585,875,590,852,582,777,548,715,513"/>
+<area shape="poly" title=" " alt="" coords="511,358,652,358,805,348,902,334,977,318,1147,277,1196,267,1197,273,1149,283,978,323,903,340,806,353,652,363,511,363"/>
+<area shape="poly" title=" " alt="" coords="510,338,545,333,545,339,511,343"/>
+<area shape="poly" title=" " alt="" coords="433,374,626,463,624,467,431,379"/>
+</map>
+</div>
 
 </div>
 </div>

@@ -1,0 +1,29 @@
+<map id="BOOST_FIXTURE_TEST_CASE" name="BOOST_FIXTURE_TEST_CASE">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,262,216,287"/>
+<area shape="rect" id="Node000002" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#ae01babb4bc4d1980daaef7037f488bd3" title=" " alt="" coords="264,255,511,295"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,272,250,272,250,277,216,277"/>
+<area shape="rect" id="Node000003" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a90dbd1ff0c91b6f12516470b03d48233" title=" " alt="" coords="559,159,805,199"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="449,252,606,200,608,206,450,257"/>
+<area shape="rect" id="Node000009" href="$classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="1180,345,1367,370"/>
+<area shape="poly" id="edge14_Node000002_Node000009" title=" " alt="" coords="485,292,559,304,725,322,891,336,1166,351,1166,356,891,341,724,328,558,309,484,297"/>
+<area shape="rect" id="Node000011" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#aef49e881b97f5d3dd26d1a7f7c1c4404" title=" " alt="" coords="559,255,805,295"/>
+<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="511,272,545,272,545,277,511,277"/>
+<area shape="rect" id="Node000004" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a1fb4ee62813a812705c9f77b9d7f9307" title=" " alt="" coords="853,127,1100,167"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="805,163,840,159,840,164,806,168"/>
+<area shape="rect" id="Node000005" href="$classugv__nav4d_1_1PathStatistic.html#ac9e23aabdbd37e06992fc638c05c3d33" title=" " alt="" coords="1182,133,1365,173"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="1100,147,1168,148,1168,154,1100,152"/>
+<area shape="rect" id="Node000006" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="1148,268,1399,308"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="1080,165,1102,177,1119,194,1127,213,1134,230,1150,247,1171,260,1168,265,1146,251,1130,233,1122,215,1114,197,1098,181,1078,169"/>
+<area shape="rect" id="Node000007" href="$classugv__nav4d_1_1PathStatistic_1_1Stats.html#a08873630b22f5ea72e12c8f18a93767e" title=" " alt="" coords="1182,197,1365,237"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="1062,164,1176,191,1174,197,1061,169"/>
+<area shape="rect" id="Node000008" href="$classugv__nav4d_1_1PathStatistic_1_1Stats.html#a73ca74d39a12c5c96b01832475c78d9f" title=" " alt="" coords="1180,5,1367,45"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="1009,124,1072,89,1147,55,1170,47,1172,52,1149,60,1074,94,1012,129"/>
+<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="1086,165,1102,177,1116,194,1124,213,1127,249,1130,284,1137,301,1150,318,1179,337,1176,342,1146,322,1132,304,1125,285,1122,249,1119,214,1112,197,1098,181,1083,169"/>
+<area shape="rect" id="Node000010" href="$classugv__nav4d_1_1PathStatistic.html#ab3f90867649113c6448d9c59f5408139" title=" " alt="" coords="1182,69,1365,109"/>
+<area shape="poly" id="edge9_Node000004_Node000010" title=" " alt="" coords="1080,124,1168,107,1169,112,1081,129"/>
+<area shape="poly" id="edge13_Node000011_Node000006" title=" " alt="" coords="773,292,854,304,977,310,1100,304,1134,302,1134,307,1100,309,977,315,853,309,772,297"/>
+<area shape="rect" id="Node000012" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="853,255,1100,295"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="805,272,840,272,840,277,805,277"/>
+<area shape="rect" id="Node000013" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="853,191,1100,231"/>
+<area shape="poly" id="edge12_Node000011_Node000013" title=" " alt="" coords="774,252,870,231,871,236,775,257"/>
+</map>
