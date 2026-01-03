@@ -14,5 +14,5 @@ jobs:
     - name: build_ugv_nav4d
       run: |
         mkdir build && cd build
-        cmake -DINSTALL_DEPS=ON -DCMAKE_INSTALL_PREFIX=./install ..
+        cmake -DINSTALL_DEPS=ON -DTESTS_ENABLED=ON -DENABLE_DEBUG_DRAWINGS=OFF -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=./install ..
         make -j install
