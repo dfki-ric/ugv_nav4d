@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEPS="doxygen xdot qttools5-dev qttools5-dev-tools libopenscenegraph-dev libeigen3-dev libcgal-dev libpcl-dev libboost-filesystem-dev libboost-serialization-dev libboost-system-dev"
+DEPS="doxygen xdot qttools5-dev qttools5-dev-tools libopenscenegraph-dev libeigen3-dev libcgal-dev libpcl-dev libboost-filesystem-dev libboost-serialization-dev libboost-system-dev libyaml-cpp-dev"
 
 if dpkg --verify $DEPS; then
   echo "All OS dependencies are installed already. To update them run:"
