@@ -52,6 +52,8 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(std::shared_ptr<const traversability_ge
     {
         availableMotions.computeMotions(travConf.gridResolution);
     }
+
+    usePathStatistics = false;
 }
 
 void EnvironmentXYZTheta::clear()
