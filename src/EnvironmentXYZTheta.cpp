@@ -157,35 +157,30 @@ traversability_generator3d::TravGenNode* EnvironmentXYZTheta::findMatchingTraver
 
     auto &trList(travMap->at(idxTravNode));
 
-    // for now we take the lowest match if we don't find a fitting patch
-    // this is helpful if we want to specify goal positions manually and the
-    // max step height is low for a system
-    traversability_generator3d::TravGenNode *bestFit = nullptr;
+    // Find patch within reasonable range of goal height
+    traversability_generator3d::TravGenNode *bestMatch = nullptr;
+    double minDistance = std::numeric_limits<double>::max();
 
     //check if we got an existing node
     for(traversability_generator3d::TravGenNode *snode : trList)
     {
         const double searchHeight = snode->getHeight();
 
-        if((searchHeight - travConf.maxStepHeight) <= pos.z())
+        // Perfect match within step height
+        if((searchHeight - travConf.maxStepHeight) <= pos.z() && (searchHeight + travConf.maxStepHeight) >= pos.z())
         {
-            if((searchHeight + travConf.maxStepHeight) >= pos.z())
-            {
-                //found a connectable node
-                return snode;
-            } else
-            {
-                // we have a patch that is lower then the requested pose
-                bestFit = snode;
-            }
+            return snode;
         }
 
-        if(searchHeight > pos.z())
+        // Find closest patch within reasonable distance
+        double distance = std::abs(searchHeight - pos.z());
+        if(distance < (travConf.maxStepHeight * 1.5) && distance < minDistance)
         {
-            break;
+            minDistance = distance;
+            bestMatch = snode;
         }
     }
-    return bestFit;
+    return bestMatch;
 }
 
 bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double theta,
