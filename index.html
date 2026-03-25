@@ -93,10 +93,19 @@ API Documentation</h4>
 <h4><a class="anchor" id="autotoc_md9"></a>
 GUI Usage &amp; Tests</h4>
 <p>Source the <code>env.sh</code> in the install folder.</p>
+<p><a class="anchor" id="autotoc_md10"></a> </p><h5>Configuration</h5>
+<p>The planner GUI loads configuration from <code>src/gui/config/parameters.yaml</code>. This file contains default values for:</p><ul>
+<li><b>Spline Configuration</b>: Motion primitive generation parameters (number of angles, destination radius, etc.)</li>
+<li><b>Mobility Configuration</b>: Robot speed and turning characteristics (translation/rotation speed, turning radius, multipliers)</li>
+<li><b>Traversability Configuration</b>: Terrain analysis parameters (grid resolution, max slope, step height, robot dimensions)</li>
+<li><b>Planner Configuration</b>: Search algorithm parameters (epsilon, number of threads)</li>
+</ul>
+<p>If the config file is not found, the GUI will fall back to built-in defaults. To customize planner behavior, edit the YAML configuration file before starting the GUI.</p>
+<p><a class="anchor" id="autotoc_md11"></a> </p><h5>Running the GUI</h5>
 <p>At first, get the test point cloud map and start the GUI. </p><div class="fragment"><div class="line">cd ..</div>
 <div class="line">source build/install/env.sh</div>
 <div class="line">wget https://zenodo.org/record/13789320/files/parking_deck.ply</div>
-<div class="line">ugv_nav4d_bin-qt5 parking_deck.ply 0.3</div>
+<div class="line">ugv_nav4d_bin-qt5 parking_deck.ply</div>
 </div><!-- fragment --><p> <img src="doc/figures/planner_gui.png" alt="PlannerGui" class="inline"/></p>
 <p>A basic GUI is loaded with the Multi-layer Surface Map of a parking deck environment. Use the mouse left-click to select a start position and the mouse right-click to select the goal position. The sliders can be used to changed the orientations of start and goal positions. Click on the button <code>Plan</code> to plan a path.</p>
 <p><img src="doc/figures/planner_gui_result.png" alt="PlannerGuiResult" class="inline"/></p>
@@ -411,16 +420,16 @@ GUI Usage &amp; Tests</h4>
 <div class="line">We take the length of the spline and project it onto the slope between the start and end position. Then we measure the length of the projected line and use that to re-calculate the cost using the base cost formula (see above). This should give a good approximation of the real travel time needed to move up (or down) a slope.</div>
 </div><!-- fragment --><p> heightDiff = &lt; height difference between start and end of motion &gt; approxMotionLen = sqrt(motion.translationlDist^2 + heightDiff^2) cost = calculateCost(approxMotionLen) ```</p>
 <p>None of those metrices captures the real cost of moving up or down a slope. They have been implemented for experimentation. However those experiments have never been done (we ran out of time and there where no slopes in the final demo). Thus the performance of the metrices is unclear.</p>
-<h4><a class="anchor" id="autotoc_md10"></a>
+<h4><a class="anchor" id="autotoc_md12"></a>
 Dumping Planner State</h4>
 <p>In case of error the <code>Planner</code> dumps its state to a file (this can be enabled using the <code>dumpOnError</code> parameter). The state can be loaded and analyzed using the <code>ugv_nav4d_replay</code> binary. This binary loads the state and executes the planning in a controlled environment. This can be used to debug the planner.</p>
-<h4><a class="anchor" id="autotoc_md11"></a>
+<h4><a class="anchor" id="autotoc_md13"></a>
 User Interfaces</h4>
 <p>Two user interfaces can be found in <code>src/gui</code>. They are intended for testing and debugging.</p>
-<p><a class="anchor" id="autotoc_md12"></a> </p><h5><a class="el" href="classPlannerGui.html">PlannerGui</a></h5>
+<p><a class="anchor" id="autotoc_md14"></a> </p><h5><a class="el" href="classPlannerGui.html">PlannerGui</a></h5>
 <p>The <code><a class="el" href="classPlannerGui.html">PlannerGui</a></code> is the main testing gui. It is designed to experiment with differen planner parameters on a static map. It can load point clouds from ply or serialized mls maps. A left click sets the start location, a right click sets the end location.</p>
 <p>In addition the <code><a class="el" href="classPlannerGui.html">PlannerGui</a></code> can also be used to load and analyze planner dumps.</p>
-<h2><a class="anchor" id="autotoc_md13"></a>
+<h2><a class="anchor" id="autotoc_md15"></a>
 Bug Reports</h2>
 <p>To search for bugs or report them, please use GitHubs <a href="https://github.com/dfki-ric/ugv_nav4d/issues">Issue-Tracker</a> </p>
 </div></div><!-- PageDoc -->
