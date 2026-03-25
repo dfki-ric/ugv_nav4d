@@ -326,17 +326,6 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     {
         loadMls();
     }
-    
-    if(argc > 3)
-    {
-        start.position << 9.08776,  5.8535, 0.06052;
-        QVector3D pos(start.position.x(), start.position.y(), start.position.z());
-        startViz.setTranslation(pos);
-
-        
-        LOG_INFO_S << "Start: " << start.position.transpose();
-        pickStart = false;
-    }
 }
 
 void PlannerGui::setupDefaultConfigs()

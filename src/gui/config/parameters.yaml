@@ -1,0 +1,54 @@
+# UGV Nav4D Planner Configuration
+
+splineConfig:
+  gridSize: 0.3
+  numAngles: 16
+  numEndAngles: 8
+  destinationCircleRadius: 6
+  cellSkipFactor: 0.1
+  generatePointTurnMotions: true
+  generateLateralMotions: false
+  generateBackwardMotions: true
+  generateForwardMotions: true
+  splineOrder: 4
+
+mobilityConfig:
+  translationSpeed: 0.5
+  rotationSpeed: 0.5
+  minTurningRadius: 1
+  searchRadius: 0.0
+  searchProgressSteps: 0.1
+  multiplierForward: 1
+  multiplierForwardTurn: 2
+  multiplierBackward: 2
+  multiplierBackwardTurn: 3
+  multiplierLateral: 4
+  multiplierLateralCurve: 4
+  multiplierPointTurn: 3
+  maxMotionCurveLength: 100
+  spline_sampling_resolution: 0.05
+  remove_goal_offset: false
+
+travConfig:
+  gridResolution: 0.3
+  maxSlope: 0.45
+  maxStepHeight: 0.25
+  robotSizeX: 0.5
+  robotSizeY: 0.5
+  robotHeight: 0.5
+  slopeMetricScale: 1.0
+  slopeMetric: "NONE"
+  inclineLimittingMinSlope: 0.22
+  inclineLimittingLimit: 0.43
+  costFunctionDist: 0.0
+  distToGround: 0.0
+  minTraversablePercentage: 0.5
+  allowForwardDownhill: true
+  enableInclineLimitting: false
+
+plannerConfig:
+  epsilonSteps: 2.0
+  initialEpsilon: 64.0
+  numThreads: 4
+  usePathStatistics: false
+  searchUntilFirstSolution: false
