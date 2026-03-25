@@ -79,12 +79,22 @@ The API documentation can be found at https://dfki-ric.github.io/ugv_nav4d/
 
 Source the `env.sh` in the install folder.
 
+##### Configuration
+The planner GUI loads configuration from `src/gui/config/parameters.yaml`. This file contains default values for:
+- **Spline Configuration**: Motion primitive generation parameters (number of angles, destination radius, etc.)
+- **Mobility Configuration**: Robot speed and turning characteristics (translation/rotation speed, turning radius, multipliers)
+- **Traversability Configuration**: Terrain analysis parameters (grid resolution, max slope, step height, robot dimensions)
+- **Planner Configuration**: Search algorithm parameters (epsilon, number of threads)
+
+If the config file is not found, the GUI will fall back to built-in defaults. To customize planner behavior, edit the YAML configuration file before starting the GUI.
+
+##### Running the GUI
 At first, get the test point cloud map and start the GUI.
 ```
 cd ..
 source build/install/env.sh
 wget https://zenodo.org/record/13789320/files/parking_deck.ply
-ugv_nav4d_bin-qt5 parking_deck.ply 0.3
+ugv_nav4d_bin-qt5 parking_deck.ply
 ```
 ![PlannerGui](doc/figures/planner_gui.png)
 

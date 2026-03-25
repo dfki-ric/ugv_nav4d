@@ -17,6 +17,7 @@
 #include <ugv_nav4d/PlannerDump.hpp>
 #include <pcl/common/transforms.h>
 #include <base-logging/Logging.hpp>
+#include <ugv_nav4d/ConfigLoader.hpp>
 
 #ifdef ENABLE_DEBUG_DRAWINGS
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
@@ -294,64 +295,25 @@ void PlannerGui::setupUI()
 
 void PlannerGui::setupPlanner(int argc, char** argv)
 {
-    double res = 0.3;
-    if(argc > 2){
-        std::setlocale(LC_ALL, "C");
-        res = atof(argv[2]);
+    // Load config from gui/config/planner_config.yaml
+    boost::filesystem::path configPath = boost::filesystem::path(__FILE__).parent_path() 
+                                        / "config" / "parameters.yaml";
+    
+    if(boost::filesystem::exists(configPath)) {
+        LOG_INFO_S << "Loading configuration from: " << configPath.string();
+        if(!ConfigLoader::loadConfig(configPath.string(), splineConfig, mobilityConfig, travConfig, plannerConfig)) {
+            LOG_WARN_S << "Failed to load config, using defaults";
+            setupDefaultConfigs();
+        }
+    } else {
+        LOG_WARN_S << "Config file not found at: " << configPath.string() << ", using defaults";
+        setupDefaultConfigs();
     }
-
-    splineConfig.gridSize = res;
-    splineConfig.numAngles = 16;
-    splineConfig.numEndAngles = 8;
-    splineConfig.destinationCircleRadius = 6;
-    splineConfig.cellSkipFactor = 0.1;
-    splineConfig.generatePointTurnMotions = true;
-    splineConfig.generateLateralMotions = true;
-    splineConfig.generateBackwardMotions = true;
-    splineConfig.generateForwardMotions = true;
-    splineConfig.splineOrder = 4;
-
-    mobilityConfig.translationSpeed = 0.5;
-    mobilityConfig.rotationSpeed = 0.5;
-    mobilityConfig.minTurningRadius = 1; // increase this to reduce the number of available motion primitives
-    mobilityConfig.searchRadius = 0.0;
-    mobilityConfig.searchProgressSteps = 0.1;
-    mobilityConfig.multiplierForward = 1;
-    mobilityConfig.multiplierForwardTurn = 2;
-    mobilityConfig.multiplierBackward = 2;
-    mobilityConfig.multiplierBackwardTurn = 3;
-    mobilityConfig.multiplierLateral = 4;
-    mobilityConfig.multiplierLateralCurve = 4;
-    mobilityConfig.multiplierPointTurn = 3;
-    mobilityConfig.maxMotionCurveLength = 100;
-    mobilityConfig.spline_sampling_resolution = 0.05;
-    mobilityConfig.remove_goal_offset = false;
-
-    travConfig.gridResolution = res;
-    travConfig.maxSlope = 0.45; //40.0/180.0 * M_PI;
-    travConfig.maxStepHeight = 0.25; //space below robot
-    travConfig.robotSizeX = 0.5;
-    travConfig.robotSizeY =  0.5;
-    travConfig.robotHeight = 0.5; //incl space below body
-    travConfig.slopeMetricScale = 1.0;
-    travConfig.slopeMetric = traversability_generator3d::SlopeMetric::NONE;
-    travConfig.inclineLimittingMinSlope = 0.22; // 10.0 * M_PI/180.0;
-    travConfig.inclineLimittingLimit = 0.43;// 5.0 * M_PI/180.0;
-    travConfig.costFunctionDist = 0.0;
-    travConfig.distToGround = 0.0;
-    travConfig.minTraversablePercentage = 0.5;
-    travConfig.allowForwardDownhill = true;
-    travConfig.enableInclineLimitting = false;
-
-    plannerConfig.epsilonSteps = 2.0;
-    plannerConfig.initialEpsilon = 64.0;
-    plannerConfig.numThreads = 4;
 
     planner.reset(new ugv_nav4d::Planner(splineConfig, travConfig, mobilityConfig, plannerConfig));
     travGen.reset(new traversability_generator3d::TraversabilityGenerator3d(travConfig));
 
     sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(splineConfig);
-
     splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobilityConfig.minTurningRadius));
     splineViz.updateData(primitives);
 
@@ -375,6 +337,56 @@ void PlannerGui::setupPlanner(int argc, char** argv)
         LOG_INFO_S << "Start: " << start.position.transpose();
         pickStart = false;
     }
+}
+
+void PlannerGui::setupDefaultConfigs()
+{
+    splineConfig.gridSize = 0.5;
+    splineConfig.numAngles = 16;
+    splineConfig.numEndAngles = 8;
+    splineConfig.destinationCircleRadius = 6;
+    splineConfig.cellSkipFactor = 0.1;
+    splineConfig.generatePointTurnMotions = true;
+    splineConfig.generateLateralMotions = true;
+    splineConfig.generateBackwardMotions = true;
+    splineConfig.generateForwardMotions = true;
+    splineConfig.splineOrder = 4;
+
+    mobilityConfig.translationSpeed = 0.5;
+    mobilityConfig.rotationSpeed = 0.5;
+    mobilityConfig.minTurningRadius = 1;
+    mobilityConfig.searchRadius = 0.0;
+    mobilityConfig.searchProgressSteps = 0.1;
+    mobilityConfig.multiplierForward = 1;
+    mobilityConfig.multiplierForwardTurn = 2;
+    mobilityConfig.multiplierBackward = 2;
+    mobilityConfig.multiplierBackwardTurn = 3;
+    mobilityConfig.multiplierLateral = 4;
+    mobilityConfig.multiplierLateralCurve = 4;
+    mobilityConfig.multiplierPointTurn = 3;
+    mobilityConfig.maxMotionCurveLength = 100;
+    mobilityConfig.spline_sampling_resolution = 0.05;
+    mobilityConfig.remove_goal_offset = false;
+
+    travConfig.gridResolution = 0.3;
+    travConfig.maxSlope = 0.45;
+    travConfig.maxStepHeight = 0.25;
+    travConfig.robotSizeX = 0.5;
+    travConfig.robotSizeY = 0.5;
+    travConfig.robotHeight = 0.5;
+    travConfig.slopeMetricScale = 1.0;
+    travConfig.slopeMetric = traversability_generator3d::SlopeMetric::NONE;
+    travConfig.inclineLimittingMinSlope = 0.22;
+    travConfig.inclineLimittingLimit = 0.43;
+    travConfig.costFunctionDist = 0.0;
+    travConfig.distToGround = 0.0;
+    travConfig.minTraversablePercentage = 0.5;
+    travConfig.allowForwardDownhill = true;
+    travConfig.enableInclineLimitting = false;
+
+    plannerConfig.epsilonSteps = 2.0;
+    plannerConfig.initialEpsilon = 64.0;
+    plannerConfig.numThreads = 4;
 }
 
 

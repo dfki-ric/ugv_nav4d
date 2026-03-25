@@ -35,6 +35,7 @@ class PlannerGui : public QObject
     
     void setupPlanner(int argc, char** argv);
     void setupUI();
+    void setupDefaultConfigs();
     
 public:
     PlannerGui(int argc, char** argv);

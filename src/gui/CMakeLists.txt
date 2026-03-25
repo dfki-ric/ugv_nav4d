@@ -30,6 +30,7 @@ rock_qt_library(
                        base-types
                        pcl_common${PCL_VERSION_SUFFIX}
                        pcl_io${PCL_VERSION_SUFFIX}
+                       yaml-cpp
     DEPS_PKGCONFIG_QT  vizkit3d
                        vizkit3d-viz
                        traversability_generator3d-viz
@@ -48,6 +49,7 @@ rock_qt_executable(
         Main.cpp
     DEPS ugv_nav4d
     DEPS_QT ugv_nav4d_gui
+    DEPS_PKGCONFIG yaml-cpp
 )
 
 rock_qt_executable(
@@ -60,6 +62,7 @@ rock_qt_executable(
     DEPS_QT ugv_nav4d_gui
     DEPS_PKGCONFIG
         base-types
+        yaml-cpp
     DEPS_PKGCONFIG_QT vizkit3d  maps-viz base-viz
         sbpl_spline_primitives-viz trajectory_follower-viz
 )
