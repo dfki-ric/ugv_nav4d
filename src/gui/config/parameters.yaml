@@ -45,7 +45,7 @@ travConfig:
   minTraversablePercentage: 0.5
   allowForwardDownhill: true
   enableInclineLimitting: false
-  obstacleInflationMultiplier: 1.0
+  obstacleInflationMultiplier: 0.3
 
 plannerConfig:
   epsilonSteps: 2.0
