@@ -72,6 +72,7 @@ public:
                 travConfig.minTraversablePercentage = tc["minTraversablePercentage"].as<double>(0.5);
                 travConfig.allowForwardDownhill = tc["allowForwardDownhill"].as<bool>(true);
                 travConfig.enableInclineLimitting = tc["enableInclineLimitting"].as<bool>(false);
+                travConfig.obstacleInflationMultiplier = tc["obstacleInflationMultiplier"].as<double>(1.0);
                 
                 std::string slopeMetricStr = tc["slopeMetric"].as<std::string>("NONE");
                 if (slopeMetricStr == "AVG_SLOPE") travConfig.slopeMetric = traversability_generator3d::SlopeMetric::AVG_SLOPE;
