@@ -1,12 +1,12 @@
 # UGV Nav4D Planner Configuration
 
 splineConfig:
-  gridSize: 0.5
+  gridSize: 0.3
   numAngles: 16
   numEndAngles: 8
   destinationCircleRadius: 6
   cellSkipFactor: 0.1
-  generatePointTurnMotions: false
+  generatePointTurnMotions: true
   generateLateralMotions: false
   generateBackwardMotions: true
   generateForwardMotions: true
@@ -30,23 +30,23 @@ mobilityConfig:
   remove_goal_offset: false
 
 travConfig:
-  gridResolution: 0.5
+  gridResolution: 0.3
   maxSlope: 0.45
-  maxStepHeight: 0.6
-  robotSizeX: 6.0
-  robotSizeY: 3.0
-  robotHeight: 3.5
+  maxStepHeight: 0.25
+  robotSizeX: 0.5
+  robotSizeY: 0.5
+  robotHeight: 0.5
   slopeMetricScale: 1.0
   slopeMetric: "NONE"
   inclineLimittingMinSlope: 0.22
   inclineLimittingLimit: 0.43
   costFunctionDist: 0.0
-  distToGround: 0.5
+  distToGround: 0.0
   minTraversablePercentage: 0.5
   allowForwardDownhill: true
   enableInclineLimitting: false
   obstacleInflationMultiplier: 1.0
-  
+
 plannerConfig:
   epsilonSteps: 2.0
   initialEpsilon: 64.0
