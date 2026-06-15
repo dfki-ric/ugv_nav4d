@@ -6,6 +6,7 @@
 #include "PlannerDump.hpp"
 #include <omp.h>
 #include <cmath>
+#include <chrono>
 #include <base-logging/Logging.hpp>
 #include "Logger.hpp"
 #include <deque>
@@ -105,6 +106,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
                                        std::vector<SubTrajectory>& resultTrajectory3D,
                                        bool dumpOnError, bool dumpOnSuccess)
 {
+    auto t_start_total = std::chrono::steady_clock::now();
 
     LOG_DEBUG_S << "Planning with " << plannerConfig.numThreads << " threads";
     omp_set_num_threads(plannerConfig.numThreads);
@@ -120,10 +122,6 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     resultTrajectory2D.clear();
     resultTrajectory3D.clear();
     env->clear();
-
-    if(!planner)
-        planner.reset(new ARAPlanner(env.get(), true));
-
 
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
@@ -142,6 +140,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
 
     startbody2Mls.setTransform(startGround2Mls);
     endbody2Mls.setTransform(endGround2Mls);
+
+    auto t_env_init = std::chrono::steady_clock::now();
 
     try
     {
@@ -162,6 +162,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         return START_INVALID;
     }
 
+    auto t_set_start = std::chrono::steady_clock::now();
+
     Eigen::Vector3d start_translation = startGround2Mls.translation();
     Eigen::Vector3d goal_translation = endGround2Mls.translation();
 
@@ -171,6 +173,11 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         }
         return GOAL_INVALID;
     }
+
+    auto t_set_goal = std::chrono::steady_clock::now();
+
+    if(!planner)
+        planner.reset(new ARAPlanner(env.get(), true));
 
     //this has to happen after env->setStart and env->setGoal because those methods initialize the
     //StateID2IndexMapping which is accessed inside force_planning_from_scratch_and_free_memory().
@@ -184,7 +191,6 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         LOG_ERROR_S << "Caught SBPL exception: " << ex.what();
         return NO_SOLUTION;
     }
-
 
     MDPConfig mdp_cfg;
 
@@ -201,6 +207,15 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         return INTERNAL_ERROR;
     }
 
+    auto t_planner_setup = std::chrono::steady_clock::now();
+
+    PLANNING_RESULT planning_res = NO_SOLUTION;
+    int num_expands = 0;
+    double final_epsilon = -1.0;
+    auto t_replan_start = std::chrono::steady_clock::now();
+    auto t_replan_end = t_replan_start;
+    auto t_trajectory_extraction = t_replan_start;
+
     try
     {
         LOG_DEBUG_S << "Initial Epsilon: " << plannerConfig.initialEpsilon << ", steps: " << plannerConfig.epsilonSteps;
@@ -208,35 +223,69 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         planner->set_initialsolution_eps(plannerConfig.initialEpsilon);
 
         solutionIds.clear();
-        if(!planner->replan(maxTime.toSeconds(), &solutionIds))
+        t_replan_start = std::chrono::steady_clock::now();
+        bool replan_success = planner->replan(maxTime.toSeconds(), &solutionIds);
+        t_replan_end = std::chrono::steady_clock::now();
+        num_expands = planner->get_n_expands();
+        final_epsilon = planner->get_final_epsilon();
+
+        if(!replan_success)
         {
-            LOG_DEBUG_S << "Number of state space expands: " << planner->get_n_expands();
+            LOG_DEBUG_S << "Number of state space expands: " << num_expands;
             if(dumpOnError)
                 PlannerDump dump(*this, "no_solution", maxTime, startbody2Mls, endbody2Mls);
-            return NO_SOLUTION;
+            planning_res = NO_SOLUTION;
         }
+        else
+        {
+            LOG_DEBUG_S << "num expands: " << num_expands;
+            LOG_DEBUG_S << "Epsilon is " << final_epsilon;
 
-        LOG_DEBUG_S << "num expands: " << planner->get_n_expands();
-        LOG_DEBUG_S << "Epsilon is " << planner->get_final_epsilon();
-
-        std::vector<PlannerStats> stats;
-
-        planner->get_search_stats(&stats);
-        env->getTrajectory(solutionIds, resultTrajectory2D, true, start_translation, goal_translation, end_pose.getYaw(), ground2Body);
-        env->getTrajectory(solutionIds, resultTrajectory3D, false, start_translation, goal_translation,end_pose.getYaw(), ground2Body);
+            std::vector<PlannerStats> stats;
+            planner->get_search_stats(&stats);
+            env->getTrajectory(solutionIds, resultTrajectory2D, true, start_translation, goal_translation, end_pose.getYaw(), ground2Body);
+            env->getTrajectory(solutionIds, resultTrajectory3D, false, start_translation, goal_translation,end_pose.getYaw(), ground2Body);
+            t_trajectory_extraction = std::chrono::steady_clock::now();
+            planning_res = FOUND_SOLUTION;
+        }
     }
     catch(const SBPL_Exception& ex)
     {
         LOG_ERROR_S << "Caught sbpl exception: " << ex.what();
         if(dumpOnError)
             PlannerDump dump(*this, "no_solution", maxTime, startbody2Mls, endbody2Mls);
-        return NO_SOLUTION;
+        planning_res = NO_SOLUTION;
     }
 
-    if(dumpOnSuccess)
+    if(dumpOnSuccess && planning_res == FOUND_SOLUTION)
         PlannerDump dump(*this, "success", maxTime, startbody2Mls, endbody2Mls);
 
-    return FOUND_SOLUTION;
+    auto t_end_total = std::chrono::steady_clock::now();
+
+    double d_env_init = std::chrono::duration<double>(t_env_init - t_start_total).count();
+    double d_set_start = std::chrono::duration<double>(t_set_start - t_env_init).count();
+    double d_set_goal = std::chrono::duration<double>(t_set_goal - t_set_start).count();
+    double d_planner_setup = std::chrono::duration<double>(t_planner_setup - t_set_goal).count();
+    double d_replan = std::chrono::duration<double>(t_replan_end - t_replan_start).count();
+    double d_trajectory = 0.0;
+    if (planning_res == FOUND_SOLUTION) {
+        d_trajectory = std::chrono::duration<double>(t_trajectory_extraction - t_replan_end).count();
+    }
+    double d_total = std::chrono::duration<double>(t_end_total - t_start_total).count();
+
+    LOG_INFO_S << "[KPI] --- PLANNING PERFORMANCE BREAKDOWN ---";
+    LOG_INFO_S << "[KPI] Env Init:              " << d_env_init << "s";
+    LOG_INFO_S << "[KPI] Set Start State:       " << d_set_start << "s";
+    LOG_INFO_S << "[KPI] Set Goal State:        " << d_set_goal << "s (includes heuristic Dijkstra)";
+    LOG_INFO_S << "[KPI] Planner Setup/Memory:  " << d_planner_setup << "s";
+    LOG_INFO_S << "[KPI] Search/Replan (A*):    " << d_replan << "s";
+    LOG_INFO_S << "[KPI] Trajectory Extraction: " << d_trajectory << "s";
+    LOG_INFO_S << "[KPI] Total Planning Time:   " << d_total << "s";
+    LOG_INFO_S << "[KPI] State space expands:   " << num_expands;
+    LOG_INFO_S << "[KPI] Final Epsilon:         " << final_epsilon;
+    LOG_INFO_S << "[KPI] ---------------------------------------";
+
+    return planning_res;
 }
 
 std::vector< Motion > Planner::getMotions() const

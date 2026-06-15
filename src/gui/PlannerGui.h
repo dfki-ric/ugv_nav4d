@@ -24,6 +24,7 @@ class QSlider;
 class QPushButton;
 class QComboBox;
 class QProgressBar;
+class QCheckBox;
 
 namespace vizkit3d {
     class Vizkit3DWidget;
@@ -65,16 +66,65 @@ private slots:
     void goalOrientationChanged(int newValue);
     void timeEditingFinished();
     void replanButtonReleased();
+    void updateParamsButtonReleased();
     void dumpPressed();
     void slopeMetricComboBoxIndexChanged(int index);
     void numThreadsValueChanged(int newValue);
     void obstacleDistanceSpinBoxEditingFinished();
     void obstacleFactorSpinBoxEditingFinished();
+    void robotSizeXEditingFinished();
+    void robotSizeYEditingFinished();
+    void robotHeightEditingFinished();
+    void distToGroundEditingFinished();
+    void translationSpeedEditingFinished();
+    void rotationSpeedEditingFinished();
+    void minTurningRadiusEditingFinished();
+
+    // Spline Slots
+    void splineGridSizeEditingFinished();
+    void splineNumAnglesValueChanged(int value);
+    void splineNumEndAnglesValueChanged(int value);
+    void splineDestCircleRadiusEditingFinished();
+    void splineCellSkipFactorEditingFinished();
+    void splineGenPointTurnMotionsStateChanged(int state);
+    void splineGenLateralMotionsStateChanged(int state);
+    void splineGenBackwardMotionsStateChanged(int state);
+    void splineGenForwardMotionsStateChanged(int state);
+    void splineOrderValueChanged(int value);
+
+    // Mobility Slots
+    void mobSearchRadiusEditingFinished();
+    void mobSearchProgressStepsEditingFinished();
+    void mobMultForwardValueChanged(int value);
+    void mobMultBackwardValueChanged(int value);
+    void mobMultLateralValueChanged(int value);
+    void mobMultForwardTurnValueChanged(int value);
+    void mobMultBackwardTurnValueChanged(int value);
+    void mobMultPointTurnValueChanged(int value);
+    void mobMultLateralCurveValueChanged(int value);
+    void mobMaxMotionCurveLengthEditingFinished();
+    void mobSplineSamplingResEditingFinished();
+    void mobRemoveGoalOffsetStateChanged(int state);
+
+    // Traversability Slots
+    void travGridResolutionEditingFinished();
+    void travMaxStepHeightEditingFinished();
+    void travMinTraversablePercentageEditingFinished();
+    void travAllowForwardDownhillStateChanged(int state);
+    void travEnableInclineLimittingStateChanged(int state);
+    void travObstacleInflationMultiplierEditingFinished();
+
+    // Planner Slots
+    void planEpsilonStepsEditingFinished();
+    void planInitialEpsilonEditingFinished();
+    void planUsePathStatisticsStateChanged(int state);
+    void planSearchUntilFirstSolutionStateChanged(int state);
     
 private:
     void loadMls();
     void loadMls(const std::string& path);
     void startPlanThread();
+    void updateWidgetValues();
     
 private:
 
@@ -92,6 +142,54 @@ private:
     QComboBox* slopeMetricComboBox;
     QComboBox* heuristicComboBox;
     QSpinBox* numThreadsSpinBox;
+    QDoubleSpinBox* robotSizeXSpinBox;
+    QDoubleSpinBox* robotSizeYSpinBox;
+    QDoubleSpinBox* robotHeightSpinBox;
+    QDoubleSpinBox* distToGroundSpinBox;
+    QDoubleSpinBox* translationSpeedSpinBox;
+    QDoubleSpinBox* rotationSpeedSpinBox;
+    QDoubleSpinBox* minTurningRadiusSpinBox;
+
+    // Spline Config Widgets
+    QDoubleSpinBox* splineGridSizeSpinBox;
+    QSpinBox* splineNumAnglesSpinBox;
+    QSpinBox* splineNumEndAnglesSpinBox;
+    QDoubleSpinBox* splineDestCircleRadiusSpinBox;
+    QDoubleSpinBox* splineCellSkipFactorSpinBox;
+    QCheckBox* splineGenPointTurnMotionsCheckBox;
+    QCheckBox* splineGenLateralMotionsCheckBox;
+    QCheckBox* splineGenBackwardMotionsCheckBox;
+    QCheckBox* splineGenForwardMotionsCheckBox;
+    QSpinBox* splineOrderSpinBox;
+
+    // Mobility Config Widgets
+    QDoubleSpinBox* mobSearchRadiusSpinBox;
+    QDoubleSpinBox* mobSearchProgressStepsSpinBox;
+    QSpinBox* mobMultForwardSpinBox;
+    QSpinBox* mobMultBackwardSpinBox;
+    QSpinBox* mobMultLateralSpinBox;
+    QSpinBox* mobMultForwardTurnSpinBox;
+    QSpinBox* mobMultBackwardTurnSpinBox;
+    QSpinBox* mobMultPointTurnSpinBox;
+    QSpinBox* mobMultLateralCurveSpinBox;
+    QDoubleSpinBox* mobMaxMotionCurveLengthSpinBox;
+    QDoubleSpinBox* mobSplineSamplingResSpinBox;
+    QCheckBox* mobRemoveGoalOffsetCheckBox;
+
+    // Traversability Config Widgets
+    QDoubleSpinBox* travGridResolutionSpinBox;
+    QDoubleSpinBox* travMaxStepHeightSpinBox;
+    QDoubleSpinBox* travMinTraversablePercentageSpinBox;
+    QCheckBox* travAllowForwardDownhillCheckBox;
+    QCheckBox* travEnableInclineLimittingCheckBox;
+    QDoubleSpinBox* travObstacleInflationMultiplierSpinBox;
+
+    // Planner Config Widgets
+    QDoubleSpinBox* planEpsilonStepsSpinBox;
+    QDoubleSpinBox* planInitialEpsilonSpinBox;
+    QCheckBox* planUsePathStatisticsCheckBox;
+    QCheckBox* planSearchUntilFirstSolutionCheckBox;
+    
     QProgressBar* bar;
     QWidget window;
     vizkit3d::SbplSplineVisualization splineViz;
@@ -110,6 +208,7 @@ private:
     bool goalPicked = false;
     bool threadRunning = false;
     bool usingPlannerDump = false;
+    bool plannerHasRun = false;
     sbpl_spline_primitives::SplinePrimitivesConfig splineConfig;
     ugv_nav4d::Mobility mobilityConfig;
     traversability_generator3d::TraversabilityConfig travConfig;

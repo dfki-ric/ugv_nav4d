@@ -7,6 +7,7 @@
 #include "PathStatistic.hpp"
 #include "Dijkstra.hpp"
 #include <limits>
+#include <chrono>
 #include <base-logging/Logging.hpp>
 
 #ifdef ENABLE_DEBUG_DRAWINGS
@@ -195,7 +196,14 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
         return false;
     }
 
-    if (travNode->getUserData().nodeType != ::traversability_generator3d::NodeType::TRAVERSABLE)
+    if (travNode->getUserData().nodeType == ::traversability_generator3d::NodeType::PARTIALLY_TRAVERSABLE)
+    {
+        if (!checkOrientationAllowed(travNode, theta))
+        {
+            return false;
+        }
+    }
+    else if (travNode->getUserData().nodeType != ::traversability_generator3d::NodeType::TRAVERSABLE)
     {
         return false;
     }
@@ -277,16 +285,17 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     }
 
     const auto nodeType = goalXYZNode->getUserData().travNode->getUserData().nodeType;
-    if(static_cast<int>(nodeType) != maps::grid::TraversabilityNodeBase::TRAVERSABLE) {
-        throw std::runtime_error("Error, goal has to be a traversable patch");
+    if(nodeType != ::traversability_generator3d::NodeType::TRAVERSABLE &&
+       nodeType != ::traversability_generator3d::NodeType::PARTIALLY_TRAVERSABLE) {
+        throw std::runtime_error("Error, goal has to be a traversable/partially-traversable patch");
     }
 
 
-    if(travConf.enableInclineLimitting)
+    if(travConf.enableInclineLimitting || nodeType == ::traversability_generator3d::NodeType::PARTIALLY_TRAVERSABLE)
     {
         if(!checkOrientationAllowed(goalXYZNode->getUserData().travNode, theta))
         {
-            throw OrientationNotAllowed("Goal orientation not allowed due to slope");
+            throw OrientationNotAllowed("Goal orientation not allowed");
         }
     }
 
@@ -433,7 +442,8 @@ int EnvironmentXYZTheta::GetGoalHeuristic(int stateID)
     const traversability_generator3d::TravGenNode* travNode = sourceNode->getUserData().travNode;
     const ThetaNode *sourceThetaNode = sourceHash.thetaNode;
 
-    if(travNode->getUserData().nodeType != ::traversability_generator3d::NodeType::TRAVERSABLE)
+    if(travNode->getUserData().nodeType != ::traversability_generator3d::NodeType::TRAVERSABLE &&
+       travNode->getUserData().nodeType != ::traversability_generator3d::NodeType::PARTIALLY_TRAVERSABLE)
     {
         return std::numeric_limits<int>::max();
     }
@@ -549,9 +559,10 @@ traversability_generator3d::TravGenNode *EnvironmentXYZTheta::movementPossible(t
 
     //NOTE this check cannot be done before checkExpandTreadSafe because the type will be determined
     //     during the expansion. Beforehand the type is undefined
-    if(targetNode->getUserData().nodeType != ::traversability_generator3d::NodeType::TRAVERSABLE)
+    if(targetNode->getUserData().nodeType != ::traversability_generator3d::NodeType::TRAVERSABLE &&
+       targetNode->getUserData().nodeType != ::traversability_generator3d::NodeType::PARTIALLY_TRAVERSABLE)
     {
-        LOG_DEBUG_S<< "movement not possible. targetnode not traversable";
+        LOG_DEBUG_S<< "movement not possible. targetnode not traversable/partially-traversable";
         return nullptr;
     }
     return targetNode;
@@ -672,7 +683,15 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 break;
             }
 
-            if(travConf.enableInclineLimitting)
+            if(travNode->getUserData().nodeType == ::traversability_generator3d::NodeType::PARTIALLY_TRAVERSABLE)
+            {
+                if(!checkOrientationAllowed(travNode, diff.pose.orientation))
+                {
+                    intermediateStepsOk = false;
+                    break;
+                }
+            }
+            else if(travConf.enableInclineLimitting)
             {
                 if(!checkOrientationAllowed(travNode, diff.pose.orientation))
                 {
@@ -1155,12 +1174,15 @@ double EnvironmentXYZTheta::getMaxSlope(std::vector<const traversability_generat
 
 void EnvironmentXYZTheta::precomputeCost()
 {
+    auto start_time = std::chrono::steady_clock::now();
     std::unordered_map<const maps::grid::TraversabilityNodeBase*, double> costToStart;
     std::unordered_map<const maps::grid::TraversabilityNodeBase*, double> costToEnd;
 
     // Compute costs
     Dijkstra::computeCost(startXYZNode->getUserData().travNode, costToStart, travConf);
+    auto after_dijkstra_start = std::chrono::steady_clock::now();
     Dijkstra::computeCost(goalXYZNode->getUserData().travNode, costToEnd, travConf);
+    auto after_dijkstra_end = std::chrono::steady_clock::now();
 
     // Validate keys in both maps
     if (costToStart.size() != costToEnd.size()) {
@@ -1202,6 +1224,11 @@ void EnvironmentXYZTheta::precomputeCost()
         const size_t nodeId = node->getUserData().id;
         travNodeIdToDistance[nodeId].distToGoal = pair.second;
     }
+    auto end_time = std::chrono::steady_clock::now();
+    double t_dijkstra_start = std::chrono::duration<double>(after_dijkstra_start - start_time).count();
+    double t_dijkstra_end = std::chrono::duration<double>(after_dijkstra_end - after_dijkstra_start).count();
+    double t_mapping = std::chrono::duration<double>(end_time - after_dijkstra_end).count();
+    LOG_INFO_S << "[KPI] precomputeCost - Dijkstra Start: " << t_dijkstra_start << "s, Dijkstra End: " << t_dijkstra_end << "s, Distance Mapping: " << t_mapping << "s, Total: " << std::chrono::duration<double>(end_time - start_time).count() << "s";
 }
 
 void EnvironmentXYZTheta::setTravConfig(const traversability_generator3d::TraversabilityConfig& cfg)
