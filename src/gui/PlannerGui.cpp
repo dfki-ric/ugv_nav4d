@@ -228,6 +228,22 @@ void PlannerGui::setupUI()
     connect(mobRemoveGoalOffsetCheckBox, SIGNAL(stateChanged(int)), this, SLOT(mobRemoveGoalOffsetStateChanged(int)));
     robotFormLayout->addRow("Remove Goal Offset", mobRemoveGoalOffsetCheckBox);
 
+    mobCurvaturePenaltyWeightSpinBox = new QDoubleSpinBox();
+    mobCurvaturePenaltyWeightSpinBox->setMinimum(0.0);
+    mobCurvaturePenaltyWeightSpinBox->setMaximum(100.0);
+    mobCurvaturePenaltyWeightSpinBox->setSingleStep(0.05);
+    mobCurvaturePenaltyWeightSpinBox->setDecimals(2);
+    connect(mobCurvaturePenaltyWeightSpinBox, SIGNAL(editingFinished()), this, SLOT(mobCurvaturePenaltyWeightEditingFinished()));
+    robotFormLayout->addRow("Curvature Penalty Weight:", mobCurvaturePenaltyWeightSpinBox);
+
+    mobAngularCostWeightSpinBox = new QDoubleSpinBox();
+    mobAngularCostWeightSpinBox->setMinimum(0.0);
+    mobAngularCostWeightSpinBox->setMaximum(100.0);
+    mobAngularCostWeightSpinBox->setSingleStep(0.05);
+    mobAngularCostWeightSpinBox->setDecimals(2);
+    connect(mobAngularCostWeightSpinBox, SIGNAL(editingFinished()), this, SLOT(mobAngularCostWeightEditingFinished()));
+    robotFormLayout->addRow("Angular Cost Weight:", mobAngularCostWeightSpinBox);
+
     robotTab->setLayout(robotFormLayout);
     tabWidget->addTab(robotTab, "UGV/Mobility");
 
@@ -310,6 +326,8 @@ void PlannerGui::setupUI()
     connect(travObstacleInflationMultiplierSpinBox, SIGNAL(editingFinished()), this, SLOT(travObstacleInflationMultiplierEditingFinished()));
     travFormLayout->addRow("Obstacle Inflation Multiplier:", travObstacleInflationMultiplierSpinBox);
 
+
+
     travAllowForwardDownhillCheckBox = new QCheckBox();
     connect(travAllowForwardDownhillCheckBox, SIGNAL(stateChanged(int)), this, SLOT(travAllowForwardDownhillStateChanged(int)));
     travFormLayout->addRow("Allow Forward Downhill", travAllowForwardDownhillCheckBox);
@@ -345,7 +363,7 @@ void PlannerGui::setupUI()
 
     splineCellSkipFactorSpinBox = new QDoubleSpinBox();
     splineCellSkipFactorSpinBox->setMinimum(0.001);
-    splineCellSkipFactorSpinBox->setMaximum(1.0);
+    splineCellSkipFactorSpinBox->setMaximum(1000.0);
     splineCellSkipFactorSpinBox->setSingleStep(0.01);
     splineCellSkipFactorSpinBox->setDecimals(3);
     connect(splineCellSkipFactorSpinBox, SIGNAL(editingFinished()), this, SLOT(splineCellSkipFactorEditingFinished()));
@@ -574,6 +592,8 @@ void PlannerGui::setupDefaultConfigs()
     mobilityConfig.maxMotionCurveLength = 100.0;
     mobilityConfig.spline_sampling_resolution = 0.1;
     mobilityConfig.remove_goal_offset = false;
+    mobilityConfig.curvaturePenaltyWeight = 0.0;
+    mobilityConfig.angularCostWeight = 1.0;
 
     travConfig.gridResolution = 0.5;
     travConfig.maxSlope = 1.0;
@@ -588,9 +608,9 @@ void PlannerGui::setupDefaultConfigs()
     travConfig.costFunctionDist = 0.0;
     travConfig.distToGround = 0.0;
     travConfig.minTraversablePercentage = 0.4;
-    travConfig.allowForwardDownhill = true;
     travConfig.enableInclineLimitting = false;
     travConfig.obstacleInflationMultiplier = 0.4;
+
 
     plannerConfig.epsilonSteps = 2.0;
     plannerConfig.initialEpsilon = 64.0;
@@ -977,6 +997,14 @@ void PlannerGui::updateWidgetValues()
     mobRemoveGoalOffsetCheckBox->setChecked(mobilityConfig.remove_goal_offset);
     mobRemoveGoalOffsetCheckBox->blockSignals(wasBlockedMobRemoveOffset);
 
+    const bool wasBlockedMobCurvature = mobCurvaturePenaltyWeightSpinBox->blockSignals(true);
+    mobCurvaturePenaltyWeightSpinBox->setValue(mobilityConfig.curvaturePenaltyWeight);
+    mobCurvaturePenaltyWeightSpinBox->blockSignals(wasBlockedMobCurvature);
+
+    const bool wasBlockedMobAngular = mobAngularCostWeightSpinBox->blockSignals(true);
+    mobAngularCostWeightSpinBox->setValue(mobilityConfig.angularCostWeight);
+    mobAngularCostWeightSpinBox->blockSignals(wasBlockedMobAngular);
+
     // Traversability Config Widget Updates
     const bool wasBlockedTravGridRes = travGridResolutionSpinBox->blockSignals(true);
     travGridResolutionSpinBox->setValue(travConfig.gridResolution);
@@ -993,6 +1021,8 @@ void PlannerGui::updateWidgetValues()
     const bool wasBlockedTravInflation = travObstacleInflationMultiplierSpinBox->blockSignals(true);
     travObstacleInflationMultiplierSpinBox->setValue(travConfig.obstacleInflationMultiplier);
     travObstacleInflationMultiplierSpinBox->blockSignals(wasBlockedTravInflation);
+
+
 
     const bool wasBlockedTravAllowDownhill = travAllowForwardDownhillCheckBox->blockSignals(true);
     travAllowForwardDownhillCheckBox->setChecked(travConfig.allowForwardDownhill);
@@ -1058,6 +1088,62 @@ void PlannerGui::replanButtonReleased()
 void PlannerGui::updateParamsButtonReleased()
 {
     LOG_INFO_S << "Updating underlying structures with new parameters...";
+
+    std::cout << "\n========================================\n"
+              << "Planner GUI Configuration Update:\n"
+              << "----------------------------------------\n"
+              << "Spline Configuration:\n"
+              << "  Grid Size: " << splineConfig.gridSize << " m\n"
+              << "  Num Angles: " << splineConfig.numAngles << "\n"
+              << "  Num End Angles: " << splineConfig.numEndAngles << "\n"
+              << "  Destination Circle Radius: " << splineConfig.destinationCircleRadius << "\n"
+              << "  Cell Skip Factor: " << splineConfig.cellSkipFactor << "\n"
+              << "  Generate Point Turns: " << (splineConfig.generatePointTurnMotions ? "Yes" : "No") << "\n"
+              << "  Generate Lateral: " << (splineConfig.generateLateralMotions ? "Yes" : "No") << "\n"
+              << "  Generate Backward: " << (splineConfig.generateBackwardMotions ? "Yes" : "No") << "\n"
+              << "  Generate Forward: " << (splineConfig.generateForwardMotions ? "Yes" : "No") << "\n"
+              << "  Spline Order: " << splineConfig.splineOrder << "\n"
+              << "----------------------------------------\n"
+              << "Mobility Configuration:\n"
+              << "  Translation Speed: " << mobilityConfig.translationSpeed << " m/s\n"
+              << "  Rotation Speed: " << mobilityConfig.rotationSpeed << " rad/s\n"
+              << "  Min Turning Radius: " << mobilityConfig.minTurningRadius << " m\n"
+              << "  Curvature Penalty Weight: " << mobilityConfig.curvaturePenaltyWeight << "\n"
+              << "  Angular Cost Weight: " << mobilityConfig.angularCostWeight << "\n"
+              << "  Search Radius: " << mobilityConfig.searchRadius << " m\n"
+              << "  Search Progress Steps: " << mobilityConfig.searchProgressSteps << " m\n"
+              << "  Max Motion Curve Length: " << mobilityConfig.maxMotionCurveLength << "\n"
+              << "  Spline Sampling Resolution: " << mobilityConfig.spline_sampling_resolution << " m\n"
+              << "  Remove Goal Offset: " << (mobilityConfig.remove_goal_offset ? "Yes" : "No") << "\n"
+              << "  Cost Multipliers:\n"
+              << "    Forward: " << mobilityConfig.multiplierForward << "\n"
+              << "    Forward Turn: " << mobilityConfig.multiplierForwardTurn << "\n"
+              << "    Backward: " << mobilityConfig.multiplierBackward << "\n"
+              << "    Backward Turn: " << mobilityConfig.multiplierBackwardTurn << "\n"
+              << "    Lateral: " << mobilityConfig.multiplierLateral << "\n"
+              << "    Lateral Curve: " << mobilityConfig.multiplierLateralCurve << "\n"
+              << "    Point Turn: " << mobilityConfig.multiplierPointTurn << "\n"
+              << "----------------------------------------\n"
+              << "Traversability Configuration:\n"
+              << "  Grid Resolution: " << travConfig.gridResolution << " m\n"
+              << "  Max Slope: " << (travConfig.maxSlope * 180.0 / M_PI) << " deg\n"
+              << "  Max Step Height: " << travConfig.maxStepHeight << " m\n"
+              << "  Robot Size: " << travConfig.robotSizeX << " x " << travConfig.robotSizeY << " x " << travConfig.robotHeight << " m\n"
+              << "  Distance to Ground: " << travConfig.distToGround << " m\n"
+              << "  Obstacle Inflation Multiplier: " << travConfig.obstacleInflationMultiplier << "\n"
+
+              << "  Min Traversable Percentage: " << travConfig.minTraversablePercentage << "\n"
+              << "  Allow Forward Downhill: " << (travConfig.allowForwardDownhill ? "Yes" : "No") << "\n"
+              << "  Enable Incline Limiting: " << (travConfig.enableInclineLimitting ? "Yes" : "No") << "\n"
+              << "----------------------------------------\n"
+              << "Planner/Search Configuration:\n"
+              << "  Initial Epsilon: " << plannerConfig.initialEpsilon << "\n"
+              << "  Epsilon Steps: " << plannerConfig.epsilonSteps << "\n"
+              << "  Num Threads: " << plannerConfig.numThreads << "\n"
+              << "  Use Path Statistics: " << (plannerConfig.usePathStatistics ? "Yes" : "No") << "\n"
+              << "  Search Until First Solution: " << (plannerConfig.searchUntilFirstSolution ? "Yes" : "No") << "\n"
+              << "========================================\n" << std::endl;
+
     std::shared_ptr<const traversability_generator3d::TravMap3d> oldMap;
     if (usingPlannerDump && planner)
     {
@@ -1068,9 +1154,9 @@ void PlannerGui::updateParamsButtonReleased()
     {
         if (travGen)
         {
-            travGen->clearTrMap();
-            travGen->clearSoilMap();
-            travGen->setConfig(travConfig);
+            travGen.reset(new traversability_generator3d::TraversabilityGenerator3d(travConfig));
+            std::shared_ptr<maps::grid::MLSMapSloped> mlsPtr = std::make_shared<maps::grid::MLSMapSloped>(mlsMap);
+            travGen->setMLSGrid(mlsPtr);
         }
     }
 
@@ -1114,6 +1200,8 @@ void PlannerGui::mobMultLateralCurveValueChanged(int value) { mobilityConfig.mul
 void PlannerGui::mobMaxMotionCurveLengthEditingFinished() { mobilityConfig.maxMotionCurveLength = mobMaxMotionCurveLengthSpinBox->value(); }
 void PlannerGui::mobSplineSamplingResEditingFinished() { mobilityConfig.spline_sampling_resolution = mobSplineSamplingResSpinBox->value(); }
 void PlannerGui::mobRemoveGoalOffsetStateChanged(int state) { mobilityConfig.remove_goal_offset = (state == Qt::Checked); }
+void PlannerGui::mobCurvaturePenaltyWeightEditingFinished() { mobilityConfig.curvaturePenaltyWeight = mobCurvaturePenaltyWeightSpinBox->value(); }
+void PlannerGui::mobAngularCostWeightEditingFinished() { mobilityConfig.angularCostWeight = mobAngularCostWeightSpinBox->value(); }
 
 // Traversability slots
 void PlannerGui::travGridResolutionEditingFinished() { travConfig.gridResolution = travGridResolutionSpinBox->value(); }
@@ -1122,6 +1210,7 @@ void PlannerGui::travMinTraversablePercentageEditingFinished() { travConfig.minT
 void PlannerGui::travAllowForwardDownhillStateChanged(int state) { travConfig.allowForwardDownhill = (state == Qt::Checked); }
 void PlannerGui::travEnableInclineLimittingStateChanged(int state) { travConfig.enableInclineLimitting = (state == Qt::Checked); }
 void PlannerGui::travObstacleInflationMultiplierEditingFinished() { travConfig.obstacleInflationMultiplier = travObstacleInflationMultiplierSpinBox->value(); }
+
 
 // Planner slots
 void PlannerGui::planEpsilonStepsEditingFinished() { plannerConfig.epsilonSteps = planEpsilonStepsSpinBox->value(); }

@@ -28,6 +28,8 @@ mobilityConfig:
   maxMotionCurveLength: 100
   spline_sampling_resolution: 0.05
   remove_goal_offset: false
+  curvaturePenaltyWeight: 0.0
+  angularCostWeight: 1.0
 
 travConfig:
   gridResolution: 0.5
@@ -46,6 +48,7 @@ travConfig:
   allowForwardDownhill: true
   enableInclineLimitting: false
   obstacleInflationMultiplier: 1.0
+
 
 plannerConfig:
   epsilonSteps: 2.0

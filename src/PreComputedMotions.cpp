@@ -277,19 +277,20 @@ void PreComputedMotions::computeSplinePrimCost(const SplinePrimitive& prim,
         {
             const double dist = prim.spline.getCurveLength(parameters[i], parameters[i+1], 0.01);
             const double curvature = prim.spline.getCurvature(parameters[i]); //assume that the curvature is const between i and i+1
-            angularDist += dist / linearDist  * std::abs(curvature);
+            angularDist += dist * std::abs(curvature);
         }
     }
 
-    outMotion.baseCost = Motion::calculateCost(linearDist, angularDist, mobilityConfig.translationSpeed,
-                                               mobilityConfig.rotationSpeed, outMotion.costMultiplier);
+    const double curvaturePenalty = mobilityConfig.curvaturePenaltyWeight * angularDist;
+    outMotion.baseCost = Motion::calculateCost(linearDist, angularDist + curvaturePenalty, mobilityConfig.translationSpeed,
+                                               mobilityConfig.rotationSpeed, outMotion.costMultiplier, mobilityConfig.angularCostWeight);
     assert(outMotion.baseCost >= 0);
     outMotion.translationlDist = linearDist;
     outMotion.angularDist = angularDist;
 }
 
 int Motion::calculateCost(double translationalDist, double angularDist, double translationVelocity,
-                          double angularVelocity, double costMultiplier)
+                          double angularVelocity, double costMultiplier, double angularCostWeight)
 {
     if (translationVelocity == 0.0 || angularVelocity == 0.0) {
         LOG_ERROR_S << "ERROR calculateCost: Division by zero translation or angular velocity.";
@@ -299,8 +300,10 @@ int Motion::calculateCost(double translationalDist, double angularDist, double t
     const double translationTime = translationalDist / translationVelocity;
     const double angularTime = angularDist / angularVelocity;
 
+    const double costTime = translationTime + angularCostWeight * angularTime;
+
     //use ulonglong to catch overflows caused by large cost multipliers
-    unsigned long long cost = ceil(std::max(angularTime, translationTime) * Motion::costScaleFactor * costMultiplier);
+    unsigned long long cost = ceil(costTime * Motion::costScaleFactor * costMultiplier);
 
     if(cost > std::numeric_limits<int>::max())
     {

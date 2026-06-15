@@ -70,6 +70,8 @@ public:
                 mobilityConfig.maxMotionCurveLength = mc["maxMotionCurveLength"].as<double>(100);
                 mobilityConfig.spline_sampling_resolution = mc["spline_sampling_resolution"].as<double>(0.05);
                 mobilityConfig.remove_goal_offset = mc["remove_goal_offset"].as<bool>(false);
+                mobilityConfig.curvaturePenaltyWeight = mc["curvaturePenaltyWeight"] ? mc["curvaturePenaltyWeight"].as<double>(0.0) : 0.0;
+                mobilityConfig.angularCostWeight = mc["angularCostWeight"] ? mc["angularCostWeight"].as<double>(1.0) : 1.0;
             } else {
                 mobilityConfig.translationSpeed = params["translationSpeed"] ? params["translationSpeed"].as<double>(0.5) : 0.5;
                 mobilityConfig.rotationSpeed = params["rotationSpeed"] ? params["rotationSpeed"].as<double>(0.5) : 0.5;
@@ -86,6 +88,8 @@ public:
                 mobilityConfig.maxMotionCurveLength = params["maxMotionCurveLength"] ? params["maxMotionCurveLength"].as<double>(100.0) : 100.0;
                 mobilityConfig.spline_sampling_resolution = params["spline_sampling_resolution"] ? params["spline_sampling_resolution"].as<double>(0.05) : 0.05;
                 mobilityConfig.remove_goal_offset = params["remove_goal_offset"] ? params["remove_goal_offset"].as<bool>(false) : false;
+                mobilityConfig.curvaturePenaltyWeight = params["curvaturePenaltyWeight"] ? params["curvaturePenaltyWeight"].as<double>(0.0) : 0.0;
+                mobilityConfig.angularCostWeight = params["angularCostWeight"] ? params["angularCostWeight"].as<double>(1.0) : 1.0;
             }
             
             // Load traversability config
@@ -105,7 +109,8 @@ public:
                 travConfig.minTraversablePercentage = tc["minTraversablePercentage"].as<double>(0.5);
                 travConfig.allowForwardDownhill = tc["allowForwardDownhill"].as<bool>(true);
                 travConfig.enableInclineLimitting = tc["enableInclineLimitting"].as<bool>(false);
-                travConfig.obstacleInflationMultiplier = tc["obstacleInflationMultiplier"].as<double>(1.0);
+                travConfig.obstacleInflationMultiplier = tc["obstacleInflationMultiplier"] ? tc["obstacleInflationMultiplier"].as<double>(1.0) : 1.0;
+
                 
                 std::string slopeMetricStr = tc["slopeMetric"].as<std::string>("NONE");
                 if (slopeMetricStr == "AVG_SLOPE") travConfig.slopeMetric = traversability_generator3d::SlopeMetric::AVG_SLOPE;
@@ -128,6 +133,7 @@ public:
                 travConfig.allowForwardDownhill = params["allowForwardDownhill"] ? params["allowForwardDownhill"].as<bool>(true) : true;
                 travConfig.enableInclineLimitting = params["enableInclineLimitting"] ? params["enableInclineLimitting"].as<bool>(false) : false;
                 travConfig.obstacleInflationMultiplier = params["obstacleInflationMultiplier"] ? params["obstacleInflationMultiplier"].as<double>(1.0) : 1.0;
+
                 
                 std::string slopeMetricStr = "NONE";
                 if (params["slopeMetric"]) {

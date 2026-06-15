@@ -670,6 +670,11 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             //diff is always a full offset to the start position
             const maps::grid::Index newIndex =  sourceTravNode->getIndex() + diff.cell;
             travNode = movementPossible(travNode, curIdx, newIndex);
+            if(!travNode)
+            {
+                intermediateStepsOk = false;
+                break;
+            }
             nodesOnTravPath.push_back(travNode);
 
             nodeBaseCost += travNode->getUserData().cost;
@@ -677,11 +682,6 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             base::Pose2D curPose = diff.pose;
             curPose.position += sourcePosWorld.head<2>();
             posesOnPath.push_back(curPose);
-            if(!travNode)
-            {
-                intermediateStepsOk = false;
-                break;
-            }
 
             if(travNode->getUserData().nodeType == ::traversability_generator3d::NodeType::PARTIALLY_TRAVERSABLE)
             {
@@ -808,7 +808,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 assert(approxMotionLen3D >= motion.translationlDist);//due to triangle inequality
                 const double translationalVelocity = mobilityConfig.translationSpeed;
                 cost = Motion::calculateCost(approxMotionLen3D, motion.angularDist, translationalVelocity,
-                                             mobilityConfig.rotationSpeed, motion.costMultiplier);
+                                             mobilityConfig.rotationSpeed, motion.costMultiplier, mobilityConfig.angularCostWeight);
                 break;
             }
             case traversability_generator3d::SlopeMetric::NONE:
@@ -1203,7 +1203,7 @@ void EnvironmentXYZTheta::precomputeCost()
     // Initialize distances
     const double maxDist = std::numeric_limits<double>::max(); // Use a meaningful constant
     travNodeIdToDistance.clear();
-    travNodeIdToDistance.resize(largestId, Distance(maxDist, maxDist));
+    travNodeIdToDistance.resize(largestId + 1, Distance(maxDist, maxDist));
 
     // Process costToStart
     for (const auto& pair : costToStart) {

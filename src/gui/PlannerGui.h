@@ -105,6 +105,8 @@ private slots:
     void mobMaxMotionCurveLengthEditingFinished();
     void mobSplineSamplingResEditingFinished();
     void mobRemoveGoalOffsetStateChanged(int state);
+    void mobCurvaturePenaltyWeightEditingFinished();
+    void mobAngularCostWeightEditingFinished();
 
     // Traversability Slots
     void travGridResolutionEditingFinished();
@@ -113,6 +115,7 @@ private slots:
     void travAllowForwardDownhillStateChanged(int state);
     void travEnableInclineLimittingStateChanged(int state);
     void travObstacleInflationMultiplierEditingFinished();
+
 
     // Planner Slots
     void planEpsilonStepsEditingFinished();
@@ -175,6 +178,8 @@ private:
     QDoubleSpinBox* mobMaxMotionCurveLengthSpinBox;
     QDoubleSpinBox* mobSplineSamplingResSpinBox;
     QCheckBox* mobRemoveGoalOffsetCheckBox;
+    QDoubleSpinBox* mobCurvaturePenaltyWeightSpinBox;
+    QDoubleSpinBox* mobAngularCostWeightSpinBox;
 
     // Traversability Config Widgets
     QDoubleSpinBox* travGridResolutionSpinBox;
@@ -183,6 +188,7 @@ private:
     QCheckBox* travAllowForwardDownhillCheckBox;
     QCheckBox* travEnableInclineLimittingCheckBox;
     QDoubleSpinBox* travObstacleInflationMultiplierSpinBox;
+
 
     // Planner Config Widgets
     QDoubleSpinBox* planEpsilonStepsSpinBox;
