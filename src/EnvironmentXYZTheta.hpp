@@ -8,6 +8,7 @@
 #include "DiscreteTheta.hpp"
 #include "PreComputedMotions.hpp"
 #include <trajectory_follower/SubTrajectory.hpp>
+#include <unordered_map>
 
 std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle);
 
@@ -242,6 +243,7 @@ private:
     unsigned int numAngles;
 
     Mobility mobilityConfig;
+    std::unordered_map<uint64_t, size_t> transitionCache;
 };
 
 }

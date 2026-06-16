@@ -88,6 +88,7 @@ void EnvironmentXYZTheta::clear()
         delete[] p;
     }
     StateID2IndexMapping.clear();
+    transitionCache.clear();
 }
 
 
@@ -650,14 +651,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     #pragma omp parallel for schedule(dynamic, 5)
     for(size_t i = 0; i < motions.size(); ++i)
     {
-        //check that the motion is traversable (without collision checks) and find the goal node of the motion
         const ugv_nav4d::Motion &motion(motions[i]);
-        traversability_generator3d::TravGenNode *goalTravNode = checkTraversableHeuristic(sourceNode->getIndex(), sourceNode->getUserData().travNode, motions[i], *travMap);
-        if(!goalTravNode)
-        {
-            //at least one node on the path is not traversable
-            continue;
-        }
 
         std::vector<const traversability_generator3d::TravGenNode*> nodesOnTravPath;
         std::vector<base::Pose2D> posesOnPath;
@@ -708,6 +702,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         if(!intermediateStepsOk)
             continue;
 
+        traversability_generator3d::TravGenNode *goalTravNode = travNode;
+
         if (usePathStatistics){
             PathStatistic statistic(travConf);
 
@@ -726,7 +722,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         //        As long as this is not the case this section should be save.
         const maps::grid::Index finalPos(sourceNode->getIndex() + maps::grid::Index(motion.xDiff,motion.yDiff));
 
-        #pragma omp critical(searchGridAccess)
+        #pragma omp critical(stateGridAccess)
         {
             const auto &candidateMap = searchGrid.at(finalPos);
 
@@ -748,10 +744,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             {
                 successXYNode = createNewXYZState(goalTravNode); //modifies searchGrid at travNode->getIndex()
             }
-        }
 
-        #pragma omp critical(thetaToNodesAccess)
-        {
             const auto &thetaMap(successXYNode->getUserData().thetaToNodes);
 
             auto thetaCandidate = thetaMap.find(motion.endTheta);
@@ -863,6 +856,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             SuccIDV->push_back(successthetaNode->id);
             CostV->push_back(iCost);
             motionIdV.push_back(motion.id);
+            transitionCache[((uint64_t)SourceStateID << 32) | successthetaNode->id] = motion.id;
 
             //####BEGIN DEBUG BLOCK!
             {
@@ -1185,11 +1179,20 @@ void EnvironmentXYZTheta::precomputeCost()
     std::unordered_map<const maps::grid::TraversabilityNodeBase*, double> costToStart;
     std::unordered_map<const maps::grid::TraversabilityNodeBase*, double> costToEnd;
 
-    // Compute costs
-    Dijkstra::computeCost(startXYZNode->getUserData().travNode, costToStart, travConf, mobilityConfig);
-    auto after_dijkstra_start = std::chrono::steady_clock::now();
-    Dijkstra::computeCost(goalXYZNode->getUserData().travNode, costToEnd, travConf, mobilityConfig);
+    // Compute costs in parallel
+    #pragma omp parallel sections
+    {
+        #pragma omp section
+        {
+            Dijkstra::computeCost(startXYZNode->getUserData().travNode, costToStart, travConf, mobilityConfig);
+        }
+        #pragma omp section
+        {
+            Dijkstra::computeCost(goalXYZNode->getUserData().travNode, costToEnd, travConf, mobilityConfig);
+        }
+    }
     auto after_dijkstra_end = std::chrono::steady_clock::now();
+    auto after_dijkstra_start = after_dijkstra_end;
 
     // Validate keys in both maps
     if (costToStart.size() != costToEnd.size()) {

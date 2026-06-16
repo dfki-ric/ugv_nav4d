@@ -4,6 +4,7 @@
 #include <traversability_generator3d/TraversabilityConfig.hpp>
 #include <traversability_generator3d/TravGenNode.hpp>
 #include <queue>
+#include <vector>
 using namespace maps::grid;
 
 namespace ugv_nav4d
@@ -22,7 +23,7 @@ void Dijkstra::computeCost(const TraversabilityNodeBase* source,
                         std::greater<>> vertexQ;
     vertexQ.emplace(0.0, source);
 
-    std::unordered_set<const TraversabilityNodeBase*> visited;
+    std::vector<char> visited;
 
     while (!vertexQ.empty())
     {
@@ -30,10 +31,17 @@ void Dijkstra::computeCost(const TraversabilityNodeBase* source,
         const TraversabilityNodeBase* u = vertexQ.top().second;
         vertexQ.pop();
 
+        const auto* uGen = static_cast<const traversability_generator3d::TravGenNode*>(u);
+        const size_t uId = uGen->getUserData().id;
+        if (uId >= visited.size())
+        {
+            visited.resize(uId + 1, 0);
+        }
+
         // Skip nodes already processed
-        if (visited.find(u) != visited.end())
+        if (visited[uId])
             continue;
-        visited.insert(u);
+        visited[uId] = 1;
 
         const Eigen::Vector3d uPos(u->getIndex().x() * config.gridResolution,
                                    u->getIndex().y() * config.gridResolution,
