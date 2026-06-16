@@ -115,6 +115,7 @@ private slots:
     void travAllowForwardDownhillStateChanged(int state);
     void travEnableInclineLimittingStateChanged(int state);
     void travObstacleInflationMultiplierEditingFinished();
+    void travPartiallyTraversableMultiplierEditingFinished();
 
 
     // Planner Slots
@@ -188,6 +189,7 @@ private:
     QCheckBox* travAllowForwardDownhillCheckBox;
     QCheckBox* travEnableInclineLimittingCheckBox;
     QDoubleSpinBox* travObstacleInflationMultiplierSpinBox;
+    QDoubleSpinBox* travPartiallyTraversableMultiplierSpinBox;
 
 
     // Planner Config Widgets

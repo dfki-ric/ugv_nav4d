@@ -48,6 +48,7 @@ travConfig:
   allowForwardDownhill: true
   enableInclineLimitting: false
   obstacleInflationMultiplier: 1.0
+  partiallyTraversableMultiplier: 2.0
 
 
 plannerConfig:

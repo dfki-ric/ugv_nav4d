@@ -1,6 +1,8 @@
 #include "Dijkstra.hpp"
+#include "Mobility.hpp"
 #include <maps/grid/TraversabilityMap3d.hpp>
 #include <traversability_generator3d/TraversabilityConfig.hpp>
+#include <traversability_generator3d/TravGenNode.hpp>
 #include <queue>
 using namespace maps::grid;
 
@@ -8,7 +10,8 @@ namespace ugv_nav4d
 {
 void Dijkstra::computeCost(const TraversabilityNodeBase* source,
                            std::unordered_map<const TraversabilityNodeBase*, double>& outDistances,
-                           const traversability_generator3d::TraversabilityConfig& config)
+                           const traversability_generator3d::TraversabilityConfig& config,
+                           const ugv_nav4d::Mobility& mobilityConfig)
 {
     outDistances.clear();
     outDistances[source] = 0.0;
@@ -47,7 +50,16 @@ void Dijkstra::computeCost(const TraversabilityNodeBase* source,
                                        v->getHeight());
 
             const double distance = (vPos - uPos).norm();
-            double distance_through_u = dist + distance;
+            
+            // Factor in partially traversable multiplier if neighbor node is partially traversable
+            double stepMultiplier = 1.0;
+            const auto* vGen = static_cast<const traversability_generator3d::TravGenNode*>(v);
+            if (vGen->getUserData().nodeType == traversability_generator3d::NodeType::PARTIALLY_TRAVERSABLE)
+            {
+                stepMultiplier = config.partiallyTraversableMultiplier;
+            }
+
+            double distance_through_u = dist + distance * stepMultiplier;
 
             if (outDistances.find(v) == outDistances.end() || distance_through_u < outDistances[v])
             {

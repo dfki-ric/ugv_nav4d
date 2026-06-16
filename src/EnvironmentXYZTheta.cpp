@@ -664,6 +664,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         maps::grid::Index curIdx = sourceTravNode->getIndex();
         traversability_generator3d::TravGenNode *travNode = sourceTravNode;
         bool intermediateStepsOk = true;
+        bool isPartiallyTraversable = false;
         int nodeBaseCost = 0;
         for(const PoseWithCell &diff : motion.intermediateStepsTravMap)
         {
@@ -690,6 +691,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                     intermediateStepsOk = false;
                     break;
                 }
+                isPartiallyTraversable = true;
             }
             else if(travConf.enableInclineLimitting)
             {
@@ -842,6 +844,11 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
                 cost += cost * impactFactor;
             }
+        }
+
+        if (isPartiallyTraversable)
+        {
+            cost *= travConf.partiallyTraversableMultiplier;
         }
 
         cost += nodeBaseCost;
@@ -1179,9 +1186,9 @@ void EnvironmentXYZTheta::precomputeCost()
     std::unordered_map<const maps::grid::TraversabilityNodeBase*, double> costToEnd;
 
     // Compute costs
-    Dijkstra::computeCost(startXYZNode->getUserData().travNode, costToStart, travConf);
+    Dijkstra::computeCost(startXYZNode->getUserData().travNode, costToStart, travConf, mobilityConfig);
     auto after_dijkstra_start = std::chrono::steady_clock::now();
-    Dijkstra::computeCost(goalXYZNode->getUserData().travNode, costToEnd, travConf);
+    Dijkstra::computeCost(goalXYZNode->getUserData().travNode, costToEnd, travConf, mobilityConfig);
     auto after_dijkstra_end = std::chrono::steady_clock::now();
 
     // Validate keys in both maps

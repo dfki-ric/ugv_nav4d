@@ -326,6 +326,14 @@ void PlannerGui::setupUI()
     connect(travObstacleInflationMultiplierSpinBox, SIGNAL(editingFinished()), this, SLOT(travObstacleInflationMultiplierEditingFinished()));
     travFormLayout->addRow("Obstacle Inflation Multiplier:", travObstacleInflationMultiplierSpinBox);
 
+    travPartiallyTraversableMultiplierSpinBox = new QDoubleSpinBox();
+    travPartiallyTraversableMultiplierSpinBox->setMinimum(1.0);
+    travPartiallyTraversableMultiplierSpinBox->setMaximum(100.0);
+    travPartiallyTraversableMultiplierSpinBox->setSingleStep(0.5);
+    travPartiallyTraversableMultiplierSpinBox->setDecimals(2);
+    connect(travPartiallyTraversableMultiplierSpinBox, SIGNAL(editingFinished()), this, SLOT(travPartiallyTraversableMultiplierEditingFinished()));
+    travFormLayout->addRow("Partially Traversable Multiplier:", travPartiallyTraversableMultiplierSpinBox);
+
 
 
     travAllowForwardDownhillCheckBox = new QCheckBox();
@@ -610,6 +618,7 @@ void PlannerGui::setupDefaultConfigs()
     travConfig.minTraversablePercentage = 0.4;
     travConfig.enableInclineLimitting = false;
     travConfig.obstacleInflationMultiplier = 0.4;
+    travConfig.partiallyTraversableMultiplier = 2.0;
 
 
     plannerConfig.epsilonSteps = 2.0;
@@ -1022,6 +1031,10 @@ void PlannerGui::updateWidgetValues()
     travObstacleInflationMultiplierSpinBox->setValue(travConfig.obstacleInflationMultiplier);
     travObstacleInflationMultiplierSpinBox->blockSignals(wasBlockedTravInflation);
 
+    const bool wasBlockedTravPartiallyTraversableMult = travPartiallyTraversableMultiplierSpinBox->blockSignals(true);
+    travPartiallyTraversableMultiplierSpinBox->setValue(travConfig.partiallyTraversableMultiplier);
+    travPartiallyTraversableMultiplierSpinBox->blockSignals(wasBlockedTravPartiallyTraversableMult);
+
 
 
     const bool wasBlockedTravAllowDownhill = travAllowForwardDownhillCheckBox->blockSignals(true);
@@ -1131,6 +1144,7 @@ void PlannerGui::updateParamsButtonReleased()
               << "  Robot Size: " << travConfig.robotSizeX << " x " << travConfig.robotSizeY << " x " << travConfig.robotHeight << " m\n"
               << "  Distance to Ground: " << travConfig.distToGround << " m\n"
               << "  Obstacle Inflation Multiplier: " << travConfig.obstacleInflationMultiplier << "\n"
+              << "  Partially Traversable Multiplier: " << travConfig.partiallyTraversableMultiplier << "\n"
 
               << "  Min Traversable Percentage: " << travConfig.minTraversablePercentage << "\n"
               << "  Allow Forward Downhill: " << (travConfig.allowForwardDownhill ? "Yes" : "No") << "\n"
@@ -1210,6 +1224,7 @@ void PlannerGui::travMinTraversablePercentageEditingFinished() { travConfig.minT
 void PlannerGui::travAllowForwardDownhillStateChanged(int state) { travConfig.allowForwardDownhill = (state == Qt::Checked); }
 void PlannerGui::travEnableInclineLimittingStateChanged(int state) { travConfig.enableInclineLimitting = (state == Qt::Checked); }
 void PlannerGui::travObstacleInflationMultiplierEditingFinished() { travConfig.obstacleInflationMultiplier = travObstacleInflationMultiplierSpinBox->value(); }
+void PlannerGui::travPartiallyTraversableMultiplierEditingFinished() { travConfig.partiallyTraversableMultiplier = travPartiallyTraversableMultiplierSpinBox->value(); }
 
 
 // Planner slots

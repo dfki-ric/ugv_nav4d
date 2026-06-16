@@ -110,6 +110,7 @@ public:
                 travConfig.allowForwardDownhill = tc["allowForwardDownhill"].as<bool>(true);
                 travConfig.enableInclineLimitting = tc["enableInclineLimitting"].as<bool>(false);
                 travConfig.obstacleInflationMultiplier = tc["obstacleInflationMultiplier"] ? tc["obstacleInflationMultiplier"].as<double>(1.0) : 1.0;
+                travConfig.partiallyTraversableMultiplier = tc["partiallyTraversableMultiplier"] ? tc["partiallyTraversableMultiplier"].as<double>(2.0) : 2.0;
 
                 
                 std::string slopeMetricStr = tc["slopeMetric"].as<std::string>("NONE");
@@ -133,6 +134,7 @@ public:
                 travConfig.allowForwardDownhill = params["allowForwardDownhill"] ? params["allowForwardDownhill"].as<bool>(true) : true;
                 travConfig.enableInclineLimitting = params["enableInclineLimitting"] ? params["enableInclineLimitting"].as<bool>(false) : false;
                 travConfig.obstacleInflationMultiplier = params["obstacleInflationMultiplier"] ? params["obstacleInflationMultiplier"].as<double>(1.0) : 1.0;
+                travConfig.partiallyTraversableMultiplier = params["partiallyTraversableMultiplier"] ? params["partiallyTraversableMultiplier"].as<double>(2.0) : 2.0;
 
                 
                 std::string slopeMetricStr = "NONE";
