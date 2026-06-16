@@ -403,6 +403,13 @@ maps::grid::Vector3d EnvironmentXYZTheta::getStatePosition(const int stateID) co
 
 const Motion& EnvironmentXYZTheta::getMotion(const int fromStateID, const int toStateID)
 {
+    uint64_t key = ((uint64_t)fromStateID << 32) | toStateID;
+    auto it = transitionCache.find(key);
+    if (it != transitionCache.end())
+    {
+        return availableMotions.getMotion(it->second);
+    }
+
     int cost = -1;
     size_t motionId = 0;
 
@@ -1147,7 +1154,7 @@ const PreComputedMotions& EnvironmentXYZTheta::getAvailableMotions() const
     return availableMotions;
 }
 
-double EnvironmentXYZTheta::getAvgSlope(std::vector<const traversability_generator3d::TravGenNode*> path) const
+double EnvironmentXYZTheta::getAvgSlope(const std::vector<const traversability_generator3d::TravGenNode*>& path) const
 {
     if(path.size() <= 0)
     {
@@ -1163,7 +1170,7 @@ double EnvironmentXYZTheta::getAvgSlope(std::vector<const traversability_generat
     return avgSlope;
 }
 
-double EnvironmentXYZTheta::getMaxSlope(std::vector<const traversability_generator3d::TravGenNode*> path) const
+double EnvironmentXYZTheta::getMaxSlope(const std::vector<const traversability_generator3d::TravGenNode*>& path) const
 {
     const traversability_generator3d::TravGenNode* maxElem =  *std::max_element(path.begin(), path.end(),
                                   [] (const traversability_generator3d::TravGenNode* lhs, const traversability_generator3d::TravGenNode* rhs)

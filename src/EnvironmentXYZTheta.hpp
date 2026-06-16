@@ -215,10 +215,10 @@ private:
     void precomputeCost();
 
     /**Return the avg slope of all patches on the given @p path */
-    double getAvgSlope(std::vector<const traversability_generator3d::TravGenNode*> path) const;
+    double getAvgSlope(const std::vector<const traversability_generator3d::TravGenNode*>& path) const;
 
     /**Returns the max slope of all patches on the given @p path */
-    double getMaxSlope(std::vector<const traversability_generator3d::TravGenNode*> path) const;
+    double getMaxSlope(const std::vector<const traversability_generator3d::TravGenNode*>& path) const;
 
 
     /**Determines the distance between @p a and @p b depending on travConf.heuristicType */
