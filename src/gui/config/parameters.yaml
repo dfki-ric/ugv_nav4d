@@ -57,3 +57,4 @@ plannerConfig:
   numThreads: 4
   usePathStatistics: false
   searchUntilFirstSolution: false
+  corridorWidth: 5.0

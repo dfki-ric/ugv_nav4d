@@ -1248,9 +1248,6 @@ void PlannerGui::startPlanThread()
     inplanningphase.store(true);    
     
     std::thread t([this](){
-#ifdef ENABLE_DEBUG_DRAWINGS
-        V3DD::CONFIGURE_DEBUG_DRAWINGS_USE_EXISTING_WIDGET(this->widget);
-#endif
         if (!usingPlannerDump){
             std::vector<Eigen::Vector3d> startPositions;
             startPositions.emplace_back(Eigen::Vector3d(this->start.position.x(),

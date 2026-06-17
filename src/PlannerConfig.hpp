@@ -20,5 +20,8 @@ struct PlannerConfig
     double epsilonSteps = 2.0;
     /** Number of threads to use during planning */
     unsigned numThreads = 1;
+    /** Corridor width (in meters) to constrain A* search around the 2D Dijkstra path.
+     *  Set to <= 0.0 to disable corridor pruning. */
+    double corridorWidth = -1.0;
 };
 }

@@ -52,6 +52,7 @@ public:
         if(!env)
         {
             env.reset(new EnvironmentXYZTheta(mapPtr, traversabilityConfig, splinePrimitiveConfig, mobility));
+            env->setCorridorWidth(plannerConfig.corridorWidth);
         }
         else
         {

@@ -37,6 +37,7 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(std::shared_ptr<const traversability_ge
                                          const SplinePrimitivesConfig& primitiveConfig,
                                          const Mobility& mobilityConfig) :
       travMap(travMap)
+    , corridorWidth(-1.0)
     , availableMotions(primitiveConfig, mobilityConfig)
     , startThetaNode(nullptr)
     , startXYZNode(nullptr)
@@ -743,6 +744,13 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
         traversability_generator3d::TravGenNode *goalTravNode = travNode;
 
+        if (corridorWidth > 0.0)
+        {
+            size_t succNodeId = goalTravNode->getUserData().id;
+            if (succNodeId >= nodeInCorridor.size() || !nodeInCorridor[succNodeId])
+                continue;
+        }
+
         if (usePathStatistics){
             PathStatistic statistic(travConf);
 
@@ -1273,11 +1281,132 @@ void EnvironmentXYZTheta::precomputeCost()
         const size_t nodeId = node->getUserData().id;
         travNodeIdToDistance[nodeId].distToGoal = pair.second;
     }
+
+    // Compute the corridor mask
+    if (corridorWidth > 0.0)
+    {
+        nodeInCorridor.assign(largestId + 1, false);
+        std::queue<std::pair<traversability_generator3d::TravGenNode*, double>> bfsQueue;
+        std::vector<maps::grid::Vector3d> corridorPositions;
+
+        traversability_generator3d::TravGenNode* nextNode = startXYZNode->getUserData().travNode;
+        traversability_generator3d::TravGenNode* goal = goalXYZNode->getUserData().travNode;
+
+        nodeInCorridor[nextNode->getUserData().id] = true;
+        bfsQueue.push({nextNode, 0.0});
+
+        maps::grid::Vector3d startPos;
+        travMap->fromGrid(nextNode->getIndex(), startPos, nextNode->getHeight(), false);
+        corridorPositions.push_back(startPos);
+
+        bool reachedGoal = (nextNode == goal);
+        while(nextNode != goal)
+        {
+            double minCost = std::numeric_limits<double>::max();
+            bool foundNextNode = false;
+            for(maps::grid::TraversabilityNodeBase* node : nextNode->getConnections())
+            {
+                traversability_generator3d::TravGenNode* travNode = static_cast<traversability_generator3d::TravGenNode*>(node);
+                const double cost = travNodeIdToDistance[travNode->getUserData().id].distToGoal;
+                if(cost < minCost)
+                {
+                    minCost = cost;
+                    nextNode = travNode;
+                    foundNextNode = true;
+                }
+            }
+            if (!foundNextNode) {
+                break;
+            }
+            nodeInCorridor[nextNode->getUserData().id] = true;
+            bfsQueue.push({nextNode, 0.0});
+
+            maps::grid::Vector3d p;
+            travMap->fromGrid(nextNode->getIndex(), p, nextNode->getHeight(), false);
+            corridorPositions.push_back(p);
+
+            if (nextNode == goal)
+            {
+                reachedGoal = true;
+            }
+        }
+
+        if (reachedGoal)
+        {
+            const double res = travConf.gridResolution;
+            while(!bfsQueue.empty())
+            {
+                auto current = bfsQueue.front();
+                bfsQueue.pop();
+
+                traversability_generator3d::TravGenNode* u = current.first;
+                double dist = current.second;
+
+                if (dist >= corridorWidth)
+                    continue;
+
+                for(maps::grid::TraversabilityNodeBase* node : u->getConnections())
+                {
+                    if (node->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+                        continue;
+                    traversability_generator3d::TravGenNode* v = static_cast<traversability_generator3d::TravGenNode*>(node);
+                    size_t vId = v->getUserData().id;
+                    if (!nodeInCorridor[vId])
+                    {
+                        nodeInCorridor[vId] = true;
+                        bfsQueue.push({v, dist + res});
+
+                        maps::grid::Vector3d p;
+                        travMap->fromGrid(v->getIndex(), p, v->getHeight(), false);
+                        corridorPositions.push_back(p);
+                    }
+                }
+            }
+
+#ifdef ENABLE_DEBUG_DRAWINGS
+            V3DD::COMPLEX_DRAWING([&]()
+            {
+                V3DD::CLEAR_DRAWING("ugv_nav4d_corridor");
+                for (const auto& pos : corridorPositions)
+                {
+                    V3DD::DRAW_SPHERE("ugv_nav4d_corridor", pos, 0.08, V3DD::Color::green);
+                }
+            });
+#endif
+        }
+        else
+        {
+            LOG_WARN_S << "Greedy path did not reach goal. Disabling corridor pruning.";
+            nodeInCorridor.assign(largestId + 1, true);
+#ifdef ENABLE_DEBUG_DRAWINGS
+            V3DD::COMPLEX_DRAWING([&]()
+            {
+                V3DD::CLEAR_DRAWING("ugv_nav4d_corridor");
+            });
+#endif
+        }
+    }
+    else
+    {
+        nodeInCorridor.assign(largestId + 1, true);
+#ifdef ENABLE_DEBUG_DRAWINGS
+        V3DD::COMPLEX_DRAWING([&]()
+        {
+            V3DD::CLEAR_DRAWING("ugv_nav4d_corridor");
+        });
+#endif
+    }
+
     auto end_time = std::chrono::steady_clock::now();
     double t_dijkstra_start = std::chrono::duration<double>(after_dijkstra_start - start_time).count();
     double t_dijkstra_end = std::chrono::duration<double>(after_dijkstra_end - after_dijkstra_start).count();
     double t_mapping = std::chrono::duration<double>(end_time - after_dijkstra_end).count();
     LOG_INFO_S << "[KPI] precomputeCost - Dijkstra Start: " << t_dijkstra_start << "s, Dijkstra End: " << t_dijkstra_end << "s, Distance Mapping: " << t_mapping << "s, Total: " << std::chrono::duration<double>(end_time - start_time).count() << "s";
+}
+
+void EnvironmentXYZTheta::setCorridorWidth(double width)
+{
+    corridorWidth = width;
 }
 
 void EnvironmentXYZTheta::setTravConfig(const traversability_generator3d::TraversabilityConfig& cfg)

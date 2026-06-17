@@ -331,6 +331,9 @@ void Planner::setTravConfig(const traversability_generator3d::TraversabilityConf
  void Planner::setPlannerConfig(const PlannerConfig& config)
  {
      plannerConfig = config;
+     if(env){
+         env->setCorridorWidth(config.corridorWidth);
+     }
  }
 
 }

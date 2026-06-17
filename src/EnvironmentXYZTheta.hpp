@@ -90,6 +90,8 @@ protected:
     /**Contains the distance from each travNode to start-node and goal-node
      * Stored in real-world coordinates (i.e. do NOT scale with gridResolution before use)*/
     std::vector<Distance> travNodeIdToDistance;
+    std::vector<bool> nodeInCorridor;
+    double corridorWidth;
     std::shared_ptr<const traversability_generator3d::TravMap3d> travMap;
 
     PreComputedMotions availableMotions;
@@ -187,6 +189,7 @@ public:
     void clear();
 
     void setTravConfig(const traversability_generator3d::TraversabilityConfig& cfg);
+    void setCorridorWidth(double width);
 
     /** @param maxDist The value that should be used as maximum distance. This value is used for
      *                 non-traversable nodes and for initialization.*/
