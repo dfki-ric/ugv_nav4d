@@ -9,6 +9,7 @@
 #include <limits>
 #include <chrono>
 #include <base-logging/Logging.hpp>
+#include <omp.h>
 
 #ifdef ENABLE_DEBUG_DRAWINGS
 #include <vizkit3d_debug_drawings/DebugDrawing.hpp>
@@ -651,6 +652,34 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
     const auto& motions = availableMotions.getMotionForStartTheta(sourceThetaNode->theta);
 
+    struct SuccessorCandidate
+    {
+        traversability_generator3d::TravGenNode* goalTravNode;
+        maps::grid::Index finalPos;
+        DiscreteTheta endTheta;
+        int cost;
+        size_t motionId;
+        bool isPartiallyTraversable;
+
+        SuccessorCandidate(traversability_generator3d::TravGenNode* goal,
+                           const maps::grid::Index& pos,
+                           const DiscreteTheta& theta,
+                           int c,
+                           size_t mId,
+                           bool partially)
+            : goalTravNode(goal), finalPos(pos), endTheta(theta), cost(c), motionId(mId), isPartiallyTraversable(partially) {}
+    };
+
+    int maxThreads = omp_get_max_threads();
+    std::vector<std::vector<SuccessorCandidate>> threadCandidates(maxThreads);
+    std::vector<std::vector<const traversability_generator3d::TravGenNode*>> threadNodes(maxThreads);
+    std::vector<std::vector<base::Pose2D>> threadPoses(maxThreads);
+    for(int t = 0; t < maxThreads; ++t)
+    {
+        threadNodes[t].reserve(32);
+        threadPoses[t].reserve(32);
+    }
+
     //dynamic scheduling is choosen because the iterations have vastly different runtime
     //due to the different sanity checks
     //the chunk size (5) was chosen to reduce dynamic scheduling overhead.
@@ -658,10 +687,13 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     #pragma omp parallel for schedule(dynamic, 5)
     for(size_t i = 0; i < motions.size(); ++i)
     {
+        int threadId = omp_get_thread_num();
         const ugv_nav4d::Motion &motion(motions[i]);
 
-        std::vector<const traversability_generator3d::TravGenNode*> nodesOnTravPath;
-        std::vector<base::Pose2D> posesOnPath;
+        auto &nodesOnTravPath = threadNodes[threadId];
+        auto &posesOnPath = threadPoses[threadId];
+        nodesOnTravPath.clear();
+        posesOnPath.clear();
         maps::grid::Index curIdx = sourceTravNode->getIndex();
         traversability_generator3d::TravGenNode *travNode = sourceTravNode;
         bool intermediateStepsOk = true;
@@ -721,49 +753,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         }
 
         //goal from source to the end of the motion was valid
-        XYZNode *successXYNode = nullptr;
-        ThetaNode *successthetaNode = nullptr;
-
-        //WARNING This becomes a critical section if several motion primitives
-        //        share the same finalPos.
-        //        As long as this is not the case this section should be save.
         const maps::grid::Index finalPos(sourceNode->getIndex() + maps::grid::Index(motion.xDiff,motion.yDiff));
-
-        #pragma omp critical(stateGridAccess)
-        {
-            const auto &candidateMap = searchGrid.at(finalPos);
-
-            if(goalTravNode->getIndex() != finalPos){
-                LOG_ERROR_S << "Internal error, indexes of goalTravNode and finalPos do not match";
-                throw std::runtime_error("Internal error, indexes of goalTravNode and finalPos do not match");
-            }
-            XYZNode searchTmp(goalTravNode->getHeight(), goalTravNode->getIndex());
-
-            //this works, as the equals check is on the height, not the node itself
-            auto it = candidateMap.find(&searchTmp);
-
-            if(it != candidateMap.end())
-            {
-                //found a node with a matching height
-                successXYNode = *it;
-            }
-            else
-            {
-                successXYNode = createNewXYZState(goalTravNode); //modifies searchGrid at travNode->getIndex()
-            }
-
-            const auto &thetaMap(successXYNode->getUserData().thetaToNodes);
-
-            auto thetaCandidate = thetaMap.find(motion.endTheta);
-            if(thetaCandidate != thetaMap.end())
-            {
-                successthetaNode = thetaCandidate->second;
-            }
-            else
-            {
-                successthetaNode = createNewState(motion.endTheta, successXYNode);
-            }
-        }
 
         double cost = 0;
         switch(travConf.slopeMetric)
@@ -804,7 +794,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             {
                 //assume that the motion is a straight line, extrapolate into third dimension
                 //by projecting onto a plane that connects start and end cell.
-                const double heightDiff = std::abs(sourceNode->getHeight() - successXYNode->getHeight());
+                const double heightDiff = std::abs(sourceNode->getHeight() - goalTravNode->getHeight());
                 //not perfect but probably more exact than the slope factors above
                 const double approxMotionLen3D = std::sqrt(std::pow(motion.translationlDist, 2) + std::pow(heightDiff, 2));
                 assert(approxMotionLen3D >= motion.translationlDist);//due to triangle inequality
@@ -858,12 +848,54 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         oassert(motion.baseCost > 0);
 
         const int iCost = (int)cost;
-        #pragma omp critical(updateData)
+
+        SuccessorCandidate cand(goalTravNode, finalPos, motion.endTheta, iCost, motion.id, isPartiallyTraversable);
+        threadCandidates[threadId].push_back(cand);
+    }
+
+    // Process all gathered successor candidates sequentially to avoid locks and context-switching
+    for (int t = 0; t < maxThreads; ++t)
+    {
+        for (const auto& cand : threadCandidates[t])
         {
+            XYZNode *successXYNode = nullptr;
+            ThetaNode *successthetaNode = nullptr;
+
+            const auto &candidateMap = searchGrid.at(cand.finalPos);
+
+            if(cand.goalTravNode->getIndex() != cand.finalPos){
+                LOG_ERROR_S << "Internal error, indexes of goalTravNode and finalPos do not match";
+                throw std::runtime_error("Internal error, indexes of goalTravNode and finalPos do not match");
+            }
+            XYZNode searchTmp(cand.goalTravNode->getHeight(), cand.goalTravNode->getIndex());
+
+            auto it = candidateMap.find(&searchTmp);
+
+            if(it != candidateMap.end())
+            {
+                successXYNode = *it;
+            }
+            else
+            {
+                successXYNode = createNewXYZState(cand.goalTravNode);
+            }
+
+            const auto &thetaMap(successXYNode->getUserData().thetaToNodes);
+
+            auto thetaCandidate = thetaMap.find(cand.endTheta);
+            if(thetaCandidate != thetaMap.end())
+            {
+                successthetaNode = thetaCandidate->second;
+            }
+            else
+            {
+                successthetaNode = createNewState(cand.endTheta, successXYNode);
+            }
+
             SuccIDV->push_back(successthetaNode->id);
-            CostV->push_back(iCost);
-            motionIdV.push_back(motion.id);
-            transitionCache[((uint64_t)SourceStateID << 32) | successthetaNode->id] = motion.id;
+            CostV->push_back(cand.cost);
+            motionIdV.push_back(cand.motionId);
+            transitionCache[((uint64_t)SourceStateID << 32) | successthetaNode->id] = cand.motionId;
 
             //####BEGIN DEBUG BLOCK!
             {
