@@ -18,10 +18,8 @@ if(INSTALL_DEPS)
   set(ENV{CMAKE_PREFIX_PATH} ${CMAKE_INSTALL_PREFIX}/share/rock/cmake/)
 endif()
 
-
 find_package(Rock)
-rock_init()
-rock_feature(NOCURDIR)
+find_package(PkgConfig)
 
 pkg_check_modules(vizkit3d_debug_drawings-commands vizkit3d_debug_drawings-commands)
 
@@ -37,4 +35,8 @@ else()
     message(STATUS "ENABLE_DEBUG_DRAWINGS is set to OFF. Skipped!")
 endif()
 
+rock_init()
+rock_feature(NOCURDIR)
 rock_standard_layout()
+
+add_subdirectory(gui)

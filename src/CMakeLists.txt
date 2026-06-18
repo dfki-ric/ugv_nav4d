@@ -43,8 +43,6 @@ rock_library(ugv_nav4d
         ${ADDITIONAL_LIBS}
 )
 
-add_subdirectory(gui)
-
 if(TESTS_ENABLED)
     message(STATUS "TESTS_ENABLED is defined with value: ${TESTS_ENABLED}")
     add_subdirectory(test)
