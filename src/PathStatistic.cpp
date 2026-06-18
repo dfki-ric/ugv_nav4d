@@ -104,7 +104,7 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const trave
         node->eachConnectedNode([&] (const maps::grid::TraversabilityNodeBase *neighbor, bool &explandNode, bool &stop){
             //we need to compute the four edges of a cell and check if any is inside of the robot
             maps::grid::Vector3d neighborPos;
-            trMap.fromGrid(neighbor->getIndex(), neighborPos, neighbor->getHeight(), false);
+            trMap.fromGrid(neighbor->getIndex(), neighborPos, neighbor->getHeight(), true);
             
             bool isInsideRobot = false;
             bool isInsideOuterBox = false;
@@ -242,7 +242,7 @@ bool ugv_nav4d::PathStatistic::isPathFeasible(const std::vector<const traversabi
         node->eachConnectedNode([&] (const maps::grid::TraversabilityNodeBase *neighbor, bool &explandNode, bool &stop){
             //we need to compute the four edges of a cell and check if any is inside of the robot
             maps::grid::Vector3d neighborPos;
-            trMap.fromGrid(neighbor->getIndex(), neighborPos, neighbor->getHeight(), false);
+            trMap.fromGrid(neighbor->getIndex(), neighborPos, neighbor->getHeight(), true);
             
             bool isInsideRobot = false;
             bool isInsideOuterBox = false;

@@ -647,7 +647,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     }
 
     Eigen::Vector3d sourcePosWorld;
-    travMap->fromGrid(sourceNode->getIndex(), sourcePosWorld, sourceTravNode->getHeight(), false);
+    travMap->fromGrid(sourceNode->getIndex(), sourcePosWorld, sourceTravNode->getHeight(), true);
 
     const auto& motions = availableMotions.getMotionForStartTheta(sourceThetaNode->theta);
 
@@ -707,6 +707,15 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             {
                 intermediateStepsOk = false;
                 break;
+            }
+            if (corridorWidth > 0.0)
+            {
+                size_t nodeId = travNode->getUserData().id;
+                if (nodeId >= nodeInCorridor.size() || !nodeInCorridor[nodeId])
+                {
+                    intermediateStepsOk = false;
+                    break;
+                }
             }
             nodesOnTravPath.push_back(travNode);
 
@@ -1034,7 +1043,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             }
 
             Eigen::Vector3d posWorld;
-            travMap->fromGrid(curNode->getIndex(), posWorld, curNode->getHeight(), false);
+            travMap->fromGrid(curNode->getIndex(), posWorld, curNode->getHeight(), true);
 
             // Set up the plane at the 3D world position
             travNodePlane.normal() = curNode->getUserData().plane.normal();
@@ -1284,18 +1293,12 @@ void EnvironmentXYZTheta::precomputeCost()
     if (corridorWidth > 0.0)
     {
         nodeInCorridor.assign(largestId + 1, false);
-        std::queue<std::pair<traversability_generator3d::TravGenNode*, double>> bfsQueue;
-        std::vector<maps::grid::Vector3d> corridorPositions;
 
+        std::vector<traversability_generator3d::TravGenNode*> greedyPath;
         traversability_generator3d::TravGenNode* nextNode = startXYZNode->getUserData().travNode;
         traversability_generator3d::TravGenNode* goal = goalXYZNode->getUserData().travNode;
 
-        nodeInCorridor[nextNode->getUserData().id] = true;
-        bfsQueue.push({nextNode, 0.0});
-
-        maps::grid::Vector3d startPos;
-        travMap->fromGrid(nextNode->getIndex(), startPos, nextNode->getHeight(), true);
-        corridorPositions.push_back(startPos);
+        greedyPath.push_back(nextNode);
 
         bool reachedGoal = (nextNode == goal);
         while(nextNode != goal)
@@ -1316,12 +1319,7 @@ void EnvironmentXYZTheta::precomputeCost()
             if (!foundNextNode) {
                 break;
             }
-            nodeInCorridor[nextNode->getUserData().id] = true;
-            bfsQueue.push({nextNode, 0.0});
-
-            maps::grid::Vector3d p;
-            travMap->fromGrid(nextNode->getIndex(), p, nextNode->getHeight(), true);
-            corridorPositions.push_back(p);
+            greedyPath.push_back(nextNode);
 
             if (nextNode == goal)
             {
@@ -1331,16 +1329,61 @@ void EnvironmentXYZTheta::precomputeCost()
 
         if (reachedGoal)
         {
+            std::vector<double> allowedWidths(greedyPath.size(), corridorWidth);
+            for(size_t i = 1; i + 1 < greedyPath.size(); ++i)
+            {
+                Eigen::Vector3d posPrev, posCurr, posNext;
+                travMap->fromGrid(greedyPath[i-1]->getIndex(), posPrev, greedyPath[i-1]->getHeight(), true);
+                travMap->fromGrid(greedyPath[i]->getIndex(), posCurr, greedyPath[i]->getHeight(), true);
+                travMap->fromGrid(greedyPath[i+1]->getIndex(), posNext, greedyPath[i+1]->getHeight(), true);
+
+                Eigen::Vector2d v1 = (posCurr - posPrev).head<2>();
+                Eigen::Vector2d v2 = (posNext - posCurr).head<2>();
+                double n1 = v1.norm();
+                double n2 = v2.norm();
+                if (n1 > 1e-5 && n2 > 1e-5)
+                {
+                    v1 /= n1;
+                    v2 /= n2;
+                    double dot = v1.dot(v2);
+                    dot = std::max(-1.0, std::min(1.0, dot));
+                    double angleDiff = std::acos(dot);
+                    
+                    double turnFactor = std::min(1.0, angleDiff / (M_PI / 2.0));
+                    allowedWidths[i] = corridorWidth + turnFactor * mobilityConfig.minTurningRadius;
+                }
+            }
+
+            struct QueueElement
+            {
+                traversability_generator3d::TravGenNode* node;
+                double dist;
+                double allowedWidth;
+            };
+            std::queue<QueueElement> bfsQueue;
+            std::vector<maps::grid::Vector3d> corridorPositions;
+
+            for (size_t i = 0; i < greedyPath.size(); ++i)
+            {
+                nodeInCorridor[greedyPath[i]->getUserData().id] = true;
+                bfsQueue.push({greedyPath[i], 0.0, allowedWidths[i]});
+
+                maps::grid::Vector3d p;
+                travMap->fromGrid(greedyPath[i]->getIndex(), p, greedyPath[i]->getHeight(), true);
+                corridorPositions.push_back(p);
+            }
+
             const double res = travConf.gridResolution;
             while(!bfsQueue.empty())
             {
                 auto current = bfsQueue.front();
                 bfsQueue.pop();
 
-                traversability_generator3d::TravGenNode* u = current.first;
-                double dist = current.second;
+                traversability_generator3d::TravGenNode* u = current.node;
+                double dist = current.dist;
+                double allowedWidth = current.allowedWidth;
 
-                if (dist >= corridorWidth)
+                if (dist >= allowedWidth)
                     continue;
 
                 for(maps::grid::TraversabilityNodeBase* node : u->getConnections())
@@ -1352,7 +1395,7 @@ void EnvironmentXYZTheta::precomputeCost()
                     if (!nodeInCorridor[vId])
                     {
                         nodeInCorridor[vId] = true;
-                        bfsQueue.push({v, dist + res});
+                        bfsQueue.push({v, dist + res, allowedWidth});
 
                         maps::grid::Vector3d p;
                         travMap->fromGrid(v->getIndex(), p, v->getHeight(), true);
@@ -1432,7 +1475,7 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
     }
 
     Eigen::Vector3d startPosWorld;
-    travMap->fromGrid(startTravNode->getIndex(), startPosWorld, startTravNode->getHeight(), false);
+    travMap->fromGrid(startTravNode->getIndex(), startPosWorld, startTravNode->getHeight(), true);
 
     DiscreteTheta thetaD(theta, numAngles);
     const maps::grid::Index startIdxTravMap =  startTravNode->getIndex();
@@ -1496,7 +1539,7 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
         std::vector<base::Pose2D> endPosePoses;
         endPosePath.push_back(currentNode);
         Eigen::Vector3d endPosWorld;
-        travMap->fromGrid(currentNode->getIndex(), endPosWorld, currentNode->getHeight(), false);
+        travMap->fromGrid(currentNode->getIndex(), endPosWorld, currentNode->getHeight(), true);
         base::Pose2D endPose;
         endPose.position = endPosWorld.topRows(2);
         endPose.orientation = motions[i].endTheta.getRadian();
@@ -1540,7 +1583,7 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
             const base::Pose2D curPose(bestPosesOnObstPath[i]);
 
             Eigen::Vector3d posWorld;
-            travMap->fromGrid(curNode->getIndex(), posWorld, curNode->getHeight(), false);
+            travMap->fromGrid(curNode->getIndex(), posWorld, curNode->getHeight(), true);
 
             // Set up the plane at the 3D world position
             travNodePlane.normal() = curNode->getUserData().plane.normal();
