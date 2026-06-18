@@ -23,5 +23,7 @@ struct PlannerConfig
     /** Corridor width (in meters) to constrain A* search around the 2D Dijkstra path.
      *  Set to <= 0.0 to disable corridor pruning. */
     double corridorWidth = -1.0;
+    /** Maximum processor time to use (in seconds). */
+    double maxTime = 5.0;
 };
 }

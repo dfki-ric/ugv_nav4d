@@ -159,6 +159,7 @@ public:
                 plannerConfig.usePathStatistics = pc["usePathStatistics"].as<bool>(false);
                 plannerConfig.searchUntilFirstSolution = pc["searchUntilFirstSolution"].as<bool>(false);
                 plannerConfig.corridorWidth = pc["corridorWidth"].as<double>(-1.0);
+                plannerConfig.maxTime = pc["maxTime"] ? pc["maxTime"].as<double>(5.0) : 5.0;
             } else {
                 plannerConfig.epsilonSteps = params["epsilonSteps"] ? params["epsilonSteps"].as<double>(2.0) : 2.0;
                 plannerConfig.initialEpsilon = params["initialEpsilon"] ? params["initialEpsilon"].as<double>(64.0) : 64.0;
@@ -166,6 +167,7 @@ public:
                 plannerConfig.usePathStatistics = params["usePathStatistics"] ? params["usePathStatistics"].as<bool>(false) : false;
                 plannerConfig.searchUntilFirstSolution = params["searchUntilFirstSolution"] ? params["searchUntilFirstSolution"].as<bool>(false) : false;
                 plannerConfig.corridorWidth = params["corridorWidth"] ? params["corridorWidth"].as<double>(-1.0) : -1.0;
+                plannerConfig.maxTime = params["maxTime"] ? params["maxTime"].as<double>(5.0) : 5.0;
             }
             
             return true;

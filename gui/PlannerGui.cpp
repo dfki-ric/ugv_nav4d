@@ -633,6 +633,7 @@ void PlannerGui::setupDefaultConfigs()
     plannerConfig.initialEpsilon = 64.0;
     plannerConfig.numThreads = 8;
     plannerConfig.corridorWidth = 5.0;
+    plannerConfig.maxTime = 5.0;
 }
 
 
@@ -841,7 +842,7 @@ void PlannerGui::obstacleFactorSpinBoxEditingFinished()
 
 void PlannerGui::timeEditingFinished()
 {
-    
+    plannerConfig.maxTime = time->value();
 }
 
 void PlannerGui::robotSizeXEditingFinished()
@@ -1086,6 +1087,10 @@ void PlannerGui::updateWidgetValues()
     planCorridorWidthSpinBox->setValue(plannerConfig.corridorWidth);
     planCorridorWidthSpinBox->blockSignals(wasBlockedPlanCorridorWidth);
 
+    const bool wasBlockedTime = time->blockSignals(true);
+    time->setValue(plannerConfig.maxTime);
+    time->blockSignals(wasBlockedTime);
+
     // Cost multipliers
     const bool wasBlockedMultForward = mobMultForwardSpinBox->blockSignals(true);
     mobMultForwardSpinBox->setValue(mobilityConfig.multiplierForward);
@@ -1181,6 +1186,7 @@ void PlannerGui::updateParamsButtonReleased()
               << "  Use Path Statistics: " << (plannerConfig.usePathStatistics ? "Yes" : "No") << "\n"
               << "  Search Until First Solution: " << (plannerConfig.searchUntilFirstSolution ? "Yes" : "No") << "\n"
               << "  Corridor Width: " << plannerConfig.corridorWidth << " m\n"
+              << "  Max Planner Time: " << plannerConfig.maxTime << " s\n"
               << "========================================\n" << std::endl;
 
     std::shared_ptr<const traversability_generator3d::TravMap3d> oldMap;
@@ -1323,7 +1329,7 @@ void PlannerGui::dumpPressed()
     endState.position << goal.position;
     endState.orientation = goal.orientation;
     
-    PlannerDump dump(*planner, "created_by_test_gui", base::Time::fromSeconds(time->value()),
+    PlannerDump dump(*planner, "created_by_test_gui", base::Time::fromSeconds(plannerConfig.maxTime),
                      startState, endState);
 }
 
@@ -1345,7 +1351,7 @@ void PlannerGui::plan(const base::Pose& start, const base::Pose& goal)
 
     LOG_INFO_S << "Planning: " << start << " -> " << goal;
     
-    const Planner::PLANNING_RESULT result = planner->plan(base::Time::fromSeconds(time->value()),
+    const Planner::PLANNING_RESULT result = planner->plan(base::Time::fromSeconds(plannerConfig.maxTime),
                                             startState, endState, path, beautifiedPath);
     switch(result)
     {
