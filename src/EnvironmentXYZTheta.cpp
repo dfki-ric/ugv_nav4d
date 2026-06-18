@@ -253,7 +253,7 @@ bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, traversability_
     //check for collisions NOTE has to be done after expansion
 
     maps::grid::Vector3d nodePos;
-    travMap->fromGrid(node->getIndex(), nodePos, node->getHeight(), false);
+    travMap->fromGrid(node->getIndex(), nodePos, node->getHeight(), true);
 #ifdef ENABLE_DEBUG_DRAWINGS
         V3DD::COMPLEX_DRAWING([&]()
         {
@@ -324,7 +324,7 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
         while(nextNode != goal)
         {
             maps::grid::Vector3d pos;
-            travMap->fromGrid(nextNode->getIndex(), pos, nextNode->getHeight(), false);
+            travMap->fromGrid(nextNode->getIndex(), pos, nextNode->getHeight(), true);
 
             V3DD::DRAW_CYLINDER("ugv_nav4d_greedyPath", pos, base::Vector3d(0.03, 0.03, 0.3), V3DD::Color::yellow);
             double minCost = std::numeric_limits< double >::max();
@@ -632,10 +632,8 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
         {
 
             const traversability_generator3d::TravGenNode* node = sourceNode->getUserData().travNode;
-            Eigen::Vector3d pos((node->getIndex().x() + 0.5) * travConf.gridResolution,
-                                (node->getIndex().y() + 0.5) * travConf.gridResolution,
-                                node->getHeight());
-            pos = travMap->getLocalFrame().inverse(Eigen::Isometry) * pos;
+            Eigen::Vector3d pos;
+            travMap->fromGrid(node->getIndex(), pos, node->getHeight(), true);
             V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_successors", pos, base::Vector3d(travMap->getResolution().x() / 2.0, travMap->getResolution().y() / 2.0,
                             0.05), V3DD::Color::blue);
         });
@@ -1296,7 +1294,7 @@ void EnvironmentXYZTheta::precomputeCost()
         bfsQueue.push({nextNode, 0.0});
 
         maps::grid::Vector3d startPos;
-        travMap->fromGrid(nextNode->getIndex(), startPos, nextNode->getHeight(), false);
+        travMap->fromGrid(nextNode->getIndex(), startPos, nextNode->getHeight(), true);
         corridorPositions.push_back(startPos);
 
         bool reachedGoal = (nextNode == goal);
@@ -1322,7 +1320,7 @@ void EnvironmentXYZTheta::precomputeCost()
             bfsQueue.push({nextNode, 0.0});
 
             maps::grid::Vector3d p;
-            travMap->fromGrid(nextNode->getIndex(), p, nextNode->getHeight(), false);
+            travMap->fromGrid(nextNode->getIndex(), p, nextNode->getHeight(), true);
             corridorPositions.push_back(p);
 
             if (nextNode == goal)
@@ -1357,7 +1355,7 @@ void EnvironmentXYZTheta::precomputeCost()
                         bfsQueue.push({v, dist + res});
 
                         maps::grid::Vector3d p;
-                        travMap->fromGrid(v->getIndex(), p, v->getHeight(), false);
+                        travMap->fromGrid(v->getIndex(), p, v->getHeight(), true);
                         corridorPositions.push_back(p);
                     }
                 }
