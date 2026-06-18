@@ -38,14 +38,14 @@ rock_qt_library(
                        pcl_common${PCL_VERSION_SUFFIX}
                        pcl_io${PCL_VERSION_SUFFIX}
                        yaml-cpp
-    DEPS_PKGCONFIG_QT  vizkit3d
+    DEPS_PKGCONFIG_QT  ${DEPS_PKGCONFIG_QT}
+                       vizkit3d
                        vizkit3d-viz
                        traversability_generator3d-viz
                        maps-viz
                        base-viz
                        sbpl_spline_primitives-viz
                        trajectory_follower-viz
-                       ${DEPS_PKGCONFIG_QT}
 )
 
 rock_qt_executable(

@@ -21,7 +21,7 @@ INSTALLPATH=$(realpath $1)
 
 mkdir -p build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=${INSTALLPATH} ..
+cmake -DCMAKE_INSTALL_PREFIX=${INSTALLPATH} -DENABLE_DEBUG_DRAWINGS=ON ..
 make install
 
 if [[ $1 = .* ]]; then

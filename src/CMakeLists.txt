@@ -1,6 +1,16 @@
 find_package(OpenMP REQUIRED)
 
-set(DEPS_PKGCONFIG_LIST
+set(DEPS_PKGCONFIG_LIST "")
+
+if(ENABLE_DEBUG_DRAWINGS)
+    if(vizkit3d_debug_drawings-qt5_FOUND)
+        list(APPEND DEPS_PKGCONFIG_LIST vizkit3d_debug_drawings-qt5)
+    elseif(vizkit3d_debug_drawings_FOUND)
+        list(APPEND DEPS_PKGCONFIG_LIST vizkit3d_debug_drawings)
+    endif()
+endif()
+
+list(APPEND DEPS_PKGCONFIG_LIST
     base-types
     sbpl
     sbpl_spline_primitives
@@ -9,7 +19,9 @@ set(DEPS_PKGCONFIG_LIST
 )
 
 if(ENABLE_DEBUG_DRAWINGS AND vizkit3d_debug_drawings-commands_FOUND)
-    list(APPEND DEPS_PKGCONFIG_LIST vizkit3d_debug_drawings-commands)
+    if(NOT vizkit3d_debug_drawings-qt5_FOUND AND NOT vizkit3d_debug_drawings_FOUND)
+        list(APPEND DEPS_PKGCONFIG_LIST vizkit3d_debug_drawings-commands)
+    endif()
 endif()
 
 set(ADDITIONAL_LIBS "")
