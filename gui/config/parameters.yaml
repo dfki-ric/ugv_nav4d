@@ -5,7 +5,7 @@ splineConfig:
   numAngles: 16
   numEndAngles: 7
   destinationCircleRadius: 15
-  cellSkipFactor: 3.0
+  cellSkipFactor: 1.0
   generatePointTurnMotions: false
   generateLateralMotions: false
   generateBackwardMotions: true
@@ -15,7 +15,7 @@ splineConfig:
 mobilityConfig:
   translationSpeed: 0.5
   rotationSpeed: 0.5
-  minTurningRadius: 5.0
+  minTurningRadius: 3.0
   searchRadius: 1.0
   searchProgressSteps: 0.1
   multiplierForward: 1
@@ -25,7 +25,7 @@ mobilityConfig:
   multiplierLateral: 4
   multiplierLateralCurve: 4
   multiplierPointTurn: 3
-  maxMotionCurveLength: 15
+  maxMotionCurveLength: 100.0
   spline_sampling_resolution: 0.1
   remove_goal_offset: false
   curvaturePenaltyWeight: 3.0

@@ -123,6 +123,7 @@ private slots:
     void planInitialEpsilonEditingFinished();
     void planUsePathStatisticsStateChanged(int state);
     void planSearchUntilFirstSolutionStateChanged(int state);
+    void planCorridorWidthEditingFinished();
     
 private:
     void loadMls();
@@ -197,6 +198,7 @@ private:
     QDoubleSpinBox* planInitialEpsilonSpinBox;
     QCheckBox* planUsePathStatisticsCheckBox;
     QCheckBox* planSearchUntilFirstSolutionCheckBox;
+    QDoubleSpinBox* planCorridorWidthSpinBox;
     
     QProgressBar* bar;
     QWidget window;

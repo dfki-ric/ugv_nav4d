@@ -497,6 +497,14 @@ void PlannerGui::setupUI()
     connect(planSearchUntilFirstSolutionCheckBox, SIGNAL(stateChanged(int)), this, SLOT(planSearchUntilFirstSolutionStateChanged(int)));
     planFormLayout->addRow("Search Until First Solution", planSearchUntilFirstSolutionCheckBox);
 
+    planCorridorWidthSpinBox = new QDoubleSpinBox();
+    planCorridorWidthSpinBox->setMinimum(-1.0);
+    planCorridorWidthSpinBox->setMaximum(100.0);
+    planCorridorWidthSpinBox->setSingleStep(0.5);
+    planCorridorWidthSpinBox->setDecimals(2);
+    connect(planCorridorWidthSpinBox, SIGNAL(editingFinished()), this, SLOT(planCorridorWidthEditingFinished()));
+    planFormLayout->addRow("Corridor Width (m):", planCorridorWidthSpinBox);
+
     planTab->setLayout(planFormLayout);
     tabWidget->addTab(planTab, "Planner/Search");
 
@@ -575,10 +583,10 @@ void PlannerGui::setupPlanner(int argc, char** argv)
 void PlannerGui::setupDefaultConfigs()
 {
     splineConfig.gridSize = 0.5;
-    splineConfig.numAngles = 42;
-    splineConfig.numEndAngles = 21;
-    splineConfig.destinationCircleRadius = 10;
-    splineConfig.cellSkipFactor = 0.1;
+    splineConfig.numAngles = 16;
+    splineConfig.numEndAngles = 7;
+    splineConfig.destinationCircleRadius = 15;
+    splineConfig.cellSkipFactor = 1.0;
     splineConfig.generatePointTurnMotions = false;
     splineConfig.generateLateralMotions = false;
     splineConfig.generateBackwardMotions = true;
@@ -587,7 +595,7 @@ void PlannerGui::setupDefaultConfigs()
 
     mobilityConfig.translationSpeed = 1.0;
     mobilityConfig.rotationSpeed = 1.0;
-    mobilityConfig.minTurningRadius = 5.0;
+    mobilityConfig.minTurningRadius = 3.0;
     mobilityConfig.searchRadius = 1.0;
     mobilityConfig.searchProgressSteps = 0.1;
     mobilityConfig.multiplierForward = 1.0;
@@ -624,6 +632,7 @@ void PlannerGui::setupDefaultConfigs()
     plannerConfig.epsilonSteps = 2.0;
     plannerConfig.initialEpsilon = 64.0;
     plannerConfig.numThreads = 8;
+    plannerConfig.corridorWidth = 5.0;
 }
 
 
@@ -1073,6 +1082,10 @@ void PlannerGui::updateWidgetValues()
     planSearchUntilFirstSolutionCheckBox->setChecked(plannerConfig.searchUntilFirstSolution);
     planSearchUntilFirstSolutionCheckBox->blockSignals(wasBlockedPlanSearchUntil);
 
+    const bool wasBlockedPlanCorridorWidth = planCorridorWidthSpinBox->blockSignals(true);
+    planCorridorWidthSpinBox->setValue(plannerConfig.corridorWidth);
+    planCorridorWidthSpinBox->blockSignals(wasBlockedPlanCorridorWidth);
+
     // Cost multipliers
     const bool wasBlockedMultForward = mobMultForwardSpinBox->blockSignals(true);
     mobMultForwardSpinBox->setValue(mobilityConfig.multiplierForward);
@@ -1167,6 +1180,7 @@ void PlannerGui::updateParamsButtonReleased()
               << "  Num Threads: " << plannerConfig.numThreads << "\n"
               << "  Use Path Statistics: " << (plannerConfig.usePathStatistics ? "Yes" : "No") << "\n"
               << "  Search Until First Solution: " << (plannerConfig.searchUntilFirstSolution ? "Yes" : "No") << "\n"
+              << "  Corridor Width: " << plannerConfig.corridorWidth << " m\n"
               << "========================================\n" << std::endl;
 
     std::shared_ptr<const traversability_generator3d::TravMap3d> oldMap;
@@ -1243,6 +1257,7 @@ void PlannerGui::planEpsilonStepsEditingFinished() { plannerConfig.epsilonSteps 
 void PlannerGui::planInitialEpsilonEditingFinished() { plannerConfig.initialEpsilon = planInitialEpsilonSpinBox->value(); }
 void PlannerGui::planUsePathStatisticsStateChanged(int state) { plannerConfig.usePathStatistics = (state == Qt::Checked); }
 void PlannerGui::planSearchUntilFirstSolutionStateChanged(int state) { plannerConfig.searchUntilFirstSolution = (state == Qt::Checked); }
+void PlannerGui::planCorridorWidthEditingFinished() { plannerConfig.corridorWidth = planCorridorWidthSpinBox->value(); }
 
 void PlannerGui::startPlanThread()
 {
