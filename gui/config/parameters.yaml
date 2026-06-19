@@ -2,9 +2,9 @@
 
 splineConfig:
   gridSize: 0.5
-  numAngles: 16
-  numEndAngles: 7
-  destinationCircleRadius: 15
+  numAngles: 42
+  numEndAngles: 21
+  destinationCircleRadius: 12
   cellSkipFactor: 1.0
   generatePointTurnMotions: false
   generateLateralMotions: false
@@ -25,7 +25,7 @@ mobilityConfig:
   multiplierLateral: 4
   multiplierLateralCurve: 4
   multiplierPointTurn: 3
-  maxMotionCurveLength: 100.0
+  maxMotionCurveLength: 10.0
   spline_sampling_resolution: 0.1
   remove_goal_offset: false
   curvaturePenaltyWeight: 3.0
@@ -48,15 +48,15 @@ travConfig:
   allowForwardDownhill: true
   enableInclineLimitting: false
   obstacleInflationMultiplier: 1.0
-  partiallyTraversableMultiplier: 2.0
+  partiallyTraversableMultiplier: 1.5
 
 
 plannerConfig:
   epsilonSteps: 2.0
-  initialEpsilon: 6.0
+  initialEpsilon: 64.0
   numThreads: 4
   usePathStatistics: false
-  searchUntilFirstSolution: false
-  corridorWidth: 5.0
+  searchUntilFirstSolution: true
+  corridorWidth: 3.0
   maxTime: 5.0
   goalOrientationMargin: 0.17
