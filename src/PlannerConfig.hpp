@@ -25,5 +25,9 @@ struct PlannerConfig
     double corridorWidth = -1.0;
     /** Maximum processor time to use (in seconds). */
     double maxTime = 5.0;
+    /** Margin around the end orientation in radians. If the successor node's heading
+     * is within this margin of the goal heading, it is mapped to the goal state.
+     * Set to <= 0.0 to disable. */
+    double goalOrientationMargin = 0.0;
 };
 }

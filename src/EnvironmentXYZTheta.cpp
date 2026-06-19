@@ -46,6 +46,7 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(std::shared_ptr<const traversability_ge
     , travConf(travConf)
     , primitiveConfig(primitiveConfig)
     , mobilityConfig(mobilityConfig)
+    , goalOrientationMargin(0.0)
 {
     numAngles = primitiveConfig.numAngles;
     searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
@@ -897,14 +898,22 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
             const auto &thetaMap(successXYNode->getUserData().thetaToNodes);
 
-            auto thetaCandidate = thetaMap.find(cand.endTheta);
-            if(thetaCandidate != thetaMap.end())
+            if (goalXYZNode && successXYNode == goalXYZNode && goalThetaNode && goalOrientationMargin > 0.0 &&
+                cand.endTheta.shortestDist(goalThetaNode->theta).getRadian() <= goalOrientationMargin)
             {
-                successthetaNode = thetaCandidate->second;
+                successthetaNode = goalThetaNode;
             }
             else
             {
-                successthetaNode = createNewState(cand.endTheta, successXYNode);
+                auto thetaCandidate = thetaMap.find(cand.endTheta);
+                if(thetaCandidate != thetaMap.end())
+                {
+                    successthetaNode = thetaCandidate->second;
+                }
+                else
+                {
+                    successthetaNode = createNewState(cand.endTheta, successXYNode);
+                }
             }
 
             SuccIDV->push_back(successthetaNode->id);
@@ -1448,6 +1457,11 @@ void EnvironmentXYZTheta::precomputeCost()
 void EnvironmentXYZTheta::setCorridorWidth(double width)
 {
     corridorWidth = width;
+}
+
+void EnvironmentXYZTheta::setGoalOrientationMargin(double margin)
+{
+    goalOrientationMargin = margin;
 }
 
 void EnvironmentXYZTheta::setTravConfig(const traversability_generator3d::TraversabilityConfig& cfg)

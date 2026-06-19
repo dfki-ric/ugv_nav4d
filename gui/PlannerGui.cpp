@@ -505,6 +505,14 @@ void PlannerGui::setupUI()
     connect(planCorridorWidthSpinBox, SIGNAL(editingFinished()), this, SLOT(planCorridorWidthEditingFinished()));
     planFormLayout->addRow("Corridor Width (m):", planCorridorWidthSpinBox);
 
+    planGoalOrientationMarginSpinBox = new QDoubleSpinBox();
+    planGoalOrientationMarginSpinBox->setMinimum(0.0);
+    planGoalOrientationMarginSpinBox->setMaximum(6.28);
+    planGoalOrientationMarginSpinBox->setSingleStep(0.05);
+    planGoalOrientationMarginSpinBox->setDecimals(2);
+    connect(planGoalOrientationMarginSpinBox, SIGNAL(editingFinished()), this, SLOT(planGoalOrientationMarginEditingFinished()));
+    planFormLayout->addRow("Goal Orientation Margin (rad):", planGoalOrientationMarginSpinBox);
+
     planTab->setLayout(planFormLayout);
     tabWidget->addTab(planTab, "Planner/Search");
 
@@ -634,6 +642,7 @@ void PlannerGui::setupDefaultConfigs()
     plannerConfig.numThreads = 8;
     plannerConfig.corridorWidth = 5.0;
     plannerConfig.maxTime = 5.0;
+    plannerConfig.goalOrientationMargin = 0.0;
 }
 
 
@@ -1087,6 +1096,10 @@ void PlannerGui::updateWidgetValues()
     planCorridorWidthSpinBox->setValue(plannerConfig.corridorWidth);
     planCorridorWidthSpinBox->blockSignals(wasBlockedPlanCorridorWidth);
 
+    const bool wasBlockedPlanGoalMargin = planGoalOrientationMarginSpinBox->blockSignals(true);
+    planGoalOrientationMarginSpinBox->setValue(plannerConfig.goalOrientationMargin);
+    planGoalOrientationMarginSpinBox->blockSignals(wasBlockedPlanGoalMargin);
+
     const bool wasBlockedTime = time->blockSignals(true);
     time->setValue(plannerConfig.maxTime);
     time->blockSignals(wasBlockedTime);
@@ -1187,6 +1200,7 @@ void PlannerGui::updateParamsButtonReleased()
               << "  Search Until First Solution: " << (plannerConfig.searchUntilFirstSolution ? "Yes" : "No") << "\n"
               << "  Corridor Width: " << plannerConfig.corridorWidth << " m\n"
               << "  Max Planner Time: " << plannerConfig.maxTime << " s\n"
+              << "  Goal Orientation Margin: " << plannerConfig.goalOrientationMargin << " rad\n"
               << "========================================\n" << std::endl;
 
     std::shared_ptr<const traversability_generator3d::TravMap3d> oldMap;
@@ -1264,6 +1278,7 @@ void PlannerGui::planInitialEpsilonEditingFinished() { plannerConfig.initialEpsi
 void PlannerGui::planUsePathStatisticsStateChanged(int state) { plannerConfig.usePathStatistics = (state == Qt::Checked); }
 void PlannerGui::planSearchUntilFirstSolutionStateChanged(int state) { plannerConfig.searchUntilFirstSolution = (state == Qt::Checked); }
 void PlannerGui::planCorridorWidthEditingFinished() { plannerConfig.corridorWidth = planCorridorWidthSpinBox->value(); }
+void PlannerGui::planGoalOrientationMarginEditingFinished() { plannerConfig.goalOrientationMargin = planGoalOrientationMarginSpinBox->value(); }
 
 void PlannerGui::startPlanThread()
 {

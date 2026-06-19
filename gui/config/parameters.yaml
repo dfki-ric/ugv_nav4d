@@ -59,3 +59,4 @@ plannerConfig:
   searchUntilFirstSolution: false
   corridorWidth: 5.0
   maxTime: 5.0
+  goalOrientationMargin: 0.17

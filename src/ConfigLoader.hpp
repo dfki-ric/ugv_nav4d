@@ -160,6 +160,7 @@ public:
                 plannerConfig.searchUntilFirstSolution = pc["searchUntilFirstSolution"].as<bool>(false);
                 plannerConfig.corridorWidth = pc["corridorWidth"].as<double>(-1.0);
                 plannerConfig.maxTime = pc["maxTime"] ? pc["maxTime"].as<double>(5.0) : 5.0;
+                plannerConfig.goalOrientationMargin = pc["goalOrientationMargin"] ? pc["goalOrientationMargin"].as<double>(0.0) : (pc["goal_orientation_margin"] ? pc["goal_orientation_margin"].as<double>(0.0) : 0.0);
             } else {
                 plannerConfig.epsilonSteps = params["epsilonSteps"] ? params["epsilonSteps"].as<double>(2.0) : 2.0;
                 plannerConfig.initialEpsilon = params["initialEpsilon"] ? params["initialEpsilon"].as<double>(64.0) : 64.0;
@@ -168,6 +169,7 @@ public:
                 plannerConfig.searchUntilFirstSolution = params["searchUntilFirstSolution"] ? params["searchUntilFirstSolution"].as<bool>(false) : false;
                 plannerConfig.corridorWidth = params["corridorWidth"] ? params["corridorWidth"].as<double>(-1.0) : -1.0;
                 plannerConfig.maxTime = params["maxTime"] ? params["maxTime"].as<double>(5.0) : 5.0;
+                plannerConfig.goalOrientationMargin = params["goalOrientationMargin"] ? params["goalOrientationMargin"].as<double>(0.0) : (params["goal_orientation_margin"] ? params["goal_orientation_margin"].as<double>(0.0) : 0.0);
             }
             
             return true;
