@@ -733,6 +733,7 @@ void PlannerGui::picked(float x, float y, float z, int buttonMask, int modifierM
             start.position.z() += travConfig.distToGround; //because we click on the ground but need to put robot position
             std::cout << "BEFORE!!!!!!!!!!!!!!!!!!!!" << std::endl;
 
+#ifdef ENABLE_DEBUG_DRAWINGS
             std::vector<std::string> channels = V3DD::GET_DECLARED_CHANNELS();
 
             std::cout << "Channels: " << channels.size() << std::endl;
@@ -740,6 +741,7 @@ void PlannerGui::picked(float x, float y, float z, int buttonMask, int modifierM
             for (auto& channel : channels){
                 std::cout << channel << std::endl;
             }
+#endif
 
 
 #ifdef ENABLE_DEBUG_DRAWINGS
