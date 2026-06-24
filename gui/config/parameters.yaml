@@ -60,3 +60,4 @@ plannerConfig:
   corridorWidth: 3.0
   maxTime: 5.0
   goalOrientationMargin: 0.17
+  goalDistanceMargin: 0.0

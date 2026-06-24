@@ -54,10 +54,14 @@ public:
             env.reset(new EnvironmentXYZTheta(mapPtr, traversabilityConfig, splinePrimitiveConfig, mobility));
             env->setCorridorWidth(plannerConfig.corridorWidth);
             env->setGoalOrientationMargin(plannerConfig.goalOrientationMargin);
+            env->setGoalDistanceMargin(plannerConfig.goalDistanceMargin);
         }
         else
         {
             env->updateMap(mapPtr);
+            env->setCorridorWidth(plannerConfig.corridorWidth);
+            env->setGoalOrientationMargin(plannerConfig.goalOrientationMargin);
+            env->setGoalDistanceMargin(plannerConfig.goalDistanceMargin);
         }
     }
     

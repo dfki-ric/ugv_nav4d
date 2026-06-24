@@ -191,6 +191,7 @@ public:
     void setTravConfig(const traversability_generator3d::TraversabilityConfig& cfg);
     void setCorridorWidth(double width);
     void setGoalOrientationMargin(double margin);
+    void setGoalDistanceMargin(double margin);
 
     /** @param maxDist The value that should be used as maximum distance. This value is used for
      *                 non-traversable nodes and for initialization.*/
@@ -249,6 +250,7 @@ private:
     Mobility mobilityConfig;
     std::unordered_map<uint64_t, size_t> transitionCache;
     double goalOrientationMargin;
+    double goalDistanceMargin;
 };
 
 }

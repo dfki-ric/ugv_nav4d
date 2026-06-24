@@ -29,5 +29,9 @@ struct PlannerConfig
      * is within this margin of the goal heading, it is mapped to the goal state.
      * Set to <= 0.0 to disable. */
     double goalOrientationMargin = 0.0;
+    /** Margin around the goal position in meters. If the successor node's position
+     * is within this margin of the goal position, it is mapped to the goal state.
+     * Set to <= 0.0 to disable. */
+    double goalDistanceMargin = 0.0;
 };
 }

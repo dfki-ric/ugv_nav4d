@@ -513,6 +513,14 @@ void PlannerGui::setupUI()
     connect(planGoalOrientationMarginSpinBox, SIGNAL(editingFinished()), this, SLOT(planGoalOrientationMarginEditingFinished()));
     planFormLayout->addRow("Goal Orientation Margin (rad):", planGoalOrientationMarginSpinBox);
 
+    planGoalDistanceMarginSpinBox = new QDoubleSpinBox();
+    planGoalDistanceMarginSpinBox->setMinimum(0.0);
+    planGoalDistanceMarginSpinBox->setMaximum(100.0);
+    planGoalDistanceMarginSpinBox->setSingleStep(0.1);
+    planGoalDistanceMarginSpinBox->setDecimals(2);
+    connect(planGoalDistanceMarginSpinBox, SIGNAL(editingFinished()), this, SLOT(planGoalDistanceMarginEditingFinished()));
+    planFormLayout->addRow("Goal Distance Margin (m):", planGoalDistanceMarginSpinBox);
+
     planTab->setLayout(planFormLayout);
     tabWidget->addTab(planTab, "Planner/Search");
 
@@ -779,21 +787,29 @@ void PlannerGui::show()
 void PlannerGui::maxSlopeEditingFinished()
 {
     travConfig.maxSlope = maxSlopeSpinBox->value()/180.0 * M_PI;
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
 }
 
 void PlannerGui::inclineLimittingLimitSpinBoxEditingFinished()
 {
     travConfig.inclineLimittingLimit = inclineLimittingLimitSpinBox->value()/180.0 * M_PI;
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
 }
 
 void PlannerGui::inclineLimittingMinSlopeSpinBoxEditingFinished()
 {
     travConfig.inclineLimittingMinSlope = inclineLimittingMinSlopeSpinBox->value()/180.0 * M_PI;
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
 }
 
 void PlannerGui::slopeMetricScaleSpinBoxEditingFinished()
 {
     travConfig.slopeMetricScale = slopeMetricScaleSpinBox->value();
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
 }
 
 void PlannerGui::slopeMetricComboBoxIndexChanged(int index)
@@ -805,6 +821,8 @@ void PlannerGui::slopeMetricComboBoxIndexChanged(int index)
     if(size_t(index) < metrics.size())
     {
         travConfig.slopeMetric = metrics[index];
+        if (planner) planner->setTravConfig(travConfig);
+        if (travGen) travGen->setConfig(travConfig);
     }
     else
     {
@@ -817,6 +835,7 @@ void PlannerGui::numThreadsValueChanged(int newValue)
     if(newValue >= 1)
     {
         plannerConfig.numThreads = newValue; 
+        if (planner) planner->setPlannerConfig(plannerConfig);
     }
 }
 
@@ -843,6 +862,8 @@ void PlannerGui::startOrientationChanged(int newValue)
 void PlannerGui::obstacleDistanceSpinBoxEditingFinished()
 {
     travConfig.costFunctionDist = obstacleDistanceSpinBox->value();
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
 }
 
 void PlannerGui::obstacleFactorSpinBoxEditingFinished()
@@ -854,26 +875,35 @@ void PlannerGui::obstacleFactorSpinBoxEditingFinished()
 void PlannerGui::timeEditingFinished()
 {
     plannerConfig.maxTime = time->value();
+    if (planner) planner->setPlannerConfig(plannerConfig);
 }
 
 void PlannerGui::robotSizeXEditingFinished()
 {
     travConfig.robotSizeX = robotSizeXSpinBox->value();
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
 }
 
 void PlannerGui::robotSizeYEditingFinished()
 {
     travConfig.robotSizeY = robotSizeYSpinBox->value();
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
 }
 
 void PlannerGui::robotHeightEditingFinished()
 {
     travConfig.robotHeight = robotHeightSpinBox->value();
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
 }
 
 void PlannerGui::distToGroundEditingFinished()
 {
     travConfig.distToGround = distToGroundSpinBox->value();
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
 }
 
 void PlannerGui::translationSpeedEditingFinished()
@@ -1102,6 +1132,10 @@ void PlannerGui::updateWidgetValues()
     planGoalOrientationMarginSpinBox->setValue(plannerConfig.goalOrientationMargin);
     planGoalOrientationMarginSpinBox->blockSignals(wasBlockedPlanGoalMargin);
 
+    const bool wasBlockedPlanGoalDistMargin = planGoalDistanceMarginSpinBox->blockSignals(true);
+    planGoalDistanceMarginSpinBox->setValue(plannerConfig.goalDistanceMargin);
+    planGoalDistanceMarginSpinBox->blockSignals(wasBlockedPlanGoalDistMargin);
+
     const bool wasBlockedTime = time->blockSignals(true);
     time->setValue(plannerConfig.maxTime);
     time->blockSignals(wasBlockedTime);
@@ -1203,6 +1237,7 @@ void PlannerGui::updateParamsButtonReleased()
               << "  Corridor Width: " << plannerConfig.corridorWidth << " m\n"
               << "  Max Planner Time: " << plannerConfig.maxTime << " s\n"
               << "  Goal Orientation Margin: " << plannerConfig.goalOrientationMargin << " rad\n"
+              << "  Goal Distance Margin: " << plannerConfig.goalDistanceMargin << " m\n"
               << "========================================\n" << std::endl;
 
     std::shared_ptr<const traversability_generator3d::TravMap3d> oldMap;
@@ -1265,22 +1300,86 @@ void PlannerGui::mobCurvaturePenaltyWeightEditingFinished() { mobilityConfig.cur
 void PlannerGui::mobAngularCostWeightEditingFinished() { mobilityConfig.angularCostWeight = mobAngularCostWeightSpinBox->value(); }
 
 // Traversability slots
-void PlannerGui::travGridResolutionEditingFinished() { travConfig.gridResolution = travGridResolutionSpinBox->value(); }
-void PlannerGui::travMaxStepHeightEditingFinished() { travConfig.maxStepHeight = travMaxStepHeightSpinBox->value(); }
-void PlannerGui::travMinTraversablePercentageEditingFinished() { travConfig.minTraversablePercentage = travMinTraversablePercentageSpinBox->value(); }
-void PlannerGui::travAllowForwardDownhillStateChanged(int state) { travConfig.allowForwardDownhill = (state == Qt::Checked); }
-void PlannerGui::travEnableInclineLimittingStateChanged(int state) { travConfig.enableInclineLimitting = (state == Qt::Checked); }
-void PlannerGui::travObstacleInflationMultiplierEditingFinished() { travConfig.obstacleInflationMultiplier = travObstacleInflationMultiplierSpinBox->value(); }
-void PlannerGui::travPartiallyTraversableMultiplierEditingFinished() { travConfig.partiallyTraversableMultiplier = travPartiallyTraversableMultiplierSpinBox->value(); }
+void PlannerGui::travGridResolutionEditingFinished()
+{
+    travConfig.gridResolution = travGridResolutionSpinBox->value();
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
+}
+void PlannerGui::travMaxStepHeightEditingFinished()
+{
+    travConfig.maxStepHeight = travMaxStepHeightSpinBox->value();
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
+}
+void PlannerGui::travMinTraversablePercentageEditingFinished()
+{
+    travConfig.minTraversablePercentage = travMinTraversablePercentageSpinBox->value();
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
+}
+void PlannerGui::travAllowForwardDownhillStateChanged(int state)
+{
+    travConfig.allowForwardDownhill = (state == Qt::Checked);
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
+}
+void PlannerGui::travEnableInclineLimittingStateChanged(int state)
+{
+    travConfig.enableInclineLimitting = (state == Qt::Checked);
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
+}
+void PlannerGui::travObstacleInflationMultiplierEditingFinished()
+{
+    travConfig.obstacleInflationMultiplier = travObstacleInflationMultiplierSpinBox->value();
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
+}
+void PlannerGui::travPartiallyTraversableMultiplierEditingFinished()
+{
+    travConfig.partiallyTraversableMultiplier = travPartiallyTraversableMultiplierSpinBox->value();
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
+}
 
 
 // Planner slots
-void PlannerGui::planEpsilonStepsEditingFinished() { plannerConfig.epsilonSteps = planEpsilonStepsSpinBox->value(); }
-void PlannerGui::planInitialEpsilonEditingFinished() { plannerConfig.initialEpsilon = planInitialEpsilonSpinBox->value(); }
-void PlannerGui::planUsePathStatisticsStateChanged(int state) { plannerConfig.usePathStatistics = (state == Qt::Checked); }
-void PlannerGui::planSearchUntilFirstSolutionStateChanged(int state) { plannerConfig.searchUntilFirstSolution = (state == Qt::Checked); }
-void PlannerGui::planCorridorWidthEditingFinished() { plannerConfig.corridorWidth = planCorridorWidthSpinBox->value(); }
-void PlannerGui::planGoalOrientationMarginEditingFinished() { plannerConfig.goalOrientationMargin = planGoalOrientationMarginSpinBox->value(); }
+void PlannerGui::planEpsilonStepsEditingFinished()
+{
+    plannerConfig.epsilonSteps = planEpsilonStepsSpinBox->value();
+    if (planner) planner->setPlannerConfig(plannerConfig);
+}
+void PlannerGui::planInitialEpsilonEditingFinished()
+{
+    plannerConfig.initialEpsilon = planInitialEpsilonSpinBox->value();
+    if (planner) planner->setPlannerConfig(plannerConfig);
+}
+void PlannerGui::planUsePathStatisticsStateChanged(int state)
+{
+    plannerConfig.usePathStatistics = (state == Qt::Checked);
+    if (planner) planner->enablePathStatistics(plannerConfig.usePathStatistics);
+}
+void PlannerGui::planSearchUntilFirstSolutionStateChanged(int state)
+{
+    plannerConfig.searchUntilFirstSolution = (state == Qt::Checked);
+    if (planner) planner->setPlannerConfig(plannerConfig);
+}
+void PlannerGui::planCorridorWidthEditingFinished()
+{
+    plannerConfig.corridorWidth = planCorridorWidthSpinBox->value();
+    if (planner) planner->setPlannerConfig(plannerConfig);
+}
+void PlannerGui::planGoalOrientationMarginEditingFinished()
+{
+    plannerConfig.goalOrientationMargin = planGoalOrientationMarginSpinBox->value();
+    if (planner) planner->setPlannerConfig(plannerConfig);
+}
+void PlannerGui::planGoalDistanceMarginEditingFinished()
+{
+    plannerConfig.goalDistanceMargin = planGoalDistanceMarginSpinBox->value();
+    if (planner) planner->setPlannerConfig(plannerConfig);
+}
 
 void PlannerGui::startPlanThread()
 {

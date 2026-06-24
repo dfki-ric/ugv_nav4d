@@ -125,6 +125,7 @@ private slots:
     void planSearchUntilFirstSolutionStateChanged(int state);
     void planCorridorWidthEditingFinished();
     void planGoalOrientationMarginEditingFinished();
+    void planGoalDistanceMarginEditingFinished();
     
 private:
     void loadMls();
@@ -201,6 +202,7 @@ private:
     QCheckBox* planSearchUntilFirstSolutionCheckBox;
     QDoubleSpinBox* planCorridorWidthSpinBox;
     QDoubleSpinBox* planGoalOrientationMarginSpinBox;
+    QDoubleSpinBox* planGoalDistanceMarginSpinBox;
     
     QProgressBar* bar;
     QWidget window;

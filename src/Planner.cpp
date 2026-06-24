@@ -334,6 +334,7 @@ void Planner::setTravConfig(const traversability_generator3d::TraversabilityConf
      if(env){
          env->setCorridorWidth(config.corridorWidth);
          env->setGoalOrientationMargin(config.goalOrientationMargin);
+         env->setGoalDistanceMargin(config.goalDistanceMargin);
      }
  }
 

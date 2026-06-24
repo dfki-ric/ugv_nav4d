@@ -47,6 +47,7 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(std::shared_ptr<const traversability_ge
     , primitiveConfig(primitiveConfig)
     , mobilityConfig(mobilityConfig)
     , goalOrientationMargin(0.0)
+    , goalDistanceMargin(0.0)
 {
     numAngles = primitiveConfig.numAngles;
     searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
@@ -898,8 +899,41 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
             const auto &thetaMap(successXYNode->getUserData().thetaToNodes);
 
-            if (goalXYZNode && successXYNode == goalXYZNode && goalThetaNode && goalOrientationMargin > 0.0 &&
-                cand.endTheta.shortestDist(goalThetaNode->theta).getRadian() <= goalOrientationMargin)
+            bool isGoal = false;
+            if (goalXYZNode && goalThetaNode)
+            {
+                bool withinDistance = (successXYNode == goalXYZNode);
+                if (!withinDistance && goalDistanceMargin > 0.0)
+                {
+                    Eigen::Vector3d succPos, goalPos;
+                    travMap->fromGrid(successXYNode->getIndex(), succPos, successXYNode->getHeight(), true);
+                    travMap->fromGrid(goalXYZNode->getIndex(), goalPos, goalXYZNode->getHeight(), true);
+                    if ((succPos.head<2>() - goalPos.head<2>()).norm() <= goalDistanceMargin)
+                    {
+                        withinDistance = true;
+                    }
+                }
+
+                if (withinDistance)
+                {
+                    bool withinOrientation = false;
+                    if (goalOrientationMargin > 0.0)
+                    {
+                        withinOrientation = (cand.endTheta.shortestDist(goalThetaNode->theta).getRadian() <= goalOrientationMargin);
+                    }
+                    else
+                    {
+                        withinOrientation = (cand.endTheta == goalThetaNode->theta);
+                    }
+
+                    if (withinOrientation)
+                    {
+                        isGoal = true;
+                    }
+                }
+            }
+
+            if (isGoal)
             {
                 successthetaNode = goalThetaNode;
             }
@@ -1462,6 +1496,11 @@ void EnvironmentXYZTheta::setCorridorWidth(double width)
 void EnvironmentXYZTheta::setGoalOrientationMargin(double margin)
 {
     goalOrientationMargin = margin;
+}
+
+void EnvironmentXYZTheta::setGoalDistanceMargin(double margin)
+{
+    goalDistanceMargin = margin;
 }
 
 void EnvironmentXYZTheta::setTravConfig(const traversability_generator3d::TraversabilityConfig& cfg)
