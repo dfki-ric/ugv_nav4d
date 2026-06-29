@@ -1145,6 +1145,24 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             updateGoalPose = true;
         }
 
+        // Smooth Z to remove height discontinuities at cell boundaries.
+        // Uses a 3-point weighted average (0.25, 0.5, 0.25) while preserving
+        // the start and end heights to maintain segment continuity.
+        if (!setZToZero && positions.size() >= 3)
+        {
+            std::vector<double> smoothedZ(positions.size());
+            smoothedZ[0] = positions[0].z();
+            smoothedZ.back() = positions.back().z();
+            for (size_t k = 1; k < positions.size() - 1; ++k)
+            {
+                smoothedZ[k] = 0.25 * positions[k-1].z() + 0.5 * positions[k].z() + 0.25 * positions[k+1].z();
+            }
+            for (size_t k = 0; k < positions.size(); ++k)
+            {
+                positions[k].z() = smoothedZ[k];
+            }
+        }
+
         if (positions.size() > 0){
             curPart.spline.interpolate(positions);
         }
