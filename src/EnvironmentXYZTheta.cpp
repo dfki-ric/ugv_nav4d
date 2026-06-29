@@ -1126,7 +1126,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 }
 
                 Eigen::Vector3d pointOnBody = plan2Body.inverse(Eigen::Isometry) * pointOnTravPlane;
-                if (positions.empty() || !(positions.back().isApprox(pointOnBody)))
+                if (positions.empty() || (positions.back() - pointOnBody).norm() > 1e-3)
                 {
                     positions.emplace_back(pointOnBody);
                 }
@@ -1135,12 +1135,19 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
         if (mobilityConfig.remove_goal_offset == true &&
             i == indexOfMotionToUpdate)
         {
-            double goal_offset_x = (goalPos.x() - positions[positions.size()-1].x()) / (positions.size()-1);
-            double goal_offset_y = (goalPos.y() - positions[positions.size()-1].y()) / (positions.size()-1);
+            if (positions.size() >= 2)
+            {
+                double goal_offset_x = (goalPos.x() - positions[positions.size()-1].x()) / (positions.size()-1);
+                double goal_offset_y = (goalPos.y() - positions[positions.size()-1].y()) / (positions.size()-1);
 
-            for (std::size_t j{0}; j < positions.size(); j++){
-                positions[j].x() += j*goal_offset_x;
-                positions[j].y() += j*goal_offset_y;
+                for (std::size_t j{0}; j < positions.size(); j++){
+                    positions[j].x() += j*goal_offset_x;
+                    positions[j].y() += j*goal_offset_y;
+                }
+            }
+            else if (positions.size() == 1)
+            {
+                positions[0] = goalPos;
             }
             updateGoalPose = true;
         }
@@ -1163,8 +1170,15 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             }
         }
 
-        if (positions.size() > 0){
-            curPart.spline.interpolate(positions);
+
+        if (curMotion.type != Motion::Type::MOV_POINTTURN)
+        {
+            if (positions.size() >= 2){
+                curPart.spline.interpolate(positions);
+            }
+            else if (positions.size() == 1){
+                curPart.spline.setSingleton(positions[0]);
+            }
         }
 
 #ifdef ENABLE_DEBUG_DRAWINGS
@@ -1698,13 +1712,20 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
             }
 
             Eigen::Vector3d pointOnBody = ground2Body.inverse(Eigen::Isometry) * pointOnTravPlane;
-            if (positions.empty() || !(positions.back().isApprox(pointOnBody)))
+            if (positions.empty() || (positions.back() - pointOnBody).norm() > 1e-3)
             {
                 positions.emplace_back(pointOnBody);
             }
         }
 
-        trajectory.spline.interpolate(positions);
+        if (positions.size() >= 2)
+        {
+            trajectory.spline.interpolate(positions);
+        }
+        else if (positions.size() == 1)
+        {
+            trajectory.spline.setSingleton(positions[0]);
+        }
         trajectory.speed = motions[bestMotionIndex].type == Motion::Type::MOV_BACKWARD? -mobilityConfig.translationSpeed : mobilityConfig.translationSpeed;
 #ifdef ENABLE_DEBUG_DRAWINGS
             V3DD::COMPLEX_DRAWING([&]()
