@@ -248,7 +248,11 @@ private:
     unsigned int numAngles;
 
     Mobility mobilityConfig;
-    std::unordered_map<uint64_t, size_t> transitionCache;
+    struct CachedTransition {
+        size_t motionId;
+        int cost;
+    };
+    std::unordered_map<uint64_t, CachedTransition> transitionCache;
     double goalOrientationMargin;
     double goalDistanceMargin;
 };

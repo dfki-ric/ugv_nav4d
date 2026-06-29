@@ -411,7 +411,7 @@ const Motion& EnvironmentXYZTheta::getMotion(const int fromStateID, const int to
     auto it = transitionCache.find(key);
     if (it != transitionCache.end())
     {
-        return availableMotions.getMotion(it->second);
+        return availableMotions.getMotion(it->second.motionId);
     }
 
     int cost = -1;
@@ -953,7 +953,14 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             SuccIDV->push_back(successthetaNode->id);
             CostV->push_back(cand.cost);
             motionIdV.push_back(cand.motionId);
-            transitionCache[((uint64_t)SourceStateID << 32) | successthetaNode->id] = cand.motionId;
+            // Only cache the min-cost motion for each (from, to) pair so that
+            // getMotion() returns the same motion the planner chose.
+            uint64_t cacheKey = ((uint64_t)SourceStateID << 32) | successthetaNode->id;
+            auto cacheIt = transitionCache.find(cacheKey);
+            if (cacheIt == transitionCache.end() || cand.cost < cacheIt->second.cost)
+            {
+                transitionCache[cacheKey] = {cand.motionId, cand.cost};
+            }
 
             //####BEGIN DEBUG BLOCK!
             {
@@ -1097,7 +1104,19 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 Eigen::Vector3d point{p.position.x(), p.position.y(), 0};
                 Eigen::Vector3d globalPoint = point + start;
                 Eigen::ParametrizedLine<double, 3> line = Eigen::ParametrizedLine<double, 3>::Through(globalPoint, globalPoint + Eigen::Vector3d::UnitZ());
-                Eigen::Vector3d pointOnTravPlane = line.intersectionPoint(travNodePlane); 
+                Eigen::Vector3d pointOnTravPlane;
+                // If the plane normal is nearly vertical (Z component ≈ 0), the vertical
+                // projection line is parallel to the plane → intersection is undefined → NaN.
+                // Fall back to using the node's world height directly.
+                if (std::abs(travNodePlane.normal().z()) < 1e-6)
+                {
+                    pointOnTravPlane = globalPoint;
+                    pointOnTravPlane.z() = posWorld.z();
+                }
+                else
+                {
+                    pointOnTravPlane = line.intersectionPoint(travNodePlane);
+                }
 #ifdef ENABLE_DEBUG_DRAWINGS
                 V3DD::DRAW_SPHERE("ugv_nav4d_trajectory_poses", pointOnTravPlane, 0.01, V3DD::Color::red);
 #endif
@@ -1644,7 +1663,16 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
 
             Eigen::Vector3d globalPoint{curPose.position.x(), curPose.position.y(), 0};
             Eigen::ParametrizedLine<double, 3> line = Eigen::ParametrizedLine<double, 3>::Through(globalPoint, globalPoint + Eigen::Vector3d::UnitZ());
-            Eigen::Vector3d pointOnTravPlane = line.intersectionPoint(travNodePlane); 
+            Eigen::Vector3d pointOnTravPlane;
+            if (std::abs(travNodePlane.normal().z()) < 1e-6)
+            {
+                pointOnTravPlane = globalPoint;
+                pointOnTravPlane.z() = posWorld.z();
+            }
+            else
+            {
+                pointOnTravPlane = line.intersectionPoint(travNodePlane);
+            }
 
             //TODO: Only left here until software which still uses trajectory2D is updated to use trajectory3D
             if (setZToZero){
