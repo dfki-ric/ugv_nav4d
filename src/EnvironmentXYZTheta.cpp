@@ -48,6 +48,7 @@ EnvironmentXYZTheta::EnvironmentXYZTheta(std::shared_ptr<const traversability_ge
     , mobilityConfig(mobilityConfig)
     , goalOrientationMargin(0.0)
     , goalDistanceMargin(0.0)
+    , planningMaxTime(-1.0)
 {
     numAngles = primitiveConfig.numAngles;
     searchGrid.setResolution(Eigen::Vector2d(travConf.gridResolution, travConf.gridResolution));
@@ -93,6 +94,7 @@ void EnvironmentXYZTheta::clear()
     }
     StateID2IndexMapping.clear();
     transitionCache.clear();
+    planningMaxTime = -1.0;
 }
 
 
@@ -621,6 +623,20 @@ traversability_generator3d::TravGenNode * EnvironmentXYZTheta::checkTraversableH
 
 void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, vector< int >* CostV, vector< size_t >& motionIdV)
 {
+    if (planningMaxTime > 0.0)
+    {
+        auto now = std::chrono::steady_clock::now();
+        double elapsed = std::chrono::duration<double>(now - planningStartTime).count();
+        if (elapsed > planningMaxTime)
+        {
+            LOG_DEBUG_S << "Planning timeout reached during GetSuccs: " << elapsed << "s / " << planningMaxTime << "s";
+            SuccIDV->clear();
+            CostV->clear();
+            motionIdV.clear();
+            return;
+        }
+    }
+
     SuccIDV->clear();
     CostV->clear();
     motionIdV.clear();

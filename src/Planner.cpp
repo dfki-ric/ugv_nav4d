@@ -224,6 +224,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
 
         solutionIds.clear();
         t_replan_start = std::chrono::steady_clock::now();
+        env->setPlanningTimeout(t_replan_start, maxTime.toSeconds());
         bool replan_success = planner->replan(maxTime.toSeconds(), &solutionIds);
         t_replan_end = std::chrono::steady_clock::now();
         num_expands = planner->get_n_expands();

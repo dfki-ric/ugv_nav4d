@@ -9,6 +9,7 @@
 #include "PreComputedMotions.hpp"
 #include <trajectory_follower/SubTrajectory.hpp>
 #include <unordered_map>
+#include <chrono>
 
 std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle);
 
@@ -126,6 +127,12 @@ public:
     virtual ~EnvironmentXYZTheta();
 
     void updateMap(std::shared_ptr<const traversability_generator3d::TravMap3d > travMap);
+
+    void setPlanningTimeout(const std::chrono::steady_clock::time_point& start, double maxTime)
+    {
+        planningStartTime = start;
+        planningMaxTime = maxTime;
+    }
 
     virtual bool InitializeEnv(const char* sEnvFile);
     virtual bool InitializeMDPCfg(MDPConfig* MDPCfg);
@@ -255,6 +262,9 @@ private:
     std::unordered_map<uint64_t, CachedTransition> transitionCache;
     double goalOrientationMargin;
     double goalDistanceMargin;
+
+    std::chrono::steady_clock::time_point planningStartTime;
+    double planningMaxTime;
 };
 
 }
