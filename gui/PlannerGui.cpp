@@ -1,5 +1,7 @@
 #include "PlannerGui.h"
 #include <QFileDialog>
+#include <QPlainTextEdit>
+#include <unistd.h>
 #include <QSpinBox>
 #include <QPushButton>
 #include <QProgressBar>
@@ -68,8 +70,72 @@ PlannerGui::PlannerGui(int argc, char** argv): QObject()
     setupPlanner(argc, argv);
 }
 
+PlannerGui::~PlannerGui()
+{
+    stopLogReader.store(true);
+    close(pipeFd[1]); // Close write end to trigger EOF on the reader thread
+    if (logReaderThread.joinable())
+    {
+        logReaderThread.join();
+    }
+    close(pipeFd[0]); // Close read end
+
+    // Restore original stdout/stderr descriptors
+    dup2(originalStdout, STDOUT_FILENO);
+    dup2(originalStderr, STDERR_FILENO);
+    close(originalStdout);
+    close(originalStderr);
+}
+
 void PlannerGui::setupUI()
 {
+    // Disable stdout and stderr buffering so logs appear in real time
+    setvbuf(stdout, nullptr, _IONBF, 0);
+    setvbuf(stderr, nullptr, _IONBF, 0);
+
+    // Save original standard file descriptors
+    originalStdout = dup(STDOUT_FILENO);
+    originalStderr = dup(STDERR_FILENO);
+
+    // Set up stdout/stderr pipe redirection
+    if (pipe(pipeFd) < 0)
+    {
+        LOG_ERROR_S << "Failed to create POSIX pipe for stdout/stderr redirection";
+    }
+    else
+    {
+        // Redirect stdout/stderr to pipe write end
+        dup2(pipeFd[1], STDOUT_FILENO);
+        dup2(pipeFd[1], STDERR_FILENO);
+
+        // Spawn log reader thread
+        logReaderThread = std::thread([this]() {
+            char buffer[4096];
+            while (!stopLogReader.load())
+            {
+                ssize_t bytesRead = read(pipeFd[0], buffer, sizeof(buffer) - 1);
+                if (bytesRead > 0)
+                {
+                    buffer[bytesRead] = '\0';
+                    emit logReceived(QString::fromUtf8(buffer));
+                    
+                    // Duplicate to original stdout so it still prints in the terminal
+                    write(originalStdout, buffer, bytesRead);
+                }
+                else if (bytesRead < 0)
+                {
+                    if (errno == EINTR) continue;
+                    break;
+                }
+                else
+                {
+                    // EOF
+                    break;
+                }
+            }
+        });
+    }
+
     start.orientation.setIdentity();
     goal.orientation.setIdentity();
     
@@ -571,6 +637,27 @@ void PlannerGui::setupUI()
     paramsTab->setLayout(paramsTabLayout);
     outerTabWidget->addTab(paramsTab, "Parameters");
 
+    // Create Console Logs tab
+    QWidget* consoleTab = new QWidget();
+    QVBoxLayout* consoleTabLayout = new QVBoxLayout();
+
+    logConsole = new QPlainTextEdit();
+    logConsole->setReadOnly(true);
+    QFont font("Monospace");
+    font.setStyleHint(QFont::TypeWriter);
+    logConsole->setFont(font);
+    consoleTabLayout->addWidget(logConsole);
+
+    QGroupBox* consoleActionsGroupBox = new QGroupBox("Actions");
+    QHBoxLayout* consoleActionsLayout = new QHBoxLayout();
+    QPushButton* clearButton = new QPushButton("Clear Log");
+    consoleActionsLayout->addWidget(clearButton);
+    consoleActionsGroupBox->setLayout(consoleActionsLayout);
+    consoleTabLayout->addWidget(consoleActionsGroupBox);
+
+    consoleTab->setLayout(consoleTabLayout);
+    outerTabWidget->addTab(consoleTab, "Console Logs");
+
     // Set top-level window layout
     QVBoxLayout* mainLayout = new QVBoxLayout();
     mainLayout->addWidget(outerTabWidget);
@@ -579,6 +666,8 @@ void PlannerGui::setupUI()
     connect(replanButton, SIGNAL(released()), this, SLOT(replanButtonReleased()));
     connect(updateParamsButton, SIGNAL(released()), this, SLOT(updateParamsButtonReleased()));
     connect(dumpButton, SIGNAL(released()), this, SLOT(dumpPressed()));
+    connect(clearButton, SIGNAL(released()), this, SLOT(clearLogReleased()));
+    connect(this, SIGNAL(logReceived(const QString&)), this, SLOT(appendLog(const QString&)));
 
     //to be able to send Trajectory via slot
     qRegisterMetaType<std::vector<ugv_nav4d::Motion>>("std::vector<ugv_nav4d::Motion>");
@@ -877,6 +966,24 @@ void PlannerGui::startOrientationChanged(int newValue)
     V3DD::DRAW_WIREFRAME_BOX("ugv_nav4d_start_aabb", start.position + Eigen::Vector3d(0, 0, travConfig.distToGround),
                        start.orientation, base::Vector3d(travConfig.robotSizeX, travConfig.robotSizeY, travConfig.robotHeight), V3DD::Color::cyan);
 #endif
+}
+
+void PlannerGui::appendLog(const QString& text)
+{
+    if (logConsole)
+    {
+        logConsole->moveCursor(QTextCursor::End);
+        logConsole->insertPlainText(text);
+        logConsole->moveCursor(QTextCursor::End);
+    }
+}
+
+void PlannerGui::clearLogReleased()
+{
+    if (logConsole)
+    {
+        logConsole->clear();
+    }
 }
 
 void PlannerGui::obstacleDistanceSpinBoxEditingFinished()
@@ -1413,11 +1520,18 @@ void PlannerGui::startPlanThread()
     inplanningphase.store(true);    
     
     std::thread t([this](){
+        if (customPlanCallback)
+        {
+            customPlanCallback(this->start, this->goal);
+            inplanningphase.store(false);
+            return;
+        }
+
         if (!usingPlannerDump){
             std::vector<Eigen::Vector3d> startPositions;
             startPositions.emplace_back(Eigen::Vector3d(this->start.position.x(),
-                                                        this->start.position.y(),
-                                                        this->start.position.z()-travConfig.distToGround));
+                                                         this->start.position.y(),
+                                                         this->start.position.z()-travConfig.distToGround));
 
             travGen->expandAll(startPositions);
             planner->updateMap(travGen->getTraversabilityMap());
@@ -1543,6 +1657,27 @@ void PlannerGui::plan(const base::Pose& start, const base::Pose& goal)
             break;
     }
     
+    emit plannerDone();
+}
+
+void PlannerGui::updateMlsMap(const maps::grid::MLSMapSloped& map)
+{
+    mlsMap = map;
+    mlsViz.updateMLSSloped(mlsMap);
+}
+
+void PlannerGui::updateTravMap(const traversability_generator3d::TravMap3d& map)
+{
+    trav3dViz.updateData(map);
+}
+
+void PlannerGui::showPath(const std::vector<trajectory_follower::SubTrajectory>& path2D,
+                          const std::vector<trajectory_follower::SubTrajectory>& path3D,
+                          ugv_nav4d::Planner::PLANNING_RESULT result)
+{
+    path = path2D;
+    beautifiedPath = path3D;
+    lastPlanningResult = result;
     emit plannerDone();
 }
 

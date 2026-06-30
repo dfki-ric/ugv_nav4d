@@ -2,6 +2,10 @@
 #include <QObject>
 #include <QWidget>
 #include <atomic> 
+#include <thread>
+#include <functional>
+
+class QPlainTextEdit;
 
 #ifndef Q_MOC_RUN
 #include <vizkit3d/SubTrajectoryVisualization.hpp>
@@ -43,8 +47,16 @@ class PlannerGui : public QObject
 public:
     PlannerGui(int argc, char** argv);
     PlannerGui(const std::string &dumpName);
+    ~PlannerGui();
     
     void show();
+
+    std::function<void(const base::Pose& start, const base::Pose& goal)> customPlanCallback;
+    void updateMlsMap(const maps::grid::MLSMapSloped& map);
+    void updateTravMap(const traversability_generator3d::TravMap3d& map);
+    void showPath(const std::vector<trajectory_follower::SubTrajectory>& path2D,
+                  const std::vector<trajectory_follower::SubTrajectory>& path3D,
+                  ugv_nav4d::Planner::PLANNING_RESULT result);
 public slots:
     /** Called when the user clicks a patch on the mls */
     void picked(float x, float y,float z, int buttonMask, int modifierMask);
@@ -58,8 +70,11 @@ public slots:
 signals:
     //is emitted if the planner thread is done
     void plannerDone();
+    void logReceived(const QString& text);
     
 private slots:
+    void appendLog(const QString& text);
+    void clearLogReleased();
     void maxSlopeEditingFinished();
     void inclineLimittingLimitSpinBoxEditingFinished();
     void inclineLimittingMinSlopeSpinBoxEditingFinished();
@@ -206,6 +221,12 @@ private:
     
     QProgressBar* bar;
     QLabel* statusLabel;
+    QPlainTextEdit* logConsole;
+    int pipeFd[2];
+    int originalStdout;
+    int originalStderr;
+    std::thread logReaderThread;
+    std::atomic<bool> stopLogReader{false};
     ugv_nav4d::Planner::PLANNING_RESULT lastPlanningResult;
     QWidget window;
     vizkit3d::SbplSplineVisualization splineViz;
