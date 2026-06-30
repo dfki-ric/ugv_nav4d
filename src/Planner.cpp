@@ -232,7 +232,24 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
 
         if(!replan_success)
         {
-            LOG_DEBUG_S << "Number of state space expands: " << num_expands;
+            double elapsed = std::chrono::duration<double>(t_replan_end - t_replan_start).count();
+            if (elapsed >= maxTime.toSeconds() * 0.98)
+            {
+                LOG_WARN_S << "Planning failed due to TIMEOUT! Maximum time limit of " 
+                           << maxTime.toSeconds() << "s exceeded. State space expansions: " << num_expands;
+            }
+            else
+            {
+                LOG_WARN_S << "Planning failed: NO SOLUTION EXISTS between start and goal after " 
+                           << num_expands << " expansions. The goal is unreachable or blocked by traversability constraints.";
+                if (num_expands <= 1)
+                {
+                    LOG_WARN_S << "Note: Very few state space expansions (" << num_expands 
+                               << "). This typically indicates that all successor states from the start position are blocked. "
+                               << "Ensure the start pose is not too close to obstacles, that corridorWidth is wide enough, and that minTurningRadius is appropriate.";
+                }
+            }
+
             if(dumpOnError)
                 PlannerDump dump(*this, "no_solution", maxTime, startbody2Mls, endbody2Mls);
             planning_res = NO_SOLUTION;
