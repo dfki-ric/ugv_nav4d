@@ -176,14 +176,13 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
 
     auto t_set_goal = std::chrono::steady_clock::now();
 
-    if(!planner)
-        planner.reset(new ARAPlanner(env.get(), true));
-
-    //this has to happen after env->setStart and env->setGoal because those methods initialize the
-    //StateID2IndexMapping which is accessed inside force_planning_from_scratch_and_free_memory().
+    // Always recreate the ARAPlanner to avoid stale state IDs.
+    // env->clear() destroys all states, but force_planning_from_scratch_and_free_memory()
+    // remembers old start/goal IDs from a previous run. If the new plan creates fewer
+    // states, those old IDs exceed StateID2IndexMapping.size() causing "stateID is invalid".
     try
     {
-        planner->force_planning_from_scratch_and_free_memory();
+        planner.reset(new ARAPlanner(env.get(), true));
         planner->set_search_mode(plannerConfig.searchUntilFirstSolution);
     }
     catch(const SBPL_Exception& ex)
