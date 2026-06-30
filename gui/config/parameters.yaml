@@ -56,8 +56,8 @@ plannerConfig:
   initialEpsilon: 64.0
   numThreads: 4
   usePathStatistics: false
-  searchUntilFirstSolution: true
-  corridorWidth: 3.0
-  maxTime: 5.0
-  goalOrientationMargin: 0.17
-  goalDistanceMargin: 0.0
+  searchUntilFirstSolution: false
+  corridorWidth: 3.5
+  maxTime: 10.0
+  goalOrientationMargin: 1.0
+  goalDistanceMargin: 0.5
