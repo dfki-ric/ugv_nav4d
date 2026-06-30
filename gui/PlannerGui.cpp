@@ -10,6 +10,7 @@
 #include <QTabWidget>
 #include <QFormLayout>
 #include <QCheckBox>
+#include <QGroupBox>
 #include <thread>
 #include <vizkit3d/Vizkit3DWidget.hpp>
 #include <ugv_nav4d/PreComputedMotions.hpp>
@@ -111,9 +112,13 @@ void PlannerGui::setupUI()
     trajViz2.setColor(QColor("magenta"));
     trajViz2.setPluginName("Trajectory 3D");
 
-    QVBoxLayout* layout = new QVBoxLayout();
-    layout->addWidget(widget);
+    QTabWidget* outerTabWidget = new QTabWidget();
 
+    QWidget* mapTab = new QWidget();
+    QVBoxLayout* mapTabLayout = new QVBoxLayout();
+    mapTabLayout->addWidget(widget);
+
+    QGroupBox* orientationGroupBox = new QGroupBox("Orientation Control");
     QFormLayout* orientationLayout = new QFormLayout();
 
     startOrientatationSlider = new QSlider(Qt::Horizontal);
@@ -128,7 +133,8 @@ void PlannerGui::setupUI()
     connect(goalOrientationSlider, SIGNAL(sliderMoved(int)), this, SLOT(goalOrientationChanged(int)));
     orientationLayout->addRow("Goal Orientation (deg):", goalOrientationSlider);
 
-    layout->addLayout(orientationLayout);
+    orientationGroupBox->setLayout(orientationLayout);
+    mapTabLayout->addWidget(orientationGroupBox);
 
     QTabWidget* tabWidget = new QTabWidget();
 
@@ -344,8 +350,6 @@ void PlannerGui::setupUI()
     connect(travEnableInclineLimittingCheckBox, SIGNAL(stateChanged(int)), this, SLOT(travEnableInclineLimittingStateChanged(int)));
     travFormLayout->addRow("Enable Incline Limiting", travEnableInclineLimittingCheckBox);
 
-    obstacleFactorSpinBox = nullptr; // Obstacle factor functionality was removed in base code
-
     travTab->setLayout(travFormLayout);
     tabWidget->addTab(travTab, "Traversability/Terrain");
 
@@ -524,28 +528,57 @@ void PlannerGui::setupUI()
     planTab->setLayout(planFormLayout);
     tabWidget->addTab(planTab, "Planner/Search");
 
-    layout->addWidget(tabWidget);
+    // Create execution group box for Map tab
+    QGroupBox* executionGroupBox = new QGroupBox("Execution & Progress");
+    QVBoxLayout* executionLayout = new QVBoxLayout();
 
-    QHBoxLayout* buttonLayout = new QHBoxLayout();
+    QHBoxLayout* mapButtonLayout = new QHBoxLayout();
     QPushButton* replanButton = new QPushButton("Plan");
-    QPushButton* updateParamsButton = new QPushButton("Update Parameters");
     QPushButton* dumpButton = new QPushButton("Create PlannerDump");
-    buttonLayout->addWidget(replanButton);
-    buttonLayout->addWidget(updateParamsButton);
-    buttonLayout->addWidget(dumpButton);
-    
-    layout->addLayout(buttonLayout);
+    mapButtonLayout->addWidget(replanButton);
+    mapButtonLayout->addWidget(dumpButton);
+    executionLayout->addLayout(mapButtonLayout);
+
+    // Add Status Label to Map tab
+    statusLabel = new QLabel("Status: Idle");
+    statusLabel->setStyleSheet("color: gray; font-weight: bold;");
+    executionLayout->addWidget(statusLabel);
+
+    // Add Progress Bar to Map tab
+    bar = new QProgressBar();
+    bar->setMinimum(0);
+    bar->setMaximum(1);
+    executionLayout->addWidget(bar);
+
+    executionGroupBox->setLayout(executionLayout);
+    mapTabLayout->addWidget(executionGroupBox);
+
+    mapTab->setLayout(mapTabLayout);
+    outerTabWidget->addTab(mapTab, "Map & Planning");
+
+    // Create Parameters tab
+    QWidget* paramsTab = new QWidget();
+    QVBoxLayout* paramsTabLayout = new QVBoxLayout();
+    paramsTabLayout->addWidget(tabWidget);
+
+    QGroupBox* paramsButtonGroupBox = new QGroupBox("Actions");
+    QHBoxLayout* paramsButtonLayout = new QHBoxLayout();
+    QPushButton* updateParamsButton = new QPushButton("Update Parameters");
+    paramsButtonLayout->addWidget(updateParamsButton);
+    paramsButtonGroupBox->setLayout(paramsButtonLayout);
+    paramsTabLayout->addWidget(paramsButtonGroupBox);
+
+    paramsTab->setLayout(paramsTabLayout);
+    outerTabWidget->addTab(paramsTab, "Parameters");
+
+    // Set top-level window layout
+    QVBoxLayout* mainLayout = new QVBoxLayout();
+    mainLayout->addWidget(outerTabWidget);
+    window.setLayout(mainLayout);
 
     connect(replanButton, SIGNAL(released()), this, SLOT(replanButtonReleased()));
     connect(updateParamsButton, SIGNAL(released()), this, SLOT(updateParamsButtonReleased()));
     connect(dumpButton, SIGNAL(released()), this, SLOT(dumpPressed()));
-
-    bar = new QProgressBar();
-    bar->setMinimum(0);
-    bar->setMaximum(1);
-    layout->addWidget(bar);
-    
-    window.setLayout(layout);
 
     //to be able to send Trajectory via slot
     qRegisterMetaType<std::vector<ugv_nav4d::Motion>>("std::vector<ugv_nav4d::Motion>");
@@ -853,11 +886,7 @@ void PlannerGui::obstacleDistanceSpinBoxEditingFinished()
     if (travGen) travGen->setConfig(travConfig);
 }
 
-void PlannerGui::obstacleFactorSpinBoxEditingFinished()
-{
-    throw std::runtime_error("Function removed");
-//     travConfig.costFunctionObstacleMultiplier = obstacleFactorSpinBox->value();
-}
+
 
 void PlannerGui::timeEditingFinished()
 {
@@ -1370,14 +1399,15 @@ void PlannerGui::planGoalDistanceMarginEditingFinished()
 
 void PlannerGui::startPlanThread()
 {
-
-    bar->setMaximum(0);
-
     // Check if planning is already in progress
     if (inplanningphase.load()) {
         std::cout << "Planner is in planning phase... Please wait for it to finish." << std::endl;
         return;
     }
+
+    bar->setMaximum(0);
+    statusLabel->setText("Status: Planning...");
+    statusLabel->setStyleSheet("color: blue; font-weight: bold;");
 
     // Mark the start of the planning phase
     inplanningphase.store(true);    
@@ -1414,6 +1444,38 @@ void PlannerGui::plannerIsDone()
     
     bar->setMaximum(1);
     plannerHasRun = true;
+
+    switch(lastPlanningResult)
+    {
+        case ugv_nav4d::Planner::GOAL_INVALID:
+            statusLabel->setText("Status: Goal Invalid");
+            statusLabel->setStyleSheet("color: red; font-weight: bold;");
+            break;
+        case ugv_nav4d::Planner::START_INVALID:
+            statusLabel->setText("Status: Start Invalid");
+            statusLabel->setStyleSheet("color: red; font-weight: bold;");
+            break; 
+        case ugv_nav4d::Planner::NO_SOLUTION:
+            statusLabel->setText("Status: No Solution Found");
+            statusLabel->setStyleSheet("color: orange; font-weight: bold;");
+            break;
+        case ugv_nav4d::Planner::NO_MAP:
+            statusLabel->setText("Status: No Map Loaded");
+            statusLabel->setStyleSheet("color: red; font-weight: bold;");
+            break;
+        case ugv_nav4d::Planner::INTERNAL_ERROR:
+            statusLabel->setText("Status: Internal Error");
+            statusLabel->setStyleSheet("color: red; font-weight: bold;");
+            break;
+        case ugv_nav4d::Planner::FOUND_SOLUTION:
+            statusLabel->setText("Status: Solution Found!");
+            statusLabel->setStyleSheet("color: green; font-weight: bold;");
+            break;
+        default:
+            statusLabel->setText("Status: Unknown State");
+            statusLabel->setStyleSheet("color: gray;");
+            break;
+    }
 }
 
 void PlannerGui::dumpPressed()
@@ -1454,9 +1516,9 @@ void PlannerGui::plan(const base::Pose& start, const base::Pose& goal)
 
     LOG_INFO_S << "Planning: " << start << " -> " << goal;
     
-    const Planner::PLANNING_RESULT result = planner->plan(base::Time::fromSeconds(plannerConfig.maxTime),
+    lastPlanningResult = planner->plan(base::Time::fromSeconds(plannerConfig.maxTime),
                                             startState, endState, path, beautifiedPath);
-    switch(result)
+    switch(lastPlanningResult)
     {
         case Planner::GOAL_INVALID:
             LOG_INFO_S << "GOAL_INVALID";

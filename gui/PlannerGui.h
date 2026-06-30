@@ -25,6 +25,8 @@ class QPushButton;
 class QComboBox;
 class QProgressBar;
 class QCheckBox;
+class QLabel;
+class QGroupBox;
 
 namespace vizkit3d {
     class Vizkit3DWidget;
@@ -71,7 +73,6 @@ private slots:
     void slopeMetricComboBoxIndexChanged(int index);
     void numThreadsValueChanged(int newValue);
     void obstacleDistanceSpinBoxEditingFinished();
-    void obstacleFactorSpinBoxEditingFinished();
     void robotSizeXEditingFinished();
     void robotSizeYEditingFinished();
     void robotHeightEditingFinished();
@@ -145,7 +146,6 @@ private:
     QSlider* startOrientatationSlider;
     QSlider* goalOrientationSlider;
     QDoubleSpinBox* obstacleDistanceSpinBox;
-    QDoubleSpinBox* obstacleFactorSpinBox;
     QComboBox* slopeMetricComboBox;
     QComboBox* heuristicComboBox;
     QSpinBox* numThreadsSpinBox;
@@ -205,6 +205,8 @@ private:
     QDoubleSpinBox* planGoalDistanceMarginSpinBox;
     
     QProgressBar* bar;
+    QLabel* statusLabel;
+    ugv_nav4d::Planner::PLANNING_RESULT lastPlanningResult;
     QWidget window;
     vizkit3d::SbplSplineVisualization splineViz;
     vizkit3d::SubTrajectoryVisualization trajViz;
