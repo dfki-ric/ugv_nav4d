@@ -50,14 +50,13 @@ travConfig:
   obstacleInflationMultiplier: 1.0
   partiallyTraversableMultiplier: 1.5
 
-
 plannerConfig:
   epsilonSteps: 2.0
   initialEpsilon: 64.0
   numThreads: 4
   usePathStatistics: false
-  searchUntilFirstSolution: false
+  searchUntilFirstSolution: true
   corridorWidth: 3.5
-  maxTime: 10.0
+  maxTime: 5.0
   goalOrientationMargin: 1.0
   goalDistanceMargin: 0.5

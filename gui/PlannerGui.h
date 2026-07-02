@@ -39,24 +39,37 @@ namespace vizkit3d {
 class PlannerGui : public QObject
 {
     Q_OBJECT;
-    
-    void setupPlanner(int argc, char** argv);
-    void setupUI();
-    void setupDefaultConfigs();
-    
+
 public:
-    PlannerGui(int argc, char** argv);
+    PlannerGui(int argc, char** argv, bool autoLoadMls = true, bool loadConfigFromFile = true);
     PlannerGui(const std::string &dumpName);
     ~PlannerGui();
-    
+
     void show();
+    void setupPlanner(int argc, char** argv, bool autoLoadMls = true, bool loadConfigFromFile = true);
+    void setupUI();
+    void setupDefaultConfigs();
 
     std::function<void(const base::Pose& start, const base::Pose& goal)> customPlanCallback;
+    // Invoked when the user clicks "Update Params"; lets an external owner (e.g. the ROS 2 node)
+    // read the updated config structs and apply them.
+    std::function<void()> configUpdateCallback;
     void updateMlsMap(const maps::grid::MLSMapSloped& map);
     void updateTravMap(const traversability_generator3d::TravMap3d& map);
+    // Set the displayed start pose (RigidBodyState viz) from an external source, e.g. the robot
+    // pose held by the ROS node. Used when the GUI does not pick the start itself.
+    void updateStartPose(const base::Pose& startPose);
+    // Update the status label from an external source (e.g. the ROS node's map/planner state).
+    void setStatusMessage(const std::string& msg);
     void showPath(const std::vector<trajectory_follower::SubTrajectory>& path2D,
                   const std::vector<trajectory_follower::SubTrajectory>& path3D,
                   ugv_nav4d::Planner::PLANNING_RESULT result);
+
+    // Config structures - accessible for reading/setting from node
+    sbpl_spline_primitives::SplinePrimitivesConfig splineConfig;
+    ugv_nav4d::Mobility mobilityConfig;
+    traversability_generator3d::TraversabilityConfig travConfig;
+    ugv_nav4d::PlannerConfig plannerConfig;
 public slots:
     /** Called when the user clicks a patch on the mls */
     void picked(float x, float y,float z, int buttonMask, int modifierMask);
@@ -148,6 +161,9 @@ private:
     void loadMls(const std::string& path);
     void startPlanThread();
     void updateWidgetValues();
+    // Grid size (spline) and grid resolution (traversability) must stay equal; this keeps both
+    // config fields and both spinboxes in sync and rebuilds the planner with new primitives.
+    void applyGridResolution(double res);
     
 private:
 
@@ -246,10 +262,6 @@ private:
     bool threadRunning = false;
     bool usingPlannerDump = false;
     bool plannerHasRun = false;
-    sbpl_spline_primitives::SplinePrimitivesConfig splineConfig;
-    ugv_nav4d::Mobility mobilityConfig;
-    traversability_generator3d::TraversabilityConfig travConfig;
-    ugv_nav4d::PlannerConfig plannerConfig;
     std::shared_ptr<ugv_nav4d::Planner> planner; //is pointer cause of lazy init
     std::vector<trajectory_follower::SubTrajectory> path;
     std::vector<trajectory_follower::SubTrajectory> beautifiedPath;    

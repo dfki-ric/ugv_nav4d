@@ -312,6 +312,9 @@ std::vector< Motion > Planner::getMotions() const
 
 const std::shared_ptr<const traversability_generator3d::TravMap3d > Planner::getTraversabilityMap() const
 {
+    if (!env) {
+        return nullptr;
+    }
     return env->getTraversabilityMap();
 }
 

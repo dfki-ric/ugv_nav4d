@@ -63,11 +63,11 @@ PlannerGui::PlannerGui(const std::string& dumpName): QObject()
 }
 
 
-PlannerGui::PlannerGui(int argc, char** argv): QObject()
+PlannerGui::PlannerGui(int argc, char** argv, bool autoLoadMls, bool loadConfigFromFile): QObject()
 {
     usingPlannerDump = false;
     setupUI();
-    setupPlanner(argc, argv);
+    setupPlanner(argc, argv, autoLoadMls, loadConfigFromFile);
 }
 
 PlannerGui::~PlannerGui()
@@ -157,7 +157,10 @@ void PlannerGui::setupUI()
     widget->addPlugin(&startViz);
     widget->addPlugin(&goalViz);
     widget->addPlugin(&gridViz);
-    
+
+    // Motion primitives are shown in the main 3D view as a toggleable "Splines" plugin.
+    // Disabled by default; enable it via the plugin list to inspect primitives.
+    // (vizkit3d uses a single shared scene, so a separate 3D view cannot show a different subset.)
     splineViz.setPluginEnabled(false);
     splineViz.setPluginName("Splines");
 
@@ -600,8 +603,12 @@ void PlannerGui::setupUI()
 
     QHBoxLayout* mapButtonLayout = new QHBoxLayout();
     QPushButton* replanButton = new QPushButton("Plan");
+    // Placed on the home screen so parameter changes can be applied and their effect on the
+    // visualization (maps / primitives / path) seen immediately.
+    QPushButton* updateParamsButton = new QPushButton("Update Parameters");
     QPushButton* dumpButton = new QPushButton("Create PlannerDump");
     mapButtonLayout->addWidget(replanButton);
+    mapButtonLayout->addWidget(updateParamsButton);
     mapButtonLayout->addWidget(dumpButton);
     executionLayout->addLayout(mapButtonLayout);
 
@@ -622,17 +629,10 @@ void PlannerGui::setupUI()
     mapTab->setLayout(mapTabLayout);
     outerTabWidget->addTab(mapTab, "Map & Planning");
 
-    // Create Parameters tab
+    // Create Parameters tab (the "Update Parameters" button now lives on the Map & Planning tab)
     QWidget* paramsTab = new QWidget();
     QVBoxLayout* paramsTabLayout = new QVBoxLayout();
     paramsTabLayout->addWidget(tabWidget);
-
-    QGroupBox* paramsButtonGroupBox = new QGroupBox("Actions");
-    QHBoxLayout* paramsButtonLayout = new QHBoxLayout();
-    QPushButton* updateParamsButton = new QPushButton("Update Parameters");
-    paramsButtonLayout->addWidget(updateParamsButton);
-    paramsButtonGroupBox->setLayout(paramsButtonLayout);
-    paramsTabLayout->addWidget(paramsButtonGroupBox);
 
     paramsTab->setLayout(paramsTabLayout);
     outerTabWidget->addTab(paramsTab, "Parameters");
@@ -680,23 +680,27 @@ void PlannerGui::setupUI()
 }
 
 
-void PlannerGui::setupPlanner(int argc, char** argv)
+void PlannerGui::setupPlanner(int argc, char** argv, bool autoLoadMls, bool loadConfigFromFile)
 {
-    // Load config from default path or fall back to gui/config/parameters.yaml
-    boost::filesystem::path configPath("/home/dfki.uni-bremen.de/mlodhi/ROCK/Docker/docker_arter_ros2_jazzy/workspace/src/launch/arter_bringup/config/yaml/ugv_nav4d_params.yaml");
-    if (!boost::filesystem::exists(configPath)) {
-        configPath = boost::filesystem::path(__FILE__).parent_path() / "config" / "parameters.yaml";
-    }
-    
-    if(boost::filesystem::exists(configPath)) {
-        LOG_INFO_S << "Loading configuration from: " << configPath.string();
-        if(!ConfigLoader::loadConfig(configPath.string(), splineConfig, mobilityConfig, travConfig, plannerConfig)) {
-            LOG_WARN_S << "Failed to load config, using defaults";
+    // When loadConfigFromFile is false, use the configs already set on the member
+    // structs (e.g. populated by the ROS 2 node from params.yaml).
+    if (loadConfigFromFile) {
+        // Load config from default path or fall back to gui/config/parameters.yaml
+        boost::filesystem::path configPath("/home/dfki.uni-bremen.de/mlodhi/ROCK/Docker/docker_arter_ros2_jazzy/workspace/src/launch/arter_bringup/config/yaml/ugv_nav4d_params.yaml");
+        if (!boost::filesystem::exists(configPath)) {
+            configPath = boost::filesystem::path(__FILE__).parent_path() / "config" / "parameters.yaml";
+        }
+
+        if(boost::filesystem::exists(configPath)) {
+            LOG_INFO_S << "Loading configuration from: " << configPath.string();
+            if(!ConfigLoader::loadConfig(configPath.string(), splineConfig, mobilityConfig, travConfig, plannerConfig)) {
+                LOG_WARN_S << "Failed to load config, using defaults";
+                setupDefaultConfigs();
+            }
+        } else {
+            LOG_WARN_S << "Config file not found at: " << configPath.string() << ", using defaults";
             setupDefaultConfigs();
         }
-    } else {
-        LOG_WARN_S << "Config file not found at: " << configPath.string() << ", using defaults";
-        setupDefaultConfigs();
     }
 
     planner.reset(new ugv_nav4d::Planner(splineConfig, travConfig, mobilityConfig, plannerConfig));
@@ -706,14 +710,17 @@ void PlannerGui::setupPlanner(int argc, char** argv)
     splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobilityConfig.minTurningRadius));
     splineViz.updateData(primitives);
 
-    if(argc > 1)
+    if (autoLoadMls)
     {
-        const std::string mls(argv[1]);
-        loadMls(mls);
-    }
-    else
-    {
-        loadMls();
+        if(argc > 1)
+        {
+            const std::string mls(argv[1]);
+            loadMls(mls);
+        }
+        else
+        {
+            loadMls();
+        }
     }
     updateWidgetValues();
 }
@@ -854,11 +861,26 @@ void PlannerGui::picked(float x, float y, float z, int buttonMask, int modifierM
     
     //1 = left click
     //4 = right click
-    
+
+    // When integrated with the ROS node (customPlanCallback set), the start pose comes from the
+    // robot (TF / start_pose topic), so the GUI only selects the goal: any click sets the goal.
+    const bool goalOnly = static_cast<bool>(customPlanCallback);
+
     switch(buttonMask)
     {
         case 1: //left click
         {
+            if (goalOnly)
+            {
+                goal.position << x, y, z;
+                goal.position.z() += travConfig.distToGround;
+                QVector3D pos(goal.position.x(), goal.position.y(), goal.position.z());
+                goalViz.setTranslation(pos);
+                LOG_INFO_S << "goal: " << goal.position.transpose();
+                goalPicked = true;
+                break;
+            }
+
             start.position << x, y, z;
             start.position.z() += travConfig.distToGround; //because we click on the ground but need to put robot position
 
@@ -886,6 +908,31 @@ void PlannerGui::picked(float x, float y, float z, int buttonMask, int modifierM
         default:
             break;
     }
+}
+
+void PlannerGui::updateStartPose(const base::Pose& startPose)
+{
+    start.position = startPose.position;
+    start.orientation = startPose.orientation;
+    startViz.setTranslation(QVector3D(start.position.x(), start.position.y(), start.position.z()));
+    startViz.setRotation(QQuaternion(start.orientation.w(), start.orientation.x(),
+                                     start.orientation.y(), start.orientation.z()));
+    startPicked = true;
+
+    // In integrated mode the start pose (incl. orientation) comes from the robot, so the start
+    // orientation slider is read-only: reflect the actual yaw and disable user editing.
+    const bool blocked = startOrientatationSlider->blockSignals(true);
+    startOrientatationSlider->setValue(int(base::getYaw(start.orientation) * 180.0 / M_PI + 0.5));
+    startOrientatationSlider->blockSignals(blocked);
+    startOrientatationSlider->setEnabled(false);
+}
+
+void PlannerGui::setStatusMessage(const std::string& msg)
+{
+    statusLabel->setText(QString::fromStdString("Status: " + msg));
+    const bool ready = (msg == "Ready");
+    statusLabel->setStyleSheet(ready ? "color: green; font-weight: bold;"
+                                     : "color: blue; font-weight: bold;");
 }
 
 void PlannerGui::show()
@@ -1392,10 +1439,39 @@ void PlannerGui::updateParamsButtonReleased()
     splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobilityConfig.minTurningRadius));
     splineViz.updateData(primitives);
     LOG_INFO_S << "Underlying structures and motion primitives updated successfully!";
+
+    // Notify external owner (e.g. ROS 2 node) so it can apply the updated configs to its planner.
+    if (configUpdateCallback)
+    {
+        configUpdateCallback();
+    }
 }
 
 // Spline slots
-void PlannerGui::splineGridSizeEditingFinished() { splineConfig.gridSize = splineGridSizeSpinBox->value(); }
+void PlannerGui::applyGridResolution(double res)
+{
+    // Keep spline grid size and traversability grid resolution identical (the Planner requires it).
+    splineConfig.gridSize = res;
+    travConfig.gridResolution = res;
+
+    // Reflect the value in both spinboxes without retriggering their editingFinished slots.
+    const bool blockedSpline = splineGridSizeSpinBox->blockSignals(true);
+    splineGridSizeSpinBox->setValue(res);
+    splineGridSizeSpinBox->blockSignals(blockedSpline);
+    const bool blockedTrav = travGridResolutionSpinBox->blockSignals(true);
+    travGridResolutionSpinBox->setValue(res);
+    travGridResolutionSpinBox->blockSignals(blockedTrav);
+
+    // gridSize is baked into the spline primitives at construction, so the planner must be rebuilt
+    // (setTravConfig alone would throw because the primitives' resolution would still differ).
+    if (travGen) travGen->setConfig(travConfig);
+    planner.reset(new ugv_nav4d::Planner(splineConfig, travConfig, mobilityConfig, plannerConfig));
+    sbpl_spline_primitives::SbplSplineMotionPrimitives primitives(splineConfig);
+    splineViz.setMaxCurvature(ugv_nav4d::PreComputedMotions::calculateCurvatureFromRadius(mobilityConfig.minTurningRadius));
+    splineViz.updateData(primitives);
+}
+
+void PlannerGui::splineGridSizeEditingFinished() { applyGridResolution(splineGridSizeSpinBox->value()); }
 void PlannerGui::splineNumAnglesValueChanged(int value) { splineConfig.numAngles = value; }
 void PlannerGui::splineNumEndAnglesValueChanged(int value) { splineConfig.numEndAngles = value; }
 void PlannerGui::splineDestCircleRadiusEditingFinished() { splineConfig.destinationCircleRadius = splineDestCircleRadiusSpinBox->value(); }
@@ -1425,9 +1501,7 @@ void PlannerGui::mobAngularCostWeightEditingFinished() { mobilityConfig.angularC
 // Traversability slots
 void PlannerGui::travGridResolutionEditingFinished()
 {
-    travConfig.gridResolution = travGridResolutionSpinBox->value();
-    if (planner) planner->setTravConfig(travConfig);
-    if (travGen) travGen->setConfig(travConfig);
+    applyGridResolution(travGridResolutionSpinBox->value());
 }
 void PlannerGui::travMaxStepHeightEditingFinished()
 {
@@ -1548,17 +1622,24 @@ void PlannerGui::startPlanThread()
 
 void PlannerGui::plannerIsDone()
 {   
+    printf("DEBUG: plannerIsDone start\n");
     trajViz.updateData(path);
     trajViz.setLineWidth(8);
 
     trajViz2.updateData(beautifiedPath);
     trajViz2.setLineWidth(8);    
     
-    trav3dViz.updateData(*(planner->getTraversabilityMap()));
+    printf("DEBUG: plannerIsDone updated viz data\n");
+    auto travMap = planner->getTraversabilityMap();
+    if (travMap) {
+        printf("DEBUG: plannerIsDone updating traversability map\n");
+        trav3dViz.updateData(*travMap);
+    }
     
     bar->setMaximum(1);
     plannerHasRun = true;
 
+    printf("DEBUG: plannerIsDone status switch: %d\n", (int)lastPlanningResult);
     switch(lastPlanningResult)
     {
         case ugv_nav4d::Planner::GOAL_INVALID:
@@ -1675,10 +1756,13 @@ void PlannerGui::showPath(const std::vector<trajectory_follower::SubTrajectory>&
                           const std::vector<trajectory_follower::SubTrajectory>& path3D,
                           ugv_nav4d::Planner::PLANNING_RESULT result)
 {
+    printf("DEBUG: showPath start\n");
     path = path2D;
     beautifiedPath = path3D;
     lastPlanningResult = result;
+    printf("DEBUG: showPath emitting plannerDone\n");
     emit plannerDone();
+    printf("DEBUG: showPath returning\n");
 }
 
 
