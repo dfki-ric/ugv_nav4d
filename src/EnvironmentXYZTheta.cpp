@@ -313,7 +313,9 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     //check goal position
     if(!checkStartGoalNode("goal", goalXYZNode->getUserData().travNode, goalThetaNode->theta.getRadian()))
     {
-        throw ObstacleCheckFailed("goal position is invalid");
+        // Footprint collision is orientation-dependent, so this may be a heading issue rather
+        // than the position itself being inside an obstacle.
+        throw ObstacleCheckFailed("goal footprint in collision (position or orientation)");
     }
 
     precomputeCost();
@@ -370,9 +372,23 @@ void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta
     }
 
     //check start position
-    if(!checkStartGoalNode("start", startXYZNode->getUserData().travNode, startThetaNode->theta.getRadian()))
+    traversability_generator3d::TravGenNode* startTravNode = startXYZNode->getUserData().travNode;
+    const double startThetaRad = startThetaNode->theta.getRadian();
+
+    // On a partially traversable cell a failure can be purely a disallowed orientation rather
+    // than the position being inside an obstacle. Report that case distinctly so we only say
+    // "inside obstacle" when the position is really non-traversable.
+    if(startTravNode &&
+       startTravNode->getUserData().nodeType == ::traversability_generator3d::NodeType::PARTIALLY_TRAVERSABLE &&
+       !checkOrientationAllowed(startTravNode, startThetaRad))
     {
-        LOG_ERROR_S<< "Start position is invalid";
+        LOG_ERROR_S << "Start orientation not allowed on partially traversable cell";
+        throw ObstacleCheckFailed("Start orientation not allowed on partially traversable cell");
+    }
+
+    if(!checkStartGoalNode("start", startTravNode, startThetaRad))
+    {
+        LOG_ERROR_S << "Start position inside obstacle";
         throw ObstacleCheckFailed("Start position inside obstacle");
     }
 }

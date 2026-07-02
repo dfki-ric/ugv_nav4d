@@ -149,9 +149,11 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     }
     catch(const ugv_nav4d::ObstacleCheckFailed& ex)
     {
-        LOG_ERROR_S << "Caught exception while setting start pose:"  << ex.what();
+        // ex.what() carries the accurate reason (real obstacle vs. disallowed orientation on a
+        // partially traversable cell).
+        LOG_ERROR_S << "Failed to set start pose: " << ex.what();
         if(dumpOnError)
-            PlannerDump dump(*this, "start_inside_obstacle", maxTime, startbody2Mls, endbody2Mls);
+            PlannerDump dump(*this, "bad_start", maxTime, startbody2Mls, endbody2Mls);
         return START_INVALID;
     }
     catch(const std::runtime_error& ex)
