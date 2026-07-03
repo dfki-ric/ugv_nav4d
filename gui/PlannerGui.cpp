@@ -409,6 +409,12 @@ void PlannerGui::setupUI()
     connect(travPartiallyTraversableMultiplierSpinBox, SIGNAL(editingFinished()), this, SLOT(travPartiallyTraversableMultiplierEditingFinished()));
     travFormLayout->addRow("Partially Traversable Multiplier:", travPartiallyTraversableMultiplierSpinBox);
 
+    travNumYawSamplesSpinBox = new QSpinBox();
+    travNumYawSamplesSpinBox->setMinimum(1);
+    travNumYawSamplesSpinBox->setMaximum(180);
+    connect(travNumYawSamplesSpinBox, SIGNAL(valueChanged(int)), this, SLOT(travNumYawSamplesValueChanged(int)));
+    travFormLayout->addRow("Num Yaw Samples (over 180°):", travNumYawSamplesSpinBox);
+
 
 
     travAllowForwardDownhillCheckBox = new QCheckBox();
@@ -1267,6 +1273,10 @@ void PlannerGui::updateWidgetValues()
     travPartiallyTraversableMultiplierSpinBox->setValue(travConfig.partiallyTraversableMultiplier);
     travPartiallyTraversableMultiplierSpinBox->blockSignals(wasBlockedTravPartiallyTraversableMult);
 
+    const bool wasBlockedTravNumYawSamples = travNumYawSamplesSpinBox->blockSignals(true);
+    travNumYawSamplesSpinBox->setValue(travConfig.numYawSamples);
+    travNumYawSamplesSpinBox->blockSignals(wasBlockedTravNumYawSamples);
+
 
 
     const bool wasBlockedTravAllowDownhill = travAllowForwardDownhillCheckBox->blockSignals(true);
@@ -1393,6 +1403,7 @@ void PlannerGui::updateParamsButtonReleased()
               << "  Distance to Ground: " << travConfig.distToGround << " m\n"
               << "  Obstacle Inflation Multiplier: " << travConfig.obstacleInflationMultiplier << "\n"
               << "  Partially Traversable Multiplier: " << travConfig.partiallyTraversableMultiplier << "\n"
+              << "  Num Yaw Samples: " << travConfig.numYawSamples << "\n"
 
               << "  Min Traversable Percentage: " << travConfig.minTraversablePercentage << "\n"
               << "  Allow Forward Downhill: " << (travConfig.allowForwardDownhill ? "Yes" : "No") << "\n"
@@ -1536,6 +1547,12 @@ void PlannerGui::travObstacleInflationMultiplierEditingFinished()
 void PlannerGui::travPartiallyTraversableMultiplierEditingFinished()
 {
     travConfig.partiallyTraversableMultiplier = travPartiallyTraversableMultiplierSpinBox->value();
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
+}
+void PlannerGui::travNumYawSamplesValueChanged(int value)
+{
+    travConfig.numYawSamples = value;
     if (planner) planner->setTravConfig(travConfig);
     if (travGen) travGen->setConfig(travConfig);
 }

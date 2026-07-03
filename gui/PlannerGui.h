@@ -145,6 +145,7 @@ private slots:
     void travEnableInclineLimittingStateChanged(int state);
     void travObstacleInflationMultiplierEditingFinished();
     void travPartiallyTraversableMultiplierEditingFinished();
+    void travNumYawSamplesValueChanged(int value);
 
 
     // Planner Slots
@@ -224,6 +225,7 @@ private:
     QCheckBox* travEnableInclineLimittingCheckBox;
     QDoubleSpinBox* travObstacleInflationMultiplierSpinBox;
     QDoubleSpinBox* travPartiallyTraversableMultiplierSpinBox;
+    QSpinBox* travNumYawSamplesSpinBox;
 
 
     // Planner Config Widgets
