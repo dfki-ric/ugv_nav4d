@@ -109,6 +109,7 @@ public:
                 travConfig.minTraversablePercentage = tc["minTraversablePercentage"].as<double>(0.5);
                 travConfig.allowForwardDownhill = tc["allowForwardDownhill"].as<bool>(true);
                 travConfig.enableInclineLimitting = tc["enableInclineLimitting"].as<bool>(false);
+                travConfig.articulatedSuspension = tc["articulatedSuspension"] ? tc["articulatedSuspension"].as<bool>(true) : true;
                 travConfig.obstacleInflationMultiplier = tc["obstacleInflationMultiplier"] ? tc["obstacleInflationMultiplier"].as<double>(1.0) : 1.0;
                 travConfig.partiallyTraversableMultiplier = tc["partiallyTraversableMultiplier"] ? tc["partiallyTraversableMultiplier"].as<double>(2.0) : 2.0;
                 travConfig.numYawSamples = tc["numYawSamples"] ? tc["numYawSamples"].as<int>(12) : 12;
@@ -134,6 +135,7 @@ public:
                 travConfig.minTraversablePercentage = params["minTraversablePercentage"] ? params["minTraversablePercentage"].as<double>(0.5) : 0.5;
                 travConfig.allowForwardDownhill = params["allowForwardDownhill"] ? params["allowForwardDownhill"].as<bool>(true) : true;
                 travConfig.enableInclineLimitting = params["enableInclineLimitting"] ? params["enableInclineLimitting"].as<bool>(false) : false;
+                travConfig.articulatedSuspension = params["articulatedSuspension"] ? params["articulatedSuspension"].as<bool>(true) : true;
                 travConfig.obstacleInflationMultiplier = params["obstacleInflationMultiplier"] ? params["obstacleInflationMultiplier"].as<double>(1.0) : 1.0;
                 travConfig.partiallyTraversableMultiplier = params["partiallyTraversableMultiplier"] ? params["partiallyTraversableMultiplier"].as<double>(2.0) : 2.0;
                 travConfig.numYawSamples = params["numYawSamples"] ? params["numYawSamples"].as<int>(12) : 12;

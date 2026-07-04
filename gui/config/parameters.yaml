@@ -47,6 +47,7 @@ travConfig:
   minTraversablePercentage: 0.4
   allowForwardDownhill: true
   enableInclineLimitting: false
+  articulatedSuspension: false # if false, the robot is modeled with a rigid chassis/axles
   obstacleInflationMultiplier: 1.0
   partiallyTraversableMultiplier: 1.5
   numYawSamples: 12 # yaw samples over [0,180) for partial-cell allowed orientations (12 -> 15deg step)

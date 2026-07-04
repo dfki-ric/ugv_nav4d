@@ -425,6 +425,10 @@ void PlannerGui::setupUI()
     connect(travEnableInclineLimittingCheckBox, SIGNAL(stateChanged(int)), this, SLOT(travEnableInclineLimittingStateChanged(int)));
     travFormLayout->addRow("Enable Incline Limiting", travEnableInclineLimittingCheckBox);
 
+    travArticulatedSuspensionCheckBox = new QCheckBox();
+    connect(travArticulatedSuspensionCheckBox, SIGNAL(stateChanged(int)), this, SLOT(travArticulatedSuspensionStateChanged(int)));
+    travFormLayout->addRow("Articulated Suspension", travArticulatedSuspensionCheckBox);
+
     travTab->setLayout(travFormLayout);
     tabWidget->addTab(travTab, "Traversability/Terrain");
 
@@ -1287,6 +1291,10 @@ void PlannerGui::updateWidgetValues()
     travEnableInclineLimittingCheckBox->setChecked(travConfig.enableInclineLimitting);
     travEnableInclineLimittingCheckBox->blockSignals(wasBlockedTravEnableIncline);
 
+    const bool wasBlockedTravArticulatedSuspension = travArticulatedSuspensionCheckBox->blockSignals(true);
+    travArticulatedSuspensionCheckBox->setChecked(travConfig.articulatedSuspension);
+    travArticulatedSuspensionCheckBox->blockSignals(wasBlockedTravArticulatedSuspension);
+
     // Planner Config Widget Updates
     const bool wasBlockedPlanEpsSteps = planEpsilonStepsSpinBox->blockSignals(true);
     planEpsilonStepsSpinBox->setValue(plannerConfig.epsilonSteps);
@@ -1408,6 +1416,7 @@ void PlannerGui::updateParamsButtonReleased()
               << "  Min Traversable Percentage: " << travConfig.minTraversablePercentage << "\n"
               << "  Allow Forward Downhill: " << (travConfig.allowForwardDownhill ? "Yes" : "No") << "\n"
               << "  Enable Incline Limiting: " << (travConfig.enableInclineLimitting ? "Yes" : "No") << "\n"
+              << "  Articulated Suspension: " << (travConfig.articulatedSuspension ? "Yes" : "No") << "\n"
               << "----------------------------------------\n"
               << "Planner/Search Configuration:\n"
               << "  Initial Epsilon: " << plannerConfig.initialEpsilon << "\n"
@@ -1535,6 +1544,12 @@ void PlannerGui::travAllowForwardDownhillStateChanged(int state)
 void PlannerGui::travEnableInclineLimittingStateChanged(int state)
 {
     travConfig.enableInclineLimitting = (state == Qt::Checked);
+    if (planner) planner->setTravConfig(travConfig);
+    if (travGen) travGen->setConfig(travConfig);
+}
+void PlannerGui::travArticulatedSuspensionStateChanged(int state)
+{
+    travConfig.articulatedSuspension = (state == Qt::Checked);
     if (planner) planner->setTravConfig(travConfig);
     if (travGen) travGen->setConfig(travConfig);
 }

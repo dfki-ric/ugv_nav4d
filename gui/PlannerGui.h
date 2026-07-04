@@ -143,6 +143,7 @@ private slots:
     void travMinTraversablePercentageEditingFinished();
     void travAllowForwardDownhillStateChanged(int state);
     void travEnableInclineLimittingStateChanged(int state);
+    void travArticulatedSuspensionStateChanged(int state);
     void travObstacleInflationMultiplierEditingFinished();
     void travPartiallyTraversableMultiplierEditingFinished();
     void travNumYawSamplesValueChanged(int value);
@@ -223,6 +224,7 @@ private:
     QDoubleSpinBox* travMinTraversablePercentageSpinBox;
     QCheckBox* travAllowForwardDownhillCheckBox;
     QCheckBox* travEnableInclineLimittingCheckBox;
+    QCheckBox* travArticulatedSuspensionCheckBox;
     QDoubleSpinBox* travObstacleInflationMultiplierSpinBox;
     QDoubleSpinBox* travPartiallyTraversableMultiplierSpinBox;
     QSpinBox* travNumYawSamplesSpinBox;
