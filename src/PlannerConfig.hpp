@@ -33,5 +33,16 @@ struct PlannerConfig
      * is within this margin of the goal position, it is mapped to the goal state.
      * Set to <= 0.0 to disable. */
     double goalDistanceMargin = 0.0;
+    /** If true, the final path is reconstructed from the solution states using
+     *  Reeds-Shepp steering (greedy shortcutting) instead of the search motion
+     *  primitives. The primitive-based search itself is unchanged. Requires
+     *  Mobility::minTurningRadius > 0, otherwise the primitive path is used. */
+    bool useReedsSheppFinalPath = false;
+    /** Sampling resolution (meters) of the Reeds-Shepp final path. If <= 0.0 a
+     *  value of half the grid resolution is used. */
+    double reedsSheppStepSize = 0.0;
+    /** Maximum number of solution waypoints a single Reeds-Shepp shortcut may span.
+     *  <= 0 means unlimited (best path quality, O(n^2) shortcut search). */
+    int reedsSheppMaxShortcut = 0;
 };
 }

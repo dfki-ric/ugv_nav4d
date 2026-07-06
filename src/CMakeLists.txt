@@ -39,8 +39,9 @@ rock_library(ugv_nav4d
         PlannerDump.cpp
         PreComputedMotions.cpp
         Dijkstra.cpp
+        ReedsShepp.cpp
         DebugDrawingDeclarations.cpp
-    HEADERS 
+    HEADERS
         Mobility.hpp
         DiscreteTheta.hpp
         EnvironmentXYZTheta.hpp
@@ -49,7 +50,8 @@ rock_library(ugv_nav4d
         PlannerConfig.hpp
         PreComputedMotions.hpp
         Dijkstra.hpp
-    DEPS_PKGCONFIG 
+        ReedsShepp.hpp
+    DEPS_PKGCONFIG
         ${DEPS_PKGCONFIG_LIST}
     LIBS 
         ${ADDITIONAL_LIBS}

@@ -7,6 +7,7 @@
 #include <base/Pose.hpp>
 #include "DiscreteTheta.hpp"
 #include "PreComputedMotions.hpp"
+#include "ReedsShepp.hpp"
 #include <trajectory_follower/SubTrajectory.hpp>
 #include <unordered_map>
 #include <chrono>
@@ -190,6 +191,24 @@ public:
     void getTrajectory(const std::vector<int> &stateIDPath, std::vector<trajectory_follower::SubTrajectory> &result,
                        bool setZToZero, const Eigen::Vector3d &startPos, const Eigen::Vector3d &goalPos, const double& goalHeading, const Eigen::Affine3d &plan2Body = Eigen::Affine3d::Identity());
 
+    /** Reconstruct the final path from the solution state sequence using
+     *  Reeds-Shepp steering instead of the search motion primitives.
+     *
+     *  The primitive-based search is left untouched: it still produces
+     *  @p stateIDPath. This method treats those states as waypoints and greedily
+     *  shortcuts them with analytic Reeds-Shepp curves (minimum turning radius =
+     *  Mobility::minTurningRadius). Every candidate curve is re-validated against
+     *  the traversability map; if even the direct connection to the next waypoint
+     *  is not drivable, that step falls back to the original primitive motion so
+     *  feasibility is always preserved.
+     *
+     *  @param stepSize Reeds-Shepp sampling resolution in meters.
+     *  @param maxShortcut Maximum number of waypoints a single Reeds-Shepp curve
+     *         may span (<= 0 means unlimited). */
+    void getTrajectoryReedsShepp(const std::vector<int> &stateIDPath, std::vector<trajectory_follower::SubTrajectory> &result,
+                       bool setZToZero, const Eigen::Vector3d &startPos, const Eigen::Vector3d &goalPos, const double& goalHeading,
+                       const Eigen::Affine3d &plan2Body, double stepSize, int maxShortcut = 0);
+
     const PreComputedMotions& getAvailableMotions() const;
 
     /**Clears the state of the environment. */
@@ -215,6 +234,19 @@ private:
      * @return the target node of the motion or nullptr if motion not possible */
     traversability_generator3d::TravGenNode* checkTraversableHeuristic(const maps::grid::Index sourceIndex, traversability_generator3d::TravGenNode* sourceNode,
                                            const ugv_nav4d::Motion& motion, const maps::grid::TraversabilityMap3d< traversability_generator3d::TravGenNode* >& trMap);
+
+    /** Walk the traversability graph along a sampled Reeds-Shepp curve, verifying
+     *  every sample lies on a connected, traversable/partially-traversable node
+     *  with an allowed orientation (mirrors the checks done in GetSuccs()).
+     *  @param startNode node the curve starts on (the source waypoint).
+     *  @param samples the Reeds-Shepp curve samples in map frame.
+     *  @param expectedEndNode if non-null, the curve must terminate on this node.
+     *  @param[out] outNodes the node each sample resolves to (same size as samples).
+     *  @return true if the entire curve is drivable on the map. */
+    bool validateReedsSheppSegment(traversability_generator3d::TravGenNode* startNode,
+                                   const std::vector<RSSample>& samples,
+                                   const traversability_generator3d::TravGenNode* expectedEndNode,
+                                   std::vector<traversability_generator3d::TravGenNode*>& outNodes);
 
     /** Some movement directions are not allowed depending on the slope of the patch.
      *  @return true if the movement direction is allowed on that patch

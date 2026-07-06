@@ -4,7 +4,7 @@ splineConfig:
   gridSize: 0.5
   numAngles: 42
   numEndAngles: 21
-  destinationCircleRadius: 12
+  destinationCircleRadius: 10
   cellSkipFactor: 1.0
   generatePointTurnMotions: false
   generateLateralMotions: false
@@ -59,6 +59,12 @@ plannerConfig:
   usePathStatistics: false
   searchUntilFirstSolution: true
   corridorWidth: 3.5
-  maxTime: 5.0
+  maxTime: 20.0
   goalOrientationMargin: 1.0
   goalDistanceMargin: 0.5
+  # Reconstruct the final path from the solution states using Reeds-Shepp steering
+  # (greedy shortcutting) instead of the search motion primitives. The primitive-based
+  # search itself is unchanged. Requires minTurningRadius > 0.
+  useReedsSheppFinalPath: true
+  reedsSheppStepSize: 0.0      # RS sampling resolution [m]; <= 0 uses half the grid resolution
+  reedsSheppMaxShortcut: 0     # max waypoints one RS shortcut may span; <= 0 = unlimited

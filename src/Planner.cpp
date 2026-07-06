@@ -263,8 +263,18 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
 
             std::vector<PlannerStats> stats;
             planner->get_search_stats(&stats);
-            env->getTrajectory(solutionIds, resultTrajectory2D, true, start_translation, goal_translation, end_pose.getYaw(), ground2Body);
-            env->getTrajectory(solutionIds, resultTrajectory3D, false, start_translation, goal_translation,end_pose.getYaw(), ground2Body);
+            if(plannerConfig.useReedsSheppFinalPath)
+            {
+                env->getTrajectoryReedsShepp(solutionIds, resultTrajectory2D, true, start_translation, goal_translation, end_pose.getYaw(), ground2Body,
+                                             plannerConfig.reedsSheppStepSize, plannerConfig.reedsSheppMaxShortcut);
+                env->getTrajectoryReedsShepp(solutionIds, resultTrajectory3D, false, start_translation, goal_translation, end_pose.getYaw(), ground2Body,
+                                             plannerConfig.reedsSheppStepSize, plannerConfig.reedsSheppMaxShortcut);
+            }
+            else
+            {
+                env->getTrajectory(solutionIds, resultTrajectory2D, true, start_translation, goal_translation, end_pose.getYaw(), ground2Body);
+                env->getTrajectory(solutionIds, resultTrajectory3D, false, start_translation, goal_translation,end_pose.getYaw(), ground2Body);
+            }
             t_trajectory_extraction = std::chrono::steady_clock::now();
             planning_res = FOUND_SOLUTION;
         }

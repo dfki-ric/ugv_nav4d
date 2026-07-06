@@ -1317,6 +1317,239 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
     }
 }
 
+bool EnvironmentXYZTheta::validateReedsSheppSegment(traversability_generator3d::TravGenNode* startNode,
+                                                    const std::vector<RSSample>& samples,
+                                                    const traversability_generator3d::TravGenNode* expectedEndNode,
+                                                    std::vector<traversability_generator3d::TravGenNode*>& outNodes)
+{
+    outNodes.clear();
+    if(!startNode || samples.empty())
+        return false;
+
+    outNodes.reserve(samples.size());
+    traversability_generator3d::TravGenNode* curNode = startNode;
+    maps::grid::Index curIdx = curNode->getIndex();
+
+    //collected for the (optional) oriented bounding box footprint check
+    std::vector<const traversability_generator3d::TravGenNode*> pathNodes;
+    std::vector<base::Pose2D> pathPoses;
+    pathNodes.reserve(samples.size());
+    pathPoses.reserve(samples.size());
+
+    for(const RSSample& s : samples)
+    {
+        maps::grid::Index idx;
+        //checkIndex=true (default) makes toGrid fail if the sample leaves the map
+        if(!travMap->toGrid(Eigen::Vector3d(s.x, s.y, 0), idx))
+            return false;
+
+        if(idx != curIdx)
+        {
+            //follow the traversability graph to stay on the correct vertical layer.
+            //A missing connection means the curve would leave the drivable graph.
+            traversability_generator3d::TravGenNode* next = curNode->getConnectedNode(idx);
+            if(!next)
+                return false;
+            curNode = next;
+            curIdx = idx;
+        }
+
+        const auto nodeType = curNode->getUserData().nodeType;
+        if(nodeType != ::traversability_generator3d::NodeType::TRAVERSABLE &&
+           nodeType != ::traversability_generator3d::NodeType::PARTIALLY_TRAVERSABLE)
+            return false;
+
+        if(nodeType == ::traversability_generator3d::NodeType::PARTIALLY_TRAVERSABLE ||
+           travConf.enableInclineLimitting)
+        {
+            if(!checkOrientationAllowed(curNode, s.theta))
+                return false;
+        }
+
+        outNodes.push_back(curNode);
+        pathNodes.push_back(curNode);
+        pathPoses.emplace_back(base::Vector2d(s.x, s.y), s.theta);
+    }
+
+    //the curve must actually arrive at the intended waypoint node
+    if(expectedEndNode && curNode != expectedEndNode)
+        return false;
+
+    //same detailed footprint collision check GetSuccs() uses when enabled
+    if(usePathStatistics)
+    {
+        PathStatistic statistic(travConf);
+        if(!statistic.isPathFeasible(pathNodes, pathPoses, *getTraversabilityMap()))
+            return false;
+    }
+
+    return true;
+}
+
+void EnvironmentXYZTheta::getTrajectoryReedsShepp(const vector<int>& stateIDPath,
+                                                  vector<SubTrajectory>& result,
+                                                  bool setZToZero, const Eigen::Vector3d& startPos,
+                                                  const Eigen::Vector3d& goalPos, const double& goalHeading,
+                                                  const Eigen::Affine3d& plan2Body, double stepSize, int maxShortcut)
+{
+    result.clear();
+    if(stateIDPath.size() < 2)
+        return;
+
+    const double turningRadius = mobilityConfig.minTurningRadius;
+    if(turningRadius <= 0.0)
+    {
+        //Reeds-Shepp is undefined without a finite turning radius -> keep the primitive path
+        LOG_WARN_S << "getTrajectoryReedsShepp: minTurningRadius <= 0, falling back to primitive trajectory";
+        getTrajectory(stateIDPath, result, setZToZero, startPos, goalPos, goalHeading, plan2Body);
+        return;
+    }
+    if(!(stepSize > 0.0))
+        stepSize = travConf.gridResolution * 0.5;
+
+    const size_t N = stateIDPath.size();
+
+    //Build waypoint poses (map frame) and their trav nodes from the solution states.
+    std::vector<base::Pose2D> wpPose(N);
+    std::vector<traversability_generator3d::TravGenNode*> wpNode(N);
+    for(size_t k = 0; k < N; ++k)
+    {
+        const Hash& h = idToHash[stateIDPath[k]];
+        wpNode[k] = h.node->getUserData().travNode;
+        const Eigen::Vector3d p = getStatePosition(stateIDPath[k]);
+        wpPose[k].position = p.head<2>();
+        wpPose[k].orientation = h.thetaNode->theta.getRadian();
+    }
+    //Anchor the exact continuous start/goal endpoints requested by the caller.
+    wpPose[0].position = startPos.head<2>();
+    wpPose[N - 1].position = goalPos.head<2>();
+    wpPose[N - 1].orientation = goalHeading;
+
+    //Lift a 2D map point onto a trav node's support plane and transform to body frame.
+    //Mirrors the projection used in getTrajectory().
+    auto liftPoint = [&](const traversability_generator3d::TravGenNode* node, double wx, double wy) -> base::Vector3d
+    {
+        Eigen::Vector3d posWorld;
+        travMap->fromGrid(node->getIndex(), posWorld, node->getHeight(), true);
+        Eigen::Hyperplane<double, 3> plane;
+        plane.normal() = node->getUserData().plane.normal();
+        plane.offset() = -plane.normal().dot(posWorld);
+
+        Eigen::Vector3d globalPoint(wx, wy, 0);
+        Eigen::Vector3d out;
+        if(std::abs(plane.normal().z()) < 1e-6)
+        {
+            out = globalPoint;
+            out.z() = posWorld.z();
+        }
+        else
+        {
+            Eigen::ParametrizedLine<double, 3> line =
+                Eigen::ParametrizedLine<double, 3>::Through(globalPoint, globalPoint + Eigen::Vector3d::UnitZ());
+            out = line.intersectionPoint(plane);
+        }
+        if(setZToZero)
+            out.z() = 0;
+        return plan2Body.inverse(Eigen::Isometry) * out;
+    };
+
+    //Emit a maximal run of same-direction Reeds-Shepp samples as one SubTrajectory.
+    auto emitRun = [&](const std::vector<RSSample>& samples,
+                       const std::vector<traversability_generator3d::TravGenNode*>& nodes,
+                       size_t from, size_t to)
+    {
+        if(to <= from)
+            return;
+        std::vector<base::Vector3d> positions;
+        positions.reserve(to - from + 1);
+        for(size_t k = from; k <= to; ++k)
+        {
+            const base::Vector3d bp = liftPoint(nodes[k], samples[k].x, samples[k].y);
+            if(positions.empty() || (positions.back() - bp).norm() > 1e-3)
+                positions.emplace_back(bp);
+        }
+        if(positions.size() < 2)
+            return;
+        base::Trajectory curPart;
+        curPart.spline.interpolate(positions);
+        SubTrajectory sub(curPart);
+        sub.speed = samples[from].forward ? mobilityConfig.translationSpeed : -mobilityConfig.translationSpeed;
+        sub.driveMode = DriveMode::ModeAckermann;
+        result.push_back(sub);
+    };
+
+    //Greedy Reeds-Shepp shortcutting over the solution waypoints with primitive fallback.
+    size_t i = 0;
+    bool cappedShortcut = false;
+    while(i + 1 < N)
+    {
+        size_t jLimit = N - 1;
+        if(maxShortcut > 0 && static_cast<size_t>(maxShortcut) < (jLimit - i))
+        {
+            jLimit = i + static_cast<size_t>(maxShortcut);
+            cappedShortcut = true;
+        }
+
+        size_t bestJ = 0;
+        std::vector<RSSample> bestSamples;
+        std::vector<traversability_generator3d::TravGenNode*> bestNodes;
+        bool found = false;
+
+        //prefer the farthest reachable waypoint (longest shortcut) first
+        for(size_t j = jLimit; j > i; --j)
+        {
+            std::vector<RSSample> samples;
+            if(!ReedsShepp::sample(wpPose[i].position.x(), wpPose[i].position.y(), wpPose[i].orientation,
+                                   wpPose[j].position.x(), wpPose[j].position.y(), wpPose[j].orientation,
+                                   turningRadius, stepSize, samples))
+                continue;
+
+            std::vector<traversability_generator3d::TravGenNode*> nodes;
+            if(validateReedsSheppSegment(wpNode[i], samples, wpNode[j], nodes))
+            {
+                bestJ = j;
+                bestSamples.swap(samples);
+                bestNodes.swap(nodes);
+                found = true;
+                break;
+            }
+        }
+
+        if(found)
+        {
+            //split the RS curve at cusps (direction reversals) into separate sub-trajectories
+            size_t runStart = 0;
+            for(size_t k = 1; k < bestSamples.size(); ++k)
+            {
+                if(bestSamples[k].forward != bestSamples[runStart].forward)
+                {
+                    emitRun(bestSamples, bestNodes, runStart, k - 1);
+                    runStart = k;
+                }
+            }
+            emitRun(bestSamples, bestNodes, runStart, bestSamples.size() - 1);
+            i = bestJ;
+        }
+        else
+        {
+            //Not even the direct connection to the next waypoint is drivable as an RS curve.
+            //Fall back to the original primitive motion for this single step so that a feasible
+            //path is always produced.
+            const Eigen::Vector3d segStart = (i == 0) ? startPos : getStatePosition(stateIDPath[i]);
+            const Eigen::Vector3d segGoal = (i + 1 == N - 1) ? goalPos : getStatePosition(stateIDPath[i + 1]);
+            const double segHeading = (i + 1 == N - 1) ? goalHeading : wpPose[i + 1].orientation;
+            std::vector<SubTrajectory> tmp;
+            getTrajectory({stateIDPath[i], stateIDPath[i + 1]}, tmp, setZToZero, segStart, segGoal, segHeading, plan2Body);
+            result.insert(result.end(), tmp.begin(), tmp.end());
+            i += 1;
+        }
+    }
+
+    if(cappedShortcut)
+        LOG_WARN_S << "getTrajectoryReedsShepp: shortcut span limited to " << maxShortcut
+                   << " waypoints; longer shortcuts were not attempted.";
+}
+
 const std::shared_ptr<const traversability_generator3d::TravMap3d > EnvironmentXYZTheta::getTraversabilityMap() const
 {
     return travMap;

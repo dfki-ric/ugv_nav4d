@@ -721,20 +721,19 @@ void PlannerGui::setupPlanner(int argc, char** argv, bool autoLoadMls, bool load
     // When loadConfigFromFile is false, use the configs already set on the member
     // structs (e.g. populated by the ROS 2 node from params.yaml).
     if (loadConfigFromFile) {
-        // Load config from default path or fall back to gui/config/parameters.yaml
-        boost::filesystem::path configPath("/home/dfki.uni-bremen.de/mlodhi/ROCK/Docker/docker_arter_ros2_jazzy/workspace/src/launch/arter_bringup/config/yaml/ugv_nav4d_params.yaml");
-        if (!boost::filesystem::exists(configPath)) {
-            configPath = boost::filesystem::path(__FILE__).parent_path() / "config" / "parameters.yaml";
-        }
+        // Load config from the in-repo GUI config file.
+        boost::filesystem::path configPath = boost::filesystem::path(__FILE__).parent_path() / "config" / "parameters.yaml";
 
-        if(boost::filesystem::exists(configPath)) {
+        // Treat a missing OR empty file as "no config" and fall back to the built-in
+        // defaults, instead of silently loading an empty YAML (which yields no keys).
+        if(boost::filesystem::exists(configPath) && boost::filesystem::file_size(configPath) > 0) {
             LOG_INFO_S << "Loading configuration from: " << configPath.string();
             if(!ConfigLoader::loadConfig(configPath.string(), splineConfig, mobilityConfig, travConfig, plannerConfig)) {
                 LOG_WARN_S << "Failed to load config, using defaults";
                 setupDefaultConfigs();
             }
         } else {
-            LOG_WARN_S << "Config file not found at: " << configPath.string() << ", using defaults";
+            LOG_WARN_S << "Config file not found or empty at: " << configPath.string() << ", using defaults";
             setupDefaultConfigs();
         }
     }
