@@ -19,6 +19,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <pcl/io/ply_io.h>
+#include <pcl/filters/passthrough.h>
 #include <pcl/common/common.h>
 #include <ugv_nav4d/PlannerDump.hpp>
 #include <pcl/common/transforms.h>
@@ -611,6 +612,28 @@ void PlannerGui::setupUI()
     QGroupBox* executionGroupBox = new QGroupBox("Execution & Progress");
     QVBoxLayout* executionLayout = new QVBoxLayout();
 
+    // Height (Z) filter for imported PLY / point clouds. When enabled, points outside
+    // [Z min, Z max] are dropped before the MLS is built, avoiding unnecessary patches
+    // (ceilings, flying points, etc.). Read at load time in loadMls().
+    QGroupBox* heightFilterGroupBox = new QGroupBox("Import Height Filter (Z)");
+    QHBoxLayout* heightFilterLayout = new QHBoxLayout();
+    heightFilterCheckBox = new QCheckBox("Enable");
+    heightFilterMinSpinBox = new QDoubleSpinBox();
+    heightFilterMinSpinBox->setRange(-10000.0, 10000.0);
+    heightFilterMinSpinBox->setDecimals(2);
+    heightFilterMinSpinBox->setValue(-1000.0);
+    heightFilterMaxSpinBox = new QDoubleSpinBox();
+    heightFilterMaxSpinBox->setRange(-10000.0, 10000.0);
+    heightFilterMaxSpinBox->setDecimals(2);
+    heightFilterMaxSpinBox->setValue(1000.0);
+    heightFilterLayout->addWidget(heightFilterCheckBox);
+    heightFilterLayout->addWidget(new QLabel("Z min (m):"));
+    heightFilterLayout->addWidget(heightFilterMinSpinBox);
+    heightFilterLayout->addWidget(new QLabel("Z max (m):"));
+    heightFilterLayout->addWidget(heightFilterMaxSpinBox);
+    heightFilterGroupBox->setLayout(heightFilterLayout);
+    executionLayout->addWidget(heightFilterGroupBox);
+
     QHBoxLayout* mapButtonLayout = new QHBoxLayout();
     QPushButton* replanButton = new QPushButton("Plan");
     // Placed on the home screen so parameter changes can be applied and their effect on the
@@ -687,6 +710,9 @@ void PlannerGui::setupUI()
     connect(&mlsViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
     connect(&trav3dViz, SIGNAL(picked(float,float,float, int, int)), this, SLOT(picked(float,float,float, int, int)));
     connect(this, SIGNAL(plannerDone()), this, SLOT(plannerIsDone()));
+    // Queued (auto) connection: emitted from the planning worker thread, applied in the GUI thread.
+    connect(this, SIGNAL(statusUpdate(const QString&, const QString&)),
+            this, SLOT(onStatusUpdate(const QString&, const QString&)));
 }
 
 
@@ -816,8 +842,24 @@ void PlannerGui::loadMls(const std::string& path)
         pcl::PLYReader plyReader;
         if(plyReader.read(path, *cloud) >= 0)
         {
-            pcl::PointXYZ mi, ma; 
-            pcl::getMinMax3D (*cloud, mi, ma); 
+            // Optional height (Z) filtering before building the MLS.
+            if (heightFilterCheckBox && heightFilterCheckBox->isChecked())
+            {
+                const double zMin = heightFilterMinSpinBox->value();
+                const double zMax = heightFilterMaxSpinBox->value();
+                pcl::PointCloud<pcl::PointXYZ>::Ptr cloudFiltered(new pcl::PointCloud<pcl::PointXYZ>());
+                pcl::PassThrough<pcl::PointXYZ> pass;
+                pass.setInputCloud(cloud);
+                pass.setFilterFieldName("z");
+                pass.setFilterLimits(zMin, zMax);
+                pass.filter(*cloudFiltered);
+                LOG_INFO_S << "Height filter kept " << cloudFiltered->size() << "/" << cloud->size()
+                           << " points in z [" << zMin << ", " << zMax << "]";
+                cloud = cloudFiltered;
+            }
+
+            pcl::PointXYZ mi, ma;
+            pcl::getMinMax3D (*cloud, mi, ma);
             LOG_INFO_S << "MIN: " << mi << ", MAX: " << ma;
 
             const double mls_res = travConfig.gridResolution;
@@ -1032,6 +1074,15 @@ void PlannerGui::appendLog(const QString& text)
         logConsole->moveCursor(QTextCursor::End);
         logConsole->insertPlainText(text);
         logConsole->moveCursor(QTextCursor::End);
+    }
+}
+
+void PlannerGui::onStatusUpdate(const QString& text, const QString& color)
+{
+    if (statusLabel)
+    {
+        statusLabel->setText(text);
+        statusLabel->setStyleSheet(QString("color: %1; font-weight: bold;").arg(color));
     }
 }
 
@@ -1619,12 +1670,12 @@ void PlannerGui::startPlanThread()
     }
 
     bar->setMaximum(0);
-    statusLabel->setText("Status: Planning...");
+    statusLabel->setText("Status: Starting...");
     statusLabel->setStyleSheet("color: blue; font-weight: bold;");
 
     // Mark the start of the planning phase
-    inplanningphase.store(true);    
-    
+    inplanningphase.store(true);
+
     std::thread t([this](){
         if (customPlanCallback)
         {
@@ -1639,9 +1690,18 @@ void PlannerGui::startPlanThread()
                                                          this->start.position.y(),
                                                          this->start.position.z()-travConfig.distToGround));
 
+            emit statusUpdate("Status: Expanding traversability map...", "blue");
             travGen->expandAll(startPositions);
+
+            // The first updateMap() builds the environment, which is where the motion
+            // primitives are generated; later calls only refresh the map.
+            if (planner && !planner->isEnvironmentInitialized())
+                emit statusUpdate("Status: Generating motion primitives...", "blue");
+            else
+                emit statusUpdate("Status: Updating map...", "blue");
             planner->updateMap(travGen->getTraversabilityMap());
         }
+        emit statusUpdate("Status: Planning (searching)...", "blue");
         this->plan(this->start, this->goal);
 
         // Mark the end of the planning phase after work is done
@@ -1683,7 +1743,11 @@ void PlannerGui::plannerIsDone()
             statusLabel->setStyleSheet("color: red; font-weight: bold;");
             break; 
         case ugv_nav4d::Planner::NO_SOLUTION:
-            statusLabel->setText("Status: No Solution Found");
+            statusLabel->setText("Status: No Solution (goal unreachable)");
+            statusLabel->setStyleSheet("color: orange; font-weight: bold;");
+            break;
+        case ugv_nav4d::Planner::TIMEOUT:
+            statusLabel->setText("Status: Timeout (no solution within maxTime)");
             statusLabel->setStyleSheet("color: orange; font-weight: bold;");
             break;
         case ugv_nav4d::Planner::NO_MAP:
@@ -1755,6 +1819,9 @@ void PlannerGui::plan(const base::Pose& start, const base::Pose& goal)
             break; 
         case Planner::NO_SOLUTION:
             LOG_INFO_S << "NO_SOLUTION";
+            break;
+        case Planner::TIMEOUT:
+            LOG_INFO_S << "TIMEOUT";
             break;
        case Planner::NO_MAP:
             LOG_INFO_S << "NO_MAP";

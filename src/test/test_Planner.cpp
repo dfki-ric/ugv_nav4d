@@ -104,6 +104,7 @@ std::string PlannerTest::getResult(const Planner::PLANNING_RESULT& result) {
         case Planner::GOAL_INVALID: return "GOAL_INVALID";
         case Planner::START_INVALID: return "START_INVALID";
         case Planner::NO_SOLUTION: return "NO_SOLUTION";
+        case Planner::TIMEOUT: return "TIMEOUT";
         case Planner::NO_MAP: return "NO_MAP";
         case Planner::INTERNAL_ERROR: return "INTERNAL_ERROR";
         case Planner::FOUND_SOLUTION: return "FOUND_SOLUTION";

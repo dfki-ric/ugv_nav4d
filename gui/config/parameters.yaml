@@ -15,7 +15,7 @@ splineConfig:
 mobilityConfig:
   translationSpeed: 0.5
   rotationSpeed: 0.5
-  minTurningRadius: 3.0
+  minTurningRadius: 4.0
   searchRadius: 1.0
   searchProgressSteps: 0.1
   multiplierForward: 1
@@ -25,7 +25,7 @@ mobilityConfig:
   multiplierLateral: 4
   multiplierLateralCurve: 4
   multiplierPointTurn: 3
-  maxMotionCurveLength: 10.0
+  maxMotionCurveLength: 20.0
   spline_sampling_resolution: 0.1
   remove_goal_offset: false
   curvaturePenaltyWeight: 3.0
@@ -37,7 +37,7 @@ travConfig:
   maxStepHeight: 0.45
   robotSizeX: 6.0
   robotSizeY: 3.0
-  robotHeight: 3.0
+  robotHeight: 0.5
   slopeMetricScale: 1.0
   slopeMetric: "NONE"
   inclineLimittingMinSlope: 0.22

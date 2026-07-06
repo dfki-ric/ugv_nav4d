@@ -84,8 +84,11 @@ signals:
     //is emitted if the planner thread is done
     void plannerDone();
     void logReceived(const QString& text);
-    
+    //emitted from the planning worker thread to update the status label per phase
+    void statusUpdate(const QString& text, const QString& color);
+
 private slots:
+    void onStatusUpdate(const QString& text, const QString& color);
     void appendLog(const QString& text);
     void clearLogReleased();
     void maxSlopeEditingFinished();
@@ -239,6 +242,11 @@ private:
     QDoubleSpinBox* planGoalOrientationMarginSpinBox;
     QDoubleSpinBox* planGoalDistanceMarginSpinBox;
     
+    // Height (Z) filter applied to imported PLY/point clouds before building the MLS.
+    QCheckBox* heightFilterCheckBox;
+    QDoubleSpinBox* heightFilterMinSpinBox;
+    QDoubleSpinBox* heightFilterMaxSpinBox;
+
     QProgressBar* bar;
     QLabel* statusLabel;
     QPlainTextEdit* logConsole;
