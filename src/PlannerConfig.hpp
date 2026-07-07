@@ -44,5 +44,14 @@ struct PlannerConfig
     /** Maximum number of solution waypoints a single Reeds-Shepp shortcut may span.
      *  <= 0 means unlimited (best path quality, O(n^2) shortcut search). */
     int reedsSheppMaxShortcut = 0;
+    /** Hybrid-A* style analytic goal connection: during the search, attempt to connect an
+     *  expanded state directly to the goal with a single collision-free Reeds-Shepp curve.
+     *  When it succeeds the search terminates immediately, skipping the expensive expansion
+     *  of states around the goal heading. Requires useReedsSheppFinalPath = true (the final
+     *  path reconstruction recreates the curve). */
+    bool useReedsSheppGoalShot = false;
+    /** Only attempt the goal shot when the (point-robot) distance to the goal is within this
+     *  many meters. Keeps the shot near the goal where it pays off. */
+    double reedsSheppGoalShotMaxDistance = 15.0;
 };
 }

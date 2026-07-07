@@ -215,6 +215,13 @@ public:
     void clear();
 
     void setTravConfig(const traversability_generator3d::TraversabilityConfig& cfg);
+
+    /** Configure the Hybrid-A* Reeds-Shepp goal shot used inside GetSuccs().
+     *  @param enable      attempt an analytic RS connection to the goal during search
+     *  @param maxDistance only attempt when point-robot distance to goal <= this (meters)
+     *  @param stepSize    RS sampling resolution (meters); <= 0 uses half the grid resolution */
+    void setReedsSheppGoalShot(bool enable, double maxDistance, double stepSize);
+
     void setCorridorWidth(double width);
     void setGoalOrientationMargin(double margin);
     void setGoalDistanceMargin(double margin);
@@ -297,6 +304,11 @@ private:
 
     std::chrono::steady_clock::time_point planningStartTime;
     double planningMaxTime;
+
+    /** Hybrid-A* Reeds-Shepp goal-shot state (see setReedsSheppGoalShot). */
+    bool useReedsSheppGoalShot = false;
+    double reedsSheppGoalShotMaxDistance = 0.0;
+    double reedsSheppStepSize = 0.0;
 };
 
 }

@@ -169,6 +169,8 @@ public:
                 plannerConfig.useReedsSheppFinalPath = pc["useReedsSheppFinalPath"] ? pc["useReedsSheppFinalPath"].as<bool>(false) : false;
                 plannerConfig.reedsSheppStepSize = pc["reedsSheppStepSize"] ? pc["reedsSheppStepSize"].as<double>(0.0) : 0.0;
                 plannerConfig.reedsSheppMaxShortcut = pc["reedsSheppMaxShortcut"] ? pc["reedsSheppMaxShortcut"].as<int>(0) : 0;
+                plannerConfig.useReedsSheppGoalShot = pc["useReedsSheppGoalShot"] ? pc["useReedsSheppGoalShot"].as<bool>(false) : false;
+                plannerConfig.reedsSheppGoalShotMaxDistance = pc["reedsSheppGoalShotMaxDistance"] ? pc["reedsSheppGoalShotMaxDistance"].as<double>(15.0) : 15.0;
             } else {
                 plannerConfig.epsilonSteps = params["epsilonSteps"] ? params["epsilonSteps"].as<double>(2.0) : 2.0;
                 plannerConfig.initialEpsilon = params["initialEpsilon"] ? params["initialEpsilon"].as<double>(64.0) : 64.0;
@@ -182,6 +184,8 @@ public:
                 plannerConfig.useReedsSheppFinalPath = params["useReedsSheppFinalPath"] ? params["useReedsSheppFinalPath"].as<bool>(false) : false;
                 plannerConfig.reedsSheppStepSize = params["reedsSheppStepSize"] ? params["reedsSheppStepSize"].as<double>(0.0) : 0.0;
                 plannerConfig.reedsSheppMaxShortcut = params["reedsSheppMaxShortcut"] ? params["reedsSheppMaxShortcut"].as<int>(0) : 0;
+                plannerConfig.useReedsSheppGoalShot = params["useReedsSheppGoalShot"] ? params["useReedsSheppGoalShot"].as<bool>(false) : false;
+                plannerConfig.reedsSheppGoalShotMaxDistance = params["reedsSheppGoalShotMaxDistance"] ? params["reedsSheppGoalShotMaxDistance"].as<double>(15.0) : 15.0;
             }
             
             return true;

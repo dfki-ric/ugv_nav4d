@@ -19,9 +19,9 @@ mobilityConfig:
   searchRadius: 1.0
   searchProgressSteps: 0.1
   multiplierForward: 1
-  multiplierForwardTurn: 4
-  multiplierBackward: 2.0
-  multiplierBackwardTurn: 4
+  multiplierForwardTurn: 1
+  multiplierBackward: 1.0
+  multiplierBackwardTurn: 1
   multiplierLateral: 4
   multiplierLateralCurve: 4
   multiplierPointTurn: 3
@@ -49,7 +49,7 @@ travConfig:
   enableInclineLimitting: false
   articulatedSuspension: false # if false, the robot is modeled with a rigid chassis/axles
   obstacleInflationMultiplier: 1.0
-  partiallyTraversableMultiplier: 1.5
+  partiallyTraversableMultiplier: 1.0
   numYawSamples: 12 # yaw samples over [0,180) for partial-cell allowed orientations (12 -> 15deg step)
 
 plannerConfig:
@@ -58,7 +58,7 @@ plannerConfig:
   numThreads: 4
   usePathStatistics: false
   searchUntilFirstSolution: true
-  corridorWidth: 3.5
+  corridorWidth: 10.0
   maxTime: 20.0
   goalOrientationMargin: 1.0
   goalDistanceMargin: 0.5
@@ -68,3 +68,8 @@ plannerConfig:
   useReedsSheppFinalPath: true
   reedsSheppStepSize: 0.0      # RS sampling resolution [m]; <= 0 uses half the grid resolution
   reedsSheppMaxShortcut: 0     # max waypoints one RS shortcut may span; <= 0 = unlimited
+  # Hybrid-A* analytic goal connection: end the search early when a collision-free Reeds-Shepp
+  # curve reaches the goal directly (skips expanding states around the goal heading).
+  # Requires useReedsSheppFinalPath: true.
+  useReedsSheppGoalShot: true
+  reedsSheppGoalShotMaxDistance: 15.0   # only attempt within this point-robot distance to goal [m]

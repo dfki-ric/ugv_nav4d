@@ -24,6 +24,10 @@ using trajectory_follower::DriveMode;
 namespace ugv_nav4d
 {
 
+// Sentinel motion id marking a Reeds-Shepp goal-shot edge: it connects a state directly to
+// the goal with an analytic RS curve and has no underlying precomputed primitive motion.
+static const size_t RS_GOAL_SHOT_MOTION_ID = std::numeric_limits<size_t>::max();
+
 #define oassert(val) \
     if(!(val)) \
     {\
@@ -429,6 +433,8 @@ const Motion& EnvironmentXYZTheta::getMotion(const int fromStateID, const int to
     auto it = transitionCache.find(key);
     if (it != transitionCache.end())
     {
+        if (it->second.motionId == RS_GOAL_SHOT_MOTION_ID)
+            throw std::runtime_error("getMotion: transition is a Reeds-Shepp goal-shot; it has no primitive motion");
         return availableMotions.getMotion(it->second.motionId);
     }
 
@@ -457,6 +463,8 @@ const Motion& EnvironmentXYZTheta::getMotion(const int fromStateID, const int to
         LOG_ERROR_S << "Internal Error: No matching motion for output path found";
         throw std::runtime_error("Internal Error: No matching motion for output path found");
     }
+    if (motionId == RS_GOAL_SHOT_MOTION_ID)
+        throw std::runtime_error("getMotion: transition is a Reeds-Shepp goal-shot; it has no primitive motion");
     return availableMotions.getMotion(motionId);
 }
 
@@ -1009,6 +1017,63 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             //####END DEBUG BLOCK!!!
         }
     }
+
+    // --- Reeds-Shepp analytic goal shot (Hybrid-A*) ---
+    // If a single collision-free RS curve reaches the goal directly from this state, offer the
+    // goal state as a successor. This lets the search terminate without expanding the fan of
+    // states around the goal heading. The edge carries a sentinel motion id (no primitive
+    // motion); the RS-final-path reconstruction recreates the actual curve. Runs sequentially
+    // after the (parallel) primitive successor loop above.
+    if(useReedsSheppGoalShot && goalXYZNode && goalThetaNode &&
+       SourceStateID != goalThetaNode->id && mobilityConfig.minTurningRadius > 0.0)
+    {
+        const size_t travId = sourceTravNode->getUserData().id;
+        const double distToGoal = (travId < travNodeIdToDistance.size())
+                                  ? travNodeIdToDistance[travId].distToGoal
+                                  : std::numeric_limits<double>::max();
+
+        if(distToGoal <= reedsSheppGoalShotMaxDistance)
+        {
+            const double stepSize = reedsSheppStepSize > 0.0 ? reedsSheppStepSize : travConf.gridResolution * 0.5;
+
+            Eigen::Vector3d goalPosWorld;
+            travMap->fromGrid(goalXYZNode->getIndex(), goalPosWorld, goalXYZNode->getHeight(), true);
+
+            std::vector<RSSample> samples;
+            if(ReedsShepp::sample(sourcePosWorld.x(), sourcePosWorld.y(), sourceThetaNode->theta.getRadian(),
+                                  goalPosWorld.x(), goalPosWorld.y(), goalThetaNode->theta.getRadian(),
+                                  mobilityConfig.minTurningRadius, stepSize, samples))
+            {
+                std::vector<traversability_generator3d::TravGenNode*> nodes;
+                if(validateReedsSheppSegment(sourceTravNode, samples, goalXYZNode->getUserData().travNode, nodes))
+                {
+                    double transDist = 0.0, angDist = 0.0;
+                    for(size_t k = 1; k < samples.size(); ++k)
+                    {
+                        transDist += std::hypot(samples[k].x - samples[k-1].x, samples[k].y - samples[k-1].y);
+                        angDist += std::abs(samples[k].theta - samples[k-1].theta);
+                    }
+
+                    int cost = Motion::calculateCost(transDist, angDist, mobilityConfig.translationSpeed,
+                                                     mobilityConfig.rotationSpeed, mobilityConfig.multiplierForward,
+                                                     mobilityConfig.angularCostWeight);
+                    if(cost <= 0)
+                        cost = 1;
+
+                    SuccIDV->push_back(goalThetaNode->id);
+                    CostV->push_back(cost);
+                    motionIdV.push_back(RS_GOAL_SHOT_MOTION_ID);
+
+                    // Cache as the (from,goal) transition only if cheapest so far, mirroring the
+                    // primitive successor caching — keeps a cheaper primitive edge usable.
+                    const uint64_t cacheKey = ((uint64_t)SourceStateID << 32) | goalThetaNode->id;
+                    auto cacheIt = transitionCache.find(cacheKey);
+                    if(cacheIt == transitionCache.end() || cost < cacheIt->second.cost)
+                        transitionCache[cacheKey] = {RS_GOAL_SHOT_MOTION_ID, cost};
+                }
+            }
+        }
+    }
 }
 
 bool EnvironmentXYZTheta::checkOrientationAllowed(const traversability_generator3d::TravGenNode* node,
@@ -1478,6 +1543,25 @@ void EnvironmentXYZTheta::getTrajectoryReedsShepp(const vector<int>& stateIDPath
         result.push_back(sub);
     };
 
+    //Emit a full RS curve (samples aligned with nodes) as one or more SubTrajectories,
+    //split at cusps (direction reversals).
+    auto emitRSPath = [&](const std::vector<RSSample>& samples,
+                          const std::vector<traversability_generator3d::TravGenNode*>& nodes)
+    {
+        if(samples.empty())
+            return;
+        size_t runStart = 0;
+        for(size_t k = 1; k < samples.size(); ++k)
+        {
+            if(samples[k].forward != samples[runStart].forward)
+            {
+                emitRun(samples, nodes, runStart, k - 1);
+                runStart = k;
+            }
+        }
+        emitRun(samples, nodes, runStart, samples.size() - 1);
+    };
+
     //Greedy Reeds-Shepp shortcutting over the solution waypoints with primitive fallback.
     size_t i = 0;
     bool cappedShortcut = false;
@@ -1517,30 +1601,55 @@ void EnvironmentXYZTheta::getTrajectoryReedsShepp(const vector<int>& stateIDPath
 
         if(found)
         {
-            //split the RS curve at cusps (direction reversals) into separate sub-trajectories
-            size_t runStart = 0;
-            for(size_t k = 1; k < bestSamples.size(); ++k)
-            {
-                if(bestSamples[k].forward != bestSamples[runStart].forward)
-                {
-                    emitRun(bestSamples, bestNodes, runStart, k - 1);
-                    runStart = k;
-                }
-            }
-            emitRun(bestSamples, bestNodes, runStart, bestSamples.size() - 1);
+            emitRSPath(bestSamples, bestNodes);
             i = bestJ;
         }
         else
         {
-            //Not even the direct connection to the next waypoint is drivable as an RS curve.
-            //Fall back to the original primitive motion for this single step so that a feasible
-            //path is always produced.
-            const Eigen::Vector3d segStart = (i == 0) ? startPos : getStatePosition(stateIDPath[i]);
-            const Eigen::Vector3d segGoal = (i + 1 == N - 1) ? goalPos : getStatePosition(stateIDPath[i + 1]);
-            const double segHeading = (i + 1 == N - 1) ? goalHeading : wpPose[i + 1].orientation;
-            std::vector<SubTrajectory> tmp;
-            getTrajectory({stateIDPath[i], stateIDPath[i + 1]}, tmp, setZToZero, segStart, segGoal, segHeading, plan2Body);
-            result.insert(result.end(), tmp.begin(), tmp.end());
+            //Not even the direct connection to the next waypoint validated as an RS curve.
+            const uint64_t edgeKey = ((uint64_t)stateIDPath[i] << 32) | stateIDPath[i + 1];
+            auto cacheIt = transitionCache.find(edgeKey);
+            const bool isGoalShot = (cacheIt != transitionCache.end() &&
+                                     cacheIt->second.motionId == RS_GOAL_SHOT_MOTION_ID);
+
+            if(isGoalShot)
+            {
+                //Reeds-Shepp goal-shot edge: it has no primitive motion. Re-emit it as an RS
+                //curve, retrying against the discretized goal pose the search actually
+                //validated (guaranteed feasible), rather than the continuous goal that the
+                //greedy step above just failed on.
+                bool emitted = false;
+                if(goalXYZNode && goalThetaNode)
+                {
+                    Eigen::Vector3d gp;
+                    travMap->fromGrid(goalXYZNode->getIndex(), gp, goalXYZNode->getHeight(), true);
+                    std::vector<RSSample> samples;
+                    if(ReedsShepp::sample(wpPose[i].position.x(), wpPose[i].position.y(), wpPose[i].orientation,
+                                          gp.x(), gp.y(), goalThetaNode->theta.getRadian(),
+                                          turningRadius, stepSize, samples))
+                    {
+                        std::vector<traversability_generator3d::TravGenNode*> nodes;
+                        if(validateReedsSheppSegment(wpNode[i], samples, goalXYZNode->getUserData().travNode, nodes))
+                        {
+                            emitRSPath(samples, nodes);
+                            emitted = true;
+                        }
+                    }
+                }
+                if(!emitted)
+                    LOG_ERROR_S << "getTrajectoryReedsShepp: could not reconstruct RS goal-shot segment; skipping.";
+            }
+            else
+            {
+                //Genuine primitive edge: fall back to the original motion for this single step
+                //so that a feasible path is always produced.
+                const Eigen::Vector3d segStart = (i == 0) ? startPos : getStatePosition(stateIDPath[i]);
+                const Eigen::Vector3d segGoal = (i + 1 == N - 1) ? goalPos : getStatePosition(stateIDPath[i + 1]);
+                const double segHeading = (i + 1 == N - 1) ? goalHeading : wpPose[i + 1].orientation;
+                std::vector<SubTrajectory> tmp;
+                getTrajectory({stateIDPath[i], stateIDPath[i + 1]}, tmp, setZToZero, segStart, segGoal, segHeading, plan2Body);
+                result.insert(result.end(), tmp.begin(), tmp.end());
+            }
             i += 1;
         }
     }
@@ -1817,6 +1926,13 @@ void EnvironmentXYZTheta::setGoalOrientationMargin(double margin)
 void EnvironmentXYZTheta::setGoalDistanceMargin(double margin)
 {
     goalDistanceMargin = margin;
+}
+
+void EnvironmentXYZTheta::setReedsSheppGoalShot(bool enable, double maxDistance, double stepSize)
+{
+    useReedsSheppGoalShot = enable;
+    reedsSheppGoalShotMaxDistance = maxDistance;
+    reedsSheppStepSize = stepSize;
 }
 
 void EnvironmentXYZTheta::setTravConfig(const traversability_generator3d::TraversabilityConfig& cfg)

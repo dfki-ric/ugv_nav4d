@@ -123,6 +123,14 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     resultTrajectory3D.clear();
     env->clear();
 
+    // The Reeds-Shepp goal shot needs the RS final-path reconstruction to recreate the
+    // (motion-less) goal edge, so it is only active when useReedsSheppFinalPath is set.
+    if(plannerConfig.useReedsSheppGoalShot && !plannerConfig.useReedsSheppFinalPath)
+        LOG_WARN_S << "useReedsSheppGoalShot requires useReedsSheppFinalPath; goal shot disabled.";
+    env->setReedsSheppGoalShot(plannerConfig.useReedsSheppGoalShot && plannerConfig.useReedsSheppFinalPath,
+                               plannerConfig.reedsSheppGoalShotMaxDistance,
+                               plannerConfig.reedsSheppStepSize);
+
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
 
