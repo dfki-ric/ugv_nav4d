@@ -1,7 +1,7 @@
 # UGV Nav4D Planner Configuration
 
 splineConfig:
-  gridSize: 0.5
+  gridSize: 1.0
   numAngles: 42
   numEndAngles: 21
   destinationCircleRadius: 10
@@ -20,8 +20,8 @@ mobilityConfig:
   searchProgressSteps: 0.1
   multiplierForward: 1
   multiplierForwardTurn: 1
-  multiplierBackward: 1.0
-  multiplierBackwardTurn: 1
+  multiplierBackward: 4.0
+  multiplierBackwardTurn: 4
   multiplierLateral: 4
   multiplierLateralCurve: 4
   multiplierPointTurn: 3
@@ -32,11 +32,11 @@ mobilityConfig:
   angularCostWeight: 3.0
 
 travConfig:
-  gridResolution: 0.5
+  gridResolution: 1.0
   maxSlope: 0.45
   maxStepHeight: 0.45
-  robotSizeX: 6.0
-  robotSizeY: 3.0
+  robotSizeX: 1.2
+  robotSizeY: 1.2
   robotHeight: 0.5
   slopeMetricScale: 1.0
   slopeMetric: "NONE"

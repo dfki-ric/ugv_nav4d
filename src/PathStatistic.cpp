@@ -155,9 +155,10 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const trave
                     {
                         if(!debugObstacleName.empty())
                         {
-                        V3DD::DRAW_ARROW(debugObstacleName,
-                                         neighborPos,
-                                         Eigen::Quaterniond(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX())), Eigen::Vector3d(.3, 0.3, 0.8), V3DD::Color::red);
+                        //V3DD disabled: only ugv_nav4d_rs_input_states active
+                        //V3DD::DRAW_ARROW(debugObstacleName,
+                        //                 neighborPos,
+                        //                 Eigen::Quaterniond(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX())), Eigen::Vector3d(.3, 0.3, 0.8), V3DD::Color::red);
                         }
                     });
 #endif                    

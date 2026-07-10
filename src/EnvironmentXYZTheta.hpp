@@ -206,7 +206,8 @@ public:
      *  @param maxShortcut Maximum number of waypoints a single Reeds-Shepp curve
      *         may span (<= 0 means unlimited). */
     void getTrajectoryReedsShepp(const std::vector<int> &stateIDPath, std::vector<trajectory_follower::SubTrajectory> &result,
-                       bool setZToZero, const Eigen::Vector3d &startPos, const Eigen::Vector3d &goalPos, const double& goalHeading,
+                       bool setZToZero, const Eigen::Vector3d &startPos, const double& startHeading,
+                       const Eigen::Vector3d &goalPos, const double& goalHeading,
                        const Eigen::Affine3d &plan2Body, double stepSize, int maxShortcut = 0);
 
     const PreComputedMotions& getAvailableMotions() const;

@@ -239,7 +239,7 @@ bool EnvironmentXYZTheta::obstacleCheck(const maps::grid::Vector3d& pos, double 
 
         if(stats.getRobotStats().getNumObstacles() || stats.getRobotStats().getNumFrontiers()) 
         {
-#ifdef ENABLE_DEBUG_DRAWINGS
+#if 0 //V3DD disabled: only ugv_nav4d_rs_input_states active
             V3DD::COMPLEX_DRAWING([&]()
             {
                 const std::string drawName("ugv_nav4d_obs_check_fail_" + nodeName);
@@ -262,7 +262,7 @@ bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, traversability_
 
     maps::grid::Vector3d nodePos;
     travMap->fromGrid(node->getIndex(), nodePos, node->getHeight(), true);
-#ifdef ENABLE_DEBUG_DRAWINGS
+#if 0 //V3DD disabled: only ugv_nav4d_rs_input_states active
         V3DD::COMPLEX_DRAWING([&]()
         {
             const std::string drawName("ugv_nav4d_check_start_goal_" + name);
@@ -278,7 +278,7 @@ bool EnvironmentXYZTheta::checkStartGoalNode(const string& name, traversability_
 void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
 {
 
-#ifdef ENABLE_DEBUG_DRAWINGS
+#if 0 //V3DD disabled: only ugv_nav4d_rs_input_states active
     V3DD::CLEAR_DRAWING("ugv_nav4d_env_goalPos");
     V3DD::DRAW_ARROW("ugv_nav4d_env_goalPos", goalPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
             base::Vector3d(1,1,1), V3DD::Color::red);
@@ -325,7 +325,7 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
     precomputeCost();
 
     //draw greedy path
-#ifdef ENABLE_DEBUG_DRAWINGS
+#if 0 //V3DD disabled: only ugv_nav4d_rs_input_states active
     V3DD::COMPLEX_DRAWING([&]()
     {
         V3DD::CLEAR_DRAWING("ugv_nav4d_greedyPath");
@@ -361,7 +361,7 @@ void EnvironmentXYZTheta::setGoal(const Eigen::Vector3d& goalPos, double theta)
 
 void EnvironmentXYZTheta::setStart(const Eigen::Vector3d& startPos, double theta)
 {
-#ifdef ENABLE_DEBUG_DRAWINGS
+#if 0 //V3DD disabled: only ugv_nav4d_rs_input_states active
         V3DD::CLEAR_DRAWING("ugv_nav4d_env_startPos");
         V3DD::DRAW_ARROW("ugv_nav4d_env_startPos", startPos, base::Quaterniond(Eigen::AngleAxisd(M_PI, base::Vector3d::UnitX())),
                      base::Vector3d(1,1,1), V3DD::Color::blue);
@@ -669,7 +669,7 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
     const ThetaNode *const sourceThetaNode = sourceHash.thetaNode;
     traversability_generator3d::TravGenNode *sourceTravNode = sourceNode->getUserData().travNode;
 
-#ifdef ENABLE_DEBUG_DRAWINGS
+#if 0 //V3DD disabled: only ugv_nav4d_rs_input_states active
         V3DD::COMPLEX_DRAWING([&]()
         {
 
@@ -1151,7 +1151,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
     result.clear();
     base::Trajectory curPart;
 
-#ifdef ENABLE_DEBUG_DRAWINGS
+#if 0 //V3DD disabled: only ugv_nav4d_rs_input_states active
         V3DD::CLEAR_DRAWING("ugv_nav4d_trajectory");
 #endif
 
@@ -1214,7 +1214,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
                 {
                     pointOnTravPlane = line.intersectionPoint(travNodePlane);
                 }
-#ifdef ENABLE_DEBUG_DRAWINGS
+#if 0 //V3DD disabled: only ugv_nav4d_rs_input_states active
                 V3DD::DRAW_SPHERE("ugv_nav4d_trajectory_poses", pointOnTravPlane, 0.01, V3DD::Color::red);
 #endif
                 //TODO: Only left here until software which still uses trajectory2D is updated to use trajectory3D
@@ -1278,7 +1278,7 @@ void EnvironmentXYZTheta::getTrajectory(const vector<int>& stateIDPath,
             }
         }
 
-#ifdef ENABLE_DEBUG_DRAWINGS
+#if 0 //V3DD disabled: only ugv_nav4d_rs_input_states active
             V3DD::COMPLEX_DRAWING([&]()
             {
                 Eigen::Vector4d color = V3DD::Color::cyan;
@@ -1454,6 +1454,7 @@ bool EnvironmentXYZTheta::validateReedsSheppSegment(traversability_generator3d::
 void EnvironmentXYZTheta::getTrajectoryReedsShepp(const vector<int>& stateIDPath,
                                                   vector<SubTrajectory>& result,
                                                   bool setZToZero, const Eigen::Vector3d& startPos,
+                                                  const double& startHeading,
                                                   const Eigen::Vector3d& goalPos, const double& goalHeading,
                                                   const Eigen::Affine3d& plan2Body, double stepSize, int maxShortcut)
 {
@@ -1485,10 +1486,37 @@ void EnvironmentXYZTheta::getTrajectoryReedsShepp(const vector<int>& stateIDPath
         wpPose[k].position = p.head<2>();
         wpPose[k].orientation = h.thetaNode->theta.getRadian();
     }
-    //Anchor the exact continuous start/goal endpoints requested by the caller.
+    //Anchor the exact continuous start/goal endpoints requested by the caller. Without the
+    //heading anchors the first/last RS segment would depart from the lattice-quantized
+    //angle (up to half an angular bin off the robot's true heading).
     wpPose[0].position = startPos.head<2>();
+    wpPose[0].orientation = startHeading;
     wpPose[N - 1].position = goalPos.head<2>();
     wpPose[N - 1].orientation = goalHeading;
+
+#ifdef ENABLE_DEBUG_DRAWINGS
+    //Draw the raw search-solution states -- the skeleton Reeds-Shepp shortcuts over.
+    //Yellow post + cyan heading tick per state, white line along the skeleton. Compare
+    //against the final (RS-shortcut) trajectory rendered by the GUI.
+    V3DD::COMPLEX_DRAWING([&]()
+    {
+        V3DD::CLEAR_DRAWING("ugv_nav4d_rs_input_states");
+        Eigen::Vector3d prev(Eigen::Vector3d::Zero());
+        for(size_t k = 0; k < N; ++k)
+        {
+            Eigen::Vector3d pos = getStatePosition(stateIDPath[k]);
+            pos.z() += 0.05;
+            V3DD::DRAW_CYLINDER("ugv_nav4d_rs_input_states", pos,
+                                Eigen::Vector3d(0.02, 0.02, 0.3), V3DD::Color::yellow);
+            const Eigen::Vector3d tip = pos + Eigen::Vector3d(std::cos(wpPose[k].orientation),
+                                                              std::sin(wpPose[k].orientation), 0.0) * 0.25;
+            V3DD::DRAW_LINE("ugv_nav4d_rs_input_states", pos, tip, V3DD::Color::cyan);
+            if(k > 0)
+                V3DD::DRAW_LINE("ugv_nav4d_rs_input_states", prev, pos, V3DD::Color::white);
+            prev = pos;
+        }
+    });
+#endif
 
     //Lift a 2D map point onto a trav node's support plane and transform to body frame.
     //Mirrors the projection used in getTrajectory().
@@ -1872,7 +1900,7 @@ void EnvironmentXYZTheta::precomputeCost()
                 }
             }
 
-#ifdef ENABLE_DEBUG_DRAWINGS
+#if 0 //V3DD disabled: only ugv_nav4d_rs_input_states active
             V3DD::COMPLEX_DRAWING([&]()
             {
                 V3DD::CLEAR_DRAWING("ugv_nav4d_corridor");
@@ -1887,7 +1915,7 @@ void EnvironmentXYZTheta::precomputeCost()
         {
             LOG_WARN_S << "Greedy path did not reach goal. Disabling corridor pruning.";
             nodeInCorridor.assign(largestId + 1, true);
-#ifdef ENABLE_DEBUG_DRAWINGS
+#if 0 //V3DD disabled: only ugv_nav4d_rs_input_states active
             V3DD::COMPLEX_DRAWING([&]()
             {
                 V3DD::CLEAR_DRAWING("ugv_nav4d_corridor");
@@ -1898,7 +1926,7 @@ void EnvironmentXYZTheta::precomputeCost()
     else
     {
         nodeInCorridor.assign(largestId + 1, true);
-#ifdef ENABLE_DEBUG_DRAWINGS
+#if 0 //V3DD disabled: only ugv_nav4d_rs_input_states active
         V3DD::COMPLEX_DRAWING([&]()
         {
             V3DD::CLEAR_DRAWING("ugv_nav4d_corridor");
@@ -2108,7 +2136,7 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
             trajectory.spline.setSingleton(positions[0]);
         }
         trajectory.speed = motions[bestMotionIndex].type == Motion::Type::MOV_BACKWARD? -mobilityConfig.translationSpeed : mobilityConfig.translationSpeed;
-#ifdef ENABLE_DEBUG_DRAWINGS
+#if 0 //V3DD disabled: only ugv_nav4d_rs_input_states active
             V3DD::COMPLEX_DRAWING([&]()
             {
                 for(base::Vector3d pos : positions)

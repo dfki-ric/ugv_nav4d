@@ -110,7 +110,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
 
     LOG_DEBUG_S << "Planning with " << plannerConfig.numThreads << " threads";
     omp_set_num_threads(plannerConfig.numThreads);
-#ifdef ENABLE_DEBUG_DRAWINGS
+#if 0 //V3DD disabled: only ugv_nav4d_rs_input_states active
     V3DD::CLEAR_DRAWING("ugv_nav4d_successors");
 #endif
     if(!env)
@@ -273,9 +273,9 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
             planner->get_search_stats(&stats);
             if(plannerConfig.useReedsSheppFinalPath)
             {
-                env->getTrajectoryReedsShepp(solutionIds, resultTrajectory2D, true, start_translation, goal_translation, end_pose.getYaw(), ground2Body,
+                env->getTrajectoryReedsShepp(solutionIds, resultTrajectory2D, true, start_translation, start_pose.getYaw(), goal_translation, end_pose.getYaw(), ground2Body,
                                              plannerConfig.reedsSheppStepSize, plannerConfig.reedsSheppMaxShortcut);
-                env->getTrajectoryReedsShepp(solutionIds, resultTrajectory3D, false, start_translation, goal_translation, end_pose.getYaw(), ground2Body,
+                env->getTrajectoryReedsShepp(solutionIds, resultTrajectory3D, false, start_translation, start_pose.getYaw(), goal_translation, end_pose.getYaw(), ground2Body,
                                              plannerConfig.reedsSheppStepSize, plannerConfig.reedsSheppMaxShortcut);
             }
             else
