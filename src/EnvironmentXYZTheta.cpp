@@ -948,7 +948,15 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                     Eigen::Vector3d succPos, goalPos;
                     travMap->fromGrid(successXYNode->getIndex(), succPos, successXYNode->getHeight(), true);
                     travMap->fromGrid(goalXYZNode->getIndex(), goalPos, goalXYZNode->getHeight(), true);
-                    if ((succPos.head<2>() - goalPos.head<2>()).norm() <= goalDistanceMargin)
+                    //The margin must be evaluated in 3D: with an xy-only check, a state on
+                    //another storey directly below/above the goal satisfies the margin and
+                    //the search terminates on the wrong floor. Same-level means within
+                    //maxStepHeight, plus the ground variation possible across the margin
+                    //radius on a maximally sloped approach.
+                    const double zTolerance = travConf.maxStepHeight +
+                                              goalDistanceMargin * std::tan(travConf.maxSlope);
+                    if ((succPos.head<2>() - goalPos.head<2>()).norm() <= goalDistanceMargin &&
+                        std::abs(succPos.z() - goalPos.z()) <= zTolerance)
                     {
                         withinDistance = true;
                     }
