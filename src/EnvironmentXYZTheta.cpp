@@ -1506,6 +1506,9 @@ void EnvironmentXYZTheta::getTrajectoryReedsShepp(const vector<int>& stateIDPath
     //Draw the raw search-solution states -- the skeleton Reeds-Shepp shortcuts over.
     //Yellow post + cyan heading tick per state, white line along the skeleton. Compare
     //against the final (RS-shortcut) trajectory rendered by the GUI.
+    //NOTE: the white lines are straight state-to-state chords. A single primitive can
+    //span a whole staircase, so in multi-storey maps a chord may visually cut through
+    //the air between floors -- the real path follows the surface.
     V3DD::COMPLEX_DRAWING([&]()
     {
         V3DD::CLEAR_DRAWING("ugv_nav4d_rs_input_states");
