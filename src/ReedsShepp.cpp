@@ -74,7 +74,56 @@ struct RSPath
         return std::fabs(len[0]) + std::fabs(len[1]) + std::fabs(len[2]) +
                std::fabs(len[3]) + std::fabs(len[4]);
     }
+
+    /** Number of direction reversals (cusps / gear changes) along the path. */
+    unsigned int cusps() const
+    {
+        unsigned int n = 0;
+        double prev = 0.0;
+        for (int i = 0; i < 5; ++i)
+        {
+            if (type[i] == RS_NOP || std::fabs(len[i]) <= RS_ZERO)
+                continue;
+            if (prev != 0.0 && ((len[i] > 0.0) != (prev > 0.0)))
+                ++n;
+            prev = len[i];
+        }
+        return n;
+    }
 };
+
+/** Keep the better of the two candidate paths in @p best. Selection is
+ *  lexicographic: fewest direction reversals first (a cusp means stopping and
+ *  switching gear, which is expensive to execute on a real vehicle), shortest
+ *  length as tie-break.
+ *
+ *  With @p forwardOnly, reverse segments are not allowed. A reverse *arc* of
+ *  angle a can be replaced by a forward arc of 2*pi - a on the same steering
+ *  circle (same endpoint and heading), so it is lifted instead of rejected;
+ *  a reverse *straight* has no forward equivalent and rejects the candidate. */
+inline void consider(RSPath& best, bool forwardOnly, RSPath cand)
+{
+    if (forwardOnly)
+    {
+        for (int i = 0; i < 5; ++i)
+        {
+            if (cand.type[i] == RS_NOP || cand.len[i] >= -RS_ZERO)
+                continue;
+            if (cand.type[i] == RS_STRAIGHT)
+                return;
+            cand.len[i] += RS_TWOPI;
+        }
+    }
+    if (!std::isfinite(best.length()))
+    {
+        best = cand;
+        return;
+    }
+    const unsigned int cc = cand.cusps();
+    const unsigned int bc = best.cusps();
+    if (cc < bc || (cc == bc && cand.length() < best.length()))
+        best = cand;
+}
 
 inline double mod2pi(double x)
 {
@@ -135,49 +184,25 @@ inline bool LpSpRp(double x, double y, double phi, double& t, double& u, double&
     return false;
 }
 
-void CSC(double x, double y, double phi, RSPath& path)
+void CSC(double x, double y, double phi, bool forwardOnly, RSPath& path)
 {
-    double t, u, v, Lmin = path.length(), L;
-    if (LpSpLp(x, y, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))
-    {
-        path = RSPath(RS_TYPES[14], t, u, v);
-        Lmin = L;
-    }
-    if (LpSpLp(-x, y, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip
-    {
-        path = RSPath(RS_TYPES[14], -t, -u, -v);
-        Lmin = L;
-    }
-    if (LpSpLp(x, -y, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // reflect
-    {
-        path = RSPath(RS_TYPES[15], t, u, v);
-        Lmin = L;
-    }
-    if (LpSpLp(-x, -y, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip + reflect
-    {
-        path = RSPath(RS_TYPES[15], -t, -u, -v);
-        Lmin = L;
-    }
-    if (LpSpRp(x, y, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))
-    {
-        path = RSPath(RS_TYPES[12], t, u, v);
-        Lmin = L;
-    }
-    if (LpSpRp(-x, y, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip
-    {
-        path = RSPath(RS_TYPES[12], -t, -u, -v);
-        Lmin = L;
-    }
-    if (LpSpRp(x, -y, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // reflect
-    {
-        path = RSPath(RS_TYPES[13], t, u, v);
-        Lmin = L;
-    }
-    if (LpSpRp(-x, -y, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip + reflect
-    {
-        path = RSPath(RS_TYPES[13], -t, -u, -v);
-        Lmin = L;
-    }
+    double t, u, v;
+    if (LpSpLp(x, y, phi, t, u, v))
+        consider(path, forwardOnly, RSPath(RS_TYPES[14], t, u, v));
+    if (LpSpLp(-x, y, -phi, t, u, v))  // timeflip
+        consider(path, forwardOnly, RSPath(RS_TYPES[14], -t, -u, -v));
+    if (LpSpLp(x, -y, -phi, t, u, v))  // reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[15], t, u, v));
+    if (LpSpLp(-x, -y, phi, t, u, v))  // timeflip + reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[15], -t, -u, -v));
+    if (LpSpRp(x, y, phi, t, u, v))
+        consider(path, forwardOnly, RSPath(RS_TYPES[12], t, u, v));
+    if (LpSpRp(-x, y, -phi, t, u, v))  // timeflip
+        consider(path, forwardOnly, RSPath(RS_TYPES[12], -t, -u, -v));
+    if (LpSpRp(x, -y, -phi, t, u, v))  // reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[13], t, u, v));
+    if (LpSpRp(-x, -y, phi, t, u, v))  // timeflip + reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[13], -t, -u, -v));
 }
 
 /* ---- CCC ---- */
@@ -196,52 +221,28 @@ inline bool LpRmL(double x, double y, double phi, double& t, double& u, double& 
     return false;
 }
 
-void CCC(double x, double y, double phi, RSPath& path)
+void CCC(double x, double y, double phi, bool forwardOnly, RSPath& path)
 {
-    double t, u, v, Lmin = path.length(), L;
-    if (LpRmL(x, y, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))
-    {
-        path = RSPath(RS_TYPES[0], t, u, v);
-        Lmin = L;
-    }
-    if (LpRmL(-x, y, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip
-    {
-        path = RSPath(RS_TYPES[0], -t, -u, -v);
-        Lmin = L;
-    }
-    if (LpRmL(x, -y, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // reflect
-    {
-        path = RSPath(RS_TYPES[1], t, u, v);
-        Lmin = L;
-    }
-    if (LpRmL(-x, -y, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip + reflect
-    {
-        path = RSPath(RS_TYPES[1], -t, -u, -v);
-        Lmin = L;
-    }
+    double t, u, v;
+    if (LpRmL(x, y, phi, t, u, v))
+        consider(path, forwardOnly, RSPath(RS_TYPES[0], t, u, v));
+    if (LpRmL(-x, y, -phi, t, u, v))  // timeflip
+        consider(path, forwardOnly, RSPath(RS_TYPES[0], -t, -u, -v));
+    if (LpRmL(x, -y, -phi, t, u, v))  // reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[1], t, u, v));
+    if (LpRmL(-x, -y, phi, t, u, v))  // timeflip + reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[1], -t, -u, -v));
 
     // backwards
     double xb = x * std::cos(phi) + y * std::sin(phi), yb = x * std::sin(phi) - y * std::cos(phi);
-    if (LpRmL(xb, yb, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))
-    {
-        path = RSPath(RS_TYPES[0], v, u, t);
-        Lmin = L;
-    }
-    if (LpRmL(-xb, yb, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip
-    {
-        path = RSPath(RS_TYPES[0], -v, -u, -t);
-        Lmin = L;
-    }
-    if (LpRmL(xb, -yb, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // reflect
-    {
-        path = RSPath(RS_TYPES[1], v, u, t);
-        Lmin = L;
-    }
-    if (LpRmL(-xb, -yb, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip + reflect
-    {
-        path = RSPath(RS_TYPES[1], -v, -u, -t);
-        Lmin = L;
-    }
+    if (LpRmL(xb, yb, phi, t, u, v))
+        consider(path, forwardOnly, RSPath(RS_TYPES[0], v, u, t));
+    if (LpRmL(-xb, yb, -phi, t, u, v))  // timeflip
+        consider(path, forwardOnly, RSPath(RS_TYPES[0], -v, -u, -t));
+    if (LpRmL(xb, -yb, -phi, t, u, v))  // reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[1], v, u, t));
+    if (LpRmL(-xb, -yb, phi, t, u, v))  // timeflip + reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[1], -v, -u, -t));
 }
 
 /* ---- CCCC ---- */
@@ -276,50 +277,26 @@ inline bool LpRumLumRp(double x, double y, double phi, double& t, double& u, dou
     return false;
 }
 
-void CCCC(double x, double y, double phi, RSPath& path)
+void CCCC(double x, double y, double phi, bool forwardOnly, RSPath& path)
 {
-    double t, u, v, Lmin = path.length(), L;
-    if (LpRupLumRm(x, y, phi, t, u, v) && Lmin > (L = std::fabs(t) + 2.0 * std::fabs(u) + std::fabs(v)))
-    {
-        path = RSPath(RS_TYPES[2], t, u, -u, v);
-        Lmin = L;
-    }
-    if (LpRupLumRm(-x, y, -phi, t, u, v) && Lmin > (L = std::fabs(t) + 2.0 * std::fabs(u) + std::fabs(v)))  // timeflip
-    {
-        path = RSPath(RS_TYPES[2], -t, -u, u, -v);
-        Lmin = L;
-    }
-    if (LpRupLumRm(x, -y, -phi, t, u, v) && Lmin > (L = std::fabs(t) + 2.0 * std::fabs(u) + std::fabs(v)))  // reflect
-    {
-        path = RSPath(RS_TYPES[3], t, u, -u, v);
-        Lmin = L;
-    }
-    if (LpRupLumRm(-x, -y, phi, t, u, v) && Lmin > (L = std::fabs(t) + 2.0 * std::fabs(u) + std::fabs(v)))  // timeflip + reflect
-    {
-        path = RSPath(RS_TYPES[3], -t, -u, u, -v);
-        Lmin = L;
-    }
+    double t, u, v;
+    if (LpRupLumRm(x, y, phi, t, u, v))
+        consider(path, forwardOnly, RSPath(RS_TYPES[2], t, u, -u, v));
+    if (LpRupLumRm(-x, y, -phi, t, u, v))  // timeflip
+        consider(path, forwardOnly, RSPath(RS_TYPES[2], -t, -u, u, -v));
+    if (LpRupLumRm(x, -y, -phi, t, u, v))  // reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[3], t, u, -u, v));
+    if (LpRupLumRm(-x, -y, phi, t, u, v))  // timeflip + reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[3], -t, -u, u, -v));
 
-    if (LpRumLumRp(x, y, phi, t, u, v) && Lmin > (L = std::fabs(t) + 2.0 * std::fabs(u) + std::fabs(v)))
-    {
-        path = RSPath(RS_TYPES[2], t, u, u, v);
-        Lmin = L;
-    }
-    if (LpRumLumRp(-x, y, -phi, t, u, v) && Lmin > (L = std::fabs(t) + 2.0 * std::fabs(u) + std::fabs(v)))  // timeflip
-    {
-        path = RSPath(RS_TYPES[2], -t, -u, -u, -v);
-        Lmin = L;
-    }
-    if (LpRumLumRp(x, -y, -phi, t, u, v) && Lmin > (L = std::fabs(t) + 2.0 * std::fabs(u) + std::fabs(v)))  // reflect
-    {
-        path = RSPath(RS_TYPES[3], t, u, u, v);
-        Lmin = L;
-    }
-    if (LpRumLumRp(-x, -y, phi, t, u, v) && Lmin > (L = std::fabs(t) + 2.0 * std::fabs(u) + std::fabs(v)))  // timeflip + reflect
-    {
-        path = RSPath(RS_TYPES[3], -t, -u, -u, -v);
-        Lmin = L;
-    }
+    if (LpRumLumRp(x, y, phi, t, u, v))
+        consider(path, forwardOnly, RSPath(RS_TYPES[2], t, u, u, v));
+    if (LpRumLumRp(-x, y, -phi, t, u, v))  // timeflip
+        consider(path, forwardOnly, RSPath(RS_TYPES[2], -t, -u, -u, -v));
+    if (LpRumLumRp(x, -y, -phi, t, u, v))  // reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[3], t, u, u, v));
+    if (LpRumLumRp(-x, -y, phi, t, u, v))  // timeflip + reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[3], -t, -u, -u, -v));
 }
 
 /* ---- CCSC ---- */
@@ -354,94 +331,46 @@ inline bool LpRmSmRm(double x, double y, double phi, double& t, double& u, doubl
     return false;
 }
 
-void CCSC(double x, double y, double phi, RSPath& path)
+void CCSC(double x, double y, double phi, bool forwardOnly, RSPath& path)
 {
-    double t, u, v, Lmin = path.length() - 0.5 * RS_PI, L;
-    if (LpRmSmLm(x, y, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))
-    {
-        path = RSPath(RS_TYPES[4], t, -0.5 * RS_PI, u, v);
-        Lmin = L;
-    }
-    if (LpRmSmLm(-x, y, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip
-    {
-        path = RSPath(RS_TYPES[4], -t, 0.5 * RS_PI, -u, -v);
-        Lmin = L;
-    }
-    if (LpRmSmLm(x, -y, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // reflect
-    {
-        path = RSPath(RS_TYPES[5], t, -0.5 * RS_PI, u, v);
-        Lmin = L;
-    }
-    if (LpRmSmLm(-x, -y, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip + reflect
-    {
-        path = RSPath(RS_TYPES[5], -t, 0.5 * RS_PI, -u, -v);
-        Lmin = L;
-    }
+    double t, u, v;
+    if (LpRmSmLm(x, y, phi, t, u, v))
+        consider(path, forwardOnly, RSPath(RS_TYPES[4], t, -0.5 * RS_PI, u, v));
+    if (LpRmSmLm(-x, y, -phi, t, u, v))  // timeflip
+        consider(path, forwardOnly, RSPath(RS_TYPES[4], -t, 0.5 * RS_PI, -u, -v));
+    if (LpRmSmLm(x, -y, -phi, t, u, v))  // reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[5], t, -0.5 * RS_PI, u, v));
+    if (LpRmSmLm(-x, -y, phi, t, u, v))  // timeflip + reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[5], -t, 0.5 * RS_PI, -u, -v));
 
-    if (LpRmSmRm(x, y, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))
-    {
-        path = RSPath(RS_TYPES[8], t, -0.5 * RS_PI, u, v);
-        Lmin = L;
-    }
-    if (LpRmSmRm(-x, y, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip
-    {
-        path = RSPath(RS_TYPES[8], -t, 0.5 * RS_PI, -u, -v);
-        Lmin = L;
-    }
-    if (LpRmSmRm(x, -y, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // reflect
-    {
-        path = RSPath(RS_TYPES[9], t, -0.5 * RS_PI, u, v);
-        Lmin = L;
-    }
-    if (LpRmSmRm(-x, -y, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip + reflect
-    {
-        path = RSPath(RS_TYPES[9], -t, 0.5 * RS_PI, -u, -v);
-        Lmin = L;
-    }
+    if (LpRmSmRm(x, y, phi, t, u, v))
+        consider(path, forwardOnly, RSPath(RS_TYPES[8], t, -0.5 * RS_PI, u, v));
+    if (LpRmSmRm(-x, y, -phi, t, u, v))  // timeflip
+        consider(path, forwardOnly, RSPath(RS_TYPES[8], -t, 0.5 * RS_PI, -u, -v));
+    if (LpRmSmRm(x, -y, -phi, t, u, v))  // reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[9], t, -0.5 * RS_PI, u, v));
+    if (LpRmSmRm(-x, -y, phi, t, u, v))  // timeflip + reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[9], -t, 0.5 * RS_PI, -u, -v));
 
     // backwards
     double xb = x * std::cos(phi) + y * std::sin(phi), yb = x * std::sin(phi) - y * std::cos(phi);
-    if (LpRmSmLm(xb, yb, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))
-    {
-        path = RSPath(RS_TYPES[6], v, u, -0.5 * RS_PI, t);
-        Lmin = L;
-    }
-    if (LpRmSmLm(-xb, yb, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip
-    {
-        path = RSPath(RS_TYPES[6], -v, -u, 0.5 * RS_PI, -t);
-        Lmin = L;
-    }
-    if (LpRmSmLm(xb, -yb, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // reflect
-    {
-        path = RSPath(RS_TYPES[7], v, u, -0.5 * RS_PI, t);
-        Lmin = L;
-    }
-    if (LpRmSmLm(-xb, -yb, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip + reflect
-    {
-        path = RSPath(RS_TYPES[7], -v, -u, 0.5 * RS_PI, -t);
-        Lmin = L;
-    }
+    if (LpRmSmLm(xb, yb, phi, t, u, v))
+        consider(path, forwardOnly, RSPath(RS_TYPES[6], v, u, -0.5 * RS_PI, t));
+    if (LpRmSmLm(-xb, yb, -phi, t, u, v))  // timeflip
+        consider(path, forwardOnly, RSPath(RS_TYPES[6], -v, -u, 0.5 * RS_PI, -t));
+    if (LpRmSmLm(xb, -yb, -phi, t, u, v))  // reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[7], v, u, -0.5 * RS_PI, t));
+    if (LpRmSmLm(-xb, -yb, phi, t, u, v))  // timeflip + reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[7], -v, -u, 0.5 * RS_PI, -t));
 
-    if (LpRmSmRm(xb, yb, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))
-    {
-        path = RSPath(RS_TYPES[10], v, u, -0.5 * RS_PI, t);
-        Lmin = L;
-    }
-    if (LpRmSmRm(-xb, yb, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip
-    {
-        path = RSPath(RS_TYPES[10], -v, -u, 0.5 * RS_PI, -t);
-        Lmin = L;
-    }
-    if (LpRmSmRm(xb, -yb, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // reflect
-    {
-        path = RSPath(RS_TYPES[11], v, u, -0.5 * RS_PI, t);
-        Lmin = L;
-    }
-    if (LpRmSmRm(-xb, -yb, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip + reflect
-    {
-        path = RSPath(RS_TYPES[11], -v, -u, 0.5 * RS_PI, -t);
-        Lmin = L;
-    }
+    if (LpRmSmRm(xb, yb, phi, t, u, v))
+        consider(path, forwardOnly, RSPath(RS_TYPES[10], v, u, -0.5 * RS_PI, t));
+    if (LpRmSmRm(-xb, yb, -phi, t, u, v))  // timeflip
+        consider(path, forwardOnly, RSPath(RS_TYPES[10], -v, -u, 0.5 * RS_PI, -t));
+    if (LpRmSmRm(xb, -yb, -phi, t, u, v))  // reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[11], v, u, -0.5 * RS_PI, t));
+    if (LpRmSmRm(-xb, -yb, phi, t, u, v))  // timeflip + reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[11], -v, -u, 0.5 * RS_PI, -t));
 }
 
 /* ---- CCSCC ---- */
@@ -463,53 +392,42 @@ inline bool LpRmSLmRp(double x, double y, double phi, double& t, double& u, doub
     return false;
 }
 
-void CCSCC(double x, double y, double phi, RSPath& path)
+void CCSCC(double x, double y, double phi, bool forwardOnly, RSPath& path)
 {
-    double t, u, v, Lmin = path.length() - RS_PI, L;
-    if (LpRmSLmRp(x, y, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))
-    {
-        path = RSPath(RS_TYPES[16], t, -0.5 * RS_PI, u, -0.5 * RS_PI, v);
-        Lmin = L;
-    }
-    if (LpRmSLmRp(-x, y, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip
-    {
-        path = RSPath(RS_TYPES[16], -t, 0.5 * RS_PI, -u, 0.5 * RS_PI, -v);
-        Lmin = L;
-    }
-    if (LpRmSLmRp(x, -y, -phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // reflect
-    {
-        path = RSPath(RS_TYPES[17], t, -0.5 * RS_PI, u, -0.5 * RS_PI, v);
-        Lmin = L;
-    }
-    if (LpRmSLmRp(-x, -y, phi, t, u, v) && Lmin > (L = std::fabs(t) + std::fabs(u) + std::fabs(v)))  // timeflip + reflect
-    {
-        path = RSPath(RS_TYPES[17], -t, 0.5 * RS_PI, -u, 0.5 * RS_PI, -v);
-        Lmin = L;
-    }
+    double t, u, v;
+    if (LpRmSLmRp(x, y, phi, t, u, v))
+        consider(path, forwardOnly, RSPath(RS_TYPES[16], t, -0.5 * RS_PI, u, -0.5 * RS_PI, v));
+    if (LpRmSLmRp(-x, y, -phi, t, u, v))  // timeflip
+        consider(path, forwardOnly, RSPath(RS_TYPES[16], -t, 0.5 * RS_PI, -u, 0.5 * RS_PI, -v));
+    if (LpRmSLmRp(x, -y, -phi, t, u, v))  // reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[17], t, -0.5 * RS_PI, u, -0.5 * RS_PI, v));
+    if (LpRmSLmRp(-x, -y, phi, t, u, v))  // timeflip + reflect
+        consider(path, forwardOnly, RSPath(RS_TYPES[17], -t, 0.5 * RS_PI, -u, 0.5 * RS_PI, -v));
 }
 
-RSPath reedsShepp(double x, double y, double phi)
+RSPath reedsShepp(double x, double y, double phi, bool forwardOnly)
 {
     RSPath path;
-    CSC(x, y, phi, path);
-    CCC(x, y, phi, path);
-    CCCC(x, y, phi, path);
-    CCSC(x, y, phi, path);
-    CCSCC(x, y, phi, path);
+    CSC(x, y, phi, forwardOnly, path);
+    CCC(x, y, phi, forwardOnly, path);
+    CCCC(x, y, phi, forwardOnly, path);
+    CCSC(x, y, phi, forwardOnly, path);
+    CCSCC(x, y, phi, forwardOnly, path);
     return path;
 }
 
 /** Transform the goal pose into the start-relative, radius-normalized frame in
  *  which the closed-form solver operates, and return the resulting path. */
 RSPath normalizedPath(double x0, double y0, double th0,
-                      double x1, double y1, double th1, double radius)
+                      double x1, double y1, double th1, double radius,
+                      bool forwardOnly)
 {
     double dx = x1 - x0, dy = y1 - y0;
     double c = std::cos(th0), s = std::sin(th0);
     double x = (c * dx + s * dy) / radius;
     double y = (-s * dx + c * dy) / radius;
     double phi = th1 - th0;
-    return reedsShepp(x, y, phi);
+    return reedsShepp(x, y, phi, forwardOnly);
 }
 
 }  // namespace
@@ -520,19 +438,20 @@ double ReedsShepp::distance(double x0, double y0, double th0,
 {
     if (turningRadius <= 0.0)
         return std::numeric_limits<double>::infinity();
-    return normalizedPath(x0, y0, th0, x1, y1, th1, turningRadius).length() * turningRadius;
+    return normalizedPath(x0, y0, th0, x1, y1, th1, turningRadius, false).length() * turningRadius;
 }
 
 bool ReedsShepp::sample(double x0, double y0, double th0,
                         double x1, double y1, double th1,
                         double turningRadius, double stepSize,
-                        std::vector<RSSample>& outSamples)
+                        std::vector<RSSample>& outSamples,
+                        bool forwardOnly)
 {
     outSamples.clear();
     if (turningRadius <= 0.0)
         return false;
 
-    const RSPath path = normalizedPath(x0, y0, th0, x1, y1, th1, turningRadius);
+    const RSPath path = normalizedPath(x0, y0, th0, x1, y1, th1, turningRadius, forwardOnly);
     if (!std::isfinite(path.length()))
         return false;
 

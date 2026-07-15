@@ -1048,9 +1048,12 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
             travMap->fromGrid(goalXYZNode->getIndex(), goalPosWorld, goalXYZNode->getHeight(), true);
 
             std::vector<RSSample> samples;
+            // Respect the primitive setup: without backward primitives the RS curves
+            // must not introduce reverse driving either.
             if(ReedsShepp::sample(sourcePosWorld.x(), sourcePosWorld.y(), sourceThetaNode->theta.getRadian(),
                                   goalPosWorld.x(), goalPosWorld.y(), goalThetaNode->theta.getRadian(),
-                                  mobilityConfig.minTurningRadius, stepSize, samples))
+                                  mobilityConfig.minTurningRadius, stepSize, samples,
+                                  !primitiveConfig.generateBackwardMotions))
             {
                 std::vector<traversability_generator3d::TravGenNode*> nodes;
                 if(validateReedsSheppSegment(sourceTravNode, samples, goalXYZNode->getUserData().travNode, nodes))
@@ -1624,7 +1627,8 @@ void EnvironmentXYZTheta::getTrajectoryReedsShepp(const vector<int>& stateIDPath
             std::vector<RSSample> samples;
             if(!ReedsShepp::sample(wpPose[i].position.x(), wpPose[i].position.y(), wpPose[i].orientation,
                                    wpPose[j].position.x(), wpPose[j].position.y(), wpPose[j].orientation,
-                                   turningRadius, stepSize, samples))
+                                   turningRadius, stepSize, samples,
+                                   !primitiveConfig.generateBackwardMotions))
                 continue;
 
             std::vector<traversability_generator3d::TravGenNode*> nodes;
@@ -1665,7 +1669,8 @@ void EnvironmentXYZTheta::getTrajectoryReedsShepp(const vector<int>& stateIDPath
                     std::vector<RSSample> samples;
                     if(ReedsShepp::sample(wpPose[i].position.x(), wpPose[i].position.y(), wpPose[i].orientation,
                                           gp.x(), gp.y(), goalThetaNode->theta.getRadian(),
-                                          turningRadius, stepSize, samples))
+                                          turningRadius, stepSize, samples,
+                                          !primitiveConfig.generateBackwardMotions))
                     {
                         std::vector<traversability_generator3d::TravGenNode*> nodes;
                         if(validateReedsSheppSegment(wpNode[i], samples, goalXYZNode->getUserData().travNode, nodes))
