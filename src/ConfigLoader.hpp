@@ -100,6 +100,7 @@ public:
                 travConfig.maxStepHeight = tc["maxStepHeight"].as<double>(0.25);
                 travConfig.robotSizeX = tc["robotSizeX"].as<double>(0.5);
                 travConfig.robotSizeY = tc["robotSizeY"].as<double>(0.5);
+                travConfig.footprintOffsetX = tc["footprintOffsetX"].as<double>(0.0);
                 travConfig.robotHeight = tc["robotHeight"].as<double>(0.5);
                 travConfig.slopeMetricScale = tc["slopeMetricScale"].as<double>(1.0);
                 travConfig.inclineLimittingMinSlope = tc["inclineLimittingMinSlope"].as<double>(0.22);
@@ -126,6 +127,7 @@ public:
                 travConfig.maxStepHeight = params["maxStepHeight"] ? params["maxStepHeight"].as<double>(0.25) : 0.25;
                 travConfig.robotSizeX = params["robotSizeX"] ? params["robotSizeX"].as<double>(0.5) : 0.5;
                 travConfig.robotSizeY = params["robotSizeY"] ? params["robotSizeY"].as<double>(0.5) : 0.5;
+                travConfig.footprintOffsetX = params["footprintOffsetX"] ? params["footprintOffsetX"].as<double>(0.0) : 0.0;
                 travConfig.robotHeight = params["robotHeight"] ? params["robotHeight"].as<double>(0.5) : 0.5;
                 travConfig.slopeMetricScale = params["slopeMetricScale"] ? params["slopeMetricScale"].as<double>(1.0) : 1.0;
                 travConfig.inclineLimittingMinSlope = params["inclineLimittingMinSlope"] ? params["inclineLimittingMinSlope"].as<double>(0.22) : 0.22;
