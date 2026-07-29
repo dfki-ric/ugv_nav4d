@@ -2096,31 +2096,24 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
         }
 
 
-        //check if the endpose is outside an obstacle
-        std::vector<const traversability_generator3d::TravGenNode*> endPosePath;
-        std::vector<base::Pose2D> endPosePoses;
-        endPosePath.push_back(currentNode);
-        Eigen::Vector3d endPosWorld;
-        travMap->fromGrid(currentNode->getIndex(), endPosWorld, currentNode->getHeight(), true);
-        base::Pose2D endPose;
-        endPose.position = endPosWorld.topRows(2);
-        endPose.orientation = motions[i].endTheta.getRadian();
-        endPosePoses.push_back(endPose);
-        PathStatistic endPoseStats(travConf);
-        endPoseStats.calculateStatistics(endPosePath, endPosePoses, *travMap);
-        if(endPoseStats.getRobotStats().getNumObstacles() > 0 ||
-           endPoseStats.getRobotStats().getNumFrontiers() > 0)
+        // End-pose validity matches the planner's own state validity: the end
+        // CELL must be traversable and, if orientation-restricted, allow the
+        // end heading. Cell types already encode the full footprint (each cell
+        // is classified by box checks centered on it), so the previous
+        // whole-box scan over cells double-dilated the footprint and rejected
+        // every candidate in narrow partially-traversable corridors -- exactly
+        // where rescues are needed. A TRAVERSABLE end cell also guarantees the
+        // pose is replannable (setStart accepts it), while obstacle, frontier
+        // and unknown end cells are still rejected by the type check.
+        if(currentNode->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
         {
-            //this path ends in an obstacle
             continue;
         }
-        // HARD requirement at the end only: the rescue must park the robot in a
-        // pose the map model accepts, otherwise it is not replannable from there
-        // (setStart would fail with START_INVALID right after the recovery).
+        const double endOrientation = motions[i].endTheta.getRadian();
         const bool endOrientationRestricted =
             currentNode->getUserData().nodeType == ::traversability_generator3d::NodeType::PARTIALLY_TRAVERSABLE ||
             travConf.enableInclineLimitting;
-        if(endOrientationRestricted && !checkOrientationAllowed(currentNode, endPose.orientation))
+        if(endOrientationRestricted && !checkOrientationAllowed(currentNode, endOrientation))
         {
             //this path ends at a heading the end cell does not allow
             continue;
