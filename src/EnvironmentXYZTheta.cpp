@@ -2037,13 +2037,39 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
         firstPose.position += startPosWorld.head<2>();
         posesOnPath.push_back(firstPose);
 
+        // Disallowed headings on partially traversable cells along the way are
+        // counted as SOFT violations (like driven-over obstacle cells below):
+        // a rescue starts in a pose the model already dislikes, and its first
+        // steps often inherit that heading, so hard-rejecting them would leave
+        // no candidates at all. Only the END pose must be fully valid.
+        int orientationViolations = 0;
         intermediateStepsOk = true;
         for(size_t j = 1; j < motion.intermediateStepsTravMap.size(); ++j)
         {
             const PoseWithCell& pwc = motion.intermediateStepsTravMap[j];
             //diff is always a full offset to the start position
             const maps::grid::Index newIndex =  startIdxTravMap + pwc.cell;
-            currentNode = currentNode->getConnectedNode(newIndex);
+            // Do NOT walk graph connectivity here: obstacle nodes are never
+            // expanded, so adjacent obstacle cells have no edges between them,
+            // and a rescue crossing more than one obstacle cell would be
+            // discarded as "unconnected" although the cells exist -- exactly
+            // the situation a rescue is for. Look the node up directly in the
+            // map instead, height-continuous to the previous cell.
+            traversability_generator3d::TravGenNode* nextNode = nullptr;
+            if(travMap->inGrid(newIndex))
+            {
+                double bestHeightDiff = travConf.maxStepHeight;
+                for(traversability_generator3d::TravGenNode* candidate : travMap->at(newIndex))
+                {
+                    const double heightDiff = std::abs(candidate->getHeight() - currentNode->getHeight());
+                    if(heightDiff <= bestHeightDiff)
+                    {
+                        bestHeightDiff = heightDiff;
+                        nextNode = candidate;
+                    }
+                }
+            }
+            currentNode = nextNode;
             if(currentNode == nullptr)
             {
                 intermediateStepsOk = false;
@@ -2055,6 +2081,13 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
             curPose.position += startPosWorld.head<2>();
             posesOnPath.push_back(curPose);
 
+            const bool orientationRestricted =
+                currentNode->getUserData().nodeType == ::traversability_generator3d::NodeType::PARTIALLY_TRAVERSABLE ||
+                travConf.enableInclineLimitting;
+            if(orientationRestricted && !checkOrientationAllowed(currentNode, curPose.orientation))
+            {
+                orientationViolations++;
+            }
         }
 
         if(!intermediateStepsOk)
@@ -2081,11 +2114,23 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
             //this path ends in an obstacle
             continue;
         }
+        // HARD requirement at the end only: the rescue must park the robot in a
+        // pose the map model accepts, otherwise it is not replannable from there
+        // (setStart would fail with START_INVALID right after the recovery).
+        const bool endOrientationRestricted =
+            currentNode->getUserData().nodeType == ::traversability_generator3d::NodeType::PARTIALLY_TRAVERSABLE ||
+            travConf.enableInclineLimitting;
+        if(endOrientationRestricted && !checkOrientationAllowed(currentNode, endPose.orientation))
+        {
+            //this path ends at a heading the end cell does not allow
+            continue;
+        }
 
 
         PathStatistic stats(travConf);
         stats.calculateStatistics(nodesOnPath, posesOnPath, *travMap);
-        const int obstacleCount = stats.getRobotStats().getNumObstacles() + stats.getRobotStats().getNumFrontiers();
+        const int obstacleCount = stats.getRobotStats().getNumObstacles() + stats.getRobotStats().getNumFrontiers()
+                                  + orientationViolations;
 
         if(obstacleCount < bestMotionObstacleCount)
         {
