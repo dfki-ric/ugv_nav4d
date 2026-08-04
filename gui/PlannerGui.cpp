@@ -1,4 +1,5 @@
 #include "PlannerGui.h"
+#include <sched.h>
 #include <QFileDialog>
 #include <QPlainTextEdit>
 #include <unistd.h>
@@ -815,6 +816,10 @@ void PlannerGui::setupDefaultConfigs()
     plannerConfig.corridorWidth = 5.0;
     plannerConfig.maxTime = 5.0;
     plannerConfig.goalOrientationMargin = 0.0;
+
+    // One thread knob: the GUI-owned travGen expands with the planner's thread
+    // count (travConfig.numThreads = 0 would mean "do not parallelize").
+    travConfig.numThreads = static_cast<int>(plannerConfig.numThreads);
 }
 
 
@@ -1043,6 +1048,9 @@ void PlannerGui::numThreadsValueChanged(int newValue)
     {
         plannerConfig.numThreads = newValue; 
         if (planner) planner->setPlannerConfig(plannerConfig);
+        // Keep the GUI-owned travGen on the same thread count.
+        travConfig.numThreads = newValue;
+        if (travGen) travGen->setConfig(travConfig);
     }
 }
 
@@ -1676,6 +1684,15 @@ void PlannerGui::startPlanThread()
     inplanningphase.store(true);
 
     std::thread t([this](){
+        // OSG pins the viewer (= Qt GUI) thread to CPU 0 at realize(), and this
+        // worker thread plus the OpenMP team it spawns INHERIT that single-core
+        // mask -- the whole expansion then time-slices one core. Widen to all CPUs.
+        cpu_set_t allCpus;
+        CPU_ZERO(&allCpus);
+        for (long cpu = 0; cpu < sysconf(_SC_NPROCESSORS_ONLN); ++cpu)
+            CPU_SET(cpu, &allCpus);
+        sched_setaffinity(0, sizeof(allCpus), &allCpus);
+
         if (customPlanCallback)
         {
             customPlanCallback(this->start, this->goal);

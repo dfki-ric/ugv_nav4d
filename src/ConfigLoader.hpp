@@ -190,6 +190,10 @@ public:
                 plannerConfig.reedsSheppGoalShotMaxDistance = params["reedsSheppGoalShotMaxDistance"] ? params["reedsSheppGoalShotMaxDistance"].as<double>(15.0) : 15.0;
             }
             
+            // One thread knob: travgen's expansion uses the planner's thread count
+            // (travConfig.numThreads = 0 would mean "do not parallelize").
+            travConfig.numThreads = static_cast<int>(plannerConfig.numThreads);
+
             return true;
         } catch (const std::exception& e) {
             LOG_ERROR_S << "Failed to load config: " << e.what();

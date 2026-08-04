@@ -364,8 +364,11 @@ void Planner::setTravConfig(const traversability_generator3d::TraversabilityConf
         throw std::runtime_error("Planner::Planner : Configuration error, grid resolution of Primitives and TraversabilityGenerator3d differ");
     }
     traversabilityConfig = config;
+    // One thread knob: when travgen runs under the planner, its expansion uses
+    // the planner's thread count (0 would mean "do not parallelize").
+    traversabilityConfig.numThreads = static_cast<int>(plannerConfig.numThreads);
     if(env){
-        env->setTravConfig(config);
+        env->setTravConfig(traversabilityConfig);
     }
 }
 
