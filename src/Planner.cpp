@@ -39,7 +39,7 @@ void Planner::enablePathStatistics(bool enable){
     }
 }
 
-bool Planner::calculateGoal(Eigen::Vector3d& goal_translation, const double yaw) noexcept
+bool Planner::calculateGoal(Eigen::Vector3d& goal_translation, const double yaw)
 {
     if (tryGoal(goal_translation, yaw)){
         return true;
@@ -86,13 +86,13 @@ bool Planner::calculateGoal(Eigen::Vector3d& goal_translation, const double yaw)
     return false; // Add this to cover all control paths
 }
 
-bool Planner::tryGoal(const Eigen::Vector3d& translation, const double yaw) noexcept
+bool Planner::tryGoal(const Eigen::Vector3d& translation, const double yaw)
 {
     try
     {
         env->setGoal(translation, yaw);
     }
-    catch(const std::runtime_error& ex)
+    catch(const std::exception& ex)
     {
         LOG_ERROR_S << "Caught exception while setting goal pose:"  << ex.what();
         return false;
@@ -328,6 +328,9 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
 
 std::vector< Motion > Planner::getMotions() const
 {
+    if (!env) {
+        return {};
+    }
     return env->getMotions(solutionIds);
 }
 

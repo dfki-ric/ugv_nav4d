@@ -194,6 +194,27 @@ public:
             // (travConfig.numThreads = 0 would mean "do not parallelize").
             travConfig.numThreads = static_cast<int>(plannerConfig.numThreads);
 
+            // Validate values that crash or silently corrupt downstream:
+            // numAngles == 0 is an integer division by zero (SIGFPE) in
+            // DiscreteTheta; non-positive resolution/speeds poison costs.
+            if (splineConfig.numAngles < 1 || splineConfig.numEndAngles < 1)
+            {
+                LOG_ERROR_S << "Config error: numAngles/numEndAngles must be >= 1 (got "
+                            << splineConfig.numAngles << "/" << splineConfig.numEndAngles << ").";
+                return false;
+            }
+            if (splineConfig.gridSize <= 0.0 || travConfig.gridResolution <= 0.0)
+            {
+                LOG_ERROR_S << "Config error: grid resolution must be > 0.";
+                return false;
+            }
+            if (mobilityConfig.translationSpeed <= 0.0 || mobilityConfig.rotationSpeed <= 0.0)
+            {
+                LOG_ERROR_S << "Config error: translationSpeed/rotationSpeed must be > 0 (got "
+                            << mobilityConfig.translationSpeed << "/" << mobilityConfig.rotationSpeed << ").";
+                return false;
+            }
+
             return true;
         } catch (const std::exception& e) {
             LOG_ERROR_S << "Failed to load config: " << e.what();

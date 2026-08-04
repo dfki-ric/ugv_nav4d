@@ -339,9 +339,13 @@ double PreComputedMotions::calculateCurvatureFromRadius(const double r)
         Since the curvature of a circle is constant the value of x doesnt matter.
         x has to be smaller than r since we calc sqrt(r^2 - x ^2) which is only defined for positive values.
      */
-    const double x = r/2.0;
+    // r == 0 would produce 0/sqrt(0) = NaN in release builds (the asserts below
+    // are compiled out), silently admitting impossible motions. Clamp to a tiny
+    // radius = an extremely large but finite max curvature.
+    const double rSafe = std::max(r, 1e-6);
+    const double x = rSafe/2.0;
     const double x2 = x * x;
-    const double r2 = r * r;
+    const double r2 = rSafe * rSafe;
     const double df = - (x / std::sqrt(r2 - x2));
     const double ddf = - (r2 / std::pow(r2 - x2, 3.0 / 2.0));
     assert(!std::isnan(df) && !std::isinf(df));

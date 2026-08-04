@@ -250,10 +250,13 @@ private:
     QProgressBar* bar;
     QLabel* statusLabel;
     QPlainTextEdit* logConsole;
-    int pipeFd[2];
-    int originalStdout;
-    int originalStderr;
+    int pipeFd[2] = {-1, -1};
+    int originalStdout = -1;
+    int originalStderr = -1;
     std::thread logReaderThread;
+    /** Planning/expansion worker; joined (not detached) so it can never outlive
+     *  this object and dereference destroyed members. */
+    std::thread planningThread;
     std::atomic<bool> stopLogReader{false};
     ugv_nav4d::Planner::PLANNING_RESULT lastPlanningResult;
     QWidget window;

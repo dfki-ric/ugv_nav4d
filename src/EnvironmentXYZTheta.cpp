@@ -864,8 +864,11 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 cost = motion.baseCost;
                 break;
             default:
-                LOG_ERROR_S << "Unknown slope metric selected";
-                throw std::runtime_error("Unknown slope metric selected");
+                // Throwing inside the omp parallel for would abort the whole
+                // process; degrade to the NONE metric instead.
+                LOG_ERROR_S << "Unknown slope metric selected — using baseCost.";
+                cost = motion.baseCost;
+                break;
         }
 
         if (usePathStatistics){
@@ -876,7 +879,13 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 double minDistToRobot = statistic.getBoundaryStats().getMinDistToObstacles();
                 minDistToRobot = std::min(outer_radius, minDistToRobot);
                 double impactFactor = (outer_radius - minDistToRobot) / outer_radius;
-                oassert(impactFactor < 1.001 && impactFactor >= 0);
+                // No oassert here: a throw inside the omp parallel for aborts the
+                // process. Clamp the numeric noise instead.
+                if (!(impactFactor < 1.001 && impactFactor >= 0))
+                {
+                    LOG_ERROR_S << "impactFactor out of range (" << impactFactor << "), clamping.";
+                    impactFactor = std::min(1.0, std::max(0.0, impactFactor));
+                }
 
                 cost += cost * impactFactor;
             }
@@ -887,7 +896,13 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                 double minDistToRobot = statistic.getBoundaryStats().getMinDistToFrontiers();
                 minDistToRobot = std::min(outer_radius, minDistToRobot);
                 double impactFactor = (outer_radius - minDistToRobot) / outer_radius;
-                oassert(impactFactor < 1.001 && impactFactor >= 0);
+                // No oassert here: a throw inside the omp parallel for aborts the
+                // process. Clamp the numeric noise instead.
+                if (!(impactFactor < 1.001 && impactFactor >= 0))
+                {
+                    LOG_ERROR_S << "impactFactor out of range (" << impactFactor << "), clamping.";
+                    impactFactor = std::min(1.0, std::max(0.0, impactFactor));
+                }
 
                 cost += cost * impactFactor;
             }
@@ -900,9 +915,15 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
 
         cost += nodeBaseCost;
 
-        oassert(cost <= std::numeric_limits<int>::max() && cost >= std::numeric_limits< int >::min());
-        oassert(int(cost) >= motion.baseCost);
-        oassert(motion.baseCost > 0);
+        // No oasserts here: a throw inside the omp parallel for aborts the whole
+        // process. Large slopeMetricScale values can overflow int; clamp instead
+        // (NaN also fails the first comparison and ends up clamped).
+        if (!(cost <= std::numeric_limits<int>::max() && cost >= motion.baseCost))
+        {
+            LOG_ERROR_S << "Successor cost out of range (" << cost << "), clamping.";
+            cost = (cost > motion.baseCost) ? std::numeric_limits<int>::max()
+                                            : motion.baseCost;
+        }
 
         const int iCost = (int)cost;
 
@@ -1512,6 +1533,12 @@ void EnvironmentXYZTheta::getTrajectoryReedsShepp(const vector<int>& stateIDPath
     //NOTE: the white lines are straight state-to-state chords. A single primitive can
     //span a whole staircase, so in multi-storey maps a chord may visually cut through
     //the air between floors -- the real path follows the surface.
+    // V3DD THROWS when no dispatcher was configured — the case in every
+    // HEADLESS process (ROS node, CLI tools) built with ENABLE_DEBUG_DRAWINGS.
+    // Without this guard the process ABORTS right after the first successful
+    // plan. Drawing is best-effort debug output: swallow and skip.
+    try
+    {
     V3DD::COMPLEX_DRAWING([&]()
     {
         V3DD::CLEAR_DRAWING("ugv_nav4d_rs_input_states");
@@ -1530,6 +1557,16 @@ void EnvironmentXYZTheta::getTrajectoryReedsShepp(const vector<int>& stateIDPath
             prev = pos;
         }
     });
+    }
+    catch(const std::exception& ex)
+    {
+        static bool warned = false;
+        if(!warned)
+        {
+            warned = true;
+            LOG_WARN_S << "Debug drawing disabled: " << ex.what();
+        }
+    }
 #endif
 
     //Lift a 2D map point onto a trav node's support plane and transform to body frame.

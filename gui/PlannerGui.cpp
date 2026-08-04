@@ -74,19 +74,33 @@ PlannerGui::PlannerGui(int argc, char** argv, bool autoLoadMls, bool loadConfigF
 
 PlannerGui::~PlannerGui()
 {
+    // The planning worker captures `this`; it must never outlive the GUI.
+    if (planningThread.joinable())
+    {
+        planningThread.join();
+    }
+
     stopLogReader.store(true);
-    close(pipeFd[1]); // Close write end to trigger EOF on the reader thread
+    if (pipeFd[1] >= 0)
+        close(pipeFd[1]); // Close write end to trigger EOF on the reader thread
     if (logReaderThread.joinable())
     {
         logReaderThread.join();
     }
-    close(pipeFd[0]); // Close read end
+    if (pipeFd[0] >= 0)
+        close(pipeFd[0]); // Close read end
 
     // Restore original stdout/stderr descriptors
-    dup2(originalStdout, STDOUT_FILENO);
-    dup2(originalStderr, STDERR_FILENO);
-    close(originalStdout);
-    close(originalStderr);
+    if (originalStdout >= 0)
+    {
+        dup2(originalStdout, STDOUT_FILENO);
+        close(originalStdout);
+    }
+    if (originalStderr >= 0)
+    {
+        dup2(originalStderr, STDERR_FILENO);
+        close(originalStderr);
+    }
 }
 
 void PlannerGui::setupUI()
@@ -230,7 +244,7 @@ void PlannerGui::setupUI()
     robotFormLayout->addRow("Rotation Speed (rad/s):", rotationSpeedSpinBox);
 
     minTurningRadiusSpinBox = new QDoubleSpinBox();
-    minTurningRadiusSpinBox->setMinimum(0.0);
+    minTurningRadiusSpinBox->setMinimum(0.01);
     minTurningRadiusSpinBox->setMaximum(50.0);
     minTurningRadiusSpinBox->setSingleStep(0.05);
     minTurningRadiusSpinBox->setDecimals(2);
@@ -1424,6 +1438,12 @@ void PlannerGui::replanButtonReleased()
 
 void PlannerGui::updateParamsButtonReleased()
 {
+    if (inplanningphase.load())
+    {
+        LOG_WARN_S << "Planning is running — parameter update rejected (it would "
+                      "destroy the planner/travGen under the worker thread).";
+        return;
+    }
     LOG_INFO_S << "Updating underlying structures with new parameters...";
 
     std::cout << "\n========================================\n"
@@ -1528,6 +1548,12 @@ void PlannerGui::updateParamsButtonReleased()
 // Spline slots
 void PlannerGui::applyGridResolution(double res)
 {
+    if (inplanningphase.load())
+    {
+        LOG_WARN_S << "Planning is running — grid resolution change rejected (it "
+                      "would destroy the planner under the worker thread).";
+        return;
+    }
     // Keep spline grid size and traversability grid resolution identical (the Planner requires it).
     splineConfig.gridSize = res;
     travConfig.gridResolution = res;
@@ -1683,7 +1709,12 @@ void PlannerGui::startPlanThread()
     // Mark the start of the planning phase
     inplanningphase.store(true);
 
-    std::thread t([this](){
+    // Joinable member thread (never detached): the destructor joins it, so it
+    // cannot outlive the GUI. A previous (finished) run is joined here first.
+    if (planningThread.joinable())
+        planningThread.join();
+
+    planningThread = std::thread([this](){
         // OSG pins the viewer (= Qt GUI) thread to CPU 0 at realize(), and this
         // worker thread plus the OpenMP team it spawns INHERIT that single-core
         // mask -- the whole expansion then time-slices one core. Widen to all CPUs.
@@ -1693,38 +1724,52 @@ void PlannerGui::startPlanThread()
             CPU_SET(cpu, &allCpus);
         sched_setaffinity(0, sizeof(allCpus), &allCpus);
 
-        if (customPlanCallback)
+        // Any exception escaping this thread would terminate the whole GUI, and
+        // an early exit must never leave inplanningphase stuck at true.
+        try
         {
-            customPlanCallback(this->start, this->goal);
-            inplanningphase.store(false);
-            return;
+            if (customPlanCallback)
+            {
+                customPlanCallback(this->start, this->goal);
+                inplanningphase.store(false);
+                return;
+            }
+
+            if (!usingPlannerDump){
+                std::vector<Eigen::Vector3d> startPositions;
+                startPositions.emplace_back(Eigen::Vector3d(this->start.position.x(),
+                                                             this->start.position.y(),
+                                                             this->start.position.z()-travConfig.distToGround));
+
+                emit statusUpdate("Status: Expanding traversability map...", "blue");
+                travGen->expandAll(startPositions);
+
+                // The first updateMap() builds the environment, which is where the motion
+                // primitives are generated; later calls only refresh the map.
+                if (planner && !planner->isEnvironmentInitialized())
+                    emit statusUpdate("Status: Generating motion primitives...", "blue");
+                else
+                    emit statusUpdate("Status: Updating map...", "blue");
+                planner->updateMap(travGen->getTraversabilityMap());
+            }
+            emit statusUpdate("Status: Planning (searching)...", "blue");
+            this->plan(this->start, this->goal);
         }
-
-        if (!usingPlannerDump){
-            std::vector<Eigen::Vector3d> startPositions;
-            startPositions.emplace_back(Eigen::Vector3d(this->start.position.x(),
-                                                         this->start.position.y(),
-                                                         this->start.position.z()-travConfig.distToGround));
-
-            emit statusUpdate("Status: Expanding traversability map...", "blue");
-            travGen->expandAll(startPositions);
-
-            // The first updateMap() builds the environment, which is where the motion
-            // primitives are generated; later calls only refresh the map.
-            if (planner && !planner->isEnvironmentInitialized())
-                emit statusUpdate("Status: Generating motion primitives...", "blue");
-            else
-                emit statusUpdate("Status: Updating map...", "blue");
-            planner->updateMap(travGen->getTraversabilityMap());
+        catch (const std::exception& ex)
+        {
+            LOG_ERROR_S << "Planning thread failed: " << ex.what();
+            emit statusUpdate(QString("Status: Planning failed: %1").arg(ex.what()), "red");
         }
-        emit statusUpdate("Status: Planning (searching)...", "blue");
-        this->plan(this->start, this->goal);
+        catch (...)
+        {
+            LOG_ERROR_S << "Planning thread failed with an unknown exception.";
+            emit statusUpdate("Status: Planning failed (unknown exception).", "red");
+        }
 
         // Mark the end of the planning phase after work is done
         inplanningphase.store(false);
 
     });
-    t.detach(); //needed to avoid destruction of thread at end of method
 }
 
 
@@ -1787,6 +1832,12 @@ void PlannerGui::plannerIsDone()
 
 void PlannerGui::dumpPressed()
 {
+    if (inplanningphase.load())
+    {
+        LOG_WARN_S << "Planning is running — dump rejected (planner state is being "
+                      "mutated by the worker thread).";
+        return;
+    }
     if (!plannerHasRun && !usingPlannerDump)
     {
         LOG_WARN_S << "Cannot create PlannerDump: Planner has not run yet or map is empty.";

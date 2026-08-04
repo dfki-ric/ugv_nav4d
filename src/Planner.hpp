@@ -121,8 +121,8 @@ public:
             const Eigen::Affine3d& ground2Body, bool setZToZero);
 
     private:
-    bool calculateGoal(Eigen::Vector3d& goal_translation, const double yaw) noexcept;
-    bool tryGoal(const Eigen::Vector3d& translation, const double yaw) noexcept;
+    bool calculateGoal(Eigen::Vector3d& goal_translation, const double yaw);
+    bool tryGoal(const Eigen::Vector3d& translation, const double yaw);
 
 };
 
