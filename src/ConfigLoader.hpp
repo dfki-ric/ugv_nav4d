@@ -173,6 +173,7 @@ public:
                 plannerConfig.reedsSheppMaxShortcut = pc["reedsSheppMaxShortcut"] ? pc["reedsSheppMaxShortcut"].as<int>(0) : 0;
                 plannerConfig.useReedsSheppGoalShot = pc["useReedsSheppGoalShot"] ? pc["useReedsSheppGoalShot"].as<bool>(false) : false;
                 plannerConfig.reedsSheppGoalShotMaxDistance = pc["reedsSheppGoalShotMaxDistance"] ? pc["reedsSheppGoalShotMaxDistance"].as<double>(15.0) : 15.0;
+                plannerConfig.reedsSheppMaxCusps = pc["reedsSheppMaxCusps"] ? pc["reedsSheppMaxCusps"].as<int>(1) : 1;
             } else {
                 plannerConfig.epsilonSteps = params["epsilonSteps"] ? params["epsilonSteps"].as<double>(2.0) : 2.0;
                 plannerConfig.initialEpsilon = params["initialEpsilon"] ? params["initialEpsilon"].as<double>(64.0) : 64.0;
@@ -188,6 +189,7 @@ public:
                 plannerConfig.reedsSheppMaxShortcut = params["reedsSheppMaxShortcut"] ? params["reedsSheppMaxShortcut"].as<int>(0) : 0;
                 plannerConfig.useReedsSheppGoalShot = params["useReedsSheppGoalShot"] ? params["useReedsSheppGoalShot"].as<bool>(false) : false;
                 plannerConfig.reedsSheppGoalShotMaxDistance = params["reedsSheppGoalShotMaxDistance"] ? params["reedsSheppGoalShotMaxDistance"].as<double>(15.0) : 15.0;
+                plannerConfig.reedsSheppMaxCusps = params["reedsSheppMaxCusps"] ? params["reedsSheppMaxCusps"].as<int>(1) : 1;
             }
             
             // One thread knob: travgen's expansion uses the planner's thread count

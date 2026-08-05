@@ -615,6 +615,18 @@ bool EnvironmentXYZTheta::checkExpandTreadSafe(traversability_generator3d::TravG
     return false;
 }
 
+/** Number of direction changes (cusps) in a sampled Reeds-Shepp curve. */
+static int countReedsSheppCusps(const std::vector<RSSample>& samples)
+{
+    int cusps = 0;
+    for(size_t k = 1; k < samples.size(); ++k)
+    {
+        if(samples[k].forward != samples[k - 1].forward)
+            ++cusps;
+    }
+    return cusps;
+}
+
 
 void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, vector< int >* CostV)
 {
@@ -1076,19 +1088,45 @@ void EnvironmentXYZTheta::GetSuccs(int SourceStateID, vector< int >* SuccIDV, ve
                                   mobilityConfig.minTurningRadius, stepSize, samples,
                                   !primitiveConfig.generateBackwardMotions))
             {
+                //Cheap cusp gate before the expensive map validation: only offer goal
+                //shots within the configured direction-change budget, so the search cannot
+                //terminate on a shunting maneuver the reconstruction would reject.
+                const bool cuspsOk = (reedsSheppMaxCusps < 0) ||
+                                     (countReedsSheppCusps(samples) <= reedsSheppMaxCusps);
                 std::vector<traversability_generator3d::TravGenNode*> nodes;
-                if(validateReedsSheppSegment(sourceTravNode, samples, goalXYZNode->getUserData().travNode, nodes))
+                if(cuspsOk && validateReedsSheppSegment(sourceTravNode, samples, goalXYZNode->getUserData().travNode, nodes))
                 {
-                    double transDist = 0.0, angDist = 0.0;
+                    //Cost each driving direction with its own multiplier, mirroring how the
+                    //primitives are priced. Billing the whole curve as forward would undercost
+                    //reversing portions by multiplierBackward/multiplierForward and bias the
+                    //search towards shunt endings.
+                    double fwdDist = 0.0, fwdAng = 0.0, bwdDist = 0.0, bwdAng = 0.0;
                     for(size_t k = 1; k < samples.size(); ++k)
                     {
-                        transDist += std::hypot(samples[k].x - samples[k-1].x, samples[k].y - samples[k-1].y);
-                        angDist += std::abs(samples[k].theta - samples[k-1].theta);
+                        const double d = std::hypot(samples[k].x - samples[k-1].x, samples[k].y - samples[k-1].y);
+                        const double a = std::abs(samples[k].theta - samples[k-1].theta);
+                        if(samples[k].forward)
+                        {
+                            fwdDist += d;
+                            fwdAng += a;
+                        }
+                        else
+                        {
+                            bwdDist += d;
+                            bwdAng += a;
+                        }
                     }
 
-                    int cost = Motion::calculateCost(transDist, angDist, mobilityConfig.translationSpeed,
-                                                     mobilityConfig.rotationSpeed, mobilityConfig.multiplierForward,
-                                                     mobilityConfig.angularCostWeight);
+                    long long costSum = Motion::calculateCost(fwdDist, fwdAng, mobilityConfig.translationSpeed,
+                                                              mobilityConfig.rotationSpeed, mobilityConfig.multiplierForward,
+                                                              mobilityConfig.angularCostWeight);
+                    if(bwdDist > 0.0 || bwdAng > 0.0)
+                        costSum += Motion::calculateCost(bwdDist, bwdAng, mobilityConfig.translationSpeed,
+                                                         mobilityConfig.rotationSpeed, mobilityConfig.multiplierBackward,
+                                                         mobilityConfig.angularCostWeight);
+                    int cost = (costSum > std::numeric_limits<int>::max())
+                               ? std::numeric_limits<int>::max()
+                               : static_cast<int>(costSum);
                     if(cost <= 0)
                         cost = 1;
 
@@ -1526,6 +1564,42 @@ void EnvironmentXYZTheta::getTrajectoryReedsShepp(const vector<int>& stateIDPath
     wpPose[N - 1].position = goalPos.head<2>();
     wpPose[N - 1].orientation = goalHeading;
 
+    //Optional diagnostics (set RS_DEBUG in the environment): print the direction profile of
+    //the raw search solution (F/B/P/L per primitive edge, G = Reeds-Shepp goal shot) and each
+    //accepted shortcut below. Tells apart shuffling planned by the search itself from
+    //reversals introduced by the shortcutting.
+    const bool rsDebug = (std::getenv("RS_DEBUG") != nullptr);
+    if(rsDebug)
+    {
+        std::string profile;
+        for(size_t k = 0; k + 1 < N; ++k)
+        {
+            const uint64_t ek = ((uint64_t)stateIDPath[k] << 32) | stateIDPath[k + 1];
+            auto it = transitionCache.find(ek);
+            if(it != transitionCache.end() && it->second.motionId == RS_GOAL_SHOT_MOTION_ID)
+            {
+                profile += 'G';
+                continue;
+            }
+            try
+            {
+                switch(getMotion(stateIDPath[k], stateIDPath[k + 1]).type)
+                {
+                    case Motion::Type::MOV_FORWARD:   profile += 'F'; break;
+                    case Motion::Type::MOV_BACKWARD:  profile += 'B'; break;
+                    case Motion::Type::MOV_POINTTURN: profile += 'P'; break;
+                    case Motion::Type::MOV_LATERAL:   profile += 'L'; break;
+                    default:                          profile += '?'; break;
+                }
+            }
+            catch(const std::exception&)
+            {
+                profile += 'X';
+            }
+        }
+        LOG_WARN_S << "RS_DEBUG solution motion profile (" << (N - 1) << " edges): " << profile;
+    }
+
 #ifdef ENABLE_DEBUG_DRAWINGS
     //Draw the raw search-solution states -- the skeleton Reeds-Shepp shortcuts over.
     //Yellow post + cyan heading tick per state, white line along the skeleton. Compare
@@ -1641,6 +1715,23 @@ void EnvironmentXYZTheta::getTrajectoryReedsShepp(const vector<int>& stateIDPath
         emitRun(samples, nodes, runStart, samples.size() - 1);
     };
 
+    //Direction (+1 forward, -1 reverse, 0 nothing emitted yet) of the last emitted driving
+    //segment. A direction flip at the seam to the next curve is a reversal the robot has to
+    //execute just like an in-curve cusp, so it counts towards the cusp budget.
+    auto lastEmittedDir = [&result]() -> int
+    {
+        for(auto it = result.rbegin(); it != result.rend(); ++it)
+        {
+            if(it->driveMode == DriveMode::ModeTurnOnTheSpot)
+                continue;
+            if(it->speed > 0)
+                return 1;
+            if(it->speed < 0)
+                return -1;
+        }
+        return 0;
+    };
+
     //Greedy Reeds-Shepp shortcutting over the solution waypoints with primitive fallback.
     size_t i = 0;
     bool cappedShortcut = false;
@@ -1667,6 +1758,19 @@ void EnvironmentXYZTheta::getTrajectoryReedsShepp(const vector<int>& stateIDPath
                                    turningRadius, stepSize, samples,
                                    !primitiveConfig.generateBackwardMotions))
                 continue;
+
+            //Enforce the cusp budget before the expensive map validation. Shortcutting is
+            //smoothing: it must not turn a drivable span into a multi-point shunting
+            //maneuver just because that also happens to be collision-free. Rejected spans
+            //simply shrink; the primitive path remains as the feasibility floor.
+            if(reedsSheppMaxCusps >= 0 && !samples.empty())
+            {
+                const int lastDir = lastEmittedDir();
+                const int firstDir = samples.front().forward ? 1 : -1;
+                const int seamFlip = (lastDir != 0 && firstDir != lastDir) ? 1 : 0;
+                if(countReedsSheppCusps(samples) + seamFlip > reedsSheppMaxCusps)
+                    continue;
+            }
 
             std::vector<traversability_generator3d::TravGenNode*> nodes;
             if(validateReedsSheppSegment(wpNode[i], samples, wpNode[j], nodes))
@@ -1709,8 +1813,13 @@ void EnvironmentXYZTheta::getTrajectoryReedsShepp(const vector<int>& stateIDPath
                                           turningRadius, stepSize, samples,
                                           !primitiveConfig.generateBackwardMotions))
                     {
+                        //Same cusp budget as the search-time goal shot (which already gated
+                        //this edge on the identical query, so this only rejects if the
+                        //resample against the discretized goal degenerated).
+                        const bool cuspsOk = (reedsSheppMaxCusps < 0) ||
+                                             (countReedsSheppCusps(samples) <= reedsSheppMaxCusps);
                         std::vector<traversability_generator3d::TravGenNode*> nodes;
-                        if(validateReedsSheppSegment(wpNode[i], samples, goalXYZNode->getUserData().travNode, nodes))
+                        if(cuspsOk && validateReedsSheppSegment(wpNode[i], samples, goalXYZNode->getUserData().travNode, nodes))
                         {
                             emitRSPath(samples, nodes);
                             emitted = true;
@@ -2014,6 +2123,11 @@ void EnvironmentXYZTheta::setReedsSheppGoalShot(bool enable, double maxDistance,
     useReedsSheppGoalShot = enable;
     reedsSheppGoalShotMaxDistance = maxDistance;
     reedsSheppStepSize = stepSize;
+}
+
+void EnvironmentXYZTheta::setReedsSheppMaxCusps(int maxCusps)
+{
+    reedsSheppMaxCusps = maxCusps;
 }
 
 void EnvironmentXYZTheta::setTravConfig(const traversability_generator3d::TraversabilityConfig& cfg)

@@ -73,3 +73,4 @@ plannerConfig:
   # Requires useReedsSheppFinalPath: true.
   useReedsSheppGoalShot: true
   reedsSheppGoalShotMaxDistance: 15.0   # only attempt within this point-robot distance to goal [m]
+  reedsSheppMaxCusps: 1        # max direction changes per accepted RS curve (incl. seam flip); < 0 = unlimited

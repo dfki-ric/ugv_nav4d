@@ -130,6 +130,7 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     env->setReedsSheppGoalShot(plannerConfig.useReedsSheppGoalShot && plannerConfig.useReedsSheppFinalPath,
                                plannerConfig.reedsSheppGoalShotMaxDistance,
                                plannerConfig.reedsSheppStepSize);
+    env->setReedsSheppMaxCusps(plannerConfig.reedsSheppMaxCusps);
 
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);

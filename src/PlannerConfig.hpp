@@ -53,5 +53,12 @@ struct PlannerConfig
     /** Only attempt the goal shot when the (point-robot) distance to the goal is within this
      *  many meters. Keeps the shot near the goal where it pays off. */
     double reedsSheppGoalShotMaxDistance = 15.0;
+    /** Maximum number of direction changes (cusps) a single accepted Reeds-Shepp curve may
+     *  contain. During shortcutting a direction flip relative to the previously emitted
+     *  segment counts towards the budget as well, so chains of alternating short curves are
+     *  suppressed too. The goal shot only offers connections within this budget. Curves over
+     *  the budget are skipped; the primitive path remains as fallback so feasibility is
+     *  unaffected. < 0 disables the limit (legacy behavior: any collision-free curve). */
+    int reedsSheppMaxCusps = 1;
 };
 }

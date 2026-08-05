@@ -223,6 +223,12 @@ public:
      *  @param stepSize    RS sampling resolution (meters); <= 0 uses half the grid resolution */
     void setReedsSheppGoalShot(bool enable, double maxDistance, double stepSize);
 
+    /** Maximum number of direction changes (cusps) a single accepted Reeds-Shepp curve may
+     *  contain (applies to the goal shot and the final-path shortcutting). During shortcutting
+     *  a direction flip relative to the previously emitted segment counts towards the budget
+     *  as well. < 0 disables the limit. */
+    void setReedsSheppMaxCusps(int maxCusps);
+
     void setCorridorWidth(double width);
     void setGoalOrientationMargin(double margin);
     void setGoalDistanceMargin(double margin);
@@ -310,6 +316,8 @@ private:
     bool useReedsSheppGoalShot = false;
     double reedsSheppGoalShotMaxDistance = 0.0;
     double reedsSheppStepSize = 0.0;
+    /** Cusp budget for accepted Reeds-Shepp curves (see setReedsSheppMaxCusps). */
+    int reedsSheppMaxCusps = 1;
 };
 
 }
