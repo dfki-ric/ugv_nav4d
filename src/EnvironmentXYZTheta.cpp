@@ -8,6 +8,7 @@
 #include "Dijkstra.hpp"
 #include <limits>
 #include <chrono>
+#include <unordered_set>
 #include <base-logging/Logging.hpp>
 #include <omp.h>
 
@@ -2271,12 +2272,62 @@ std::shared_ptr<SubTrajectory> EnvironmentXYZTheta::findTrajectoryOutOfObstacle(
         }
 
 
-        PathStatistic stats(travConf);
-        stats.calculateStatistics(nodesOnPath, posesOnPath, *travMap);
-        const int obstacleCount = stats.getRobotStats().getNumObstacles() + stats.getRobotStats().getNumFrontiers()
-                                  + orientationViolations;
+        //Count every DISTINCT non-traversable cell the robot footprint sweeps
+        //over, by direct map lookup. PathStatistic is unsuitable here: it was
+        //built for the planner's boolean safety check, stops accumulating at
+        //the first obstacle contact and discovers cells via graph connectivity
+        //(which obstacle clusters do not have) -- so it cannot RANK rescue
+        //candidates by how much obstacle they actually cross.
+        std::unordered_set<const traversability_generator3d::TravGenNode*> sweptNonTraversable;
+        {
+            const Eigen::Vector2d halfDim(travConf.robotSizeX / 2.0, travConf.robotSizeY / 2.0);
+            const Eigen::Vector2d footprintOffset(travConf.footprintOffsetX, 0.0);
+            const Eigen::AlignedBox2d robotBox(footprintOffset - halfDim, footprintOffset + halfDim);
+            //Conservative search radius around each pose, in cells.
+            const double reach = halfDim.norm() + std::abs(travConf.footprintOffsetX);
+            const int cellReach = static_cast<int>(std::ceil(reach / travConf.gridResolution)) + 1;
 
-        if(obstacleCount < bestMotionObstacleCount)
+            for(size_t j = 0; j < posesOnPath.size(); ++j)
+            {
+                const base::Pose2D& pose = posesOnPath[j];
+                const double pathHeight = nodesOnPath[j]->getHeight();
+                const Eigen::Rotation2D<double> yawInverse(Eigen::Rotation2D<double>(pose.orientation).inverse());
+                maps::grid::Index poseIdx;
+                if(!travMap->toGrid(Eigen::Vector3d(pose.position.x(), pose.position.y(), pathHeight), poseIdx))
+                    continue;
+                for(int dx = -cellReach; dx <= cellReach; ++dx)
+                {
+                    for(int dy = -cellReach; dy <= cellReach; ++dy)
+                    {
+                        const maps::grid::Index idx(poseIdx.x() + dx, poseIdx.y() + dy);
+                        if(!travMap->inGrid(idx))
+                            continue;
+                        for(const traversability_generator3d::TravGenNode* candidate : travMap->at(idx))
+                        {
+                            //Stay on this storey: cells more than a robot height
+                            //away belong to another deck, not to this sweep.
+                            if(std::abs(candidate->getHeight() - pathHeight) > travConf.robotHeight)
+                                continue;
+                            if(candidate->getType() == maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+                                continue;
+                            Eigen::Vector3d cellPosWorld;
+                            travMap->fromGrid(idx, cellPosWorld, candidate->getHeight(), true);
+                            Eigen::Vector2d inRobotFrame = yawInverse * (cellPosWorld.head<2>() - pose.position);
+                            if(robotBox.contains(inRobotFrame))
+                                sweptNonTraversable.insert(candidate);
+                        }
+                    }
+                }
+            }
+        }
+        const int obstacleCount = static_cast<int>(sweptNonTraversable.size()) + orientationViolations;
+
+        //Fewest obstacle cells wins; among equals, the cheapest (shortest)
+        //motion wins instead of arbitrary iteration order.
+        const bool better = (obstacleCount < bestMotionObstacleCount) ||
+                            (obstacleCount == bestMotionObstacleCount && bestMotionIndex >= 0 &&
+                             motion.baseCost < motions[bestMotionIndex].baseCost);
+        if(better)
         {
             bestMotionObstacleCount = obstacleCount;
             bestMotionIndex = i;
