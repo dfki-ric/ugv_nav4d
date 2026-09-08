@@ -70,23 +70,27 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceugv__nav4d.html">ugv_nav4d</a></div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>{</div>
-<div class="foldopen" id="foldopen00016" data-start="{" data-end="};">
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="classugv__nav4d_1_1Dijkstra.html">   16</a></span><span class="keyword">class </span><a class="code hl_class" href="classugv__nav4d_1_1Dijkstra.html">Dijkstra</a></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>{</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="keyword">public</span>:</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classugv__nav4d_1_1Dijkstra.html#a4788fa34f7bd24c3c1494564d3041920">computeCost</a>(<span class="keyword">const</span> maps::grid::TraversabilityNodeBase* source,</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>                            std::unordered_map&lt;const maps::grid::TraversabilityNodeBase*, double&gt; &amp;outDistances,</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>                            <span class="keyword">const</span> traversability_generator3d::TraversabilityConfig&amp; config);</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>};</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>    <span class="keyword">struct </span>Mobility;</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
+<div class="foldopen" id="foldopen00018" data-start="{" data-end="};">
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="classugv__nav4d_1_1Dijkstra.html">   18</a></span>    <span class="keyword">class </span><a class="code hl_class" href="classugv__nav4d_1_1Dijkstra.html">Dijkstra</a></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    {</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>        </div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>        <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classugv__nav4d_1_1Dijkstra.html#aa250ef5fc1a8f9d9d18a244ecce90cc2">computeCost</a>(<span class="keyword">const</span> maps::grid::TraversabilityNodeBase* source,</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>                                std::unordered_map&lt;const maps::grid::TraversabilityNodeBase*, double&gt; &amp;outDistances,</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>                                <span class="keyword">const</span> traversability_generator3d::TraversabilityConfig&amp; config,</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>                                <span class="keyword">const</span> <a class="code hl_struct" href="structugv__nav4d_1_1Mobility.html">ugv_nav4d::Mobility</a>&amp; mobilityConfig);</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    };</div>
 </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    </div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>} </div>
-<div class="ttc" id="aclassugv__nav4d_1_1Dijkstra_html"><div class="ttname"><a href="classugv__nav4d_1_1Dijkstra.html">ugv_nav4d::Dijkstra</a></div><div class="ttdef"><b>Definition</b> Dijkstra.hpp:17</div></div>
-<div class="ttc" id="aclassugv__nav4d_1_1Dijkstra_html_a4788fa34f7bd24c3c1494564d3041920"><div class="ttname"><a href="classugv__nav4d_1_1Dijkstra.html#a4788fa34f7bd24c3c1494564d3041920">ugv_nav4d::Dijkstra::computeCost</a></div><div class="ttdeci">static void computeCost(const maps::grid::TraversabilityNodeBase *source, std::unordered_map&lt; const maps::grid::TraversabilityNodeBase *, double &gt; &amp;outDistances, const traversability_generator3d::TraversabilityConfig &amp;config)</div><div class="ttdef"><b>Definition</b> Dijkstra.cpp:9</div></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>        </div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>} </div>
+<div class="ttc" id="aclassugv__nav4d_1_1Dijkstra_html"><div class="ttname"><a href="classugv__nav4d_1_1Dijkstra.html">ugv_nav4d::Dijkstra</a></div><div class="ttdef"><b>Definition</b> Dijkstra.hpp:19</div></div>
+<div class="ttc" id="aclassugv__nav4d_1_1Dijkstra_html_aa250ef5fc1a8f9d9d18a244ecce90cc2"><div class="ttname"><a href="classugv__nav4d_1_1Dijkstra.html#aa250ef5fc1a8f9d9d18a244ecce90cc2">ugv_nav4d::Dijkstra::computeCost</a></div><div class="ttdeci">static void computeCost(const maps::grid::TraversabilityNodeBase *source, std::unordered_map&lt; const maps::grid::TraversabilityNodeBase *, double &gt; &amp;outDistances, const traversability_generator3d::TraversabilityConfig &amp;config, const ugv_nav4d::Mobility &amp;mobilityConfig)</div><div class="ttdef"><b>Definition</b> Dijkstra.cpp:12</div></div>
 <div class="ttc" id="anamespacemaps_html"><div class="ttname"><a href="namespacemaps.html">maps</a></div><div class="ttdef"><b>Definition</b> Dijkstra.hpp:5</div></div>
 <div class="ttc" id="anamespacetraversability__generator3d_html"><div class="ttname"><a href="namespacetraversability__generator3d.html">traversability_generator3d</a></div><div class="ttdef"><b>Definition</b> Dijkstra.hpp:10</div></div>
 <div class="ttc" id="anamespaceugv__nav4d_html"><div class="ttname"><a href="namespaceugv__nav4d.html">ugv_nav4d</a></div><div class="ttdef"><b>Definition</b> ConfigLoader.hpp:9</div></div>
+<div class="ttc" id="astructugv__nav4d_1_1Mobility_html"><div class="ttname"><a href="structugv__nav4d_1_1Mobility.html">ugv_nav4d::Mobility</a></div><div class="ttdef"><b>Definition</b> Mobility.hpp:12</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

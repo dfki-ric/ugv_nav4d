@@ -59,11 +59,11 @@ Collaboration diagram for ugv_nav4d::Planner:</div>
 <div class="dyncontent">
 <div class="center"><img src="classugv__nav4d_1_1Planner__coll__graph.png" border="0" usemap="#augv__nav4d_1_1Planner_coll__map" alt="Collaboration graph"/></div>
 <map name="augv__nav4d_1_1Planner_coll__map" id="augv__nav4d_1_1Planner_coll__map">
-<area shape="rect" title=" " alt="" coords="107,433,329,759"/>
-<area shape="rect" href="structugv__nav4d_1_1Mobility.html" title=" " alt="" coords="5,5,212,371"/>
-<area shape="poly" title=" " alt="" coords="160,371,173,417,168,418,155,372"/>
-<area shape="rect" href="structugv__nav4d_1_1PlannerConfig.html" title=" " alt="" coords="237,115,421,261"/>
-<area shape="poly" title=" " alt="" coords="312,262,269,418,264,417,307,260"/>
+<area shape="rect" title=" " alt="" coords="123,413,345,759"/>
+<area shape="rect" href="structugv__nav4d_1_1Mobility.html" title=" " alt="" coords="5,35,212,321"/>
+<area shape="poly" title=" " alt="" coords="155,320,179,397,174,398,150,322"/>
+<area shape="rect" href="structugv__nav4d_1_1PlannerConfig.html" title=" " alt="" coords="236,5,485,351"/>
+<area shape="poly" title=" " alt="" coords="309,352,295,399,290,397,304,350"/>
 </map>
 </div>
 <table class="memberdecls">
@@ -77,6 +77,7 @@ Public Types</h2></td></tr>
 , <br />
 &#160;&#160;<a class="el" href="classugv__nav4d_1_1Planner.html#a67f733c96fd5fe78709a25c3ef013635a38c97065779605716601f70ef5eb9d3a">INTERNAL_ERROR</a>
 , <a class="el" href="classugv__nav4d_1_1Planner.html#a67f733c96fd5fe78709a25c3ef013635ad967f36dd1f931b3ea6c7a66f27ca9de">FOUND_SOLUTION</a>
+, <a class="el" href="classugv__nav4d_1_1Planner.html#a67f733c96fd5fe78709a25c3ef013635a7a1c5efdf12e080c820121b7465eb5e5">TIMEOUT</a>
 <br />
  }</td></tr>
 <tr class="separator:a67f733c96fd5fe78709a25c3ef013635"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -89,6 +90,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ad12ad75ca2c58e49b80910fedcc82a14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a13ae94bc58c34af9e6cd82f6c5deb995" id="r_a13ae94bc58c34af9e6cd82f6c5deb995"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a13ae94bc58c34af9e6cd82f6c5deb995">enablePathStatistics</a> (bool enable)</td></tr>
 <tr class="separator:a13ae94bc58c34af9e6cd82f6c5deb995"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa55c04c6459607bd04299e96056204cb" id="r_aa55c04c6459607bd04299e96056204cb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#aa55c04c6459607bd04299e96056204cb">isEnvironmentInitialized</a> () const</td></tr>
+<tr class="separator:aa55c04c6459607bd04299e96056204cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a468e437f6fa4c5d12d6debc14b4de164" id="r_a468e437f6fa4c5d12d6debc14b4de164"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classugv__nav4d_1_1Motion.html">Motion</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#a468e437f6fa4c5d12d6debc14b4de164">getMotions</a> () const</td></tr>
 <tr class="separator:a468e437f6fa4c5d12d6debc14b4de164"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab4cdd5fa067cadc645e039802e7a7f3d" id="r_ab4cdd5fa067cadc645e039802e7a7f3d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classugv__nav4d_1_1Planner.html#a67f733c96fd5fe78709a25c3ef013635">PLANNING_RESULT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Planner.html#ab4cdd5fa067cadc645e039802e7a7f3d">plan</a> (const base::Time &amp;maxTime, const base::samples::RigidBodyState &amp;start_pose, const base::samples::RigidBodyState &amp;end_pose, std::vector&lt; trajectory_follower::SubTrajectory &gt; &amp;resultTrajectory2D, std::vector&lt; trajectory_follower::SubTrajectory &gt; &amp;resultTrajectory3D, bool dumpOnError=false, bool dumpOnSuccess=false)</td></tr>
@@ -141,11 +144,13 @@ Friends</h2></td></tr>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a67f733c96fd5fe78709a25c3ef013635ade6dbf5fd67ce4a1a57896c2cbd5de9a" name="a67f733c96fd5fe78709a25c3ef013635ade6dbf5fd67ce4a1a57896c2cbd5de9a"></a>GOAL_INVALID&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a67f733c96fd5fe78709a25c3ef013635a75a5b1e7ccfad9a9f24a4ff81b0fed01" name="a67f733c96fd5fe78709a25c3ef013635a75a5b1e7ccfad9a9f24a4ff81b0fed01"></a>START_INVALID&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a67f733c96fd5fe78709a25c3ef013635af828eff2b84faf7797165065913c65b8" name="a67f733c96fd5fe78709a25c3ef013635af828eff2b84faf7797165065913c65b8"></a>NO_SOLUTION&#160;</td><td class="fielddoc"><p>Happens if the planner runs out of time or the complete state space has been explored without a solution </p>
+<tr><td class="fieldname"><a id="a67f733c96fd5fe78709a25c3ef013635af828eff2b84faf7797165065913c65b8" name="a67f733c96fd5fe78709a25c3ef013635af828eff2b84faf7797165065913c65b8"></a>NO_SOLUTION&#160;</td><td class="fielddoc"><p>The complete state space was explored without finding a solution (goal unreachable) </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a67f733c96fd5fe78709a25c3ef013635a534a8130913749cf89e582b15bc8159d" name="a67f733c96fd5fe78709a25c3ef013635a534a8130913749cf89e582b15bc8159d"></a>NO_MAP&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a67f733c96fd5fe78709a25c3ef013635a38c97065779605716601f70ef5eb9d3a" name="a67f733c96fd5fe78709a25c3ef013635a38c97065779605716601f70ef5eb9d3a"></a>INTERNAL_ERROR&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a67f733c96fd5fe78709a25c3ef013635ad967f36dd1f931b3ea6c7a66f27ca9de" name="a67f733c96fd5fe78709a25c3ef013635ad967f36dd1f931b3ea6c7a66f27ca9de"></a>FOUND_SOLUTION&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a67f733c96fd5fe78709a25c3ef013635a7a1c5efdf12e080c820121b7465eb5e5" name="a67f733c96fd5fe78709a25c3ef013635a7a1c5efdf12e080c820121b7465eb5e5"></a>TIMEOUT&#160;</td><td class="fielddoc"><p>The planner ran out of time (maxTime exceeded) before finding a solution </p>
+</td></tr>
 </table>
 
 </div>
@@ -291,6 +296,32 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa55c04c6459607bd04299e96056204cb" name="aa55c04c6459607bd04299e96056204cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa55c04c6459607bd04299e96056204cb">&#9670;&#160;</a></span>isEnvironmentInitialized()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ugv_nav4d::Planner::isEnvironmentInitialized </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>true once the planning environment (and its motion primitives) has been built. The first <a class="el" href="classugv__nav4d_1_1Planner.html#ad12ad75ca2c58e49b80910fedcc82a14">updateMap()</a> after construction/reset builds it; that first call is where motion-primitive generation happens. </dd></dl>
 
 </div>
 </div>

@@ -82,8 +82,8 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a6e935d2de42d3bf23ab7955bc75c9d41" id="r_a6e935d2de42d3bf23ab7955bc75c9d41"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Motion.html#a6e935d2de42d3bf23ab7955bc75c9d41">calculateCost</a> (double translationalDist, double <a class="el" href="classugv__nav4d_1_1Motion.html#acc982265de705ffbcc396bdafa1682f2">angularDist</a>, double translationVelocity, double angularVelocity, double <a class="el" href="classugv__nav4d_1_1Motion.html#afc785726d8a138b6ccf0a0ae3ae04ca9">costMultiplier</a>)</td></tr>
-<tr class="separator:a6e935d2de42d3bf23ab7955bc75c9d41"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42432c3f223c48d4d629fb0465f0edee" id="r_a42432c3f223c48d4d629fb0465f0edee"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1Motion.html#a42432c3f223c48d4d629fb0465f0edee">calculateCost</a> (double translationalDist, double <a class="el" href="classugv__nav4d_1_1Motion.html#acc982265de705ffbcc396bdafa1682f2">angularDist</a>, double translationVelocity, double angularVelocity, double <a class="el" href="classugv__nav4d_1_1Motion.html#afc785726d8a138b6ccf0a0ae3ae04ca9">costMultiplier</a>, double angularCostWeight=1.0)</td></tr>
+<tr class="separator:a42432c3f223c48d4d629fb0465f0edee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -166,8 +166,8 @@ Static Public Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a6e935d2de42d3bf23ab7955bc75c9d41" name="a6e935d2de42d3bf23ab7955bc75c9d41"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6e935d2de42d3bf23ab7955bc75c9d41">&#9670;&#160;</a></span>calculateCost()</h2>
+<a id="a42432c3f223c48d4d629fb0465f0edee" name="a42432c3f223c48d4d629fb0465f0edee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a42432c3f223c48d4d629fb0465f0edee">&#9670;&#160;</a></span>calculateCost()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -203,7 +203,13 @@ Static Public Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>costMultiplier</em>&#160;</td>
+          <td class="paramname"><em>costMultiplier</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>angularCostWeight</em> = <code>1.0</code>&#160;</td>
         </tr>
         <tr>
           <td></td>

@@ -1,5 +1,7 @@
 <map id="ugv_nav4d::EnvironmentXYZTheta::getTrajectory" name="ugv_nav4d::EnvironmentXYZTheta::getTrajectory">
-<area shape="rect" id="Node000001" title=" " alt="" coords="264,5,511,45"/>
-<area shape="rect" id="Node000002" href="$test__EnvironmentXYZTheta_8cpp.html#a8799a43f3f9329a4a773924e5025b9da" title=" " alt="" coords="5,13,216,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="250,28,216,28,216,23,250,23"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="300,27,547,67"/>
+<area shape="rect" id="Node000002" href="$test__EnvironmentXYZTheta_8cpp.html#a8799a43f3f9329a4a773924e5025b9da" title=" " alt="" coords="23,5,234,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="286,36,234,31,234,26,287,31"/>
+<area shape="rect" id="Node000003" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a91f5724033703d07152899c98cdfe24b" title=" " alt="" coords="5,55,252,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="287,63,252,66,252,61,286,58"/>
 </map>

@@ -61,7 +61,7 @@ Inheritance diagram for ugv_nav4d::EnvironmentXYZTheta:</div>
 <div class="dyncontent">
 <div class="center"><img src="classugv__nav4d_1_1EnvironmentXYZTheta__inherit__graph.png" border="0" usemap="#augv__nav4d_1_1EnvironmentXYZTheta_inherit__map" alt="Inheritance graph"/></div>
 <map name="augv__nav4d_1_1EnvironmentXYZTheta_inherit__map" id="augv__nav4d_1_1EnvironmentXYZTheta_inherit__map">
-<area shape="rect" title=" " alt="" coords="5,119,244,644"/>
+<area shape="rect" title=" " alt="" coords="5,119,244,684"/>
 <area shape="rect" title=" " alt="" coords="33,5,216,71"/>
 <area shape="poly" title=" " alt="" coords="127,84,127,119,122,119,122,84"/>
 </map>
@@ -71,13 +71,13 @@ Collaboration diagram for ugv_nav4d::EnvironmentXYZTheta:</div>
 <div class="dyncontent">
 <div class="center"><img src="classugv__nav4d_1_1EnvironmentXYZTheta__coll__graph.png" border="0" usemap="#augv__nav4d_1_1EnvironmentXYZTheta_coll__map" alt="Collaboration graph"/></div>
 <map name="augv__nav4d_1_1EnvironmentXYZTheta_coll__map" id="augv__nav4d_1_1EnvironmentXYZTheta_coll__map">
-<area shape="rect" title=" " alt="" coords="212,596,451,1061"/>
+<area shape="rect" title=" " alt="" coords="212,596,451,1101"/>
 <area shape="rect" title=" " alt="" coords="5,373,188,439"/>
-<area shape="poly" title=" " alt="" coords="123,450,214,612,209,615,119,452"/>
+<area shape="poly" title=" " alt="" coords="122,450,214,622,209,625,118,452"/>
 <area shape="rect" href="classugv__nav4d_1_1PreComputedMotions.html" title=" " alt="" coords="212,293,451,519"/>
 <area shape="poly" title=" " alt="" coords="334,519,334,580,329,580,329,519"/>
 <area shape="rect" href="structugv__nav4d_1_1EnvironmentXYZTheta_1_1ThetaNode.html" title=" " alt="" coords="475,366,713,446"/>
-<area shape="poly" title=" " alt="" coords="572,448,462,624,457,621,567,445"/>
+<area shape="poly" title=" " alt="" coords="573,448,461,635,457,632,568,445"/>
 <area shape="rect" href="classDiscreteTheta.html" title=" " alt="" coords="527,5,661,231"/>
 <area shape="poly" title=" " alt="" coords="597,231,597,350,591,350,591,231"/>
 </map>
@@ -106,6 +106,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a277e6d4a972ed92b4e28938a14467edc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a39019ebf49cf46725f8593e5324d0e96" id="r_a39019ebf49cf46725f8593e5324d0e96"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a39019ebf49cf46725f8593e5324d0e96">updateMap</a> (std::shared_ptr&lt; const traversability_generator3d::TravMap3d &gt; <a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aed785433b992a9b41e7c800a456c8831">travMap</a>)</td></tr>
 <tr class="separator:a39019ebf49cf46725f8593e5324d0e96"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4403545aa8c2a5eade66f9fd874d5306" id="r_a4403545aa8c2a5eade66f9fd874d5306"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a4403545aa8c2a5eade66f9fd874d5306">setPlanningTimeout</a> (const std::chrono::steady_clock::time_point &amp;start, double maxTime)</td></tr>
+<tr class="separator:a4403545aa8c2a5eade66f9fd874d5306"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2a6cf5be19ee62550ff2a2fbfce1faed" id="r_a2a6cf5be19ee62550ff2a2fbfce1faed"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a2a6cf5be19ee62550ff2a2fbfce1faed">InitializeEnv</a> (const char *sEnvFile)</td></tr>
 <tr class="separator:a2a6cf5be19ee62550ff2a2fbfce1faed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab9b93ac718ac615e5887092ec1449d9f" id="r_ab9b93ac718ac615e5887092ec1449d9f"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ab9b93ac718ac615e5887092ec1449d9f">InitializeMDPCfg</a> (MDPConfig *MDPCfg)</td></tr>
@@ -153,12 +155,24 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a1f353d64a699256232a04618d91aceb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab054b616fdafb39010329cfbd62f1e0b" id="r_ab054b616fdafb39010329cfbd62f1e0b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ab054b616fdafb39010329cfbd62f1e0b">getTrajectory</a> (const std::vector&lt; int &gt; &amp;stateIDPath, std::vector&lt; trajectory_follower::SubTrajectory &gt; &amp;result, bool setZToZero, const Eigen::Vector3d &amp;startPos, const Eigen::Vector3d &amp;goalPos, const double &amp;goalHeading, const Eigen::Affine3d &amp;plan2Body=Eigen::Affine3d::Identity())</td></tr>
 <tr class="separator:ab054b616fdafb39010329cfbd62f1e0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91f5724033703d07152899c98cdfe24b" id="r_a91f5724033703d07152899c98cdfe24b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a91f5724033703d07152899c98cdfe24b">getTrajectoryReedsShepp</a> (const std::vector&lt; int &gt; &amp;stateIDPath, std::vector&lt; trajectory_follower::SubTrajectory &gt; &amp;result, bool setZToZero, const Eigen::Vector3d &amp;startPos, const double &amp;startHeading, const Eigen::Vector3d &amp;goalPos, const double &amp;goalHeading, const Eigen::Affine3d &amp;plan2Body, double stepSize, int maxShortcut=0)</td></tr>
+<tr class="separator:a91f5724033703d07152899c98cdfe24b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b99ceb1d2f2e7b18ce6a3ecf1ae2ee8" id="r_a8b99ceb1d2f2e7b18ce6a3ecf1ae2ee8"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classugv__nav4d_1_1PreComputedMotions.html">PreComputedMotions</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a8b99ceb1d2f2e7b18ce6a3ecf1ae2ee8">getAvailableMotions</a> () const</td></tr>
 <tr class="separator:a8b99ceb1d2f2e7b18ce6a3ecf1ae2ee8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a555ad865da1117a474b36568f956b863" id="r_a555ad865da1117a474b36568f956b863"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a555ad865da1117a474b36568f956b863">clear</a> ()</td></tr>
 <tr class="separator:a555ad865da1117a474b36568f956b863"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a10190310e7b4933c6b7126314539cfd9" id="r_a10190310e7b4933c6b7126314539cfd9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a10190310e7b4933c6b7126314539cfd9">setTravConfig</a> (const traversability_generator3d::TraversabilityConfig &amp;cfg)</td></tr>
 <tr class="separator:a10190310e7b4933c6b7126314539cfd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a755952ead47113fccee7715fe2939b7a" id="r_a755952ead47113fccee7715fe2939b7a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a755952ead47113fccee7715fe2939b7a">setReedsSheppGoalShot</a> (bool enable, double maxDistance, double stepSize)</td></tr>
+<tr class="separator:a755952ead47113fccee7715fe2939b7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a900af50410155853bf6ec6e8390ff456" id="r_a900af50410155853bf6ec6e8390ff456"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a900af50410155853bf6ec6e8390ff456">setReedsSheppMaxCusps</a> (int maxCusps)</td></tr>
+<tr class="separator:a900af50410155853bf6ec6e8390ff456"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70383402edc6fc9483efb3ddfa4b3b05" id="r_a70383402edc6fc9483efb3ddfa4b3b05"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a70383402edc6fc9483efb3ddfa4b3b05">setCorridorWidth</a> (double width)</td></tr>
+<tr class="separator:a70383402edc6fc9483efb3ddfa4b3b05"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd716caada7d4f5555f274060517b27d" id="r_abd716caada7d4f5555f274060517b27d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#abd716caada7d4f5555f274060517b27d">setGoalOrientationMargin</a> (double margin)</td></tr>
+<tr class="separator:abd716caada7d4f5555f274060517b27d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ade24c90e38f4a3a9822d86f9b11b067b" id="r_ade24c90e38f4a3a9822d86f9b11b067b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ade24c90e38f4a3a9822d86f9b11b067b">setGoalDistanceMargin</a> (double margin)</td></tr>
+<tr class="separator:ade24c90e38f4a3a9822d86f9b11b067b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2f98863013dfb690afbc7172eb42330b" id="r_a2f98863013dfb690afbc7172eb42330b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a2f98863013dfb690afbc7172eb42330b">dijkstraComputeCost</a> (const traversability_generator3d::TravGenNode *source, std::vector&lt; double &gt; &amp;outDistances, const double maxDist) const</td></tr>
 <tr class="separator:a2f98863013dfb690afbc7172eb42330b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa2f5b41c730d404e9b0c27a2c907c044" id="r_aa2f5b41c730d404e9b0c27a2c907c044"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aa2f5b41c730d404e9b0c27a2c907c044">enablePathStatistics</a> (bool enable)</td></tr>
@@ -193,6 +207,10 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:ad20000eb530784d81692e276a6416bba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a101865094bda39aa1cef3ee8324d2f89" id="r_a101865094bda39aa1cef3ee8324d2f89"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structugv__nav4d_1_1EnvironmentXYZTheta_1_1Distance.html">Distance</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a101865094bda39aa1cef3ee8324d2f89">travNodeIdToDistance</a></td></tr>
 <tr class="separator:a101865094bda39aa1cef3ee8324d2f89"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1abd2b1a6980aa4cdfef724e54535b75" id="r_a1abd2b1a6980aa4cdfef724e54535b75"><td class="memItemLeft" align="right" valign="top">std::vector&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1abd2b1a6980aa4cdfef724e54535b75">nodeInCorridor</a></td></tr>
+<tr class="separator:a1abd2b1a6980aa4cdfef724e54535b75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:addf7047bf41cfcb36e09a5d40a8008f1" id="r_addf7047bf41cfcb36e09a5d40a8008f1"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#addf7047bf41cfcb36e09a5d40a8008f1">corridorWidth</a></td></tr>
+<tr class="separator:addf7047bf41cfcb36e09a5d40a8008f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aed785433b992a9b41e7c800a456c8831" id="r_aed785433b992a9b41e7c800a456c8831"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; const traversability_generator3d::TravMap3d &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#aed785433b992a9b41e7c800a456c8831">travMap</a></td></tr>
 <tr class="separator:aed785433b992a9b41e7c800a456c8831"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad5b0fdd494dbfb956c99e1ef0b40dcd7" id="r_ad5b0fdd494dbfb956c99e1ef0b40dcd7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classugv__nav4d_1_1PreComputedMotions.html">PreComputedMotions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ad5b0fdd494dbfb956c99e1ef0b40dcd7">availableMotions</a></td></tr>
@@ -926,21 +944,13 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classugv__nav4d_1_1EnvironmentXYZTheta_a82e339c226fe7029347464a653bda181_cgraph.png" border="0" usemap="#aclassugv__nav4d_1_1EnvironmentXYZTheta_a82e339c226fe7029347464a653bda181_cgraph" alt=""/></div>
 <map name="aclassugv__nav4d_1_1EnvironmentXYZTheta_a82e339c226fe7029347464a653bda181_cgraph" id="aclassugv__nav4d_1_1EnvironmentXYZTheta_a82e339c226fe7029347464a653bda181_cgraph">
-<area shape="rect" title=" " alt="" coords="5,165,252,205"/>
-<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ac9e23aabdbd37e06992fc638c05c3d33" title=" " alt="" coords="334,5,517,45"/>
-<area shape="poly" title=" " alt="" coords="150,163,213,109,255,80,299,55,320,46,322,51,301,60,257,84,216,113,153,167"/>
-<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="300,69,551,109"/>
-<area shape="poly" title=" " alt="" coords="178,163,299,119,327,110,329,116,301,124,180,168"/>
-<area shape="rect" href="classugv__nav4d_1_1PreComputedMotions.html#adcf80d750c46487274aa04dd289e633d" title=" " alt="" coords="305,133,546,173"/>
-<area shape="poly" title=" " alt="" coords="252,169,291,165,291,170,252,175"/>
-<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a08873630b22f5ea72e12c8f18a93767e" title=" " alt="" coords="334,197,517,237"/>
-<area shape="poly" title=" " alt="" coords="252,196,320,203,320,209,252,201"/>
-<area shape="rect" href="classugv__nav4d_1_1PathStatistic_1_1Stats.html#a73ca74d39a12c5c96b01832475c78d9f" title=" " alt="" coords="332,261,519,301"/>
-<area shape="poly" title=" " alt="" coords="180,203,301,247,329,255,327,260,299,252,178,208"/>
-<area shape="rect" href="classugv__nav4d_1_1PathStatistic.html#ab3f90867649113c6448d9c59f5408139" title=" " alt="" coords="334,325,517,365"/>
-<area shape="poly" title=" " alt="" coords="153,204,216,257,257,286,301,311,322,320,320,325,299,316,255,291,213,262,150,208"/>
-<area shape="rect" href="classDiscreteTheta.html#ad4b8e50f0d9cf1e765dd57a9c4e51ae7" title=" " alt="" coords="599,141,777,166"/>
-<area shape="poly" title=" " alt="" coords="546,151,585,151,585,156,546,156"/>
+<area shape="rect" title=" " alt="" coords="5,37,252,77"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="300,5,551,45"/>
+<area shape="poly" title=" " alt="" coords="252,41,286,38,287,43,252,47"/>
+<area shape="rect" href="classugv__nav4d_1_1PreComputedMotions.html#adcf80d750c46487274aa04dd289e633d" title=" " alt="" coords="305,69,546,109"/>
+<area shape="poly" title=" " alt="" coords="252,68,291,72,291,78,252,73"/>
+<area shape="rect" href="classDiscreteTheta.html#ad4b8e50f0d9cf1e765dd57a9c4e51ae7" title=" " alt="" coords="599,77,777,102"/>
+<area shape="poly" title=" " alt="" coords="546,87,585,87,585,92,546,92"/>
 </map>
 </div>
 
@@ -1099,15 +1109,18 @@ Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classugv__nav4d_1_1EnvironmentXYZTheta_ae9c40da7aff8102dcd405d021dae49a5_icgraph.png" border="0" usemap="#aclassugv__nav4d_1_1EnvironmentXYZTheta_ae9c40da7aff8102dcd405d021dae49a5_icgraph" alt=""/></div>
 <map name="aclassugv__nav4d_1_1EnvironmentXYZTheta_ae9c40da7aff8102dcd405d021dae49a5_icgraph" id="aclassugv__nav4d_1_1EnvironmentXYZTheta_ae9c40da7aff8102dcd405d021dae49a5_icgraph">
-<area shape="rect" title=" " alt="" coords="559,55,805,95"/>
-<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a8ab6df217a51fe68f5dadd8b1d7233d7" title=" " alt="" coords="282,5,493,31"/>
-<area shape="poly" title=" " alt="" coords="565,55,453,33,454,28,566,50"/>
-<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1f353d64a699256232a04618d91aceb8" title=" " alt="" coords="264,55,511,95"/>
-<area shape="poly" title=" " alt="" coords="545,78,511,78,511,73,545,73"/>
-<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ab054b616fdafb39010329cfbd62f1e0b" title=" " alt="" coords="264,119,511,159"/>
-<area shape="poly" title=" " alt="" coords="576,101,481,122,479,117,575,96"/>
-<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a8799a43f3f9329a4a773924e5025b9da" title=" " alt="" coords="5,127,216,152"/>
-<area shape="poly" title=" " alt="" coords="250,142,216,142,216,137,250,137"/>
+<area shape="rect" title=" " alt="" coords="595,87,841,127"/>
+<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a8ab6df217a51fe68f5dadd8b1d7233d7" title=" " alt="" coords="318,5,529,31"/>
+<area shape="poly" title=" " alt="" coords="656,85,546,46,495,33,496,28,547,41,658,80"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1f353d64a699256232a04618d91aceb8" title=" " alt="" coords="300,55,547,95"/>
+<area shape="poly" title=" " alt="" coords="581,95,546,91,547,86,581,90"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ab054b616fdafb39010329cfbd62f1e0b" title=" " alt="" coords="300,119,547,159"/>
+<area shape="poly" title=" " alt="" coords="581,125,547,129,546,123,581,120"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a91f5724033703d07152899c98cdfe24b" title=" " alt="" coords="5,177,252,217"/>
+<area shape="poly" title=" " alt="" coords="663,135,608,157,547,174,472,187,394,195,252,201,252,196,394,190,471,182,546,169,606,152,661,130"/>
+<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a8799a43f3f9329a4a773924e5025b9da" title=" " alt="" coords="23,127,234,152"/>
+<area shape="poly" title=" " alt="" coords="286,142,234,142,234,137,286,137"/>
+<area shape="poly" title=" " alt="" coords="307,165,233,179,232,174,306,159"/>
 </map>
 </div>
 
@@ -1247,13 +1260,16 @@ Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classugv__nav4d_1_1EnvironmentXYZTheta_afe5b560fb96c0528b4bd62d58d2a416b_icgraph.png" border="0" usemap="#aclassugv__nav4d_1_1EnvironmentXYZTheta_afe5b560fb96c0528b4bd62d58d2a416b_icgraph" alt=""/></div>
 <map name="aclassugv__nav4d_1_1EnvironmentXYZTheta_afe5b560fb96c0528b4bd62d58d2a416b_icgraph" id="aclassugv__nav4d_1_1EnvironmentXYZTheta_afe5b560fb96c0528b4bd62d58d2a416b_icgraph">
-<area shape="rect" title=" " alt="" coords="559,27,805,67"/>
-<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#aa9a6de3a305d668c43b90845907a5c82" title=" " alt="" coords="282,5,493,31"/>
-<area shape="poly" title=" " alt="" coords="545,36,492,31,493,26,545,31"/>
-<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ab054b616fdafb39010329cfbd62f1e0b" title=" " alt="" coords="264,55,511,95"/>
-<area shape="poly" title=" " alt="" coords="545,63,511,66,511,61,545,58"/>
-<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a8799a43f3f9329a4a773924e5025b9da" title=" " alt="" coords="5,63,216,88"/>
-<area shape="poly" title=" " alt="" coords="250,78,216,78,216,73,250,73"/>
+<area shape="rect" title=" " alt="" coords="595,55,841,95"/>
+<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#aa9a6de3a305d668c43b90845907a5c82" title=" " alt="" coords="318,5,529,31"/>
+<area shape="poly" title=" " alt="" coords="601,55,489,33,490,28,602,50"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ab054b616fdafb39010329cfbd62f1e0b" title=" " alt="" coords="300,55,547,95"/>
+<area shape="poly" title=" " alt="" coords="581,78,547,78,547,73,581,73"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a91f5724033703d07152899c98cdfe24b" title=" " alt="" coords="5,113,252,153"/>
+<area shape="poly" title=" " alt="" coords="609,100,547,110,394,124,252,132,252,127,393,119,546,105,608,95"/>
+<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a8799a43f3f9329a4a773924e5025b9da" title=" " alt="" coords="23,63,234,88"/>
+<area shape="poly" title=" " alt="" coords="286,78,234,78,234,73,286,73"/>
+<area shape="poly" title=" " alt="" coords="307,101,233,115,232,110,306,95"/>
 </map>
 </div>
 
@@ -1303,31 +1319,34 @@ Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classugv__nav4d_1_1EnvironmentXYZTheta_a6dddb0bcc7fb30da66295b26b3a09779_icgraph.png" border="0" usemap="#aclassugv__nav4d_1_1EnvironmentXYZTheta_a6dddb0bcc7fb30da66295b26b3a09779_icgraph" alt=""/></div>
 <map name="aclassugv__nav4d_1_1EnvironmentXYZTheta_a6dddb0bcc7fb30da66295b26b3a09779_icgraph" id="aclassugv__nav4d_1_1EnvironmentXYZTheta_a6dddb0bcc7fb30da66295b26b3a09779_icgraph">
-<area shape="rect" title=" " alt="" coords="853,198,1100,238"/>
-<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a0cf9cb94c109437a6fad97325d9635f7" title=" " alt="" coords="577,5,787,31"/>
-<area shape="poly" title=" " alt="" coords="950,188,889,119,848,83,804,52,756,33,758,28,807,48,852,79,893,115,954,185"/>
-<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a8ab6df217a51fe68f5dadd8b1d7233d7" title=" " alt="" coords="282,355,493,380"/>
-<area shape="poly" title=" " alt="" coords="947,250,886,301,848,325,806,345,726,366,644,377,564,381,493,380,493,374,564,376,643,372,725,361,804,339,845,321,883,297,944,246"/>
-<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a0c5c5c4ec029587c4d1ac27a467be061" title=" " alt="" coords="577,107,787,132"/>
-<area shape="poly" title=" " alt="" coords="923,194,867,169,805,146,761,135,762,129,806,141,869,164,925,190"/>
-<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a04b2749fd3b2a3e5347bfe2fe9e08734" title=" " alt="" coords="577,156,787,181"/>
-<area shape="poly" title=" " alt="" coords="843,198,758,184,759,179,844,193"/>
-<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a59a5868a385aa32337c31cfa2b9fb5b4" title=" " alt="" coords="577,205,787,231"/>
-<area shape="poly" title=" " alt="" coords="840,221,787,221,787,215,840,215"/>
-<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#add1ec2f138bc843c8137fdfaccf0b3ee" title=" " alt="" coords="577,255,787,280"/>
-<area shape="poly" title=" " alt="" coords="844,243,759,257,758,252,843,238"/>
-<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#ac8b2e8e274e1db0e32bbf4598f09635d" title=" " alt="" coords="577,304,787,329"/>
-<area shape="poly" title=" " alt="" coords="925,246,869,272,806,295,762,307,761,301,805,290,867,267,923,242"/>
-<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a8799a43f3f9329a4a773924e5025b9da" title=" " alt="" coords="5,267,216,292"/>
-<area shape="poly" title=" " alt="" coords="945,190,884,139,846,115,804,97,738,79,683,76,628,83,559,97,494,112,429,133,306,182,204,232,135,269,133,264,201,227,304,177,427,128,493,107,558,91,627,78,683,71,738,74,806,91,848,110,887,134,948,186"/>
-<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae9c40da7aff8102dcd405d021dae49a5" title=" " alt="" coords="559,405,805,445"/>
-<area shape="poly" title=" " alt="" coords="954,251,892,320,851,356,807,388,767,407,765,402,804,384,848,352,888,316,950,247"/>
-<area shape="poly" title=" " alt="" coords="565,405,453,383,454,377,566,399"/>
-<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1f353d64a699256232a04618d91aceb8" title=" " alt="" coords="264,405,511,445"/>
-<area shape="poly" title=" " alt="" coords="545,427,511,427,511,422,545,422"/>
-<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ab054b616fdafb39010329cfbd62f1e0b" title=" " alt="" coords="264,469,511,509"/>
-<area shape="poly" title=" " alt="" coords="576,450,481,471,479,466,575,445"/>
-<area shape="poly" title=" " alt="" coords="274,465,263,459,213,419,170,372,138,327,117,294,122,291,142,324,174,369,216,415,265,454,276,460"/>
+<area shape="rect" title=" " alt="" coords="889,198,1136,238"/>
+<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a0cf9cb94c109437a6fad97325d9635f7" title=" " alt="" coords="613,5,823,31"/>
+<area shape="poly" title=" " alt="" coords="986,188,925,119,884,83,840,52,792,33,794,28,843,48,888,79,929,115,990,185"/>
+<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a8ab6df217a51fe68f5dadd8b1d7233d7" title=" " alt="" coords="318,325,529,351"/>
+<area shape="poly" title=" " alt="" coords="984,250,923,302,884,326,842,345,795,357,747,365,650,369,560,364,487,353,487,348,561,358,650,364,747,359,794,352,840,339,882,321,920,297,981,246"/>
+<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a0c5c5c4ec029587c4d1ac27a467be061" title=" " alt="" coords="613,107,823,132"/>
+<area shape="poly" title=" " alt="" coords="959,194,903,169,841,146,797,135,798,129,842,141,905,164,961,190"/>
+<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a04b2749fd3b2a3e5347bfe2fe9e08734" title=" " alt="" coords="613,156,823,181"/>
+<area shape="poly" title=" " alt="" coords="879,198,794,184,795,179,880,193"/>
+<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a59a5868a385aa32337c31cfa2b9fb5b4" title=" " alt="" coords="613,205,823,231"/>
+<area shape="poly" title=" " alt="" coords="876,221,823,221,823,215,876,215"/>
+<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#add1ec2f138bc843c8137fdfaccf0b3ee" title=" " alt="" coords="613,255,823,280"/>
+<area shape="poly" title=" " alt="" coords="880,243,795,257,794,252,879,238"/>
+<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#ac8b2e8e274e1db0e32bbf4598f09635d" title=" " alt="" coords="613,304,823,329"/>
+<area shape="poly" title=" " alt="" coords="961,246,905,272,842,295,798,307,797,301,841,290,903,267,959,242"/>
+<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a8799a43f3f9329a4a773924e5025b9da" title=" " alt="" coords="23,220,234,245"/>
+<area shape="poly" title=" " alt="" coords="981,190,920,139,882,115,840,97,791,83,740,76,688,72,636,73,532,86,433,109,342,139,263,170,154,222,152,217,261,165,340,134,432,104,532,81,636,68,688,67,740,70,792,78,842,91,884,110,923,134,984,186"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae9c40da7aff8102dcd405d021dae49a5" title=" " alt="" coords="595,405,841,445"/>
+<area shape="poly" title=" " alt="" coords="990,251,928,320,887,356,843,388,803,407,801,402,840,384,884,352,924,316,986,247"/>
+<area shape="poly" title=" " alt="" coords="634,403,594,388,570,377,546,366,500,353,501,348,548,361,572,372,596,384,636,398"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a1f353d64a699256232a04618d91aceb8" title=" " alt="" coords="300,490,547,530"/>
+<area shape="poly" title=" " alt="" coords="636,451,494,493,492,487,635,446"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ab054b616fdafb39010329cfbd62f1e0b" title=" " alt="" coords="300,375,547,415"/>
+<area shape="poly" title=" " alt="" coords="581,414,547,410,547,405,581,408"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a91f5724033703d07152899c98cdfe24b" title=" " alt="" coords="5,405,252,445"/>
+<area shape="poly" title=" " alt="" coords="581,430,547,430,300,430,252,429,252,424,300,425,547,425,581,424"/>
+<area shape="poly" title=" " alt="" coords="316,373,299,366,250,337,205,304,141,248,145,244,209,300,253,333,301,361,318,368"/>
+<area shape="poly" title=" " alt="" coords="287,412,252,415,252,410,286,406"/>
 </map>
 </div>
 
@@ -1459,9 +1478,121 @@ Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classugv__nav4d_1_1EnvironmentXYZTheta_ab054b616fdafb39010329cfbd62f1e0b_icgraph.png" border="0" usemap="#aclassugv__nav4d_1_1EnvironmentXYZTheta_ab054b616fdafb39010329cfbd62f1e0b_icgraph" alt=""/></div>
 <map name="aclassugv__nav4d_1_1EnvironmentXYZTheta_ab054b616fdafb39010329cfbd62f1e0b_icgraph" id="aclassugv__nav4d_1_1EnvironmentXYZTheta_ab054b616fdafb39010329cfbd62f1e0b_icgraph">
-<area shape="rect" title=" " alt="" coords="264,5,511,45"/>
-<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a8799a43f3f9329a4a773924e5025b9da" title=" " alt="" coords="5,13,216,38"/>
-<area shape="poly" title=" " alt="" coords="250,28,216,28,216,23,250,23"/>
+<area shape="rect" title=" " alt="" coords="300,27,547,67"/>
+<area shape="rect" href="test__EnvironmentXYZTheta_8cpp.html#a8799a43f3f9329a4a773924e5025b9da" title=" " alt="" coords="23,5,234,31"/>
+<area shape="poly" title=" " alt="" coords="286,36,234,31,234,26,287,31"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a91f5724033703d07152899c98cdfe24b" title=" " alt="" coords="5,55,252,95"/>
+<area shape="poly" title=" " alt="" coords="287,63,252,66,252,61,286,58"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a91f5724033703d07152899c98cdfe24b" name="a91f5724033703d07152899c98cdfe24b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a91f5724033703d07152899c98cdfe24b">&#9670;&#160;</a></span>getTrajectoryReedsShepp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ugv_nav4d::EnvironmentXYZTheta::getTrajectoryReedsShepp </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; int &gt; &amp;&#160;</td>
+          <td class="paramname"><em>stateIDPath</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; trajectory_follower::SubTrajectory &gt; &amp;&#160;</td>
+          <td class="paramname"><em>result</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>setZToZero</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const Eigen::Vector3d &amp;&#160;</td>
+          <td class="paramname"><em>startPos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double &amp;&#160;</td>
+          <td class="paramname"><em>startHeading</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const Eigen::Vector3d &amp;&#160;</td>
+          <td class="paramname"><em>goalPos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double &amp;&#160;</td>
+          <td class="paramname"><em>goalHeading</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const Eigen::Affine3d &amp;&#160;</td>
+          <td class="paramname"><em>plan2Body</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>stepSize</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>maxShortcut</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Reconstruct the final path from the solution state sequence using Reeds-Shepp steering instead of the search motion primitives.</p>
+<p>The primitive-based search is left untouched: it still produces <code>stateIDPath</code>. This method treats those states as waypoints and greedily shortcuts them with analytic Reeds-Shepp curves (minimum turning radius = <a class="el" href="structugv__nav4d_1_1Mobility.html#a3fdb639e10386bfb4066ae6f9472b287">Mobility::minTurningRadius</a>). Every candidate curve is re-validated against the traversability map; if even the direct connection to the next waypoint is not drivable, that step falls back to the original primitive motion so feasibility is always preserved.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">stepSize</td><td>Reeds-Shepp sampling resolution in meters. </td></tr>
+    <tr><td class="paramname">maxShortcut</td><td>Maximum number of waypoints a single Reeds-Shepp curve may span (&lt;= 0 means unlimited). </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classugv__nav4d_1_1EnvironmentXYZTheta_a91f5724033703d07152899c98cdfe24b_cgraph.png" border="0" usemap="#aclassugv__nav4d_1_1EnvironmentXYZTheta_a91f5724033703d07152899c98cdfe24b_cgraph" alt=""/></div>
+<map name="aclassugv__nav4d_1_1EnvironmentXYZTheta_a91f5724033703d07152899c98cdfe24b_cgraph" id="aclassugv__nav4d_1_1EnvironmentXYZTheta_a91f5724033703d07152899c98cdfe24b_cgraph">
+<area shape="rect" title=" " alt="" coords="5,132,252,172"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ae9c40da7aff8102dcd405d021dae49a5" title=" " alt="" coords="595,37,841,77"/>
+<area shape="poly" title=" " alt="" coords="183,129,239,111,299,96,444,74,581,61,581,66,445,79,301,101,240,117,185,134"/>
+<area shape="rect" href="classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="625,127,811,153"/>
+<area shape="poly" title=" " alt="" coords="219,129,300,117,423,111,547,117,612,123,612,128,546,123,423,116,300,123,220,135"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#afe5b560fb96c0528b4bd62d58d2a416b" title=" " alt="" coords="595,177,841,217"/>
+<area shape="poly" title=" " alt="" coords="223,169,300,181,445,192,581,196,581,201,445,197,300,187,222,175"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#ab054b616fdafb39010329cfbd62f1e0b" title=" " alt="" coords="300,132,547,172"/>
+<area shape="poly" title=" " alt="" coords="252,149,286,149,286,155,252,155"/>
+<area shape="rect" href="classugv__nav4d_1_1ReedsShepp.html#a96f512cfbc8861fc7aff6e843a2e011d" title=" " alt="" coords="333,247,514,287"/>
+<area shape="poly" title=" " alt="" coords="172,170,301,226,342,240,340,245,299,230,170,175"/>
+<area shape="rect" href="classugv__nav4d_1_1PreComputedMotions.html#a76f5d501aa5bc8cf8c0adddc488bd0f9" title=" " alt="" coords="892,5,1133,45"/>
+<area shape="poly" title=" " alt="" coords="841,41,878,37,878,43,842,47"/>
+<area shape="rect" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a6dddb0bcc7fb30da66295b26b3a09779" title=" " alt="" coords="889,69,1136,109"/>
+<area shape="poly" title=" " alt="" coords="842,68,876,72,876,77,841,73"/>
+<area shape="poly" title=" " alt="" coords="486,129,641,79,642,84,487,134"/>
+<area shape="poly" title=" " alt="" coords="547,144,611,142,611,147,547,150"/>
+<area shape="poly" title=" " alt="" coords="547,168,582,174,581,179,546,174"/>
 </map>
 </div>
 
@@ -1777,6 +1908,24 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
+<a id="a70383402edc6fc9483efb3ddfa4b3b05" name="a70383402edc6fc9483efb3ddfa4b3b05"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a70383402edc6fc9483efb3ddfa4b3b05">&#9670;&#160;</a></span>setCorridorWidth()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ugv_nav4d::EnvironmentXYZTheta::setCorridorWidth </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>width</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ae01babb4bc4d1980daaef7037f488bd3" name="ae01babb4bc4d1980daaef7037f488bd3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae01babb4bc4d1980daaef7037f488bd3">&#9670;&#160;</a></span>setGoal()</h2>
 
@@ -1866,6 +2015,139 @@ Here is the caller graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="375,324,352,372,318,430,273,488,246,515,217,538,193,550,190,545,215,533,243,511,269,485,313,427,347,369,370,321"/>
 </map>
 </div>
+
+</div>
+</div>
+<a id="ade24c90e38f4a3a9822d86f9b11b067b" name="ade24c90e38f4a3a9822d86f9b11b067b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ade24c90e38f4a3a9822d86f9b11b067b">&#9670;&#160;</a></span>setGoalDistanceMargin()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ugv_nav4d::EnvironmentXYZTheta::setGoalDistanceMargin </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>margin</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abd716caada7d4f5555f274060517b27d" name="abd716caada7d4f5555f274060517b27d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd716caada7d4f5555f274060517b27d">&#9670;&#160;</a></span>setGoalOrientationMargin()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ugv_nav4d::EnvironmentXYZTheta::setGoalOrientationMargin </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>margin</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4403545aa8c2a5eade66f9fd874d5306" name="a4403545aa8c2a5eade66f9fd874d5306"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4403545aa8c2a5eade66f9fd874d5306">&#9670;&#160;</a></span>setPlanningTimeout()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ugv_nav4d::EnvironmentXYZTheta::setPlanningTimeout </td>
+          <td>(</td>
+          <td class="paramtype">const std::chrono::steady_clock::time_point &amp;&#160;</td>
+          <td class="paramname"><em>start</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>maxTime</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a755952ead47113fccee7715fe2939b7a" name="a755952ead47113fccee7715fe2939b7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a755952ead47113fccee7715fe2939b7a">&#9670;&#160;</a></span>setReedsSheppGoalShot()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ugv_nav4d::EnvironmentXYZTheta::setReedsSheppGoalShot </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>enable</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>maxDistance</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>stepSize</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Configure the Hybrid-A* Reeds-Shepp goal shot used inside <a class="el" href="classugv__nav4d_1_1EnvironmentXYZTheta.html#a6dddb0bcc7fb30da66295b26b3a09779">GetSuccs()</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">enable</td><td>attempt an analytic RS connection to the goal during search </td></tr>
+    <tr><td class="paramname">maxDistance</td><td>only attempt when point-robot distance to goal &lt;= this (meters) </td></tr>
+    <tr><td class="paramname">stepSize</td><td>RS sampling resolution (meters); &lt;= 0 uses half the grid resolution </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a900af50410155853bf6ec6e8390ff456" name="a900af50410155853bf6ec6e8390ff456"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a900af50410155853bf6ec6e8390ff456">&#9670;&#160;</a></span>setReedsSheppMaxCusps()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ugv_nav4d::EnvironmentXYZTheta::setReedsSheppMaxCusps </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>maxCusps</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Maximum number of direction changes (cusps) a single accepted Reeds-Shepp curve may contain (applies to the goal shot and the final-path shortcutting). During shortcutting a direction flip relative to the previously emitted segment counts towards the budget as well. &lt; 0 disables the limit. </p>
 
 </div>
 </div>
@@ -2073,6 +2355,28 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="addf7047bf41cfcb36e09a5d40a8008f1" name="addf7047bf41cfcb36e09a5d40a8008f1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#addf7047bf41cfcb36e09a5d40a8008f1">&#9670;&#160;</a></span>corridorWidth</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ugv_nav4d::EnvironmentXYZTheta::corridorWidth</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aceb7348003f2331ff35f4e974a1f6ad6" name="aceb7348003f2331ff35f4e974a1f6ad6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aceb7348003f2331ff35f4e974a1f6ad6">&#9670;&#160;</a></span>goalThetaNode</h2>
 
@@ -2137,6 +2441,28 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 <p>maps sbpl state ids to internal planner state (<a class="el" href="structugv__nav4d_1_1EnvironmentXYZTheta_1_1Hash.html">Hash</a>). </p>
+
+</div>
+</div>
+<a id="a1abd2b1a6980aa4cdfef724e54535b75" name="a1abd2b1a6980aa4cdfef724e54535b75"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1abd2b1a6980aa4cdfef724e54535b75">&#9670;&#160;</a></span>nodeInCorridor</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;bool&gt; ugv_nav4d::EnvironmentXYZTheta::nodeInCorridor</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>
