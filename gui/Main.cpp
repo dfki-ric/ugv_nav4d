@@ -30,6 +30,13 @@ public:
 
 int main(int argc, char** argv)
 {
+    // Same GUI-process tuning as the travgen debug GUI: OpenMP workers must not
+    // spin against the llvmpipe software-render threads at every wave barrier,
+    // and llvmpipe does not need one thread per logical CPU for a debug view.
+    // overwrite=0 keeps user overrides working.
+    setenv("OMP_WAIT_POLICY", "passive", 0);
+    setenv("LP_NUM_THREADS", "4", 0);
+
     Application app(argc, argv);
     PlannerGui gui(argc, argv);
     gui.show();

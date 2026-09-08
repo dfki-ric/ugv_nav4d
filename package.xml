@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>planning-ugv_nav4d</name>
+    <version>0.0.0</version>
+    <description>auto generated file, see manifest.xml for information</description>
+    <depend>base-cmake</depend>
+    <depend>planning-sbpl</depend>
+    <depend>planning-sbpl_spline_primitives</depend>
+    <depend>planning-traversability_generator3d</depend>
+    <depend>control-trajectory_follower</depend>
+  <depend>gui-vizkit3d</depend>
+   <maintainer email="steffen.planthaber@dfki.de">Steffen Planthaber</maintainer>
+    <license>Copyright DFKI</license>
+    <export>
+        <build_type>cmake</build_type>
+    </export>
+    </package>

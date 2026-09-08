@@ -7,7 +7,10 @@
 #include <base/Pose.hpp>
 #include "DiscreteTheta.hpp"
 #include "PreComputedMotions.hpp"
+#include "ReedsShepp.hpp"
 #include <trajectory_follower/SubTrajectory.hpp>
+#include <unordered_map>
+#include <chrono>
 
 std::ostream& operator<< (std::ostream& stream, const DiscreteTheta& angle);
 
@@ -89,6 +92,8 @@ protected:
     /**Contains the distance from each travNode to start-node and goal-node
      * Stored in real-world coordinates (i.e. do NOT scale with gridResolution before use)*/
     std::vector<Distance> travNodeIdToDistance;
+    std::vector<bool> nodeInCorridor;
+    double corridorWidth;
     std::shared_ptr<const traversability_generator3d::TravMap3d> travMap;
 
     PreComputedMotions availableMotions;
@@ -123,6 +128,12 @@ public:
     virtual ~EnvironmentXYZTheta();
 
     void updateMap(std::shared_ptr<const traversability_generator3d::TravMap3d > travMap);
+
+    void setPlanningTimeout(const std::chrono::steady_clock::time_point& start, double maxTime)
+    {
+        planningStartTime = start;
+        planningMaxTime = maxTime;
+    }
 
     virtual bool InitializeEnv(const char* sEnvFile);
     virtual bool InitializeMDPCfg(MDPConfig* MDPCfg);
@@ -180,12 +191,47 @@ public:
     void getTrajectory(const std::vector<int> &stateIDPath, std::vector<trajectory_follower::SubTrajectory> &result,
                        bool setZToZero, const Eigen::Vector3d &startPos, const Eigen::Vector3d &goalPos, const double& goalHeading, const Eigen::Affine3d &plan2Body = Eigen::Affine3d::Identity());
 
+    /** Reconstruct the final path from the solution state sequence using
+     *  Reeds-Shepp steering instead of the search motion primitives.
+     *
+     *  The primitive-based search is left untouched: it still produces
+     *  @p stateIDPath. This method treats those states as waypoints and greedily
+     *  shortcuts them with analytic Reeds-Shepp curves (minimum turning radius =
+     *  Mobility::minTurningRadius). Every candidate curve is re-validated against
+     *  the traversability map; if even the direct connection to the next waypoint
+     *  is not drivable, that step falls back to the original primitive motion so
+     *  feasibility is always preserved.
+     *
+     *  @param stepSize Reeds-Shepp sampling resolution in meters.
+     *  @param maxShortcut Maximum number of waypoints a single Reeds-Shepp curve
+     *         may span (<= 0 means unlimited). */
+    void getTrajectoryReedsShepp(const std::vector<int> &stateIDPath, std::vector<trajectory_follower::SubTrajectory> &result,
+                       bool setZToZero, const Eigen::Vector3d &startPos, const double& startHeading,
+                       const Eigen::Vector3d &goalPos, const double& goalHeading,
+                       const Eigen::Affine3d &plan2Body, double stepSize, int maxShortcut = 0);
+
     const PreComputedMotions& getAvailableMotions() const;
 
     /**Clears the state of the environment. */
     void clear();
 
     void setTravConfig(const traversability_generator3d::TraversabilityConfig& cfg);
+
+    /** Configure the Hybrid-A* Reeds-Shepp goal shot used inside GetSuccs().
+     *  @param enable      attempt an analytic RS connection to the goal during search
+     *  @param maxDistance only attempt when point-robot distance to goal <= this (meters)
+     *  @param stepSize    RS sampling resolution (meters); <= 0 uses half the grid resolution */
+    void setReedsSheppGoalShot(bool enable, double maxDistance, double stepSize);
+
+    /** Maximum number of direction changes (cusps) a single accepted Reeds-Shepp curve may
+     *  contain (applies to the goal shot and the final-path shortcutting). During shortcutting
+     *  a direction flip relative to the previously emitted segment counts towards the budget
+     *  as well. < 0 disables the limit. */
+    void setReedsSheppMaxCusps(int maxCusps);
+
+    void setCorridorWidth(double width);
+    void setGoalOrientationMargin(double margin);
+    void setGoalDistanceMargin(double margin);
 
     /** @param maxDist The value that should be used as maximum distance. This value is used for
      *                 non-traversable nodes and for initialization.*/
@@ -203,6 +249,19 @@ private:
     traversability_generator3d::TravGenNode* checkTraversableHeuristic(const maps::grid::Index sourceIndex, traversability_generator3d::TravGenNode* sourceNode,
                                            const ugv_nav4d::Motion& motion, const maps::grid::TraversabilityMap3d< traversability_generator3d::TravGenNode* >& trMap);
 
+    /** Walk the traversability graph along a sampled Reeds-Shepp curve, verifying
+     *  every sample lies on a connected, traversable/partially-traversable node
+     *  with an allowed orientation (mirrors the checks done in GetSuccs()).
+     *  @param startNode node the curve starts on (the source waypoint).
+     *  @param samples the Reeds-Shepp curve samples in map frame.
+     *  @param expectedEndNode if non-null, the curve must terminate on this node.
+     *  @param[out] outNodes the node each sample resolves to (same size as samples).
+     *  @return true if the entire curve is drivable on the map. */
+    bool validateReedsSheppSegment(traversability_generator3d::TravGenNode* startNode,
+                                   const std::vector<RSSample>& samples,
+                                   const traversability_generator3d::TravGenNode* expectedEndNode,
+                                   std::vector<traversability_generator3d::TravGenNode*>& outNodes);
+
     /** Some movement directions are not allowed depending on the slope of the patch.
      *  @return true if the movement direction is allowed on that patch
      */
@@ -214,10 +273,10 @@ private:
     void precomputeCost();
 
     /**Return the avg slope of all patches on the given @p path */
-    double getAvgSlope(std::vector<const traversability_generator3d::TravGenNode*> path) const;
+    double getAvgSlope(const std::vector<const traversability_generator3d::TravGenNode*>& path) const;
 
     /**Returns the max slope of all patches on the given @p path */
-    double getMaxSlope(std::vector<const traversability_generator3d::TravGenNode*> path) const;
+    double getMaxSlope(const std::vector<const traversability_generator3d::TravGenNode*>& path) const;
 
 
     /**Determines the distance between @p a and @p b depending on travConf.heuristicType */
@@ -242,6 +301,23 @@ private:
     unsigned int numAngles;
 
     Mobility mobilityConfig;
+    struct CachedTransition {
+        size_t motionId;
+        int cost;
+    };
+    std::unordered_map<uint64_t, CachedTransition> transitionCache;
+    double goalOrientationMargin;
+    double goalDistanceMargin;
+
+    std::chrono::steady_clock::time_point planningStartTime;
+    double planningMaxTime;
+
+    /** Hybrid-A* Reeds-Shepp goal-shot state (see setReedsSheppGoalShot). */
+    bool useReedsSheppGoalShot = false;
+    double reedsSheppGoalShotMaxDistance = 0.0;
+    double reedsSheppStepSize = 0.0;
+    /** Cusp budget for accepted Reeds-Shepp curves (see setReedsSheppMaxCusps). */
+    int reedsSheppMaxCusps = 1;
 };
 
 }

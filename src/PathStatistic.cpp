@@ -75,6 +75,9 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const trave
 
     Eigen::Vector2d halfRobotDimension(config.robotSizeX / 2.0, config.robotSizeY/2.0);
     Eigen::Vector2d halfOuterBoxDimension(halfRobotDimension + Eigen::Vector2d::Constant(config.costFunctionDist));
+    // The footprint box may be off-center (robot origin is not the geometric
+    // center); tp below is in the robot frame, so shifting the boxes suffices.
+    const Eigen::Vector2d footprintOffset(config.footprintOffsetX, 0.0);
     
     std::vector<Eigen::Vector2d> edgePositions = {
         Eigen::Vector2d(- config.gridResolution /2.0, - config.gridResolution / 2.0),
@@ -83,8 +86,10 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const trave
         Eigen::Vector2d(config.gridResolution / 2.0, -config.gridResolution / 2.0)
     };
     
-    Eigen::AlignedBox<double, 2> robotBoundingBox(- halfRobotDimension, halfRobotDimension);
-    Eigen::AlignedBox<double, 2> costFunctionBoundingBox(- halfOuterBoxDimension, halfOuterBoxDimension);
+    Eigen::AlignedBox<double, 2> robotBoundingBox(footprintOffset - halfRobotDimension,
+                                                  footprintOffset + halfRobotDimension);
+    Eigen::AlignedBox<double, 2> costFunctionBoundingBox(footprintOffset - halfOuterBoxDimension,
+                                                         footprintOffset + halfOuterBoxDimension);
 
     std::unordered_set<const maps::grid::TraversabilityNodeBase*> inRobot;
     std::unordered_set<const maps::grid::TraversabilityNodeBase*> inBoundary;
@@ -104,7 +109,7 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const trave
         node->eachConnectedNode([&] (const maps::grid::TraversabilityNodeBase *neighbor, bool &explandNode, bool &stop){
             //we need to compute the four edges of a cell and check if any is inside of the robot
             maps::grid::Vector3d neighborPos;
-            trMap.fromGrid(neighbor->getIndex(), neighborPos, neighbor->getHeight(), false);
+            trMap.fromGrid(neighbor->getIndex(), neighborPos, neighbor->getHeight(), true);
             
             bool isInsideRobot = false;
             bool isInsideOuterBox = false;
@@ -155,9 +160,10 @@ void ugv_nav4d::PathStatistic::calculateStatistics(const std::vector<const trave
                     {
                         if(!debugObstacleName.empty())
                         {
-                        V3DD::DRAW_ARROW(debugObstacleName,
-                                         neighborPos,
-                                         Eigen::Quaterniond(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX())), Eigen::Vector3d(.3, 0.3, 0.8), V3DD::Color::red);
+                        //V3DD disabled: only ugv_nav4d_rs_input_states active
+                        //V3DD::DRAW_ARROW(debugObstacleName,
+                        //                 neighborPos,
+                        //                 Eigen::Quaterniond(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX())), Eigen::Vector3d(.3, 0.3, 0.8), V3DD::Color::red);
                         }
                     });
 #endif                    
@@ -213,6 +219,9 @@ bool ugv_nav4d::PathStatistic::isPathFeasible(const std::vector<const traversabi
 
     Eigen::Vector2d halfRobotDimension(config.robotSizeX / 2.0, config.robotSizeY/2.0);
     Eigen::Vector2d halfOuterBoxDimension(halfRobotDimension + Eigen::Vector2d::Constant(config.costFunctionDist));
+    // The footprint box may be off-center (robot origin is not the geometric
+    // center); tp below is in the robot frame, so shifting the boxes suffices.
+    const Eigen::Vector2d footprintOffset(config.footprintOffsetX, 0.0);
     
     std::vector<Eigen::Vector2d> edgePositions = {
         Eigen::Vector2d(- config.gridResolution /2.0, - config.gridResolution / 2.0),
@@ -221,8 +230,10 @@ bool ugv_nav4d::PathStatistic::isPathFeasible(const std::vector<const traversabi
         Eigen::Vector2d(config.gridResolution / 2.0, -config.gridResolution / 2.0)
     };
     
-    Eigen::AlignedBox<double, 2> robotBoundingBox(- halfRobotDimension, halfRobotDimension);
-    Eigen::AlignedBox<double, 2> costFunctionBoundingBox(- halfOuterBoxDimension, halfOuterBoxDimension);
+    Eigen::AlignedBox<double, 2> robotBoundingBox(footprintOffset - halfRobotDimension,
+                                                  footprintOffset + halfRobotDimension);
+    Eigen::AlignedBox<double, 2> costFunctionBoundingBox(footprintOffset - halfOuterBoxDimension,
+                                                         footprintOffset + halfOuterBoxDimension);
 
     std::unordered_set<const maps::grid::TraversabilityNodeBase*> inRobot;
     std::unordered_set<const maps::grid::TraversabilityNodeBase*> inBoundary;
@@ -242,7 +253,7 @@ bool ugv_nav4d::PathStatistic::isPathFeasible(const std::vector<const traversabi
         node->eachConnectedNode([&] (const maps::grid::TraversabilityNodeBase *neighbor, bool &explandNode, bool &stop){
             //we need to compute the four edges of a cell and check if any is inside of the robot
             maps::grid::Vector3d neighborPos;
-            trMap.fromGrid(neighbor->getIndex(), neighborPos, neighbor->getHeight(), false);
+            trMap.fromGrid(neighbor->getIndex(), neighborPos, neighbor->getHeight(), true);
             
             bool isInsideRobot = false;
             bool isInsideOuterBox = false;

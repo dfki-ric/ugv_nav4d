@@ -104,6 +104,7 @@ std::string PlannerTest::getResult(const Planner::PLANNING_RESULT& result) {
         case Planner::GOAL_INVALID: return "GOAL_INVALID";
         case Planner::START_INVALID: return "START_INVALID";
         case Planner::NO_SOLUTION: return "NO_SOLUTION";
+        case Planner::TIMEOUT: return "TIMEOUT";
         case Planner::NO_MAP: return "NO_MAP";
         case Planner::INTERNAL_ERROR: return "INTERNAL_ERROR";
         case Planner::FOUND_SOLUTION: return "FOUND_SOLUTION";
@@ -287,5 +288,41 @@ BOOST_AUTO_TEST_CASE(check_planner_success) {
 
 }
 
+BOOST_AUTO_TEST_CASE(check_planner_success_with_margin) {
+    plannerConfig.goalOrientationMargin = 0.8;
+    planner = new Planner(splinePrimitiveConfig, traversabilityConfig, mobility, plannerConfig);
+    BOOST_REQUIRE(planner != nullptr);
+    
+    travGen = new traversability_generator3d::TraversabilityGenerator3d(traversabilityConfig);
+    travGen->setMLSGrid(mlsMap);       
+
+    std::vector<Eigen::Vector3d> startPositions;
+    startPositions.emplace_back(Eigen::Vector3d(0,0,0));
+    travGen->expandAll(startPositions);
+    auto travMap = travGen->getTraversabilityMap();
+    planner->updateMap(travMap);
+
+    base::samples::RigidBodyState startState;
+    startState.position.x() = 2.3;
+    startState.position.y() = 4.1;
+    startState.position.z() = 0.0;
+    startState.orientation = Eigen::Quaterniond(1,0,0,0);
+
+    base::samples::RigidBodyState endState;
+    endState.position.x() = 6.1;
+    endState.position.y() = 4.2;
+    endState.position.z() = 0.0;
+    // Set a goal orientation that doesn't align perfectly with grid primitives, but is within the margin
+    endState.orientation = Eigen::Quaterniond(Eigen::AngleAxisd(0.5, Eigen::Vector3d::UnitZ()));
+
+    int maxTime = 5;
+    std::vector<trajectory_follower::SubTrajectory> trajectory2D;
+    std::vector<trajectory_follower::SubTrajectory> trajectory3D;
+
+    const Planner::PLANNING_RESULT result = planner->plan(base::Time::fromSeconds(maxTime), startState, endState, trajectory2D, trajectory3D);
+    BOOST_CHECK_EQUAL(result, Planner::FOUND_SOLUTION);
+    BOOST_CHECK_GT(trajectory2D.size(), 0);
+    BOOST_CHECK_GT(trajectory3D.size(), 0);
+}
 
 BOOST_AUTO_TEST_SUITE_END()

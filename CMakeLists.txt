@@ -18,16 +18,16 @@ if(INSTALL_DEPS)
   set(ENV{CMAKE_PREFIX_PATH} ${CMAKE_INSTALL_PREFIX}/share/rock/cmake/)
 endif()
 
-
 find_package(Rock)
-rock_init()
-rock_feature(NOCURDIR)
+find_package(PkgConfig)
 
 pkg_check_modules(vizkit3d_debug_drawings-commands vizkit3d_debug_drawings-commands)
+pkg_check_modules(vizkit3d_debug_drawings-qt5 vizkit3d_debug_drawings-qt5)
+pkg_check_modules(vizkit3d_debug_drawings vizkit3d_debug_drawings)
 
 if(ENABLE_DEBUG_DRAWINGS)
     message(STATUS "ENABLE_DEBUG_DRAWINGS is defined with value: ${ENABLE_DEBUG_DRAWINGS}")
-    if(vizkit3d_debug_drawings-commands_FOUND)
+    if(vizkit3d_debug_drawings-qt5_FOUND OR vizkit3d_debug_drawings_FOUND OR vizkit3d_debug_drawings-commands_FOUND)
         add_definitions(-DENABLE_DEBUG_DRAWINGS)
         message(STATUS "Building with vizkit3d_debug_drawings support in library")
     else()
@@ -37,4 +37,8 @@ else()
     message(STATUS "ENABLE_DEBUG_DRAWINGS is set to OFF. Skipped!")
 endif()
 
+rock_init()
+rock_feature(NOCURDIR)
 rock_standard_layout()
+
+add_subdirectory(gui)

@@ -1,14 +1,18 @@
 #include "Dijkstra.hpp"
+#include "Mobility.hpp"
 #include <maps/grid/TraversabilityMap3d.hpp>
 #include <traversability_generator3d/TraversabilityConfig.hpp>
+#include <traversability_generator3d/TravGenNode.hpp>
 #include <queue>
+#include <vector>
 using namespace maps::grid;
 
 namespace ugv_nav4d
 {
 void Dijkstra::computeCost(const TraversabilityNodeBase* source,
                            std::unordered_map<const TraversabilityNodeBase*, double>& outDistances,
-                           const traversability_generator3d::TraversabilityConfig& config)
+                           const traversability_generator3d::TraversabilityConfig& config,
+                           const ugv_nav4d::Mobility& mobilityConfig)
 {
     outDistances.clear();
     outDistances[source] = 0.0;
@@ -19,7 +23,7 @@ void Dijkstra::computeCost(const TraversabilityNodeBase* source,
                         std::greater<>> vertexQ;
     vertexQ.emplace(0.0, source);
 
-    std::unordered_set<const TraversabilityNodeBase*> visited;
+    std::vector<char> visited;
 
     while (!vertexQ.empty())
     {
@@ -27,10 +31,17 @@ void Dijkstra::computeCost(const TraversabilityNodeBase* source,
         const TraversabilityNodeBase* u = vertexQ.top().second;
         vertexQ.pop();
 
+        const auto* uGen = static_cast<const traversability_generator3d::TravGenNode*>(u);
+        const size_t uId = uGen->getUserData().id;
+        if (uId >= visited.size())
+        {
+            visited.resize(uId + 1, 0);
+        }
+
         // Skip nodes already processed
-        if (visited.find(u) != visited.end())
+        if (visited[uId])
             continue;
-        visited.insert(u);
+        visited[uId] = 1;
 
         const Eigen::Vector3d uPos(u->getIndex().x() * config.gridResolution,
                                    u->getIndex().y() * config.gridResolution,
@@ -47,7 +58,16 @@ void Dijkstra::computeCost(const TraversabilityNodeBase* source,
                                        v->getHeight());
 
             const double distance = (vPos - uPos).norm();
-            double distance_through_u = dist + distance;
+            
+            // Factor in partially traversable multiplier if neighbor node is partially traversable
+            double stepMultiplier = 1.0;
+            const auto* vGen = static_cast<const traversability_generator3d::TravGenNode*>(v);
+            if (vGen->getUserData().nodeType == traversability_generator3d::NodeType::PARTIALLY_TRAVERSABLE)
+            {
+                stepMultiplier = config.partiallyTraversableMultiplier;
+            }
+
+            double distance_through_u = dist + distance * stepMultiplier;
 
             if (outDistances.find(v) == outDistances.end() || distance_through_u < outDistances[v])
             {

@@ -34,10 +34,11 @@ public:
     enum PLANNING_RESULT {
         GOAL_INVALID,
         START_INVALID, 
-        NO_SOLUTION, /**< Happens if the planner runs out of time or the complete state space has been explored without a solution */
+        NO_SOLUTION, /**< The complete state space was explored without finding a solution (goal unreachable) */
         NO_MAP,
         INTERNAL_ERROR,
         FOUND_SOLUTION,
+        TIMEOUT, /**< The planner ran out of time (maxTime exceeded) before finding a solution */
     };
     
     Planner(const sbpl_spline_primitives::SplinePrimitivesConfig &primitiveConfig, 
@@ -52,14 +53,25 @@ public:
         if(!env)
         {
             env.reset(new EnvironmentXYZTheta(mapPtr, traversabilityConfig, splinePrimitiveConfig, mobility));
+            env->setCorridorWidth(plannerConfig.corridorWidth);
+            env->setGoalOrientationMargin(plannerConfig.goalOrientationMargin);
+            env->setGoalDistanceMargin(plannerConfig.goalDistanceMargin);
         }
         else
         {
             env->updateMap(mapPtr);
+            env->setCorridorWidth(plannerConfig.corridorWidth);
+            env->setGoalOrientationMargin(plannerConfig.goalOrientationMargin);
+            env->setGoalDistanceMargin(plannerConfig.goalDistanceMargin);
         }
     }
     
     void enablePathStatistics(bool enable);
+
+    /** @return true once the planning environment (and its motion primitives) has been
+     *  built. The first updateMap() after construction/reset builds it; that first call
+     *  is where motion-primitive generation happens. */
+    bool isEnvironmentInitialized() const { return static_cast<bool>(env); }
 
     std::vector<Motion> getMotions() const;
     
@@ -109,8 +121,8 @@ public:
             const Eigen::Affine3d& ground2Body, bool setZToZero);
 
     private:
-    bool calculateGoal(Eigen::Vector3d& goal_translation, const double yaw) noexcept;
-    bool tryGoal(const Eigen::Vector3d& translation, const double yaw) noexcept;
+    bool calculateGoal(Eigen::Vector3d& goal_translation, const double yaw);
+    bool tryGoal(const Eigen::Vector3d& translation, const double yaw);
 
 };
 

@@ -1,0 +1,76 @@
+# UGV Nav4D Planner Configuration
+
+splineConfig:
+  gridSize: 1.0
+  numAngles: 42
+  numEndAngles: 21
+  destinationCircleRadius: 10
+  cellSkipFactor: 1.0
+  generatePointTurnMotions: false
+  generateLateralMotions: false
+  generateBackwardMotions: true
+  generateForwardMotions: true
+  splineOrder: 4
+
+mobilityConfig:
+  translationSpeed: 0.5
+  rotationSpeed: 0.5
+  minTurningRadius: 4.0
+  searchRadius: 1.0
+  searchProgressSteps: 0.1
+  multiplierForward: 1
+  multiplierForwardTurn: 1
+  multiplierBackward: 4.0
+  multiplierBackwardTurn: 4
+  multiplierLateral: 4
+  multiplierLateralCurve: 4
+  multiplierPointTurn: 3
+  maxMotionCurveLength: 20.0
+  spline_sampling_resolution: 0.1
+  remove_goal_offset: false
+  curvaturePenaltyWeight: 3.0
+  angularCostWeight: 3.0
+
+travConfig:
+  gridResolution: 1.0
+  maxSlope: 0.45
+  maxStepHeight: 0.45
+  robotSizeX: 1.2
+  robotSizeY: 1.2
+  robotHeight: 0.5
+  slopeMetricScale: 1.0
+  slopeMetric: "NONE"
+  inclineLimittingMinSlope: 0.22
+  inclineLimittingLimit: 0.43
+  costFunctionDist: 0.0
+  distToGround: 0.0
+  minTraversablePercentage: 0.4
+  allowForwardDownhill: true
+  enableInclineLimitting: false
+  articulatedSuspension: false # if false, the robot is modeled with a rigid chassis/axles
+  obstacleInflationMultiplier: 1.0
+  partiallyTraversableMultiplier: 1.0
+  numYawSamples: 12 # yaw samples over [0,180) for partial-cell allowed orientations (12 -> 15deg step)
+
+plannerConfig:
+  epsilonSteps: 2.0
+  initialEpsilon: 64.0
+  numThreads: 4
+  usePathStatistics: false
+  searchUntilFirstSolution: true
+  corridorWidth: 10.0
+  maxTime: 20.0
+  goalOrientationMargin: 1.0
+  goalDistanceMargin: 0.5
+  # Reconstruct the final path from the solution states using Reeds-Shepp steering
+  # (greedy shortcutting) instead of the search motion primitives. The primitive-based
+  # search itself is unchanged. Requires minTurningRadius > 0.
+  useReedsSheppFinalPath: true
+  reedsSheppStepSize: 0.0      # RS sampling resolution [m]; <= 0 uses half the grid resolution
+  reedsSheppMaxShortcut: 0     # max waypoints one RS shortcut may span; <= 0 = unlimited
+  # Hybrid-A* analytic goal connection: end the search early when a collision-free Reeds-Shepp
+  # curve reaches the goal directly (skips expanding states around the goal heading).
+  # Requires useReedsSheppFinalPath: true.
+  useReedsSheppGoalShot: true
+  reedsSheppGoalShotMaxDistance: 15.0   # only attempt within this point-robot distance to goal [m]
+  reedsSheppMaxCusps: 1        # max direction changes per accepted RS curve (incl. seam flip); < 0 = unlimited
