@@ -18,28 +18,36 @@ We propose ugv_nav4d, a path planner that enhances environmental representation 
 
 Unlike nav2, ugv_nav4d simplifies planning with a single TraversabilityMap3D, which contains detailed ground surface data, offering a superior alternative to nav2’s 3D costmaps. For users, MLS maps provide a smoother, more realistic view of terrain compared to the blocky voxel maps, enhancing navigation and decision-making in complex environments.
 
+---
+
+## Documentation Index
+To make the library easier to navigate, the documentation has been organized into modular guides:
+
+* **[Implementation Details](doc/implementation_details.md):** In-depth technical architecture, state space representations, collision-checking pipelines, heuristics, and primitive spline details.
+* **[ROS 2 Humble Simulation Environment Setup](doc/ros2_setup.md):** Instructions for setting up Husky (Gazebo Fortress) and Turtlebot3 (Gazebo Classic) integration with Nav2.
+* **[Parameter Tuning Guide](doc/tuning_guide.md):** A comprehensive reference guide for all config variables found in `parameters.yaml`.
+
+---
+
 ## Installation
 
-Follow the steps to peform a standalone build of the library.
+Follow the steps to perform a standalone build of the library.
 
 ### System Requirements
-
 ```
 OS: Ubuntu 20.04, Ubuntu 22.04, Ubuntu 24.04
-
 ```
-See [install_os_dependencies.bash](source_dependencies/install_os_dependencies.bash) for further os dependencies.
+See [install_os_dependencies.bash](source_dependencies/install_os_dependencies.bash) for further OS package requirements.
 
-#### Get the library
-
-```
+### Get the library
+```bash
 git clone https://github.com/dfki-ric/ugv_nav4d.git
 ```
 
-#### Automatic Install of Dependencies & Build
-Install dependencies automatically when building ugv_nav4d. Defining `-DINSTALL_DEPS=ON` for cmake, builds and installs the source dependencies automatically. When `-DCMAKE_INSTALL_PREFIX` is used, the dependencies are also installed there. The install script generates an env.sh file in the `CMAKE_INSTALL_PREFIX` folder. It exports all neccessary environment variables.
+### Automatic Install of Dependencies & Build
+Install dependencies automatically when building `ugv_nav4d`. Defining `-DINSTALL_DEPS=ON` for cmake builds and installs the source dependencies automatically. When `-DCMAKE_INSTALL_PREFIX` is used, the dependencies are also installed there. The install script generates an `env.sh` file in the `CMAKE_INSTALL_PREFIX` folder which exports all necessary environment variables.
 
-```
+```bash
 cd ugv_nav4d
 mkdir build && cd build
 cmake -DINSTALL_DEPS=ON -DCMAKE_INSTALL_PREFIX=./install ..
@@ -47,50 +55,43 @@ make install
 source install/env.sh
 ```
 
-#### Manual Installation of Dependencies & Build 
+### Manual Installation of Dependencies & Build
+*Skip this step if you already installed dependencies automatically in the previous step.*
 
-Skip this step if you already installed the dependencies automatically from the previous step.
-
-Follow the steps to manually install dependencies. Define a path_to_install_folder e.g. `./install` where the dependencies will be installed
-
-```
+Define a `path_to_install_folder` e.g. `./install` where the dependencies will be installed:
+```bash
 cd ugv_nav4d
 mkdir build && cd source_dependencies
 bash ./install_os_dependencies.bash
 bash ./build.bash ../build/install
 ```
 
-After all dependencies have been installed. Go back to the main folder to build and install ugv_nav4d like any other cmake project.
-
-```
+After all dependencies have been installed, go back to the main folder to build and install `ugv_nav4d`:
+```bash
 cd ../build
 source install/env.sh
 cmake -DCMAKE_INSTALL_PREFIX=./install -DTESTS_ENABLED=OFF -DENABLE_DEBUG_DRAWINGS=OFF -DCMAKE_BUILD_TYPE=RELEASE ..
 make install
 ```
 
-#### Compiling inside a ROCK environment [Only for ROCK users] 
-See the `manifest.xml` for an up to date list of dependencies. If you are ROCK user then include the package_set which contains the ```dfki-ric/orogen-ugv_nav4d``` package in your autoproj manifest file.
+### Compiling inside a ROCK environment [Only for ROCK users]
+See `manifest.xml` for an up-to-date list of dependencies. If you are a ROCK user, include the package set containing `dfki-ric/orogen-ugv_nav4d` in your autoproj manifest file.
 
-#### API Documentation
-The API documentation can be found at https://dfki-ric.github.io/ugv_nav4d/
+### API Documentation
+The API documentation is available at [https://dfki-ric.github.io/ugv_nav4d/](https://dfki-ric.github.io/ugv_nav4d/)
 
-#### GUI Usage & Tests
+---
+
+## GUI Usage & Tests
 
 Source the `env.sh` in the install folder.
 
-##### Configuration
-The planner GUI loads configuration from `src/gui/config/parameters.yaml`. This file contains default values for:
-- **Spline Configuration**: Motion primitive generation parameters (number of angles, destination radius, etc.)
-- **Mobility Configuration**: Robot speed and turning characteristics (translation/rotation speed, turning radius, multipliers)
-- **Traversability Configuration**: Terrain analysis parameters (grid resolution, max slope, step height, robot dimensions)
-- **Planner Configuration**: Search algorithm parameters (epsilon, number of threads)
+### Configuration
+The planner GUI loads configuration from `gui/config/parameters.yaml`. This file contains default parameters for spline characteristics, vehicle mobility, traversability limits, and search heuristic configurations. See the **[Parameter Tuning Guide](doc/tuning_guide.md)** for detailed adjustment descriptions.
 
-If the config file is not found, the GUI will fall back to built-in defaults. To customize planner behavior, edit the YAML configuration file before starting the GUI.
-
-##### Running the GUI
-At first, get the test point cloud map and start the GUI.
-```
+### Running the GUI
+Retrieve the test point cloud map and start the GUI:
+```bash
 cd ..
 source build/install/env.sh
 wget https://zenodo.org/record/13789320/files/parking_deck.ply
@@ -98,534 +99,33 @@ ugv_nav4d_bin-qt5 parking_deck.ply
 ```
 ![PlannerGui](doc/figures/planner_gui.png)
 
-A basic GUI is loaded with the Multi-layer Surface Map of a parking deck environment. Use the mouse left-click to select a start position and the mouse right-click to select the goal position. The sliders can be used to changed the orientations of start and goal positions. Click on the button `Plan` to plan a path.
+A basic GUI is loaded with the Multi-layer Surface Map of a parking deck environment. Use the mouse left-click to select a start position and mouse right-click to select the goal position. The sliders can be used to change the orientations of start and goal positions. Click the button `Plan` to plan a path.
 
 ![PlannerGuiResult](doc/figures/planner_gui_result.png)
 
-The button `Create PlannerDump` can be used to save the planner's state. The created file e.g. ugv4d_dump_xxxx.bin can be replayed using the executable `ugv_naved_replay`.
-
-```
+The button `Create PlannerDump` can be used to save the planner's state. The created file e.g., `ugv4d_dump_xxxx.bin` can be replayed using the executable `ugv_nav4d_replay`:
+```bash
 ugv_nav4d_replay ugv4d_dump_xxxx.bin
 ```
 
-An additional GUI is provided for tuning of parameters used in the generation of motion primitives. The generated spline motion primitives are also visualized. Furthermore, the `vizkit3d::SbplSplineVisualization` plugin under `Properties` offers further options for visualizing and analyzing the splines for various start and end angles.
+An additional GUI is provided for tuning parameters used in generating motion primitives and visualizing the generated splines.
 ![MotionPrimitivesGui](doc/figures/motion_primitives_gui.png)
 
 Run the following executable in your terminal:
-```
+```bash
 sbpl_spline_viz_bin
-``````
-
-#### Unit Tests
-
-Build the library again but this time enable the `-DTESTS_ENABLED=ON`
-
 ```
+
+### Unit Tests
+Build the library with `-DTESTS_ENABLED=ON` enabled:
+```bash
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=./install -DTESTS_ENABLED=ON -DENABLE_DEBUG_DRAWINGS=OFF -DCMAKE_BUILD_TYPE=RELEASE ..
 make install
 ```
-
-The test executables are in the folder: `build/src/test/`.
-
----
-# ROS 2 Humble Test Environment with Turtlebot3 and Husky
-
-This provides instructions for setting up a test environment using **Gazebo Fortress** for Husky and **Gazebo Classic** for Turtlebot3 with **ROS 2 Humble**. The setup includes configurations for using the Husky robot and ensures that the necessary resources are in place for smooth operation.
-
-## Prerequisites
-
-### 1. Install ROS2 Humble
-Ensure you have **ROS2 Humble** installed on your system. Follow the official page at [ROS2 Humble Debian Installation](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html)
-
-### 2. Install Gazebo Fortress
-If you need to install **Gazebo Fortress**, follow the instructions provided on the official page at [Gazebo Installation](https://gazebosim.org/docs/latest/ros_installation/).
-
-### 3. Install SLAM
-If you have a SLAM package which provides a pointcloud map on a topic then you can skip this step. If not then you can use [lidarslam_ros2](https://github.com/rsasaki0109/lidarslam_ros2). Please follow the build and install instructions from the original repository. Set the parameter `robot_frame_id: "husky/base_link"` for the `scanmatcher` node in [lidarslam.yaml](https://github.com/rsasaki0109/lidarslam_ros2/blob/a63b8fa2485e05251505b2bb209598285106bff2/lidarslam/param/lidarslam.yaml#L4)
-
-Install libg2o:
-
-```
-sudo apt-get install -y ros-humble-libg2o
-```
-
-### 4. Get ugv_nav4d_ros2 and a test environment for robot husky in gazebo
-
-```
-mkdir -p ~/your_ros2_workspace/src
-cd ~/your_ros2_workspace/src
-git clone https://github.com/dfki-ric/ugv_nav4d_ros2.git
-```
-You can clone the repo `ros2_humble_gazebo_sim` anywhere in your system. Here we clone it in the `your_ros2_workspace` folder.
-```
-cd ~/your_ros2_workspace
-git clone https://github.com/dfki-ric/ros2_humble_gazebo_sim.git
-cd ros2_humble_gazebo_sim
-bash install_dependencies.bash
-```
-
-### 5. Building the ROS 2 Workspace
-Before launching the simulation, source your env.sh from ugv_nav4d and build your ROS 2 workspace:
-
-```
-cd ~/your_ros2_workspace
-source path/to/ugv_nav4d/build/install/env.sh
-colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
-```
-
-# Turlebot3 and Nav2 Integration
-Install [Nav2](https://docs.nav2.org/development_guides/build_docs/index.html) from the instructions on the homepage.
-
-Follow the steps in this section to play around with a Turtlebot3 and Nav2. Ugv_nav4d expects a pointcloud map. The map can be provided by SLAM or static pointclouds as `PLY`. An example flat plane `PLY` file is used in these steps.
-
-Install turtlebot3-gazebo package and launch simulation
-```
-sudo apt-get install ros-humble-turtlebot3-gazebo
-export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/opt/ros/humble/share/turtlebot3_gazebo/models
-export TURTLEBOT3_MODEL=waffle
-ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py headless:=false x_pose:=2.0 y_pose:=2.0
-```
-Clone a repo with config files for nav2 and ugv_nav4d
-```
-cd ~/your_ros2_workspace
-git clone git@github.com:haider8645/turtlebot3_nav2_ugv_nav4d_config.git
-```
-Start the nav2 controller_server.
-
-Note: Please provide the fullpath for `your_ros2_workspace` in the launch file arguments.
-```
-cd turtlebot3_nav2_ugv_nav4d_config
-ros2 launch turtle_nav2.launch.py nav2_param_path:=/path/to/your_ros2_workspace/turtlebot3_nav2_ugv_nav4d_config/turtle_nav2.yaml rviz_config_path:=/path/to/your_ros2_workspace/turtlebot3_nav2_ugv_nav4d_config/turtle.rviz
-```
-In a new terminal, configure and activate the nav2 controller_server
-```
-ros2 lifecycle set /controller_server configure
-ros2 lifecycle set /controller_server activate
-```
-In a new terminal, start ugv_nav4d
-
-Note: Please provide the fullpath for `your_ros2_workspace` in the launch file arguments and accordingly edit the parameter `mls_file_path` in `turtle_ugv_nav4d.yaml`.
-```
-ros2 launch ugv_nav4d_ros2 ugv_nav4d.launch.py goal_topic:=/goal_pose main_param_file:=/path/to/your_ros2_workspace/turtlebot3_nav2_ugv_nav4d_config/turtle_ugv_nav4d.yaml
-```
-In new terminals, start scripts to send FollowPath action calls to nav2 and for Path visualization
-```
-cd ~/your_ros2_workspace/src/ugv_nav4d_ros2/scripts
-python3 follow_path_client.py
-```
-and 
-```
-cd ~/your_ros2_workspace/src/ugv_nav4d_ros2/scripts
-python3 visualize_path.py
-```
-Visualize the MLS Map using
-```
-ros2 service call /ugv_nav4d_ros2/map_publish std_srvs/srv/Trigger
-```
-
-You can now send goals to the planner using `2D Goal Pose` in rviz and visualize the results.
-
-# Husky Integration
-
-To ensure that Gazebo can find the robot model, you need to export the following environment variable. Replace /path/to/ with the actual **complete** path where you clone the repository `ros2_humble_gazebo_sim`. Add this command to your terminal:
-```
-export IGN_GAZEBO_RESOURCE_PATH=/path/to/your_ros2_workspace/ros2_humble_gazebo_sim/resource:$IGN_GAZEBO_RESOURCE_PATH
-```
-
-Launch the Gazebo simulation by executing the following command in your terminal:
-```
-source ~/your_ros2_workspace/install/setup.bash
-cd ~/your_ros2_workspace/ros2_humble_gazebo_sim/simulation
-ros2 launch start.launch.py
-```
-You can use the `Teleop` plugin of Gazebo for sending velocity commands to the robot. Click on the three dots in top-right corner of Gazebo window and search for `Teleop`. Select the plugin and adjust the values as shown in figure.
-
-![GazeboTeleop](doc/figures/gazebo_teleop.png)
-
-Alternative to the `Teleop` plugin, you can use a joystick for moving the robot. For this, set the argument `use_joystick:=True`. Adjust the config files in the folder `/config` of the `ros2_humble_gazebo_sim` package from Step 3. Provide the full paths to the arguments `joy_config_file` and `teleop_twist_config_file` as shown below:
-
-```
-ros2 launch start.launch.py use_joystick:=True joy_config_file:=/your_ros2_workspace/ros2_humble_gazebo_sim/simulation/config/joy_config.yaml teleop_twist_config_file:=/your_ros2_workspace/ros2_humble_gazebo_sim/simulation/config/teleop_twist_config.yaml
-```
-
-Available arguments:
-```
-'robot_name':
-    Options: husky
-    (default: 'husky')
-
-'world_file_name':
-    Options: cave_circuit, urban_circuit_practice_03
-    (default: 'cave_circuit')
-
-'use_joystick':
-    Use a real joystick.
-    (default: 'False')
-
-'joy_config_file':
-    Full path to the joy config
-    (default: 'joy_config_file')
-
-'teleop_twist_config_file':
-    Full path to the teleop twist joy config
-    (default: 'teleop_twist_config_file')
-```
-
-In a new terminal, source your workspace and start SLAM. Remap the node scanmatcher's topic `/input_cloud` to `/husky/scan/points` in the `lidarslam.launch.py`
-
-```
-ros2 launch lidarslam lidarslam.launch.py main_param_dir:=/path/to/your/lidarslam.yaml
-```
-
-
-In a new terminal, source your workspace, ugv_nav4d library, and launch the ugv_nav4d_ros2. Replace the /path/to/your/ugv_nav4d with the location of the ugv_nav4d library. Add this command to your terminal:
-
-```
-source ~/your_ros2_workspace/install/setup.bash
-source /path/to/your/ugv_nav4d/build/install/env.sh
-
-ros2 launch ugv_nav4d_ros2 ugv_nav4d.launch.py pointcloud_topic:=/map goal_topic:=/goal_pose
-```
-In a new terminal, start a python script to visualize the labeled path in rviz2.
-
-```
-cd ~/your_ros2_workspace/src/ugv_nav4d_ros2/scripts
-python3 visualize_path.py
-```
-
-In a new terminal, start Rviz2.
-```
-cd ~/your_ros2_workspace
-source ~/your_ros2_workspace/install/setup.bash
-source /path/to/your/ugv_nav4d/build/install/env.sh
-rviz2 -d src/ugv_nav4d_ros2/config/ugv_nav4d.rviz 
-```
-
-After you start to move the robot, the planner will show the following status:
-
-```
-[ugv_nav4d_ros2]: Planner state: Got Map
-[ugv_nav4d_ros2]: Initial patch added.
-[ugv_nav4d_ros2]: Planner state: Ready
-```
-
-Visualize the MLS in Rviz2 using 
-
-```
-ros2 service call /ugv_nav4d_ros2/map_publish std_srvs/srv/Trigger
-```
-![MLSVizRviz2](doc/figures/mls_visualization_rviz2.png)
-
-The gaps in the MLS map are due to the gaps in the scanned points. Move the robot around in the environment. After some time, you will see the MLS start to fill out the gaps.
-
-![MLSVizRviz2](doc/figures/mls_visualization_rviz2_2.png)
-
-Set a goal using the `2D Goal Pose` option in Rviz2 or by publishing to the topic `/ugv_nav4d_ros2/goal_pose`.
-
-![GoalPose2D](doc/figures/set_goal_pose_rviz2.png)
-
-```
-ros2 topic pub /goal_pose geometry_msgs/PoseStamped "{header: {stamp: {sec: 0, nanosec: 0}, frame_id: 'map'}, pose: {position: {x: 4.0, y: 4.0, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}}"
-```
-
-#### cave_circuit
-
-![MLSVizRviz2](doc/figures/mls_visualization_rviz2_3.png)
-
-If planning is successful you should see the following status in the terminal:
-
-```
-[ugv_nav4d_ros2]: FOUND_SOLUTION
-```
-
-#### urban_circuit_practice_03
-You could repeat the same steps and in Step 6 set `world_file_name:=urban_circuit_practice_03`.
-
-![MLSVizRviz2](doc/figures/mls_visualization_rviz2_4.png)
+The test executables are located in the folder `build/src/test/`.
 
 ---
-## Implementation Details
-### Planning
-The planner is based on SBPL (http://www.sbpl.net/). I.e. it uses the SBPLs ARA* planner to plan in a custom environment.
-
-#### Environment
-SBPL internally uses states (identified by an id only) and associated costs (a unitless integer). The state ids reference states of an environment. That environment has to be defined by the user.
-The planner contains the `EnvironmentXYZTheta`. This environment implements all interfaces needed by SBPL to enable ARA* planning (other planning algorithms might require additional interfaces).
-
-
-A state in this environment consists of the position on the map (xyz) and the orientation of the robot (theta), hence the name. 
-
-The mapping `idToHash` in `EnvironmentXYZTheta` maps the SBPL state ids to instances of `Hash` (our internal representation of a state).
-```
-struct Hash
-{
-    XYZNode *node;
-    ThetaNode *thetaNode;
-};
-```
-
-The `Hash` represents a complete planner state. It consists of an `XYZNode` and a `ThetaNode`. The `XYZNode` represents a position on the traversability map while the `ThetaNode` holds the discretized orientation. Together they form a planner state. One `XYZNode` can be part of several states (with different `ThetaNodes`). However, a new `ThetaNode` is created for each state.
-The `XYZNode` contains a map to all `ThetaNodes` that it has been associated with during planning. 
-
-All `XYZNodes` are part of the `searchGrid`.
-An `XYZNode` is always created from (and corresponds to) a `TravGenNode` and shares the `TravGenNodes` index. I.e. the `XYZNodes` position in the `searchGrid` is the same as the `TravGenNodes` position on the `traversabilityMapGenerator::travMap`. For easy access the `XYZNode` contains a pointer to the corresponding `TravGenNode`.
-
-The `searchGrid` keeps track of the internal state while planning. It contains an `XYZNode` for every grid cell that the planner has already visited.
-The `searchGrid` is a `TraversabilityMap` but the traversability information is not used (and never set).
-The `TraversabilityMap` was chosen because it enables O(n) (n <= maximum number of layers in the map) lookup of nodes based on their xyz position. The choice was made due to time constraints (the map was there and it worked and there was no time). Semantically the usage of a `TraversabilityMap` to store the `XYZNodes`is wrong and it should be changed (e.g. to a hashmap), but it works and thus was never changed.
-
-#### The `TraversabilityMap3D`
-In addion to the `searchGrid` the environment has access to a `TraversabilityMap3D` (accessed through the `travGen` attribute). A `TraversabilityMap3D` is generated from a MLS using [traversability_generator3d](https://github.com/dfki-ric/traversability_generator3d) library and it separates the MLS into traversable, non-traversabel and unknown terrain. Addtionally it contains meta data (e.g. slope of the patch, supporting plane, etc.).
-
-The `TraversabilityMap3D` has to be fully expanded (i.e. generated from the MLS) before planning. In theory it could be expanded on the fly during planning and the code is prepared to do that, however this was never tested and there is a good chance that on-the-fly expansion will trigger bugs (especially if parallelism is enabled).
-
-The planner uses the `TraversabilityMap3D` to find valid successor states during planning which are tates that the robot can traverse to from a given start state using the motion primitives. Metadata stored in the map is used during planning to calculate costs.
-
-#### Obstacle Checking
-To ensure that the robot can traverse a certain area, obstacle checks have to be done.
-If we would have infinite resources we could just collide the robot model with the MLS for every possible state and see if it collides or not.
-But since we have very limitted resources we cannot do that. Instead there are several obstacle checking phases:
-
-##### 1. Obstacle Checks done during Expansion of the `TraversabilityMap3D`
-All obstacle checks in this phase are done using the rotation invariant bounding box of the robot. This is an axis aligned bounding box with side length `min(config.robotSizeX, config.robotSizeY)`. With this check when an a patch is an obstacle we are 100% sure that it is. But if it is not we cannot be sure that it is not. This greatly reduces map size and planning time without costing too much as checks are only done once per patch.
-It also means that a full 3D oriented bounding box check is still necessary during planning to factor in different side lengths and the orientation of the robot.
-
-- **Step height check**: A patch is an obstacle if the height between the patch and its neighbors is higher than the maximum step height of the robot. If the robot would stand on this patch, the neighboring patch would be inside the robots body. 
-- **Slope check**: A patch is an obstacle if the slope of the patch is above the slope limit.
-- **Map limit check**: A patch is an obstacle if the bounding box of the robot (again just using the smaller side length) leaves the map (maximum possible map, not currently known map).
-- **Height check**: Patches are marked as obstacle if there is a patch above the marked patch and below robot height. I.e. if the robot would stand on this patch, the patch above would be inside the robot. This is a tiny but important difference. It means that, if the robot is on this patch with even a tiny bit of its body, it would touch an obstacle.
-
-This step marks patches in the `TraversabilityMap3D` as obstacle if the robot would touch an obstacle when standing (centered) on this patch, or when the slope is too steep.
-
-#### Heuristic
-ARA* is a real-timeish version of A*. Thus it needs a heuristic.
-
-The heuristic h(a,b) between two cells a and b is the time it would take the robot to follow the shortest path from a to b on the TraversabilityMap3D. The shortest path is calculated ***without*** taking any of the following into account:
-- the robot dimensions and orientation (The minimum bounding box has already been checked while expanding the map)
-- collision checks on the ObstacleMap
-- steepness of the terrain (i.e. as long as a patch has a steepness below the limit the costs are the same)
-- motion primitives
-- motion restrictions of the robot
-
-I.e. it is the path that the robot would be able to follow if it was infinitesimal small and could change direction instantly. 
-
-The heuristic is computed beforehand for all nodes of the map. Changing the code to on-demand heuristic should be possible. It was not done because it was not needed (fast enough for our maps) at the time of writing.
-
-SBPL expects the heuristic to be an integer. To avoid losing precision when converting to int the heuristic value is scaled by `Motion::costScaleFactor` (usually 1000) before conversion. Without the scaling small movements have no cost at all.
-
-
-#### Motion Primitives
-The planner uses motion primitives, a set of pre-defined small motions, to determine how the robot can move from one state to the next.  The primitives are classified into four categories, namely:
-
-**Forward Primitive**
-**Backward Primitive**
-**Lateral Primitive**
-**Point-Turn Primitive**
-
-All four primitive motion types are considered as valid motions. It needs to be mentioned that the point-turn primitives are a special case because they do not use a spline. On the contrary, forward, backward, and lateral motion primitives are splines. 
-
-The basic shapes of the motion primites are generated by the `SbplSplineMotionPrimitives` library.
-The library generates primitives using splines based on a few parameters in a perimeter around the robot.
-
-The parameters for primitive generation are grouped in the `SplinePrimitivesConfig` class.
-
-- `gridSize` - The width/height of a grid cell of the planning grid. This should be the same as the resolution of the map. Available end positions will be a multiple of this.
-- `numAngles` - The number of discrete start orientations. A full set of primitives will be generated for each orientation.
-- `numEndAngles` - The maximum number of end orientation. For each start orientation and each end orientation a full set of primitives will be generated. This is an upper boundry. It might not be reached.
-- `destinationCircleRadius` - Radius around the robot (in cells) that primitives will be generated for.
-- `cellSkipFactor` - Sparseness of the generated primitives.
-- `splineOrder` Order of the generated splines.
-
-
-Based on the value of the parameter `destinationCircleRadius` a number of discrete destination points are generated on concentric circles. The parameter `CellSkipFactor` decides the interval between each two consecutive concentric circles. Before generating a motion primitive, each destination cell is scaled via multiplication with the `gridSize`. A unique motion primitives is generated for each start angle to each destination cell shown in picture below, from `(0,0)` to that cell for each end angle. The number of start angles and end angles is decided basd on the parameters `numAngles` and `numEndAngles` respectively.
-
-
-![NumAngles](doc/figures/num_angles.png)
-
-To keep the number of primitives reasonable they are discretized. Their start and end positions are discretized using a 2d grid. The start and end orientations are discretized using angle segments.
-
-![NumAngles](doc/figures/splines.gif)
-
-This animation shows all splines generated by the following configuration (each frame shows the primitives for one start orientation). 
-```
-config.gridSize = 0.1;
-config.numAngles = 24;
-config.numEndAngles = 12;
-config.destinationCircleRadius = 5;
-config.cellSkipFactor = 1.0;
-config.generatePointTurnMotions = false;
-config.generateLateralMotions = false;
-config.generateBackwardMotions = false;
-config.generateForwardMotions = true;
-config.splineOrder = 4;
-```
-##### Default Parameters
-| Parameter | Type |Description | Recommented Value |
-|-----------------|:-------------|:-------------|:-------------|
-| dumpOnError | bool  | Refer to the section  `Dumping Planner State`  | Release: 0, Debug: 1  |
-| dumpOnSuccess    | bool         | Refer to the section `Dumping Planner State`  | Release: 0, Debug: 1 |
-| initialPatchRadius     | double        | Radius of initial patch of point cloud points to kick-start the planner  | 3.0 |
-
-##### Mobility Configuration Parameters
-| Parameter | Type |Description |Recommented Value |
-|-----------------|:-------------|:-------------|:-------------|
-| translationSpeed | double  | Linear velocity of the resulting path trajectory  | 1.0 |
-| rotationSpeed    | double         | Angular velocity of the resulting path trajectory  | 1.0 |
-| minTurningRadius     | double        | The minimum turning radius corresponds to the maximum curvature. This parameter therefore helps to select all motion primitives which have curvature less than the maximum curvature. A higher value means less cap for the maximum curvature resulting in linear primitives. A small value will result in more curvy primitives. Note that a smaller value results in more primitives selected which requires more computation power for the planning. For details see section `Minimum Turning Radius`  | 0.1 |
-| multiplierForward | int  | Cost multiplier for the forward motion primitives  | 1 |
-| multiplierBackward    | int         | Cost multiplier for the backward motion primitives  | 2 |
-| multiplierLateral     | int        | Cost multiplier for the lateral motion primitives  | 2 |
-| multiplierForwardTurn | int  | Cost multiplier for the forward turn motion primitives  | 1 |
-| multiplierBackwardTurn    | int         | Cost multiplier for the backward turn motion primitives  | 2 |
-| multiplierPointTurn     | int        | Cost multiplier for the point turn motion primitives  | 1 |
-| multiplierLateralCurve | int  | Cost multiplier for the lateral curve motion primitives  | 2 |
-| searchRadius    | double         |   | 1.0 |
-| searchProgressSteps     | double        |   | 0.1 |
-| remove_goal_offset     | bool        | Remove the goal offset which is there because of the discretization  | true |
-| spline_sampling_resolution     | double        | Resolution used to sample the motion primitive spline  | 0.01 |
-| maxMotionCurveLength | double  | The maximum curve length of the selected motion primitives. Small value results in small primitives and a large value results in longer primitives. During testing, it was observed that the planner has a hard time in finding a solution if the value of this parameter is set < 0.6  | 1.3 |
-
-##### Planner Configuration Parameters
-| Parameter | Type |Description | Recommented Value |
-|-----------------|:-------------|:-------------|:-------------|
-| initialEpsilon | int  | The planner uses ARA* planner. It finds a sub-optimal solution and then repairs the initial solution by using reducing the epsilon by the parameter `epsilonSteps`. An optimal solution means epsilon is equal to 1, where `solution = epsilon x optimal_solution`   | 36  |
-| epsilonSteps    | int         | The steps in the epsilon during planning and repairing of the initial sub-optimal solution  | 6 |
-| numThreads     | int        | A limit on the threads allocated for the planner during planning.  | 8|
-| usePathStatistics     | bool        | Should a computationally expensive obstacle check be done to check whether the robot bounding box is in collision with obstacles. This mode is useful for highly cluttered and tight spaced environments.  | false|
-| searchUntilFirstSolution     | bool        | Search only until the first solution and then stop planning. See SBPL documentation for an explantion of this value.  | false |
-
-
-##### Primitives Configuration Parameters
-| Parameter | Type |Description | Recommented Value |
-|-----------------|:-------------|:-------------|:-------------|
-| gridSize | double  | The size of the traversability map grid  | Use case specific |
-| numAngles    | int         | number of discrete start angles angles. A full set of primitives will be generated for each start angle (has to be even number). For best performance, the value should be a multiple of 4. The multiple of 4 means that correct lateral motion primitives are generated. The reason for this is that the lateral motions are seen as 90 degree rotated motions from any given start angle. For this, the start angle is divided by 4 (because of 4 quadrants) and the result is subracted from the start angle  | 40 |
-| numEndAngles     | int        | The number of end angles for each destination cell. The value has to be <= numAngles/2 and odd | 9|
-| destinationCircleRadius     | int        | See section `Motion Primitives`  | 6 |
-| cellSkipFactor     | int        | See section `Motion Primitives`. It is best to leave this value at >= 1 in integer steps. A value of less than 1 results in duplicate destination cells and do not add any value to the planning  | 1 |
-| splineOrder     | int        | The value has to be >= 3  | 3.0 |
-| generateForwardMotions     | bool        | Generate forward motion primitives. Forward primitives are for the case where destination cell x-coordinate > 0.1 |  Use case specific |
-| generateBackwardMotions     | bool        | Generate backward motion primitives. Backward primitives are for the case where destination cell x-coordinate < -0.1  |  Use case specific |
-| generateLateralMotions     | bool        | Generate lateral motion primitives. Lateral primitives are for the case where the destination cell x-coordinate > -0.1 and destination cell x-coordinate < 0.1  |  Use case specific|
-| generatePointTurnMotions     | bool        | Generate point-turn motion primitives. A point-turn is generated for each start angle to each end angle  |  Use case specific |
-
-##### Traversability Configuration Parameters
-| Parameter | Type |Description | Recommented Value |
-|-----------------|:-------------|:-------------|:-------------|
-| maxStepHeight | double  | The maximum step height that the robot can traverse. This is used during map expansion. Steps heigher than this become map boundaries   | Use case specific  |
-| maxSlope    | double         | Maximum traversable slope above which no travmap entries will be generated | 0.45 |
-| inclineLimittingMinSlope     | double        |   | 0.2 |
-| inclineLimittingLimit | double  |  | 0.1 |
-| costFunctionDist    | double         | Objects within a corridor of width costFunctionDist around a trajectory will influence the cost function. A higher value results in large computation cost requirements for the planning.  | 0.0 |
-| minTraversablePercentage     | double        | This value controls, how unknown patches are detected. If only a certain percentage of MSL patches are present on the surface of a traversability patch, it is rated as an unknown patch.    | 0.4 |
-| robotHeight | double  |  | Use case specific  |
-| robotSizeX    | double         | The length of the robot along x-axis   | Use case specific |
-| robotSizeY     | double        | The length of the robot along y-axis| Use case specific |
-| distToGround | double  | Distance from body frame to ground. Start and goal position are expected in body frame  | Use case specific  |
-| slopeMetricScale    | double         |   | 1.0 |
-| slopeMetric     | double        | The slope metric used to adjust the cost of a motion | Use case specific |
-| gridResolution | double  | The resolution of the traversability grid map  | Use case specific |
-| initialPatchVariance    | double         |   | 0.0001|
-| allowForwardDownhill     | bool        |   | true |
-| enableInclineLimitting | bool  |  | false  |
-
-##### Motion Primitive Filtering
-
-###### Minimum Turning Radius
-The planner filters the primitives by `minTurningRadius` (i.e. all primitives that have a curvature that is larger than allowed by the minimum turning radius are ignored)
-
-The following animation shows the same primitives as above but filtered with a `minTurningRadius` of `0.2`:
-
-![SplinesFiltered](doc/figures/splines_filtered.gif)
-
-As you can see all sharp turns have been removed from the splines.
-
-After filtering the splines are sampled using the planning grid resolution and the base cost for each motion is calculated. The sampled positions are later used during planning.
-
-If your environment contains tight spots it is recommended to enable `generateBackwardMotions`. Otherwise the planner will have a hard time finding solutions to get to the correct end orientation in tight spots.
-
-###### Maximum Curve Length
-You can filter the primitives using the parameter `maxMotionCurveLength`. All primitives which have a curve length less than the `maxMotionCurveLength` will be selected.
-
-The figure below shows the complete set of discritized splines, **without any curve length filter applied**, generated for the start angle of 0 radians. The green color signifies discritized primitives for forward motion, magenta for backward motion, and orange for lateral motion. Please note that the point-turns do not have a spline and therefore are not visible in the image below.
-
-![MaxCurveLength](doc/figures/max_curve_length.png)
-
-The figure below shows the same set of discritized splines for start angle of 0 radians but with a `maxMotionCurveLength` of 1.2.
-
-![MaxCurveLength2](doc/figures/max_curve_length_2.png)
-
-To get an idea about different geometric lengths of the primitives see the picture below. The picture shows only forward and backward motion primitives. Each arrow represents the end of a unqiue primitive. As mentioned earlier, the end points of the primitives are the destination cells scaled by the grid size of the traversability map. 
-
-![MaxCurveLength3](doc/figures/max_curve_length_3.png)
-
-##### Motions
-Each slected motion primitive is converted into a motion. A motion is a discritized motion primitive. In the planning phase, each discrete step of the motion is used to perform traversability and obstacle checks. You can find details on the motions in the class preComputedMotions.
-
-
-##### Motion Base Cost Calculation
-Upon motion generation every motion is asigned a base cost.
-I.e. the cost that would arise when the robot would follow that motion on a horizontal flat surface.
-Factors for steepness and other penalties might be factored later during planning on a case to case basis.
-
-The base cost for each motion is calculated as follows:
-```
-translationDist = < distance that the robot has to travel while following the spline >
-rotationDist    = < amount that the robot has to turn while following the spline >
-translationTime = translationalDist / translationVelocity
-rotationTime    = rotationDist / angularVelocity
-travelTime      = max(rotationTime, translationTime)
-costMultiplier  = < the configured multiplier for this particular motion type >
-baseCost        = int(ceil(travelTime * 1000 * costMultiplier))
-```
-The travelTime is scaled by 1000 to retain three digits of precision when converting to integer.
-
-##### Motion Cost Scaling
-
-Since all primitives are 2-dimensional the `baseCost` is only accurat on perfectly flat terrain. To factor in the slope of the terrain the cost is scaled based on one of the following metrics during planning.
-
-###### SlopeMetric::NONE
-```
-cost = motion.baseCost;
-```
-###### SlopeMetric::AVG_SLOPE
-```
-slopeFactor = < avg slope under spline> * config.slopeMetricScale;
-cost = motion.baseCost + motion.baseCost * slopeFactor;
-```
-###### SlopeMetric::MAX_SLOPE
-```
-slopeFactor = < max slope under spline> * config.slopeMetricScale;
-cost = motion.baseCost + motion.baseCost * slopeFactor;
-```
-###### SlopeMetric::TRIANGLE_SLOPE
-This one is a little tricky. 
-We take the length of the spline and project it onto the slope between the start and end position. Then we measure the length of the projected line and use that to re-calculate the cost using the base cost formula (see above). This should give a good approximation of the real travel time needed to move up (or down) a slope.
-```
-heightDiff = < height difference between start and end of motion >
-approxMotionLen = sqrt(motion.translationlDist^2 + heightDiff^2)
-cost = calculateCost(approxMotionLen)
-```
-
-None of those metrices captures the real cost of moving up or down a slope. They have been implemented for experimentation. However those experiments have never been done (we ran out of time and there where no slopes in the final demo). Thus the performance of the metrices is unclear.
-
-
-#### Dumping Planner State
-In case of error the `Planner` dumps its state to a file (this can be enabled using the `dumpOnError` parameter).
-The state can be loaded and analyzed using the `ugv_nav4d_replay` binary. This binary loads the state and executes the planning in a controlled environment. This can be used to debug the planner. 
-
-
-#### User Interfaces
-Two user interfaces can be found in `src/gui`. They are intended for testing and debugging.
-
-##### PlannerGui
-The `PlannerGui` is the main testing gui. It is designed to experiment with differen planner parameters on a static map.
-It can load point clouds from ply or serialized mls maps. 
-A left click sets the start location, a right click sets the end location.
-
-In addition the `PlannerGui` can also be used to load and analyze planner dumps.
 
 ## Bug Reports
-
-To search for bugs or report them, please use GitHubs [Issue-Tracker](https://github.com/dfki-ric/ugv_nav4d/issues)
+To search for bugs or report them, please use the GitHub [Issue-Tracker](https://github.com/dfki-ric/ugv_nav4d/issues).

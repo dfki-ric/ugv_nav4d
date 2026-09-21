@@ -1,6 +1,8 @@
 #include "PlannerDump.hpp"
 #include "Planner.hpp"
 #define WRITE(X) output.write(reinterpret_cast<const char*>(&X), sizeof X)
+#include <stdexcept>
+
 #define READ(X)  input.read(reinterpret_cast<char*>(&X), sizeof X)
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
@@ -13,6 +15,10 @@ ugv_nav4d::PlannerDump::PlannerDump(const std::string& dumpName)
     LOG_INFO_S << "Loading Dump " << dumpName;
     
     std::ifstream input(dumpName, std::ios::binary | std::ios::in);
+    if (!input.is_open())
+    {
+        throw std::runtime_error("PlannerDump: cannot open dump file '" + dumpName + "'");
+    }
     
     READ(traversabilityConfig);
     READ(mobility);
@@ -26,8 +32,22 @@ ugv_nav4d::PlannerDump::PlannerDump(const std::string& dumpName)
     double maxTimed;
     READ(maxTimed);
     
-    boost::archive::binary_iarchive ia(input);
-    ia >> travMap;
+    if (!input.good())
+    {
+        throw std::runtime_error("PlannerDump: dump file '" + dumpName +
+                                 "' is truncated or corrupt (config block).");
+    }
+
+    try
+    {
+        boost::archive::binary_iarchive ia(input);
+        ia >> travMap;
+    }
+    catch (const std::exception& ex)
+    {
+        throw std::runtime_error("PlannerDump: failed to deserialize trav map from '" +
+                                 dumpName + "': " + ex.what());
+    }
 }
 
 ugv_nav4d::PlannerDump::PlannerDump(const ugv_nav4d::Planner& planner, 

@@ -42,7 +42,7 @@ public:
 
     Motion(unsigned int numAngles = 0) : endTheta(0, numAngles),startTheta(0, numAngles), baseCost(0), id(std::numeric_limits<size_t>::max()) {};
     
-    static int calculateCost(double translationalDist, double angularDist, double translationVelocity, double angularVelocity, double costMultiplier);
+    static int calculateCost(double translationalDist, double angularDist, double translationVelocity, double angularVelocity, double costMultiplier, double angularCostWeight = 1.0);
     
     int xDiff;
     int yDiff;

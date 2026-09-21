@@ -277,19 +277,20 @@ void PreComputedMotions::computeSplinePrimCost(const SplinePrimitive& prim,
         {
             const double dist = prim.spline.getCurveLength(parameters[i], parameters[i+1], 0.01);
             const double curvature = prim.spline.getCurvature(parameters[i]); //assume that the curvature is const between i and i+1
-            angularDist += dist / linearDist  * std::abs(curvature);
+            angularDist += dist * std::abs(curvature);
         }
     }
 
-    outMotion.baseCost = Motion::calculateCost(linearDist, angularDist, mobilityConfig.translationSpeed,
-                                               mobilityConfig.rotationSpeed, outMotion.costMultiplier);
+    const double curvaturePenalty = mobilityConfig.curvaturePenaltyWeight * angularDist;
+    outMotion.baseCost = Motion::calculateCost(linearDist, angularDist + curvaturePenalty, mobilityConfig.translationSpeed,
+                                               mobilityConfig.rotationSpeed, outMotion.costMultiplier, mobilityConfig.angularCostWeight);
     assert(outMotion.baseCost >= 0);
     outMotion.translationlDist = linearDist;
     outMotion.angularDist = angularDist;
 }
 
 int Motion::calculateCost(double translationalDist, double angularDist, double translationVelocity,
-                          double angularVelocity, double costMultiplier)
+                          double angularVelocity, double costMultiplier, double angularCostWeight)
 {
     if (translationVelocity == 0.0 || angularVelocity == 0.0) {
         LOG_ERROR_S << "ERROR calculateCost: Division by zero translation or angular velocity.";
@@ -299,8 +300,10 @@ int Motion::calculateCost(double translationalDist, double angularDist, double t
     const double translationTime = translationalDist / translationVelocity;
     const double angularTime = angularDist / angularVelocity;
 
+    const double costTime = translationTime + angularCostWeight * angularTime;
+
     //use ulonglong to catch overflows caused by large cost multipliers
-    unsigned long long cost = ceil(std::max(angularTime, translationTime) * Motion::costScaleFactor * costMultiplier);
+    unsigned long long cost = ceil(costTime * Motion::costScaleFactor * costMultiplier);
 
     if(cost > std::numeric_limits<int>::max())
     {
@@ -336,9 +339,13 @@ double PreComputedMotions::calculateCurvatureFromRadius(const double r)
         Since the curvature of a circle is constant the value of x doesnt matter.
         x has to be smaller than r since we calc sqrt(r^2 - x ^2) which is only defined for positive values.
      */
-    const double x = r/2.0;
+    // r == 0 would produce 0/sqrt(0) = NaN in release builds (the asserts below
+    // are compiled out), silently admitting impossible motions. Clamp to a tiny
+    // radius = an extremely large but finite max curvature.
+    const double rSafe = std::max(r, 1e-6);
+    const double x = rSafe/2.0;
     const double x2 = x * x;
-    const double r2 = r * r;
+    const double r2 = rSafe * rSafe;
     const double df = - (x / std::sqrt(r2 - x2));
     const double ddf = - (r2 / std::pow(r2 - x2, 3.0 / 2.0));
     assert(!std::isnan(df) && !std::isinf(df));

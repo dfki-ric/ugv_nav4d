@@ -5,7 +5,7 @@
 
 
 
-void privTrace() {
+inline void privTrace() {
     std::cout << std::endl;
 }
 template <typename T, typename... Args>

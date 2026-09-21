@@ -20,9 +20,14 @@ public:
         try {
             YAML::Node config = YAML::LoadFile(configPath);
             
+            YAML::Node params = config;
+            if (config["ugv_nav4d_ros2"] && config["ugv_nav4d_ros2"]["ros__parameters"]) {
+                params = config["ugv_nav4d_ros2"]["ros__parameters"];
+            }
+
             // Load spline config
-            if (config["splineConfig"]) {
-                auto sc = config["splineConfig"];
+            if (params["splineConfig"]) {
+                auto sc = params["splineConfig"];
                 splineConfig.gridSize = sc["gridSize"].as<double>(0.5);
                 splineConfig.numAngles = sc["numAngles"].as<unsigned>(16);
                 splineConfig.numEndAngles = sc["numEndAngles"].as<unsigned>(8);
@@ -33,11 +38,23 @@ public:
                 splineConfig.generateBackwardMotions = sc["generateBackwardMotions"].as<bool>(true);
                 splineConfig.generateForwardMotions = sc["generateForwardMotions"].as<bool>(true);
                 splineConfig.splineOrder = sc["splineOrder"].as<unsigned>(4);
+            } else {
+                double res = params["grid_resolution"] ? params["grid_resolution"].as<double>(0.5) : (params["gridSize"] ? params["gridSize"].as<double>(0.5) : 0.5);
+                splineConfig.gridSize = res;
+                splineConfig.numAngles = params["numAngles"] ? params["numAngles"].as<unsigned>(16) : 16;
+                splineConfig.numEndAngles = params["numEndAngles"] ? params["numEndAngles"].as<unsigned>(8) : 8;
+                splineConfig.destinationCircleRadius = params["destinationCircleRadius"] ? params["destinationCircleRadius"].as<double>(6) : 6;
+                splineConfig.cellSkipFactor = params["cellSkipFactor"] ? params["cellSkipFactor"].as<double>(0.1) : 0.1;
+                splineConfig.generatePointTurnMotions = params["generatePointTurnMotions"] ? params["generatePointTurnMotions"].as<bool>(true) : true;
+                splineConfig.generateLateralMotions = params["generateLateralMotions"] ? params["generateLateralMotions"].as<bool>(true) : true;
+                splineConfig.generateBackwardMotions = params["generateBackwardMotions"] ? params["generateBackwardMotions"].as<bool>(true) : true;
+                splineConfig.generateForwardMotions = params["generateForwardMotions"] ? params["generateForwardMotions"].as<bool>(true) : true;
+                splineConfig.splineOrder = params["splineOrder"] ? params["splineOrder"].as<unsigned>(4) : 4;
             }
             
             // Load mobility config
-            if (config["mobilityConfig"]) {
-                auto mc = config["mobilityConfig"];
+            if (params["mobilityConfig"]) {
+                auto mc = params["mobilityConfig"];
                 mobilityConfig.translationSpeed = mc["translationSpeed"].as<double>(0.5);
                 mobilityConfig.rotationSpeed = mc["rotationSpeed"].as<double>(0.5);
                 mobilityConfig.minTurningRadius = mc["minTurningRadius"].as<double>(1);
@@ -53,16 +70,37 @@ public:
                 mobilityConfig.maxMotionCurveLength = mc["maxMotionCurveLength"].as<double>(100);
                 mobilityConfig.spline_sampling_resolution = mc["spline_sampling_resolution"].as<double>(0.05);
                 mobilityConfig.remove_goal_offset = mc["remove_goal_offset"].as<bool>(false);
+                mobilityConfig.curvaturePenaltyWeight = mc["curvaturePenaltyWeight"] ? mc["curvaturePenaltyWeight"].as<double>(0.0) : 0.0;
+                mobilityConfig.angularCostWeight = mc["angularCostWeight"] ? mc["angularCostWeight"].as<double>(1.0) : 1.0;
+            } else {
+                mobilityConfig.translationSpeed = params["translationSpeed"] ? params["translationSpeed"].as<double>(0.5) : 0.5;
+                mobilityConfig.rotationSpeed = params["rotationSpeed"] ? params["rotationSpeed"].as<double>(0.5) : 0.5;
+                mobilityConfig.minTurningRadius = params["minTurningRadius"] ? params["minTurningRadius"].as<double>(1.0) : 1.0;
+                mobilityConfig.searchRadius = params["searchRadius"] ? params["searchRadius"].as<double>(0.0) : 0.0;
+                mobilityConfig.searchProgressSteps = params["searchProgressSteps"] ? params["searchProgressSteps"].as<double>(0.1) : 0.1;
+                mobilityConfig.multiplierForward = params["multiplierForward"] ? params["multiplierForward"].as<double>(1.0) : 1.0;
+                mobilityConfig.multiplierForwardTurn = params["multiplierForwardTurn"] ? params["multiplierForwardTurn"].as<double>(2.0) : 2.0;
+                mobilityConfig.multiplierBackward = params["multiplierBackward"] ? params["multiplierBackward"].as<double>(2.0) : 2.0;
+                mobilityConfig.multiplierBackwardTurn = params["multiplierBackwardTurn"] ? params["multiplierBackwardTurn"].as<double>(3.0) : 3.0;
+                mobilityConfig.multiplierLateral = params["multiplierLateral"] ? params["multiplierLateral"].as<double>(4.0) : 4.0;
+                mobilityConfig.multiplierLateralCurve = params["multiplierLateralCurve"] ? params["multiplierLateralCurve"].as<double>(4.0) : 4.0;
+                mobilityConfig.multiplierPointTurn = params["multiplierPointTurn"] ? params["multiplierPointTurn"].as<double>(3.0) : 3.0;
+                mobilityConfig.maxMotionCurveLength = params["maxMotionCurveLength"] ? params["maxMotionCurveLength"].as<double>(100.0) : 100.0;
+                mobilityConfig.spline_sampling_resolution = params["spline_sampling_resolution"] ? params["spline_sampling_resolution"].as<double>(0.05) : 0.05;
+                mobilityConfig.remove_goal_offset = params["remove_goal_offset"] ? params["remove_goal_offset"].as<bool>(false) : false;
+                mobilityConfig.curvaturePenaltyWeight = params["curvaturePenaltyWeight"] ? params["curvaturePenaltyWeight"].as<double>(0.0) : 0.0;
+                mobilityConfig.angularCostWeight = params["angularCostWeight"] ? params["angularCostWeight"].as<double>(1.0) : 1.0;
             }
             
             // Load traversability config
-            if (config["travConfig"]) {
-                auto tc = config["travConfig"];
+            if (params["travConfig"]) {
+                auto tc = params["travConfig"];
                 travConfig.gridResolution = tc["gridResolution"].as<double>(0.3);
                 travConfig.maxSlope = tc["maxSlope"].as<double>(0.45);
                 travConfig.maxStepHeight = tc["maxStepHeight"].as<double>(0.25);
                 travConfig.robotSizeX = tc["robotSizeX"].as<double>(0.5);
                 travConfig.robotSizeY = tc["robotSizeY"].as<double>(0.5);
+                travConfig.footprintOffsetX = tc["footprintOffsetX"].as<double>(0.0);
                 travConfig.robotHeight = tc["robotHeight"].as<double>(0.5);
                 travConfig.slopeMetricScale = tc["slopeMetricScale"].as<double>(1.0);
                 travConfig.inclineLimittingMinSlope = tc["inclineLimittingMinSlope"].as<double>(0.22);
@@ -72,9 +110,46 @@ public:
                 travConfig.minTraversablePercentage = tc["minTraversablePercentage"].as<double>(0.5);
                 travConfig.allowForwardDownhill = tc["allowForwardDownhill"].as<bool>(true);
                 travConfig.enableInclineLimitting = tc["enableInclineLimitting"].as<bool>(false);
-                travConfig.obstacleInflationMultiplier = tc["obstacleInflationMultiplier"].as<double>(1.0);
-                
+                travConfig.articulatedSuspension = tc["articulatedSuspension"] ? tc["articulatedSuspension"].as<bool>(true) : true;
+                travConfig.obstacleInflationMultiplier = tc["obstacleInflationMultiplier"] ? tc["obstacleInflationMultiplier"].as<double>(1.0) : 1.0;
+                travConfig.partiallyTraversableMultiplier = tc["partiallyTraversableMultiplier"] ? tc["partiallyTraversableMultiplier"].as<double>(2.0) : 2.0;
+                travConfig.numYawSamples = tc["numYawSamples"] ? tc["numYawSamples"].as<int>(12) : 12;
+
+
                 std::string slopeMetricStr = tc["slopeMetric"].as<std::string>("NONE");
+                if (slopeMetricStr == "AVG_SLOPE") travConfig.slopeMetric = traversability_generator3d::SlopeMetric::AVG_SLOPE;
+                else if (slopeMetricStr == "MAX_SLOPE") travConfig.slopeMetric = traversability_generator3d::SlopeMetric::MAX_SLOPE;
+                else if (slopeMetricStr == "TRIANGLE_SLOPE") travConfig.slopeMetric = traversability_generator3d::SlopeMetric::TRIANGLE_SLOPE;
+                else travConfig.slopeMetric = traversability_generator3d::SlopeMetric::NONE;
+            } else {
+                travConfig.gridResolution = params["grid_resolution"] ? params["grid_resolution"].as<double>(0.3) : (params["gridResolution"] ? params["gridResolution"].as<double>(0.3) : 0.3);
+                travConfig.maxSlope = params["maxSlope"] ? params["maxSlope"].as<double>(0.45) : 0.45;
+                travConfig.maxStepHeight = params["maxStepHeight"] ? params["maxStepHeight"].as<double>(0.25) : 0.25;
+                travConfig.robotSizeX = params["robotSizeX"] ? params["robotSizeX"].as<double>(0.5) : 0.5;
+                travConfig.robotSizeY = params["robotSizeY"] ? params["robotSizeY"].as<double>(0.5) : 0.5;
+                travConfig.footprintOffsetX = params["footprintOffsetX"] ? params["footprintOffsetX"].as<double>(0.0) : 0.0;
+                travConfig.robotHeight = params["robotHeight"] ? params["robotHeight"].as<double>(0.5) : 0.5;
+                travConfig.slopeMetricScale = params["slopeMetricScale"] ? params["slopeMetricScale"].as<double>(1.0) : 1.0;
+                travConfig.inclineLimittingMinSlope = params["inclineLimittingMinSlope"] ? params["inclineLimittingMinSlope"].as<double>(0.22) : 0.22;
+                travConfig.inclineLimittingLimit = params["inclineLimittingLimit"] ? params["inclineLimittingLimit"].as<double>(0.43) : 0.43;
+                travConfig.costFunctionDist = params["costFunctionDist"] ? params["costFunctionDist"].as<double>(0.0) : 0.0;
+                travConfig.distToGround = params["distToGround"] ? params["distToGround"].as<double>(0.0) : 0.0;
+                travConfig.minTraversablePercentage = params["minTraversablePercentage"] ? params["minTraversablePercentage"].as<double>(0.5) : 0.5;
+                travConfig.allowForwardDownhill = params["allowForwardDownhill"] ? params["allowForwardDownhill"].as<bool>(true) : true;
+                travConfig.enableInclineLimitting = params["enableInclineLimitting"] ? params["enableInclineLimitting"].as<bool>(false) : false;
+                travConfig.articulatedSuspension = params["articulatedSuspension"] ? params["articulatedSuspension"].as<bool>(true) : true;
+                travConfig.obstacleInflationMultiplier = params["obstacleInflationMultiplier"] ? params["obstacleInflationMultiplier"].as<double>(1.0) : 1.0;
+                travConfig.partiallyTraversableMultiplier = params["partiallyTraversableMultiplier"] ? params["partiallyTraversableMultiplier"].as<double>(2.0) : 2.0;
+                travConfig.numYawSamples = params["numYawSamples"] ? params["numYawSamples"].as<int>(12) : 12;
+
+                
+                std::string slopeMetricStr = "NONE";
+                if (params["slopeMetric"]) {
+                    slopeMetricStr = params["slopeMetric"].as<std::string>("NONE");
+                    if (slopeMetricStr.length() > 0 && slopeMetricStr[0] == ':') {
+                        slopeMetricStr = slopeMetricStr.substr(1);
+                    }
+                }
                 if (slopeMetricStr == "AVG_SLOPE") travConfig.slopeMetric = traversability_generator3d::SlopeMetric::AVG_SLOPE;
                 else if (slopeMetricStr == "MAX_SLOPE") travConfig.slopeMetric = traversability_generator3d::SlopeMetric::MAX_SLOPE;
                 else if (slopeMetricStr == "TRIANGLE_SLOPE") travConfig.slopeMetric = traversability_generator3d::SlopeMetric::TRIANGLE_SLOPE;
@@ -82,15 +157,66 @@ public:
             }
             
             // Load planner config
-            if (config["plannerConfig"]) {
-                auto pc = config["plannerConfig"];
+            if (params["plannerConfig"]) {
+                auto pc = params["plannerConfig"];
                 plannerConfig.epsilonSteps = pc["epsilonSteps"].as<double>(2.0);
                 plannerConfig.initialEpsilon = pc["initialEpsilon"].as<double>(64.0);
                 plannerConfig.numThreads = pc["numThreads"].as<unsigned>(4);
                 plannerConfig.usePathStatistics = pc["usePathStatistics"].as<bool>(false);
                 plannerConfig.searchUntilFirstSolution = pc["searchUntilFirstSolution"].as<bool>(false);
+                plannerConfig.corridorWidth = pc["corridorWidth"].as<double>(-1.0);
+                plannerConfig.maxTime = pc["maxTime"] ? pc["maxTime"].as<double>(5.0) : 5.0;
+                plannerConfig.goalOrientationMargin = pc["goalOrientationMargin"] ? pc["goalOrientationMargin"].as<double>(0.0) : (pc["goal_orientation_margin"] ? pc["goal_orientation_margin"].as<double>(0.0) : 0.0);
+                plannerConfig.goalDistanceMargin = pc["goalDistanceMargin"] ? pc["goalDistanceMargin"].as<double>(0.0) : (pc["goal_distance_margin"] ? pc["goal_distance_margin"].as<double>(0.0) : 0.0);
+                plannerConfig.useReedsSheppFinalPath = pc["useReedsSheppFinalPath"] ? pc["useReedsSheppFinalPath"].as<bool>(false) : false;
+                plannerConfig.reedsSheppStepSize = pc["reedsSheppStepSize"] ? pc["reedsSheppStepSize"].as<double>(0.0) : 0.0;
+                plannerConfig.reedsSheppMaxShortcut = pc["reedsSheppMaxShortcut"] ? pc["reedsSheppMaxShortcut"].as<int>(0) : 0;
+                plannerConfig.useReedsSheppGoalShot = pc["useReedsSheppGoalShot"] ? pc["useReedsSheppGoalShot"].as<bool>(false) : false;
+                plannerConfig.reedsSheppGoalShotMaxDistance = pc["reedsSheppGoalShotMaxDistance"] ? pc["reedsSheppGoalShotMaxDistance"].as<double>(15.0) : 15.0;
+                plannerConfig.reedsSheppMaxCusps = pc["reedsSheppMaxCusps"] ? pc["reedsSheppMaxCusps"].as<int>(1) : 1;
+            } else {
+                plannerConfig.epsilonSteps = params["epsilonSteps"] ? params["epsilonSteps"].as<double>(2.0) : 2.0;
+                plannerConfig.initialEpsilon = params["initialEpsilon"] ? params["initialEpsilon"].as<double>(64.0) : 64.0;
+                plannerConfig.numThreads = params["numThreads"] ? params["numThreads"].as<unsigned>(4) : 4;
+                plannerConfig.usePathStatistics = params["usePathStatistics"] ? params["usePathStatistics"].as<bool>(false) : false;
+                plannerConfig.searchUntilFirstSolution = params["searchUntilFirstSolution"] ? params["searchUntilFirstSolution"].as<bool>(false) : false;
+                plannerConfig.corridorWidth = params["corridorWidth"] ? params["corridorWidth"].as<double>(-1.0) : -1.0;
+                plannerConfig.maxTime = params["maxTime"] ? params["maxTime"].as<double>(5.0) : 5.0;
+                plannerConfig.goalOrientationMargin = params["goalOrientationMargin"] ? params["goalOrientationMargin"].as<double>(0.0) : (params["goal_orientation_margin"] ? params["goal_orientation_margin"].as<double>(0.0) : 0.0);
+                plannerConfig.goalDistanceMargin = params["goalDistanceMargin"] ? params["goalDistanceMargin"].as<double>(0.0) : (params["goal_distance_margin"] ? params["goal_distance_margin"].as<double>(0.0) : 0.0);
+                plannerConfig.useReedsSheppFinalPath = params["useReedsSheppFinalPath"] ? params["useReedsSheppFinalPath"].as<bool>(false) : false;
+                plannerConfig.reedsSheppStepSize = params["reedsSheppStepSize"] ? params["reedsSheppStepSize"].as<double>(0.0) : 0.0;
+                plannerConfig.reedsSheppMaxShortcut = params["reedsSheppMaxShortcut"] ? params["reedsSheppMaxShortcut"].as<int>(0) : 0;
+                plannerConfig.useReedsSheppGoalShot = params["useReedsSheppGoalShot"] ? params["useReedsSheppGoalShot"].as<bool>(false) : false;
+                plannerConfig.reedsSheppGoalShotMaxDistance = params["reedsSheppGoalShotMaxDistance"] ? params["reedsSheppGoalShotMaxDistance"].as<double>(15.0) : 15.0;
+                plannerConfig.reedsSheppMaxCusps = params["reedsSheppMaxCusps"] ? params["reedsSheppMaxCusps"].as<int>(1) : 1;
             }
             
+            // One thread knob: travgen's expansion uses the planner's thread count
+            // (travConfig.numThreads = 0 would mean "do not parallelize").
+            travConfig.numThreads = static_cast<int>(plannerConfig.numThreads);
+
+            // Validate values that crash or silently corrupt downstream:
+            // numAngles == 0 is an integer division by zero (SIGFPE) in
+            // DiscreteTheta; non-positive resolution/speeds poison costs.
+            if (splineConfig.numAngles < 1 || splineConfig.numEndAngles < 1)
+            {
+                LOG_ERROR_S << "Config error: numAngles/numEndAngles must be >= 1 (got "
+                            << splineConfig.numAngles << "/" << splineConfig.numEndAngles << ").";
+                return false;
+            }
+            if (splineConfig.gridSize <= 0.0 || travConfig.gridResolution <= 0.0)
+            {
+                LOG_ERROR_S << "Config error: grid resolution must be > 0.";
+                return false;
+            }
+            if (mobilityConfig.translationSpeed <= 0.0 || mobilityConfig.rotationSpeed <= 0.0)
+            {
+                LOG_ERROR_S << "Config error: translationSpeed/rotationSpeed must be > 0 (got "
+                            << mobilityConfig.translationSpeed << "/" << mobilityConfig.rotationSpeed << ").";
+                return false;
+            }
+
             return true;
         } catch (const std::exception& e) {
             LOG_ERROR_S << "Failed to load config: " << e.what();

@@ -39,6 +39,11 @@ struct Mobility {
 
     double maxMotionCurveLength;
 
+    // Penalizes heading changes during search to produce straighter paths.
+    double curvaturePenaltyWeight;
+
+    // Weight for angular time in sum-based cost calculation.
+    double angularCostWeight;
 
     Mobility() :
            translationSpeed(1.0),
@@ -55,7 +60,9 @@ struct Mobility {
            multiplierLateralCurve(4),
            searchRadius(1.0),
            searchProgressSteps(0.1),
-           maxMotionCurveLength(100)
+           maxMotionCurveLength(100),
+           curvaturePenaltyWeight(0.0),
+           angularCostWeight(1.0)
     {
     }
 
@@ -73,7 +80,9 @@ struct Mobility {
              unsigned int mult_lateral_curve=0,
              double search_radius = 0,
              double search_progress_steps = 0,
-             double max_motion_curve_length = 0
+             double max_motion_curve_length = 0,
+             double curvature_penalty_weight = 0.0,
+             double angular_cost_weight = 1.0
             ) :
             translationSpeed(speed),
             rotationSpeed(turning_speed),
@@ -89,10 +98,11 @@ struct Mobility {
             multiplierLateralCurve(mult_lateral_curve),
             searchRadius(search_radius),
             searchProgressSteps(search_progress_steps),
-            maxMotionCurveLength(max_motion_curve_length)
+            maxMotionCurveLength(max_motion_curve_length),
+            curvaturePenaltyWeight(curvature_penalty_weight),
+            angularCostWeight(angular_cost_weight)
     {
     }
 };
-
 
 }

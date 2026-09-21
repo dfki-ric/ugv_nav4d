@@ -6,6 +6,7 @@
 #include "PlannerDump.hpp"
 #include <omp.h>
 #include <cmath>
+#include <chrono>
 #include <base-logging/Logging.hpp>
 #include "Logger.hpp"
 #include <deque>
@@ -38,7 +39,7 @@ void Planner::enablePathStatistics(bool enable){
     }
 }
 
-bool Planner::calculateGoal(Eigen::Vector3d& goal_translation, const double yaw) noexcept
+bool Planner::calculateGoal(Eigen::Vector3d& goal_translation, const double yaw)
 {
     if (tryGoal(goal_translation, yaw)){
         return true;
@@ -85,13 +86,13 @@ bool Planner::calculateGoal(Eigen::Vector3d& goal_translation, const double yaw)
     return false; // Add this to cover all control paths
 }
 
-bool Planner::tryGoal(const Eigen::Vector3d& translation, const double yaw) noexcept
+bool Planner::tryGoal(const Eigen::Vector3d& translation, const double yaw)
 {
     try
     {
         env->setGoal(translation, yaw);
     }
-    catch(const std::runtime_error& ex)
+    catch(const std::exception& ex)
     {
         LOG_ERROR_S << "Caught exception while setting goal pose:"  << ex.what();
         return false;
@@ -105,10 +106,11 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
                                        std::vector<SubTrajectory>& resultTrajectory3D,
                                        bool dumpOnError, bool dumpOnSuccess)
 {
+    auto t_start_total = std::chrono::steady_clock::now();
 
     LOG_DEBUG_S << "Planning with " << plannerConfig.numThreads << " threads";
     omp_set_num_threads(plannerConfig.numThreads);
-#ifdef ENABLE_DEBUG_DRAWINGS
+#if 0 //V3DD disabled: only ugv_nav4d_rs_input_states active
     V3DD::CLEAR_DRAWING("ugv_nav4d_successors");
 #endif
     if(!env)
@@ -121,9 +123,14 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     resultTrajectory3D.clear();
     env->clear();
 
-    if(!planner)
-        planner.reset(new ARAPlanner(env.get(), true));
-
+    // The Reeds-Shepp goal shot needs the RS final-path reconstruction to recreate the
+    // (motion-less) goal edge, so it is only active when useReedsSheppFinalPath is set.
+    if(plannerConfig.useReedsSheppGoalShot && !plannerConfig.useReedsSheppFinalPath)
+        LOG_WARN_S << "useReedsSheppGoalShot requires useReedsSheppFinalPath; goal shot disabled.";
+    env->setReedsSheppGoalShot(plannerConfig.useReedsSheppGoalShot && plannerConfig.useReedsSheppFinalPath,
+                               plannerConfig.reedsSheppGoalShotMaxDistance,
+                               plannerConfig.reedsSheppStepSize);
+    env->setReedsSheppMaxCusps(plannerConfig.reedsSheppMaxCusps);
 
     Eigen::Affine3d ground2Body(Eigen::Affine3d::Identity());
     ground2Body.translation() = Eigen::Vector3d(0, 0, -traversabilityConfig.distToGround);
@@ -143,15 +150,19 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
     startbody2Mls.setTransform(startGround2Mls);
     endbody2Mls.setTransform(endGround2Mls);
 
+    auto t_env_init = std::chrono::steady_clock::now();
+
     try
     {
         env->setStart(startGround2Mls.translation(), base::getYaw(Eigen::Quaterniond(startGround2Mls.linear())));
     }
     catch(const ugv_nav4d::ObstacleCheckFailed& ex)
     {
-        LOG_ERROR_S << "Caught exception while setting start pose:"  << ex.what();
+        // ex.what() carries the accurate reason (real obstacle vs. disallowed orientation on a
+        // partially traversable cell).
+        LOG_ERROR_S << "Failed to set start pose: " << ex.what();
         if(dumpOnError)
-            PlannerDump dump(*this, "start_inside_obstacle", maxTime, startbody2Mls, endbody2Mls);
+            PlannerDump dump(*this, "bad_start", maxTime, startbody2Mls, endbody2Mls);
         return START_INVALID;
     }
     catch(const std::runtime_error& ex)
@@ -161,6 +172,8 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
             PlannerDump dump(*this, "bad_start", maxTime, startbody2Mls, endbody2Mls);
         return START_INVALID;
     }
+
+    auto t_set_start = std::chrono::steady_clock::now();
 
     Eigen::Vector3d start_translation = startGround2Mls.translation();
     Eigen::Vector3d goal_translation = endGround2Mls.translation();
@@ -172,11 +185,15 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         return GOAL_INVALID;
     }
 
-    //this has to happen after env->setStart and env->setGoal because those methods initialize the
-    //StateID2IndexMapping which is accessed inside force_planning_from_scratch_and_free_memory().
+    auto t_set_goal = std::chrono::steady_clock::now();
+
+    // Always recreate the ARAPlanner to avoid stale state IDs.
+    // env->clear() destroys all states, but force_planning_from_scratch_and_free_memory()
+    // remembers old start/goal IDs from a previous run. If the new plan creates fewer
+    // states, those old IDs exceed StateID2IndexMapping.size() causing "stateID is invalid".
     try
     {
-        planner->force_planning_from_scratch_and_free_memory();
+        planner.reset(new ARAPlanner(env.get(), true));
         planner->set_search_mode(plannerConfig.searchUntilFirstSolution);
     }
     catch(const SBPL_Exception& ex)
@@ -184,7 +201,6 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         LOG_ERROR_S << "Caught SBPL exception: " << ex.what();
         return NO_SOLUTION;
     }
-
 
     MDPConfig mdp_cfg;
 
@@ -201,6 +217,15 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         return INTERNAL_ERROR;
     }
 
+    auto t_planner_setup = std::chrono::steady_clock::now();
+
+    PLANNING_RESULT planning_res = NO_SOLUTION;
+    int num_expands = 0;
+    double final_epsilon = -1.0;
+    auto t_replan_start = std::chrono::steady_clock::now();
+    auto t_replan_end = t_replan_start;
+    auto t_trajectory_extraction = t_replan_start;
+
     try
     {
         LOG_DEBUG_S << "Initial Epsilon: " << plannerConfig.initialEpsilon << ", steps: " << plannerConfig.epsilonSteps;
@@ -208,44 +233,113 @@ Planner::PLANNING_RESULT Planner::plan(const base::Time& maxTime, const base::sa
         planner->set_initialsolution_eps(plannerConfig.initialEpsilon);
 
         solutionIds.clear();
-        if(!planner->replan(maxTime.toSeconds(), &solutionIds))
+        t_replan_start = std::chrono::steady_clock::now();
+        env->setPlanningTimeout(t_replan_start, maxTime.toSeconds());
+        bool replan_success = planner->replan(maxTime.toSeconds(), &solutionIds);
+        t_replan_end = std::chrono::steady_clock::now();
+        num_expands = planner->get_n_expands();
+        final_epsilon = planner->get_final_epsilon();
+
+        if(!replan_success)
         {
-            LOG_DEBUG_S << "Number of state space expands: " << planner->get_n_expands();
+            double elapsed = std::chrono::duration<double>(t_replan_end - t_replan_start).count();
+            if (elapsed >= maxTime.toSeconds() * 0.98)
+            {
+                LOG_WARN_S << "Planning failed due to TIMEOUT! Maximum time limit of "
+                           << maxTime.toSeconds() << "s exceeded. State space expansions: " << num_expands;
+                planning_res = TIMEOUT;
+            }
+            else
+            {
+                LOG_WARN_S << "Planning failed: NO SOLUTION EXISTS between start and goal after "
+                           << num_expands << " expansions. The goal is unreachable or blocked by traversability constraints.";
+                if (num_expands <= 1)
+                {
+                    LOG_WARN_S << "Note: Very few state space expansions (" << num_expands
+                               << "). This typically indicates that all successor states from the start position are blocked. "
+                               << "Ensure the start pose is not too close to obstacles, that corridorWidth is wide enough, and that minTurningRadius is appropriate.";
+                }
+                planning_res = NO_SOLUTION;
+            }
+
             if(dumpOnError)
                 PlannerDump dump(*this, "no_solution", maxTime, startbody2Mls, endbody2Mls);
-            return NO_SOLUTION;
         }
+        else
+        {
+            LOG_DEBUG_S << "num expands: " << num_expands;
+            LOG_DEBUG_S << "Epsilon is " << final_epsilon;
 
-        LOG_DEBUG_S << "num expands: " << planner->get_n_expands();
-        LOG_DEBUG_S << "Epsilon is " << planner->get_final_epsilon();
-
-        std::vector<PlannerStats> stats;
-
-        planner->get_search_stats(&stats);
-        env->getTrajectory(solutionIds, resultTrajectory2D, true, start_translation, goal_translation, end_pose.getYaw(), ground2Body);
-        env->getTrajectory(solutionIds, resultTrajectory3D, false, start_translation, goal_translation,end_pose.getYaw(), ground2Body);
+            std::vector<PlannerStats> stats;
+            planner->get_search_stats(&stats);
+            if(plannerConfig.useReedsSheppFinalPath)
+            {
+                env->getTrajectoryReedsShepp(solutionIds, resultTrajectory2D, true, start_translation, start_pose.getYaw(), goal_translation, end_pose.getYaw(), ground2Body,
+                                             plannerConfig.reedsSheppStepSize, plannerConfig.reedsSheppMaxShortcut);
+                env->getTrajectoryReedsShepp(solutionIds, resultTrajectory3D, false, start_translation, start_pose.getYaw(), goal_translation, end_pose.getYaw(), ground2Body,
+                                             plannerConfig.reedsSheppStepSize, plannerConfig.reedsSheppMaxShortcut);
+            }
+            else
+            {
+                env->getTrajectory(solutionIds, resultTrajectory2D, true, start_translation, goal_translation, end_pose.getYaw(), ground2Body);
+                env->getTrajectory(solutionIds, resultTrajectory3D, false, start_translation, goal_translation,end_pose.getYaw(), ground2Body);
+            }
+            t_trajectory_extraction = std::chrono::steady_clock::now();
+            planning_res = FOUND_SOLUTION;
+        }
     }
     catch(const SBPL_Exception& ex)
     {
         LOG_ERROR_S << "Caught sbpl exception: " << ex.what();
         if(dumpOnError)
             PlannerDump dump(*this, "no_solution", maxTime, startbody2Mls, endbody2Mls);
-        return NO_SOLUTION;
+        planning_res = NO_SOLUTION;
     }
 
-    if(dumpOnSuccess)
+    if(dumpOnSuccess && planning_res == FOUND_SOLUTION)
         PlannerDump dump(*this, "success", maxTime, startbody2Mls, endbody2Mls);
 
-    return FOUND_SOLUTION;
+    auto t_end_total = std::chrono::steady_clock::now();
+
+    double d_env_init = std::chrono::duration<double>(t_env_init - t_start_total).count();
+    double d_set_start = std::chrono::duration<double>(t_set_start - t_env_init).count();
+    double d_set_goal = std::chrono::duration<double>(t_set_goal - t_set_start).count();
+    double d_planner_setup = std::chrono::duration<double>(t_planner_setup - t_set_goal).count();
+    double d_replan = std::chrono::duration<double>(t_replan_end - t_replan_start).count();
+    double d_trajectory = 0.0;
+    if (planning_res == FOUND_SOLUTION) {
+        d_trajectory = std::chrono::duration<double>(t_trajectory_extraction - t_replan_end).count();
+    }
+    double d_total = std::chrono::duration<double>(t_end_total - t_start_total).count();
+
+    LOG_INFO_S << "[KPI] --- PLANNING PERFORMANCE BREAKDOWN ---";
+    LOG_INFO_S << "[KPI] Env Init:              " << d_env_init << "s";
+    LOG_INFO_S << "[KPI] Set Start State:       " << d_set_start << "s";
+    LOG_INFO_S << "[KPI] Set Goal State:        " << d_set_goal << "s (includes heuristic Dijkstra)";
+    LOG_INFO_S << "[KPI] Planner Setup/Memory:  " << d_planner_setup << "s";
+    LOG_INFO_S << "[KPI] Search/Replan (A*):    " << d_replan << "s";
+    LOG_INFO_S << "[KPI] Trajectory Extraction: " << d_trajectory << "s";
+    LOG_INFO_S << "[KPI] Total Planning Time:   " << d_total << "s";
+    LOG_INFO_S << "[KPI] State space expands:   " << num_expands;
+    LOG_INFO_S << "[KPI] Final Epsilon:         " << final_epsilon;
+    LOG_INFO_S << "[KPI] ---------------------------------------";
+
+    return planning_res;
 }
 
 std::vector< Motion > Planner::getMotions() const
 {
+    if (!env) {
+        return {};
+    }
     return env->getMotions(solutionIds);
 }
 
 const std::shared_ptr<const traversability_generator3d::TravMap3d > Planner::getTraversabilityMap() const
 {
+    if (!env) {
+        return nullptr;
+    }
     return env->getTraversabilityMap();
 }
 
@@ -274,14 +368,22 @@ void Planner::setTravConfig(const traversability_generator3d::TraversabilityConf
         throw std::runtime_error("Planner::Planner : Configuration error, grid resolution of Primitives and TraversabilityGenerator3d differ");
     }
     traversabilityConfig = config;
+    // One thread knob: when travgen runs under the planner, its expansion uses
+    // the planner's thread count (0 would mean "do not parallelize").
+    traversabilityConfig.numThreads = static_cast<int>(plannerConfig.numThreads);
     if(env){
-        env->setTravConfig(config);
+        env->setTravConfig(traversabilityConfig);
     }
 }
 
  void Planner::setPlannerConfig(const PlannerConfig& config)
  {
      plannerConfig = config;
+     if(env){
+         env->setCorridorWidth(config.corridorWidth);
+         env->setGoalOrientationMargin(config.goalOrientationMargin);
+         env->setGoalDistanceMargin(config.goalDistanceMargin);
+     }
  }
 
 }

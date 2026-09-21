@@ -8,10 +8,17 @@ IF("${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}" VERSION_LESS 1.14)
     SET(PCL_VERSION_SUFFIX "-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}")
 ENDIF()
 
-if(ENABLE_DEBUG_DRAWINGS AND vizkit3d_debug_drawings-commands_FOUND)
+if(ENABLE_DEBUG_DRAWINGS)
 	# These are (only) required for building the GUIs:
 	list(APPEND DEPS_PKGCONFIG_QT vizkit3d_debug_drawings)
+	pkg_check_modules(vizkit3d_debug_drawings-commands vizkit3d_debug_drawings-commands)
+	if(ROCK_QT_VERSION_4)
+		pkg_check_modules(vizkit3d_debug_drawings vizkit3d_debug_drawings)
+	elseif(ROCK_QT_VERSION_5)
+		pkg_check_modules(vizkit3d_debug_drawings-qt5 vizkit3d_debug_drawings-qt5)
+	endif()
 endif()
+
 
 rock_qt_library(
     TARGETPREFIX ugv_nav4d_gui
@@ -31,14 +38,14 @@ rock_qt_library(
                        pcl_common${PCL_VERSION_SUFFIX}
                        pcl_io${PCL_VERSION_SUFFIX}
                        yaml-cpp
-    DEPS_PKGCONFIG_QT  vizkit3d
+    DEPS_PKGCONFIG_QT  ${DEPS_PKGCONFIG_QT}
+                       vizkit3d
                        vizkit3d-viz
                        traversability_generator3d-viz
                        maps-viz
                        base-viz
                        sbpl_spline_primitives-viz
                        trajectory_follower-viz
-                       ${DEPS_PKGCONFIG_QT}
 )
 
 rock_qt_executable(
