@@ -1,5 +1,4 @@
 #include "Dijkstra.hpp"
-#include "Mobility.hpp"
 #include <maps/grid/TraversabilityMap3d.hpp>
 #include <traversability_generator3d/TraversabilityConfig.hpp>
 #include <traversability_generator3d/TravGenNode.hpp>
@@ -11,8 +10,7 @@ namespace ugv_nav4d
 {
 void Dijkstra::computeCost(const TraversabilityNodeBase* source,
                            std::unordered_map<const TraversabilityNodeBase*, double>& outDistances,
-                           const traversability_generator3d::TraversabilityConfig& config,
-                           const ugv_nav4d::Mobility& mobilityConfig)
+                           const traversability_generator3d::TraversabilityConfig& config)
 {
     outDistances.clear();
     outDistances[source] = 0.0;

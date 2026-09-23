@@ -1897,11 +1897,11 @@ void EnvironmentXYZTheta::precomputeCost()
     {
         #pragma omp section
         {
-            Dijkstra::computeCost(startXYZNode->getUserData().travNode, costToStart, travConf, mobilityConfig);
+            Dijkstra::computeCost(startXYZNode->getUserData().travNode, costToStart, travConf);
         }
         #pragma omp section
         {
-            Dijkstra::computeCost(goalXYZNode->getUserData().travNode, costToEnd, travConf, mobilityConfig);
+            Dijkstra::computeCost(goalXYZNode->getUserData().travNode, costToEnd, travConf);
         }
     }
     auto after_dijkstra_end = std::chrono::steady_clock::now();
