@@ -1,7 +1,7 @@
 <map id="ugv_nav4d::EnvironmentXYZTheta::Hash" name="ugv_nav4d::EnvironmentXYZTheta::Hash">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,436,244,516"/>
-<area shape="rect" id="Node000002" href="$structugv__nav4d_1_1EnvironmentXYZTheta_1_1ThetaNode.html" title=" " alt="" coords="5,293,244,373"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,374,127,420,122,420,122,374"/>
-<area shape="rect" id="Node000003" href="$classDiscreteTheta.html" title=" " alt="" coords="57,5,192,231"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="127,231,127,277,122,277,122,231"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,492,241,581"/>
+<area shape="rect" id="Node000002" href="$structugv__nav4d_1_1EnvironmentXYZTheta_1_1ThetaNode.html" title=" " alt="" coords="5,329,241,419"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,416,126,475,121,474,122,421"/>
+<area shape="rect" id="Node000003" href="$classDiscreteTheta.html" title=" " alt="" coords="57,5,190,256"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="124,254,126,313,121,312,122,259"/>
 </map>

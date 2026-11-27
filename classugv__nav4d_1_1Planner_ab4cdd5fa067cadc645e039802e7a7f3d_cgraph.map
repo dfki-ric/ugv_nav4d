@@ -1,0 +1,6 @@
+<map id="ugv_nav4d::Planner::plan" name="ugv_nav4d::Planner::plan">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,155,74"/>
+<area shape="rect" id="Node000002" href="$classugv__nav4d_1_1Planner.html#a164b72d77c23633e8ec256f029d334ef" title=" " alt="" coords="203,29,352,74"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,49,190,51,185,52,155,54"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="240,27,238,19,245,10,258,5,277,3,298,5,313,14,307,13,297,10,277,8,259,10,248,15,243,21,244,30"/>
+</map>

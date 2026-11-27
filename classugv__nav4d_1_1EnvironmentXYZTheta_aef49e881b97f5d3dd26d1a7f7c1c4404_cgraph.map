@@ -1,9 +1,9 @@
 <map id="ugv_nav4d::EnvironmentXYZTheta::createNewStateFromPose" name="ugv_nav4d::EnvironmentXYZTheta::createNewStateFromPose">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,69,252,109"/>
-<area shape="rect" id="Node000002" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="302,5,549,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="222,67,318,46,319,51,223,72"/>
-<area shape="rect" id="Node000003" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="302,69,549,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="252,87,288,87,288,92,252,92"/>
-<area shape="rect" id="Node000004" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="300,133,551,173"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="223,107,319,128,318,133,222,112"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,75,252,119"/>
+<area shape="rect" id="Node000002" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#afcc196d621d7c3c63ca12a8cfeeeadbd" title=" " alt="" coords="302,5,548,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,71,314,53,309,55,228,77"/>
+<area shape="rect" id="Node000003" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#a2c2ea816bbe0d176e0ed4627886602e4" title=" " alt="" coords="302,75,548,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="252,94,289,96,283,98,253,100"/>
+<area shape="rect" id="Node000004" href="$classugv__nav4d_1_1EnvironmentXYZTheta.html#ac69a18d4ca4cbcc8ca0f08b21185b3a7" title=" " alt="" coords="300,144,550,189"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="227,117,314,139,309,140,227,123"/>
 </map>

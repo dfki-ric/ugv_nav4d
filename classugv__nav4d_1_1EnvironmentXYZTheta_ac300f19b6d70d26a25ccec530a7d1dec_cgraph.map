@@ -1,7 +1,9 @@
 <map id="ugv_nav4d::EnvironmentXYZTheta::GetGoalHeuristic" name="ugv_nav4d::EnvironmentXYZTheta::GetGoalHeuristic">
-<area shape="rect" id="Node000001" title="heuristic estimate from state with stateID to goal state" alt="" coords="5,23,252,63"/>
-<area shape="rect" id="Node000002" href="$classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="307,5,493,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,29,293,25,294,31,252,34"/>
-<area shape="rect" id="Node000003" href="$classDiscreteTheta.html#adee78f133a8dee7d09233b25de058998" title=" " alt="" coords="300,55,500,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="252,52,286,55,286,60,252,57"/>
+<area shape="rect" id="Node000001" title="heuristic estimate from state with stateID to goal state" alt="" coords="5,24,252,68"/>
+<area shape="rect" id="Node000002" href="$classDiscreteTheta.html#a17f645ec5cc1055db635daa81ece0d56" title=" " alt="" coords="306,5,492,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,31,293,29,288,30,253,36"/>
+<area shape="rect" id="Node000003" href="$classDiscreteTheta.html#adee78f133a8dee7d09233b25de058998" title=" " alt="" coords="300,57,499,85"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="252,55,287,60,281,60,252,60"/>
+<area shape="rect" id="Node000004" href="$classDiscreteTheta.html#abdd7249de43db8b0f87f777d19c9a3e8" title=" " alt="" coords="547,57,758,85"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="499,69,534,71,529,71,499,74"/>
 </map>

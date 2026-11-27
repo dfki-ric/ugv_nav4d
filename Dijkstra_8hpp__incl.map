@@ -1,7 +1,7 @@
 <map id="src/Dijkstra.hpp" name="src/Dijkstra.hpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="79,5,203,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,129,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,33,91,71,87,67,127,29"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="153,79,275,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="155,29,194,67,190,71,151,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="77,5,201,33"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,129,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,32,92,72,89,68,124,35"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="152,81,272,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="153,31,191,70,186,70,151,36"/>
 </map>

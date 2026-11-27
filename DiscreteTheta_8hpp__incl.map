@@ -1,9 +1,9 @@
 <map id="src/DiscreteTheta.hpp" name="src/DiscreteTheta.hpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="57,5,221,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,80,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,33,71,72,68,68,122,29"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="105,79,173,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="141,31,141,65,136,65,136,31"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="197,79,273,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="156,29,209,68,206,72,153,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="55,5,218,33"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,79,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,33,72,74,69,69,117,34"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="103,81,170,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="138,32,139,66,134,64,135,36"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="195,81,270,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="155,31,206,71,201,72,153,36"/>
 </map>

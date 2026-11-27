@@ -1,5 +1,5 @@
 <map id="ugv_nav4d::EnvironmentXYZTheta::EnvironmentXYZThetaException" name="ugv_nav4d::EnvironmentXYZTheta::EnvironmentXYZThetaException">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,119,255,219"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="71,5,189,71"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,84,133,119,127,119,127,84"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,126,252,237"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="72,5,186,78"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,90,131,127,126,125,128,95"/>
 </map>

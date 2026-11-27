@@ -1,5 +1,5 @@
 <map id="ugv_nav4d::OrientationNotAllowed" name="ugv_nav4d::OrientationNotAllowed">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,119,195,199"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="35,5,165,71"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,85,103,118,97,118,97,85"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,126,191,215"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="34,5,162,78"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,91,101,126,96,125,97,95"/>
 </map>
