@@ -15,7 +15,7 @@ jobs:
       matrix:
         os: [ ubuntu-22.04, ubuntu-24.04, ubuntu-26.04 ]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: build_ugv_nav4d
       run: |
         mkdir build && cd build
