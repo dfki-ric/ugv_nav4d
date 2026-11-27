@@ -1,8 +1,8 @@
-name: C/C++ CI
+name: Documentation
 
 on:
   push:
-    branches: [ "main", "feat-build-doc" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -41,6 +41,7 @@ jobs:
       run: mv doc_tmp doc/doc
 
     - name: Deploy to GitHub Pages
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: JamesIves/github-pages-deploy-action@v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
