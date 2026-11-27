@@ -14,10 +14,41 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-22.04, ubuntu-24.04, ubuntu-26.04 ]
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_MAXSIZE: 1G
+      # read by every CMake run (CMake >= 3.17), including the nested
+      # builds of the source dependencies
+      CMAKE_C_COMPILER_LAUNCHER: ccache
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
     steps:
     - uses: actions/checkout@v7
+
+    - name: Install ccache
+      run: sudo apt-get update && sudo apt-get install -y ccache
+
+    - name: Restore ccache
+      id: ccache-restore
+      uses: actions/cache/restore@v6
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: ccache-${{ matrix.os }}-${{ github.run_id }}
+        restore-keys: |
+          ccache-${{ matrix.os }}-
+
     - name: build_ugv_nav4d
       run: |
         mkdir build && cd build
         cmake -DINSTALL_DEPS=ON -DTESTS_ENABLED=ON -DENABLE_DEBUG_DRAWINGS=OFF -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=./install ..
         make -j install
+
+    - name: Show ccache statistics
+      if: always()
+      run: ccache --show-stats
+
+    - name: Save ccache
+      if: always()
+      uses: actions/cache/save@v6
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
