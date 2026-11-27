@@ -1,12 +1,10 @@
 # CMakeLists.txt has to be located in the project folder and cmake has to be
 # executed from 'project/build' with 'cmake ../'.
 
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.10)
 project(ugv_nav4d
         VERSION 1.0
         DESCRIPTION "A 4D (X,Y,Z, Theta) Planner for unmaned ground vehicles (UGVs).")
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(INSTALL_DEPS)
 
