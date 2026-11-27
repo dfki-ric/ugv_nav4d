@@ -33,6 +33,8 @@ ExternalProject_Add(planning-sbpl
 )
 
 # fork: upstream master still requires Qt4 (rock_find_qt4 without OPTIONAL)
+# (https://github.com/rock-planning/planning-sbpl_spline_primitives/pull/11);
+# only the library is needed, its vizkit3d plugin and GUI are not built
 ExternalProject_Add(planning-sbpl_spline_primitives
     PREFIX       planning/sbpl_spline_primitives
     STAMP_DIR    ${CMAKE_CURRENT_BINARY_DIR}/planning/sbpl_spline_primitives/stamp
@@ -44,10 +46,11 @@ ExternalProject_Add(planning-sbpl_spline_primitives
     GIT_TAG             feature/qt4-qt5
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> ${POLICY_ARGS} -DCMAKE_BUILD_TYPE=RELEASE
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> ${POLICY_ARGS} -DROCK_VIZ_ENABLED=OFF -DCMAKE_BUILD_TYPE=RELEASE
 )
 add_dependencies(planning-sbpl_spline_primitives base-cmake base-types )
 
+# branch of https://github.com/dfki-ric/traversability_generator3d/pull/21 until it is merged
 ExternalProject_Add(planning-traversability_generator3d
     PREFIX       planning/traversability_generator3d
     STAMP_DIR    ${CMAKE_CURRENT_BINARY_DIR}/planning/traversability_generator3d/stamp
@@ -56,7 +59,7 @@ ExternalProject_Add(planning-traversability_generator3d
     BINARY_DIR   ${CMAKE_CURRENT_BINARY_DIR}/planning/traversability_generator3d/build
     INSTALL_DIR         ${CMAKE_INSTALL_PREFIX}
     GIT_REPOSITORY      https://github.com/dfki-ric/traversability_generator3d.git
-    GIT_TAG             main
+    GIT_TAG             fix/cgal_dependencies
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
@@ -138,6 +141,7 @@ ExternalProject_Add(slam-maps
 )
 add_dependencies(slam-maps base-cmake base-types base-numeric base-boost_serialization gui-vizkit3d gui-osgviz )
 
+# branch of https://github.com/rock-core/gui-vizkit3d/pull/86 until it is merged
 ExternalProject_Add(gui-vizkit3d
     PREFIX       gui/vizkit3d
     STAMP_DIR    ${CMAKE_CURRENT_BINARY_DIR}/gui/vizkit3d/stamp
@@ -146,7 +150,7 @@ ExternalProject_Add(gui-vizkit3d
     BINARY_DIR   ${CMAKE_CURRENT_BINARY_DIR}/gui/vizkit3d/build
     INSTALL_DIR         ${CMAKE_INSTALL_PREFIX}
     GIT_REPOSITORY      https://github.com/rock-core/gui-vizkit3d.git
-    GIT_TAG             master
+    GIT_TAG             fix/remove_boost_system_and_fix_warnings
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
