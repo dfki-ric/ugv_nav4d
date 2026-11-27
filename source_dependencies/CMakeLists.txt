@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 include(ExternalProject)
 
+# CMake 4 rejects cmake_minimum_required < 3.5; for the dependencies that still use it
+set(POLICY_ARGS -DCMAKE_POLICY_VERSION_MINIMUM=3.5)
+
 ExternalProject_Add(base-cmake
     PREFIX       base/cmake
     STAMP_DIR    ${CMAKE_CURRENT_BINARY_DIR}/base/cmake/stamp
@@ -26,9 +29,12 @@ ExternalProject_Add(planning-sbpl
     GIT_TAG             master
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> ${POLICY_ARGS} -DCMAKE_BUILD_TYPE=RELEASE
 )
 
+# fork: upstream master still requires Qt4 (rock_find_qt4 without OPTIONAL)
+# (https://github.com/rock-planning/planning-sbpl_spline_primitives/pull/11);
+# only the library is needed, its vizkit3d plugin and GUI are not built
 ExternalProject_Add(planning-sbpl_spline_primitives
     PREFIX       planning/sbpl_spline_primitives
     STAMP_DIR    ${CMAKE_CURRENT_BINARY_DIR}/planning/sbpl_spline_primitives/stamp
@@ -40,10 +46,11 @@ ExternalProject_Add(planning-sbpl_spline_primitives
     GIT_TAG             feature/qt4-qt5
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> ${POLICY_ARGS} -DROCK_VIZ_ENABLED=OFF -DCMAKE_BUILD_TYPE=RELEASE
 )
 add_dependencies(planning-sbpl_spline_primitives base-cmake base-types )
 
+# branch of https://github.com/dfki-ric/traversability_generator3d/pull/21 until it is merged
 ExternalProject_Add(planning-traversability_generator3d
     PREFIX       planning/traversability_generator3d
     STAMP_DIR    ${CMAKE_CURRENT_BINARY_DIR}/planning/traversability_generator3d/stamp
@@ -52,7 +59,7 @@ ExternalProject_Add(planning-traversability_generator3d
     BINARY_DIR   ${CMAKE_CURRENT_BINARY_DIR}/planning/traversability_generator3d/build
     INSTALL_DIR         ${CMAKE_INSTALL_PREFIX}
     GIT_REPOSITORY      https://github.com/dfki-ric/traversability_generator3d.git
-    GIT_TAG             feat/partial_traversability
+    GIT_TAG             fix/cgal_dependencies
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
@@ -66,8 +73,8 @@ ExternalProject_Add(gui-vizkit3d_debug_drawings
     SOURCE_DIR   ${CMAKE_CURRENT_BINARY_DIR}/gui/vizkit3d_debug_drawings/src
     BINARY_DIR   ${CMAKE_CURRENT_BINARY_DIR}/gui/vizkit3d_debug_drawings/build
     INSTALL_DIR         ${CMAKE_INSTALL_PREFIX}
-    GIT_REPOSITORY      https://github.com/pierrewillenbrockdfki/gui-vizkit3d_debug_drawings.git
-    GIT_TAG             feature/qt4-qt5
+    GIT_REPOSITORY      https://github.com/rock-gui/gui-vizkit3d_debug_drawings.git
+    GIT_TAG             master
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DWITH_PORTS=OFF -DCMAKE_BUILD_TYPE=RELEASE 
@@ -81,11 +88,11 @@ ExternalProject_Add(control-trajectory_follower
     SOURCE_DIR   ${CMAKE_CURRENT_BINARY_DIR}/control/trajectory_follower/src
     BINARY_DIR   ${CMAKE_CURRENT_BINARY_DIR}/control/trajectory_follower/build
     INSTALL_DIR         ${CMAKE_INSTALL_PREFIX}
-    GIT_REPOSITORY      https://github.com/pierrewillenbrockdfki/control-trajectory_follower.git
-    GIT_TAG             limit_speed_at_end_of_traj-qt4-qt5
+    GIT_REPOSITORY      https://github.com/rock-control/control-trajectory_follower.git
+    GIT_TAG             master
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> ${POLICY_ARGS} -DCMAKE_BUILD_TYPE=RELEASE
 )
 add_dependencies(control-trajectory_follower base-types external-sisl gui-osgviz )
 
@@ -110,14 +117,15 @@ ExternalProject_Add(base-types
     SOURCE_DIR   ${CMAKE_CURRENT_BINARY_DIR}/base/types/src
     BINARY_DIR   ${CMAKE_CURRENT_BINARY_DIR}/base/types/build
     INSTALL_DIR         ${CMAKE_INSTALL_PREFIX}
-    GIT_REPOSITORY      https://github.com/pierrewillenbrockdfki/base-types.git
-    GIT_TAG             feature/qt4-qt5
+    GIT_REPOSITORY      https://github.com/rock-core/base-types.git
+    GIT_TAG             master
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DUSE_SISL=ON -DBINDINGS_RUBY=OFF -DROCK_VIZ_ENABLED=TRUE -DCMAKE_BUILD_TYPE=RELEASE 
 )
 add_dependencies(base-types base-cmake base-logging external-sisl gui-vizkit3d )
 
+# branch of https://github.com/envire/slam-maps/pull/56 until it is merged
 ExternalProject_Add(slam-maps
     PREFIX       slam/maps
     STAMP_DIR    ${CMAKE_CURRENT_BINARY_DIR}/slam/maps/stamp
@@ -125,14 +133,15 @@ ExternalProject_Add(slam-maps
     SOURCE_DIR   ${CMAKE_CURRENT_BINARY_DIR}/slam/maps/src
     BINARY_DIR   ${CMAKE_CURRENT_BINARY_DIR}/slam/maps/build
     INSTALL_DIR         ${CMAKE_INSTALL_PREFIX}
-    GIT_REPOSITORY      https://github.com/haider8645/slam-maps.git
-    GIT_TAG             feature/qt4-qt5
+    GIT_REPOSITORY      https://github.com/envire/slam-maps.git
+    GIT_TAG             fix/cxx_standard
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
 )
 add_dependencies(slam-maps base-cmake base-types base-numeric base-boost_serialization gui-vizkit3d gui-osgviz )
 
+# branch of https://github.com/rock-core/gui-vizkit3d/pull/86 until it is merged
 ExternalProject_Add(gui-vizkit3d
     PREFIX       gui/vizkit3d
     STAMP_DIR    ${CMAKE_CURRENT_BINARY_DIR}/gui/vizkit3d/stamp
@@ -140,8 +149,8 @@ ExternalProject_Add(gui-vizkit3d
     SOURCE_DIR   ${CMAKE_CURRENT_BINARY_DIR}/gui/vizkit3d/src
     BINARY_DIR   ${CMAKE_CURRENT_BINARY_DIR}/gui/vizkit3d/build
     INSTALL_DIR         ${CMAKE_INSTALL_PREFIX}
-    GIT_REPOSITORY      https://github.com/pierrewillenbrockdfki/gui-vizkit3d.git
-    GIT_TAG             feature/qt4-qt5
+    GIT_REPOSITORY      https://github.com/rock-core/gui-vizkit3d.git
+    GIT_TAG             fix/remove_boost_system_and_fix_warnings
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
@@ -159,7 +168,7 @@ ExternalProject_Add(gui-osgviz
     GIT_TAG             master
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> ${POLICY_ARGS} -DCMAKE_BUILD_TYPE=RELEASE
 )
 add_dependencies(gui-osgviz base-cmake )
 
@@ -188,7 +197,7 @@ ExternalProject_Add(base-logging
     GIT_TAG             master
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> ${POLICY_ARGS} -DCMAKE_BUILD_TYPE=RELEASE
 )
 add_dependencies(base-logging base-cmake )
 
@@ -203,7 +212,7 @@ ExternalProject_Add(base-numeric
     GIT_TAG             master
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> ${POLICY_ARGS} -DCMAKE_BUILD_TYPE=RELEASE
 )
 add_dependencies(base-numeric base-types base-logging )
 
@@ -218,7 +227,7 @@ ExternalProject_Add(base-boost_serialization
     GIT_TAG             master
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> ${POLICY_ARGS} -DCMAKE_BUILD_TYPE=RELEASE
 )
 add_dependencies(base-boost_serialization base-cmake base-types base-numeric )
 
@@ -230,10 +239,10 @@ ExternalProject_Add(gui-osg_qt5
     BINARY_DIR   ${CMAKE_CURRENT_BINARY_DIR}/gui/osg_qt5/build
     INSTALL_DIR         ${CMAKE_INSTALL_PREFIX}
     GIT_REPOSITORY      https://github.com/rock-core/gui-osg_qt4.git
-    GIT_TAG             feature/qt4-qt5
+    GIT_TAG             master
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> ${POLICY_ARGS} -DCMAKE_BUILD_TYPE=RELEASE
 )
 add_dependencies(gui-osg_qt5 base-cmake )
 
@@ -248,7 +257,7 @@ ExternalProject_Add(gui-qtpropertybrowser
     GIT_TAG             master
     CMAKE_CACHE_ARGS    -DENV{PKG_CONFIG_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/
                         -DENV{CMAKE_PREFIX_PATH}:STRING=${CMAKE_INSTALL_PREFIX}/share/rock/cmake/
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DCMAKE_BUILD_TYPE=RELEASE 
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> ${POLICY_ARGS} -DCMAKE_BUILD_TYPE=RELEASE
 )
 
 configure_file(env.sh.in ${PROJECT_SOURCE_DIR}/env.sh)

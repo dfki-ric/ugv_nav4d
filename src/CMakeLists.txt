@@ -24,7 +24,9 @@ if(ENABLE_DEBUG_DRAWINGS AND vizkit3d_debug_drawings-commands_FOUND)
     endif()
 endif()
 
-set(ADDITIONAL_LIBS "")
+# used by PlannerDump.cpp
+find_package(Boost REQUIRED COMPONENTS filesystem)
+set(ADDITIONAL_LIBS Boost::filesystem)
 if(OpenMP_CXX_FOUND)
 	message(STATUS "OpenMP is found: ${OpenMP_CXX_FOUND}")
     list(APPEND ADDITIONAL_LIBS OpenMP::OpenMP_CXX)
@@ -53,9 +55,10 @@ rock_library(ugv_nav4d
         ReedsShepp.hpp
     DEPS_PKGCONFIG
         ${DEPS_PKGCONFIG_LIST}
-    LIBS 
+    LIBS
         ${ADDITIONAL_LIBS}
 )
+target_compile_features(ugv_nav4d PUBLIC cxx_std_14)
 
 if(TESTS_ENABLED)
     message(STATUS "TESTS_ENABLED is defined with value: ${TESTS_ENABLED}")

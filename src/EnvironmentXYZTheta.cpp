@@ -7,6 +7,7 @@
 #include "PathStatistic.hpp"
 #include "Dijkstra.hpp"
 #include <limits>
+#include <queue>
 #include <chrono>
 #include <unordered_set>
 #include <base-logging/Logging.hpp>
